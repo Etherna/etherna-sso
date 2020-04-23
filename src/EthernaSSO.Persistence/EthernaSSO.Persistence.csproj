@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <RootNamespace>Etherna.SSOServer.Persistence</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MongODM.AspNetCore" Version="0.19.0-alpha0033" />
+    <PackageReference Include="MongODM.Hangfire" Version="0.19.0-alpha0033" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EthernaSSO.Domain\EthernaSSO.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Etherna.SSOServer.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using EthernaSSO.Models;
+using System.Diagnostics;
 
-namespace EthernaSSO.Controllers
+namespace Etherna.SSOServer.Controllers
 {
     public class HomeController : Controller
     {

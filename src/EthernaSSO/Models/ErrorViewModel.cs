@@ -1,6 +1,6 @@
 using System;
 
-namespace EthernaSSO.Models
+namespace Etherna.SSOServer.Models
 {
     public class ErrorViewModel
     {

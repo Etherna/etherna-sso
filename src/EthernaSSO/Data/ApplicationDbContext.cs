@@ -4,7 +4,7 @@ using System.Text;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-namespace EthernaSSO.Data
+namespace Etherna.SSOServer.Data
 {
     public class ApplicationDbContext : IdentityDbContext
     {
