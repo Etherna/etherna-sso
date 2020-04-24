@@ -1,5 +1,5 @@
 ﻿using Etherna.SSOServer.Domain;
-using Etherna.SSOServer.Domain.Models.User;
+using Etherna.SSOServer.Domain.Models;
 using Microsoft.AspNetCore.Identity;
 using MongoDB.Driver.Linq;
 using System;
@@ -29,9 +29,9 @@ namespace Etherna.SSOServer.Services.EntityStores
             this.context = context;
         }
 
-        public Task AddLoginAsync(User user, Microsoft.AspNetCore.Identity.UserLoginInfo login, CancellationToken cancellationToken)
+        public Task AddLoginAsync(User user, UserLoginInfo login, CancellationToken cancellationToken)
         {
-            user.AddLogin(new Domain.Models.User.UserLoginInfo(login.LoginProvider, login.ProviderKey));
+            user.AddLogin(new Domain.Models.UserAgg.UserLoginInfo(login.LoginProvider, login.ProviderKey));
             return Task.CompletedTask;
         }
 
@@ -65,7 +65,7 @@ namespace Etherna.SSOServer.Services.EntityStores
 
         public Task<User> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken) =>
             context.Users.QueryElementsAsync(elements =>
-                elements.FirstOrDefaultAsync(u => u.NormalizedUserName == normalizedUserName));
+                elements.FirstOrDefaultAsync(u => u.NormalizedUsername == normalizedUserName));
 
         public Task<int> GetAccessFailedCountAsync(User user, CancellationToken cancellationToken) =>
             Task.FromResult(user.AccessFailedCount);
@@ -82,16 +82,16 @@ namespace Etherna.SSOServer.Services.EntityStores
         public Task<DateTimeOffset?> GetLockoutEndDateAsync(User user, CancellationToken cancellationToken) =>
             Task.FromResult(user.LockoutEnd);
 
-        public Task<IList<Microsoft.AspNetCore.Identity.UserLoginInfo>> GetLoginsAsync(User user, CancellationToken cancellationToken) =>
-            Task.FromResult<IList<Microsoft.AspNetCore.Identity.UserLoginInfo>>(
-                user.Logins.Select(l => new Microsoft.AspNetCore.Identity.UserLoginInfo(l.LoginProvider, l.ProviderKey, l.LoginProvider))
+        public Task<IList<UserLoginInfo>> GetLoginsAsync(User user, CancellationToken cancellationToken) =>
+            Task.FromResult<IList<UserLoginInfo>>(
+                user.Logins.Select(l => new UserLoginInfo(l.LoginProvider, l.ProviderKey, l.LoginProvider))
                            .ToList());
 
         public Task<string> GetNormalizedEmailAsync(User user, CancellationToken cancellationToken) =>
             Task.FromResult(user.NormalizedEmail);
 
         public Task<string> GetNormalizedUserNameAsync(User user, CancellationToken cancellationToken) =>
-            Task.FromResult(user.NormalizedUserName);
+            Task.FromResult(user.NormalizedUsername);
 
         public Task<string> GetPasswordHashAsync(User user, CancellationToken cancellationToken) =>
             Task.FromResult(user.PasswordHash);
@@ -103,7 +103,7 @@ namespace Etherna.SSOServer.Services.EntityStores
             Task.FromResult(user.Id);
 
         public Task<string> GetUserNameAsync(User user, CancellationToken cancellationToken) =>
-            Task.FromResult(user.UserName);
+            Task.FromResult(user.Username);
 
         public Task<bool> HasPasswordAsync(User user, CancellationToken cancellationToken) =>
             Task.FromResult(user.HasPassword);
@@ -177,7 +177,7 @@ namespace Etherna.SSOServer.Services.EntityStores
 
         public Task SetUserNameAsync(User user, string userName, CancellationToken cancellationToken)
         {
-            user.SetUserName(userName);
+            user.SetUsername(userName);
             return Task.CompletedTask;
         }
 

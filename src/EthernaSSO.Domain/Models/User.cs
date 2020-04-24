@@ -1,5 +1,6 @@
 ﻿using Digicando.DomainHelper.Attributes;
 using Etherna.SSOServer.Domain.Models.UserAgg;
+using Nethereum.Util;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,21 +14,30 @@ namespace Etherna.SSOServer.Domain.Models
         private List<UserLoginInfo> _logins = new List<UserLoginInfo>();
 
         // Constructors and dispose.
+        /// <summary>
+        /// Web3 unmanaged user registration
+        /// </summary>
+        /// <param name="address">The user public address</param>
+        public User(string address)
+        {
+            SetAddress(address);
+        }
+
+        /// <summary>
+        /// Web2 managed user registration
+        /// </summary>
+        /// <param name="address">The user public address</param>
+        /// <param name="privateKey">The user encrypted private key</param>
+        /// <param name="email">Optional user email</param>
+        /// <param name="username">Optional username</param>
+        public User(string address, string privateKey, string email = default, string username = default)
+        {
+            SetAddress(address);
+            SetPrivateKey(privateKey);
+            if (email != null) SetEmail(email);
+            if (username != null) SetUsername(username);
+        }
         protected User() { }
-
-        // Builders.
-        public static User CreateManagedUser(string username, string password)
-        {
-            //build new address
-        }
-
-        public static User CreateUnmanagedUser(string address, string signature)
-        {
-            //verify signature
-
-
-            return new User() { Id = address };
-        }
 
         // Properties.
         public virtual int AccessFailedCount { get; internal protected set; }
@@ -44,10 +54,11 @@ namespace Etherna.SSOServer.Domain.Models
             protected set => _logins = new List<UserLoginInfo>(value ?? new UserLoginInfo[0]);
         }
         public virtual string NormalizedEmail { get; protected set; }
-        public virtual string NormalizedUserName { get; protected set; }
+        public virtual string NormalizedUsername { get; protected set; }
         public virtual string PasswordHash { get; internal protected set; }
+        public virtual string PrivateKey { get; protected set; }
         public virtual string SecurityStamp { get; internal protected set; }
-        public virtual string UserName { get; protected set; }
+        public virtual string Username { get; protected set; }
 
         // Methods.
         [PropertyAlterer(nameof(Logins))]
@@ -77,7 +88,7 @@ namespace Etherna.SSOServer.Domain.Models
             if (!Regex.IsMatch(email,
                 @"\A(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)\Z",
                 RegexOptions.IgnoreCase))
-                throw new ArgumentOutOfRangeException(nameof(Email));
+                throw new ArgumentOutOfRangeException(nameof(email));
 
             if (Email != email)
             {
@@ -87,17 +98,17 @@ namespace Etherna.SSOServer.Domain.Models
             }
         }
 
-        [PropertyAlterer(nameof(NormalizedUserName))]
-        [PropertyAlterer(nameof(UserName))]
-        public virtual void SetUserName(string userName)
+        [PropertyAlterer(nameof(NormalizedUsername))]
+        [PropertyAlterer(nameof(Username))]
+        public virtual void SetUsername(string username)
         {
-            if (userName is null)
-                throw new ArgumentNullException(nameof(userName));
+            if (!Regex.IsMatch(username,"^[a-zA-Z0-9]+(?:[_-]?[a-zA-Z0-9])*$"))
+                throw new ArgumentOutOfRangeException(nameof(username));
 
-            if (UserName != userName)
+            if (Username != username)
             {
-                NormalizedUserName = NormalizeUserName(userName);
-                UserName = userName;
+                NormalizedUsername = NormalizeUsername(username);
+                Username = username;
             }
         }
 
@@ -118,14 +129,35 @@ namespace Etherna.SSOServer.Domain.Models
             return $"{cleanedUsername}@{domain}";
         }
 
-        private string NormalizeUserName(string userName)
+        private string NormalizeUsername(string username)
         {
-            if (userName is null)
-                throw new ArgumentNullException(nameof(userName));
+            if (username is null)
+                throw new ArgumentNullException(nameof(username));
 
-            userName = userName.ToUpper(); //to upper case
+            username = username.ToUpper(); //to upper case
 
-            return userName;
+            return username;
+        }
+
+        private void SetAddress(string address)
+        {
+            if (address is null)
+                throw new ArgumentNullException(nameof(address));
+            if (!address.IsValidEthereumAddressHexFormat())
+                throw new ArgumentException("The value is not a valid address", nameof(address));
+
+            Address = address.ConvertToEthereumChecksumAddress();
+        }
+
+        private void SetPrivateKey(string privateKey)
+        {
+            if (privateKey is null)
+                throw new ArgumentNullException(nameof(privateKey));
+
+            //encrypted key validation
+            //TBD
+
+            PrivateKey = privateKey;
         }
     }
 }
