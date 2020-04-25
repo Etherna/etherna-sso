@@ -3,7 +3,7 @@ using Etherna.SSOServer.Domain.Models;
 
 namespace Etherna.SSOServer.Domain
 {
-    public interface ISSOContext
+    public interface ISsoDbContext
     {
         ICollectionRepository<ActivityLog, string> ActivityLogs { get; }
         ICollectionRepository<User, string> Users { get; }

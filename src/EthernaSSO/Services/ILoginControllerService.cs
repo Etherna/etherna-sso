@@ -13,7 +13,7 @@ namespace Etherna.SSOServer.Services
         /// <param name="password">User's password</param>
         /// <param name="rememberMe">Remember user with cookie</param>
         /// <returns>The logged in user</returns>
-        Task<User> LoginWithPasswordAsync(string emailOrUsername, string password, bool rememberMe);
+        Task<User?> LoginWithPasswordAsync(string emailOrUsername, string password, bool rememberMe);
 
         /// <summary>
         /// Web3 login with wallet
@@ -33,7 +33,7 @@ namespace Etherna.SSOServer.Services
         /// </summary>
         /// <param name="registerPswdViewModel">Registration form view model</param>
         /// <returns>The logged in user</returns>
-        Task<User> RegisterWithPasswordAsync(RegisterPswdViewModel registerPswdViewModel);
+        Task<User?> RegisterWithPasswordAsync(RegisterPswdViewModel registerPswdViewModel);
 
         /// <summary>
         /// Start a request of password reset for a managed account with email

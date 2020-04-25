@@ -15,7 +15,7 @@ namespace Etherna.SSOServer.Services
     public class LoginControllerService : ILoginControllerService
     {
         // Fields.
-        private readonly ISSOContext context;
+        private readonly ISsoDbContext ssoDbContext;
         private readonly IEmailService emailService;
         private readonly IHttpContextAccessor httpContextAccessor;
         private readonly MVCSettings mvcSettings;
@@ -24,14 +24,14 @@ namespace Etherna.SSOServer.Services
 
         // Constructors.
         public LoginControllerService(
-            ISSOContext context,
+            ISsoDbContext ssoDbContext,
             IEmailService emailService,
             IHttpContextAccessor httpContextAccessor,
             IOptions<MVCSettings> mvcSettings,
             SignInManager<User> signInManager,
             UserManager<User> userManager)
         {
-            this.context = context;
+            this.ssoDbContext = ssoDbContext;
             this.emailService = emailService;
             this.httpContextAccessor = httpContextAccessor;
             this.mvcSettings = mvcSettings.Value;
@@ -40,7 +40,7 @@ namespace Etherna.SSOServer.Services
         }
 
         // Methods.
-        public async Task<User> LoginWithPasswordAsync(string emailOrUsername, string password, bool rememberMe)
+        public async Task<User?> LoginWithPasswordAsync(string emailOrUsername, string password, bool rememberMe)
         {
             var user = emailOrUsername.Contains('@') ? //if is email
                 await userManager.FindByEmailAsync(emailOrUsername) :
@@ -62,7 +62,7 @@ namespace Etherna.SSOServer.Services
 
         public Task LogoutAsync() => signInManager.SignOutAsync();
 
-        public async Task<User> RegisterWithPasswordAsync(RegisterPswdViewModel registerPswdViewModel)
+        public async Task<User?> RegisterWithPasswordAsync(RegisterPswdViewModel registerPswdViewModel)
         {
             // Generate new wallet.
             var address = "";

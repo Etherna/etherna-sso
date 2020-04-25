@@ -21,12 +21,12 @@ namespace Etherna.SSOServer.Services.EntityStores
         IUserSecurityStampStore<User>,
         IUserStore<User>
     {
-        private readonly ISSOContext context;
+        private readonly ISsoDbContext ssoDbContext;
 
         public UserStore(
-            ISSOContext context)
+            ISsoDbContext ssoDbContext)
         {
-            this.context = context;
+            this.ssoDbContext = ssoDbContext;
         }
 
         public Task AddLoginAsync(User user, UserLoginInfo login, CancellationToken cancellationToken)
@@ -37,14 +37,14 @@ namespace Etherna.SSOServer.Services.EntityStores
 
         public async Task<IdentityResult> CreateAsync(User user, CancellationToken cancellationToken)
         {
-            try { await context.Users.CreateAsync(user, cancellationToken); }
+            try { await ssoDbContext.Users.CreateAsync(user, cancellationToken); }
             catch { return IdentityResult.Failed(); }
             return IdentityResult.Success;
         }
 
         public async Task<IdentityResult> DeleteAsync(User user, CancellationToken cancellationToken)
         {
-            try { await context.Users.DeleteAsync(user, cancellationToken); }
+            try { await ssoDbContext.Users.DeleteAsync(user, cancellationToken); }
             catch { return IdentityResult.Failed(); }
             return IdentityResult.Success;
         }
@@ -52,19 +52,19 @@ namespace Etherna.SSOServer.Services.EntityStores
         public void Dispose() { }
 
         public Task<User> FindByEmailAsync(string normalizedEmail, CancellationToken cancellationToken) =>
-            context.Users.QueryElementsAsync(elements =>
+            ssoDbContext.Users.QueryElementsAsync(elements =>
                 elements.FirstOrDefaultAsync(u => u.NormalizedEmail == normalizedEmail));
 
         public Task<User> FindByIdAsync(string userId, CancellationToken cancellationToken) =>
-            context.Users.FindOneAsync(userId, cancellationToken: cancellationToken);
+            ssoDbContext.Users.FindOneAsync(userId, cancellationToken: cancellationToken);
 
         public Task<User> FindByLoginAsync(string loginProvider, string providerKey, CancellationToken cancellationToken) =>
-            context.Users.QueryElementsAsync(elements =>
+            ssoDbContext.Users.QueryElementsAsync(elements =>
                 elements.FirstOrDefaultAsync(u => u.Logins.Any(
                     l => l.LoginProvider == loginProvider && l.ProviderKey == providerKey)));
 
         public Task<User> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken) =>
-            context.Users.QueryElementsAsync(elements =>
+            ssoDbContext.Users.QueryElementsAsync(elements =>
                 elements.FirstOrDefaultAsync(u => u.NormalizedUsername == normalizedUserName));
 
         public Task<int> GetAccessFailedCountAsync(User user, CancellationToken cancellationToken) =>
@@ -183,7 +183,7 @@ namespace Etherna.SSOServer.Services.EntityStores
 
         public async Task<IdentityResult> UpdateAsync(User user, CancellationToken cancellationToken)
         {
-            try { await context.Users.ReplaceAsync(user, cancellationToken: cancellationToken); }
+            try { await ssoDbContext.Users.ReplaceAsync(user, cancellationToken: cancellationToken); }
             catch { return IdentityResult.Failed(); }
             return IdentityResult.Success;
         }

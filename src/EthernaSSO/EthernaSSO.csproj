@@ -7,6 +7,7 @@
     <CopyRefAssembliesToPublishDirectory>false</CopyRefAssembliesToPublishDirectory>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <RootNamespace>Etherna.SSOServer</RootNamespace>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
