@@ -70,7 +70,7 @@ namespace Etherna.SSOServer.Services.EntityStores
         public Task<int> GetAccessFailedCountAsync(User user, CancellationToken cancellationToken) =>
             Task.FromResult(user.AccessFailedCount);
 
-        public Task<string> GetEmailAsync(User user, CancellationToken cancellationToken) =>
+        public Task<string?> GetEmailAsync(User user, CancellationToken cancellationToken) =>
             Task.FromResult(user.Email);
 
         public Task<bool> GetEmailConfirmedAsync(User user, CancellationToken cancellationToken) =>
@@ -87,13 +87,13 @@ namespace Etherna.SSOServer.Services.EntityStores
                 user.Logins.Select(l => new UserLoginInfo(l.LoginProvider, l.ProviderKey, l.LoginProvider))
                            .ToList());
 
-        public Task<string> GetNormalizedEmailAsync(User user, CancellationToken cancellationToken) =>
+        public Task<string?> GetNormalizedEmailAsync(User user, CancellationToken cancellationToken) =>
             Task.FromResult(user.NormalizedEmail);
 
-        public Task<string> GetNormalizedUserNameAsync(User user, CancellationToken cancellationToken) =>
+        public Task<string?> GetNormalizedUserNameAsync(User user, CancellationToken cancellationToken) =>
             Task.FromResult(user.NormalizedUsername);
 
-        public Task<string> GetPasswordHashAsync(User user, CancellationToken cancellationToken) =>
+        public Task<string?> GetPasswordHashAsync(User user, CancellationToken cancellationToken) =>
             Task.FromResult(user.PasswordHash);
 
         public Task<string> GetSecurityStampAsync(User user, CancellationToken cancellationToken) =>
@@ -102,7 +102,7 @@ namespace Etherna.SSOServer.Services.EntityStores
         public Task<string> GetUserIdAsync(User user, CancellationToken cancellationToken) =>
             Task.FromResult(user.Id);
 
-        public Task<string> GetUserNameAsync(User user, CancellationToken cancellationToken) =>
+        public Task<string?> GetUserNameAsync(User user, CancellationToken cancellationToken) =>
             Task.FromResult(user.Username);
 
         public Task<bool> HasPasswordAsync(User user, CancellationToken cancellationToken) =>

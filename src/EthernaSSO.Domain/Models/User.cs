@@ -12,6 +12,7 @@ namespace Etherna.SSOServer.Domain.Models
     {
         // Fields.
         private List<UserLoginInfo> _logins = new List<UserLoginInfo>();
+        private string _address = default!;
 
         // Constructors and dispose.
         /// <summary>
@@ -20,7 +21,7 @@ namespace Etherna.SSOServer.Domain.Models
         /// <param name="address">The user public address</param>
         public User(string address)
         {
-            SetAddress(address);
+            Address = address;
         }
 
         /// <summary>
@@ -30,9 +31,9 @@ namespace Etherna.SSOServer.Domain.Models
         /// <param name="privateKey">The user encrypted private key</param>
         /// <param name="email">Optional user email</param>
         /// <param name="username">Optional username</param>
-        public User(string address, string privateKey, string email = default, string username = default)
+        public User(string address, string privateKey, string? email = default, string? username = default)
         {
-            SetAddress(address);
+            Address = address;
             SetPrivateKey(privateKey);
             if (email != null) SetEmail(email);
             if (username != null) SetUsername(username);
@@ -41,8 +42,17 @@ namespace Etherna.SSOServer.Domain.Models
 
         // Properties.
         public virtual int AccessFailedCount { get; internal protected set; }
-        public virtual string Address { get; protected set; }
-        public virtual string Email { get; protected set; }
+        public virtual string Address {
+            get => _address;
+            protected set
+            {
+                if (!value.IsValidEthereumAddressHexFormat())
+                    throw new ArgumentException("The value is not a valid address", nameof(value));
+
+                _address = value.ConvertToEthereumChecksumAddress();
+            }
+        }
+        public virtual string? Email { get; protected set; }
         public virtual bool EmailConfirmed { get; protected set; }
         public virtual bool HasPassword => !string.IsNullOrEmpty(PasswordHash);
         public override string Id { get => Address; protected set => Address = value; } //Id == Address
@@ -53,12 +63,12 @@ namespace Etherna.SSOServer.Domain.Models
             get => _logins;
             protected set => _logins = new List<UserLoginInfo>(value ?? new UserLoginInfo[0]);
         }
-        public virtual string NormalizedEmail { get; protected set; }
-        public virtual string NormalizedUsername { get; protected set; }
-        public virtual string PasswordHash { get; internal protected set; }
-        public virtual string PrivateKey { get; protected set; }
-        public virtual string SecurityStamp { get; internal protected set; }
-        public virtual string Username { get; protected set; }
+        public virtual string? NormalizedEmail { get; protected set; }
+        public virtual string? NormalizedUsername { get; protected set; }
+        public virtual string? PasswordHash { get; internal protected set; }
+        public virtual string? PrivateKey { get; protected set; }
+        public virtual string SecurityStamp { get; internal protected set; } = default!;
+        public virtual string? Username { get; protected set; }
 
         // Methods.
         [PropertyAlterer(nameof(Logins))]
@@ -102,7 +112,7 @@ namespace Etherna.SSOServer.Domain.Models
         [PropertyAlterer(nameof(Username))]
         public virtual void SetUsername(string username)
         {
-            if (!Regex.IsMatch(username,"^[a-zA-Z0-9]+(?:[_-]?[a-zA-Z0-9])*$"))
+            if (!Regex.IsMatch(username, "^[a-zA-Z0-9]+(?:[_-]?[a-zA-Z0-9])*$"))
                 throw new ArgumentOutOfRangeException(nameof(username));
 
             if (Username != username)
@@ -137,16 +147,6 @@ namespace Etherna.SSOServer.Domain.Models
             username = username.ToUpper(); //to upper case
 
             return username;
-        }
-
-        private void SetAddress(string address)
-        {
-            if (address is null)
-                throw new ArgumentNullException(nameof(address));
-            if (!address.IsValidEthereumAddressHexFormat())
-                throw new ArgumentException("The value is not a valid address", nameof(address));
-
-            Address = address.ConvertToEthereumChecksumAddress();
         }
 
         private void SetPrivateKey(string privateKey)

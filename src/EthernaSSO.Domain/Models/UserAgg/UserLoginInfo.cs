@@ -13,7 +13,7 @@
         protected UserLoginInfo() { }
 
         // Properties.
-        public virtual string LoginProvider { get; protected set; }
-        public virtual string ProviderKey { get; protected set; }
+        public virtual string LoginProvider { get; protected set; } = default!;
+        public virtual string ProviderKey { get; protected set; } = default!;
     }
 }
