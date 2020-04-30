@@ -2,6 +2,7 @@
 using Etherna.SSOServer.Domain.Models.UserAgg;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 
@@ -55,7 +56,7 @@ namespace Etherna.SSOServer.Domain.Models
         public virtual IEnumerable<UserLoginInfo> Logins
         {
             get => _logins;
-            protected set => _logins = new List<UserLoginInfo>(value ?? new UserLoginInfo[0]);
+            protected set => _logins = new List<UserLoginInfo>(value ?? Array.Empty<UserLoginInfo>());
         }
         public virtual string? NormalizedEmail { get; protected set; }
         public virtual string? NormalizedUsername { get; protected set; }
@@ -122,7 +123,7 @@ namespace Etherna.SSOServer.Domain.Models
             if (email is null)
                 throw new ArgumentNullException(nameof(email));
 
-            email = email.ToUpper(); //to upper case
+            email = email.ToUpper(CultureInfo.InvariantCulture); //to upper case
 
             var components = email.Split('@');
             var username = components[0];
@@ -138,7 +139,7 @@ namespace Etherna.SSOServer.Domain.Models
             if (username is null)
                 throw new ArgumentNullException(nameof(username));
 
-            username = username.ToUpper(); //to upper case
+            username = username.ToUpper(CultureInfo.InvariantCulture); //to upper case
 
             return username;
         }

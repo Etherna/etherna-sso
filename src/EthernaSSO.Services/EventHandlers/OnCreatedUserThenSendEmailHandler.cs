@@ -6,12 +6,13 @@ using Etherna.SSOServer.Services.Utilities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
+using System;
 using System.Threading.Tasks;
 using Tavis.UriTemplates;
 
 namespace Etherna.SSOServer.Services.EventHandlers
 {
-    public class OnCreatedUserThenSendEmailHandler : EventHandlerBase<EntityCreatedEvent<User>>
+    class OnCreatedUserThenSendEmailHandler : EventHandlerBase<EntityCreatedEvent<User>>
     {
         // Fields.
         private readonly IHttpContextAccessor contextAccessor;
@@ -35,6 +36,8 @@ namespace Etherna.SSOServer.Services.EventHandlers
         // Methods.
         public override async Task HandleAsync(EntityCreatedEvent<User> @event)
         {
+            if (@event is null)
+                throw new ArgumentNullException(nameof(@event));
             if (@event.Entity.Email is null)
                 return;
 

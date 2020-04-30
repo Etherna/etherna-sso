@@ -24,7 +24,7 @@ namespace Etherna.SSOServer.Services.Utilities
                 Credentials = new NetworkCredential(settings.ServiceUser, settings.ServiceKey),
                 EnableSsl = true,
             };
-            var mail = new MailMessage(
+            using var mail = new MailMessage(
                 new MailAddress(settings.SendingAddress, settings.DisplayName),
                 new MailAddress(email))
             {

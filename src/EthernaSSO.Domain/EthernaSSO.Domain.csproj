@@ -9,6 +9,10 @@
 
   <ItemGroup>
     <PackageReference Include="DomainEvents" Version="1.0.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="3.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="MongODM.Core" Version="0.19.0-alpha.43" />
     <PackageReference Include="Nethereum.Util" Version="3.7.1" />
   </ItemGroup>

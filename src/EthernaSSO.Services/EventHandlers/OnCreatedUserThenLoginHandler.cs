@@ -2,11 +2,12 @@
 using Etherna.SSOServer.Domain.Events;
 using Etherna.SSOServer.Domain.Models;
 using Microsoft.AspNetCore.Identity;
+using System;
 using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Services.EventHandlers
 {
-    public class OnCreatedUserThenLoginHandler : EventHandlerBase<EntityCreatedEvent<User>>
+    class OnCreatedUserThenLoginHandler : EventHandlerBase<EntityCreatedEvent<User>>
     {
         // Fields.
         private readonly SignInManager<User> signInManager;
@@ -19,7 +20,12 @@ namespace Etherna.SSOServer.Services.EventHandlers
         }
 
         // Methods.
-        public override Task HandleAsync(EntityCreatedEvent<User> @event) =>
-             signInManager.SignInAsync(@event.Entity, true);
+        public override Task HandleAsync(EntityCreatedEvent<User> @event)
+        {
+            if (@event is null)
+                throw new ArgumentNullException(nameof(@event));
+
+            return signInManager.SignInAsync(@event.Entity, true);
+        }
     }
 }

@@ -13,7 +13,7 @@ using Tavis.UriTemplates;
 
 namespace Etherna.SSOServer.Services
 {
-    public class LoginControllerService : ILoginControllerService
+    class LoginControllerService : ILoginControllerService
     {
         // Fields.
         private readonly ISsoDbContext ssoDbContext;
@@ -43,7 +43,7 @@ namespace Etherna.SSOServer.Services
         // Methods.
         public async Task<User?> LoginWithPasswordAsync(string emailOrUsername, string password, bool rememberMe)
         {
-            var user = emailOrUsername.Contains('@') ? //if is email
+            var user = emailOrUsername.Contains('@', StringComparison.InvariantCulture) ? //if is email
                 await userManager.FindByEmailAsync(emailOrUsername) :
                 await userManager.FindByNameAsync(emailOrUsername);
 

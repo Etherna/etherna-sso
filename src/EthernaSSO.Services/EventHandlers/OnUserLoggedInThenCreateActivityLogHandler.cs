@@ -1,10 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using Digicando.DomainEvents;
+using Etherna.SSOServer.Domain.Events;
+using System;
+using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Services.EventHandlers
 {
-    public class OnUserLoggedInThenCreateActivityLogHandler
+    class OnUserLoggedInThenCreateActivityLogHandler : EventHandlerBase<UserLoggedInEvent>
     {
+        public override Task HandleAsync(UserLoggedInEvent @event)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
