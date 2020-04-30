@@ -9,7 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="DomainEvents" Version="1.0.0" />
-    <PackageReference Include="MongODM.Core" Version="0.19.0-alpha0033" />
+    <PackageReference Include="MongODM.Core" Version="0.19.0-alpha.43" />
     <PackageReference Include="Nethereum.Util" Version="3.7.1" />
   </ItemGroup>
 

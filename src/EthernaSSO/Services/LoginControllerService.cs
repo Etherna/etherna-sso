@@ -1,5 +1,6 @@
 ﻿using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Domain.Models.UserAgg;
 using Etherna.SSOServer.Services.Settings;
 using Etherna.SSOServer.Services.Utilities;
 using Etherna.SSOServer.ViewModels;
@@ -72,10 +73,9 @@ namespace Etherna.SSOServer.Services
 
             // Init entity.
             var user = new User(
-                address,
-                privateKey,
-                registerPswdViewModel.Email,
-                registerPswdViewModel.Username);
+                new EtherAccount(address, privateKey, EtherAccount.EncryptionState.ServerEncrypted),
+                email: registerPswdViewModel.Email,
+                username: registerPswdViewModel.Username);
 
             // Register user.
             var result = await userManager.CreateAsync(user, registerPswdViewModel.Password);

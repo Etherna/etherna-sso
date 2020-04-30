@@ -1,6 +1,5 @@
 ﻿using Digicando.DomainHelper.Attributes;
 using Etherna.SSOServer.Domain.Models.UserAgg;
-using Nethereum.Util;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,52 +11,47 @@ namespace Etherna.SSOServer.Domain.Models
     {
         // Fields.
         private List<UserLoginInfo> _logins = new List<UserLoginInfo>();
-        private string _address = default!;
 
         // Constructors and dispose.
-        /// <summary>
-        /// Web3 unmanaged user registration
-        /// </summary>
-        /// <param name="address">The user public address</param>
-        public User(string address)
-        {
-            Address = address;
-        }
+        ///// <summary>
+        ///// Web3 unmanaged user registration
+        ///// </summary>
+        ///// <param name="address">The user public address</param>
+        //public User(string address)
+        //{
+        //    Address = address;
+        //}
 
         /// <summary>
         /// Web2 managed user registration
         /// </summary>
-        /// <param name="address">The user public address</param>
-        /// <param name="privateKey">The user encrypted private key</param>
+        /// <param name="account">The user's account, managed by SSO Server</param>
         /// <param name="email">Optional user email</param>
         /// <param name="username">Optional username</param>
-        public User(string address, string privateKey, string? email = default, string? username = default)
+        /// <param name="web3LoginAddress">Optional address of account managed by user. Valid for authentication</param>
+        public User(
+            EtherAccount account,
+            string? email = default,
+            string? username = default,
+            string? web3LoginAddress = default)
         {
-            Address = address;
-            SetPrivateKey(privateKey);
+            Account = account;
             if (email != null) SetEmail(email);
             if (username != null) SetUsername(username);
+            if (web3LoginAddress != null) LoginAccount = new EtherAccount(web3LoginAddress);
         }
         protected User() { }
 
         // Properties.
         public virtual int AccessFailedCount { get; internal protected set; }
-        public virtual string Address {
-            get => _address;
-            protected set
-            {
-                if (!value.IsValidEthereumAddressHexFormat())
-                    throw new ArgumentException("The value is not a valid address", nameof(value));
-
-                _address = value.ConvertToEthereumChecksumAddress();
-            }
-        }
+        public virtual EtherAccount Account { get; protected set; } = default!;
         public virtual string? Email { get; protected set; }
         public virtual bool EmailConfirmed { get; protected set; }
         public virtual bool HasPassword => !string.IsNullOrEmpty(PasswordHash);
-        public override string Id { get => Address; protected set => Address = value; } //Id == Address
+        public override string Id => Account.Address; //Id == Account.Address
         public virtual bool LockoutEnabled { get; internal protected set; }
         public virtual DateTimeOffset? LockoutEnd { get; internal protected set; }
+        public virtual EtherAccount? LoginAccount { get; protected set; }
         public virtual IEnumerable<UserLoginInfo> Logins
         {
             get => _logins;
@@ -147,17 +141,6 @@ namespace Etherna.SSOServer.Domain.Models
             username = username.ToUpper(); //to upper case
 
             return username;
-        }
-
-        private void SetPrivateKey(string privateKey)
-        {
-            if (privateKey is null)
-                throw new ArgumentNullException(nameof(privateKey));
-
-            //encrypted key validation
-            //TBD
-
-            PrivateKey = privateKey;
         }
     }
 }
