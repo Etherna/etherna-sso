@@ -6,7 +6,6 @@ namespace Etherna.SSOServer.Domain
 {
     public interface ISsoDbContext : IDbContext
     {
-        ICollectionRepository<ActivityLog, string> ActivityLogs { get; }
         ICollectionRepository<User, string> Users { get; }
     }
 }

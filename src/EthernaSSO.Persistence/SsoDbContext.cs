@@ -31,7 +31,6 @@ namespace Etherna.SSOServer.Persistence
 
         // Properties.
         //repositories
-        public ICollectionRepository<ActivityLog, string> ActivityLogs { get; } = new CollectionRepository<ActivityLog, string>("activityLogs");
         public ICollectionRepository<User, string> Users { get; } = new CollectionRepository<User, string>("users");
 
         //other properties

@@ -36,7 +36,7 @@ namespace Etherna.SSOServer.Domain.Models
             string? username = default,
             string? web3LoginAddress = default)
         {
-            Account = account;
+            EtherAccount = account;
             if (email != null) SetEmail(email);
             if (username != null) SetUsername(username);
             if (web3LoginAddress != null) LoginAccount = new EtherAccount(web3LoginAddress);
@@ -45,11 +45,10 @@ namespace Etherna.SSOServer.Domain.Models
 
         // Properties.
         public virtual int AccessFailedCount { get; internal protected set; }
-        public virtual EtherAccount Account { get; protected set; } = default!;
         public virtual string? Email { get; protected set; }
         public virtual bool EmailConfirmed { get; protected set; }
+        public virtual EtherAccount EtherAccount { get; protected set; } = default!;
         public virtual bool HasPassword => !string.IsNullOrEmpty(PasswordHash);
-        public override string Id => Account.Address; //Id == Account.Address
         public virtual bool LockoutEnabled { get; internal protected set; }
         public virtual DateTimeOffset? LockoutEnd { get; internal protected set; }
         public virtual EtherAccount? LoginAccount { get; protected set; }
@@ -61,7 +60,6 @@ namespace Etherna.SSOServer.Domain.Models
         public virtual string? NormalizedEmail { get; protected set; }
         public virtual string? NormalizedUsername { get; protected set; }
         public virtual string? PasswordHash { get; internal protected set; }
-        public virtual string? PrivateKey { get; protected set; }
         public virtual string SecurityStamp { get; internal protected set; } = default!;
         public virtual string? Username { get; protected set; }
 
