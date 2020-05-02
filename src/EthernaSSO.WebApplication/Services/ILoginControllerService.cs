@@ -1,8 +1,8 @@
 ﻿using Etherna.SSOServer.Domain.Models;
-using Etherna.SSOServer.ViewModels;
+using Etherna.SSOServer.WebApplication.ViewModels;
 using System.Threading.Tasks;
 
-namespace Etherna.SSOServer.Services
+namespace Etherna.SSOServer.WebApplication.Services
 {
     public interface ILoginControllerService
     {

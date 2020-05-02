@@ -1,9 +1,9 @@
-﻿using Etherna.SSOServer.ViewModels;
+﻿using Etherna.SSOServer.WebApplication.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 
-namespace Etherna.SSOServer.Controllers
+namespace Etherna.SSOServer.WebApplication.Controllers
 {
     public class HomeController : Controller
     {

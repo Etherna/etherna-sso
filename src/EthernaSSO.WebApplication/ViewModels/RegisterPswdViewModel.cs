@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Etherna.SSOServer.ViewModels
+namespace Etherna.SSOServer.WebApplication.ViewModels
 {
     public class RegisterPswdViewModel
     {

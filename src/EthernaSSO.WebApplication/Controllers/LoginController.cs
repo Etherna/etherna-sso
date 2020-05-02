@@ -1,7 +1,7 @@
-﻿using Etherna.SSOServer.Services;
+﻿using Etherna.SSOServer.WebApplication.Services;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Etherna.SSOServer.Controllers
+namespace Etherna.SSOServer.WebApplication.Controllers
 {
     public class LoginController : Controller
     {

@@ -28,6 +28,7 @@
     <ProjectReference Include="..\EthernaSSO.Domain\EthernaSSO.Domain.csproj" />
     <ProjectReference Include="..\EthernaSSO.Persistence\EthernaSSO.Persistence.csproj" />
     <ProjectReference Include="..\EthernaSSO.Services\EthernaSSO.Services.csproj" />
+    <ProjectReference Include="..\EthernaSSO.WebApplication\EthernaSSO.WebApplication.csproj" />
   </ItemGroup>
 
 </Project>
