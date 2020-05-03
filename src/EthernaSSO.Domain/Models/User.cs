@@ -10,6 +10,9 @@ namespace Etherna.SSOServer.Domain.Models
 {
     public class User : EntityModelBase<string>
     {
+        // Consts.
+        public const string AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._";
+
         // Fields.
         private List<UserLoginInfo> _logins = new List<UserLoginInfo>();
 
@@ -105,7 +108,7 @@ namespace Etherna.SSOServer.Domain.Models
         [PropertyAlterer(nameof(Username))]
         public virtual void SetUsername(string username)
         {
-            if (!Regex.IsMatch(username, "^[a-zA-Z0-9]+(?:[_-]?[a-zA-Z0-9])*$"))
+            if (!Regex.IsMatch(username, "^[a-zA-Z0-9]+(?:[._-]?[a-zA-Z0-9])*$"))
                 throw new ArgumentOutOfRangeException(nameof(username));
 
             if (Username != username)

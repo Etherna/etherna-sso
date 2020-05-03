@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Persistence
 {
-    class SsoDbContext : DbContext, IEventDispatcherDbContext, ISsoDbContext
+    public class SsoDbContext : DbContext, IEventDispatcherDbContext, ISsoDbContext
     {
         // Consts.
         private const string SerializersNamespace = "Etherna.SSOServer.Persistence.ClassMaps";
