@@ -1,3 +1,4 @@
+using Digicando.MongODM.HF.Tasks;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Persistence;
@@ -64,27 +65,31 @@ namespace Etherna.SSOServer
                     });
             });
 
-            // Add custom services.
-            services.AddPersistence(options =>
+            // Configure application setting.
+            var appSettings = new ApplicationSettings
             {
-                options.MongODM.AddDbContext<ISsoDbContext, SsoDbContext>(contextOpts =>
-                {
-                    contextOpts.ConnectionString = Configuration["MONGODB_CONNECTIONSTRING"];
-                    contextOpts.DbName = Configuration["MONGODB_DBNAME"];
-                    contextOpts.DocumentVersion = configuration["MONGODB_DOCUMENTVERSION"];
-                });
+                AssemblyVersion = GetType()
+                    .GetTypeInfo()
+                    .Assembly
+                    .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+                    ?.InformationalVersion!
+            };
+            services.Configure<ApplicationSettings>(config =>
+            {
+                config.AssemblyVersion = appSettings.AssemblyVersion;
             });
-            services.AddDomainServices();
 
-            // Set configurations.
-            services.Configure<ApplicationSettings>(options =>
-            {
-                options.AssemblyVersion = GetType()
-                                         .GetTypeInfo()
-                                         .Assembly
-                                         .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
-                                         ?.InformationalVersion ?? "1.0.0";
-            });
+            // Add persistence.
+            services.UseMongODM<HangfireTaskRunner>()
+                .AddDbContext<ISsoDbContext, SsoDbContext>(options =>
+                {
+                    options.ConnectionString = Configuration["MONGODB_CONNECTIONSTRING"];
+                    options.DBName = Configuration["MONGODB_DBNAME"];
+                    options.DocumentVersion = appSettings.SimpleAssemblyVersion;
+                });
+
+            // Configure domain.
+            //services.AddDomainServices();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
