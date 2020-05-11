@@ -23,7 +23,7 @@ namespace Etherna.SSOServer.Persistence
         public SsoDbContext(
             IDbContextDependencies dbContextDependencies,
             IEventDispatcher eventDispatcher,
-            DbContextOptions options)
+            DbContextOptions<SsoDbContext> options)
             : base(dbContextDependencies, options)
         {
             EventDispatcher = eventDispatcher;

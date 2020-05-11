@@ -11,7 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="GitVersionTask" Version="5.3.0">
+    <PackageReference Include="GitVersionTask" Version="5.3.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
@@ -23,8 +23,8 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.10.8" />
-    <PackageReference Include="MongODM.AspNetCore" Version="0.19.0-alpha.47" />
-    <PackageReference Include="MongODM.Hangfire" Version="0.19.0-alpha.47" />
+    <PackageReference Include="MongODM.AspNetCore" Version="0.19.0-alpha.48" />
+    <PackageReference Include="MongODM.Hangfire" Version="0.19.0-alpha.48" />
   </ItemGroup>
 
   <ItemGroup>

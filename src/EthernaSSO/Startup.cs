@@ -54,7 +54,7 @@ namespace Etherna.SSOServer
             services.AddHangfire(config =>
             {
                 config.UseMongoStorage(
-                    Configuration["HANGFIRE_CONNECTIONSTRING"],
+                    Configuration["ConnectionStrings:HangfireDb"],
                     new MongoStorageOptions
                     {
                         MigrationOptions = new MongoMigrationOptions
@@ -65,7 +65,7 @@ namespace Etherna.SSOServer
                     });
             });
 
-            // Configure application setting.
+            // Configure setting.
             var appSettings = new ApplicationSettings
             {
                 AssemblyVersion = GetType()
@@ -78,18 +78,18 @@ namespace Etherna.SSOServer
             {
                 config.AssemblyVersion = appSettings.AssemblyVersion;
             });
+            services.Configure<EmailSettings>(Configuration);
 
             // Add persistence.
             services.UseMongODM<HangfireTaskRunner>()
                 .AddDbContext<ISsoDbContext, SsoDbContext>(options =>
                 {
-                    options.ConnectionString = Configuration["MONGODB_CONNECTIONSTRING"];
-                    options.DBName = Configuration["MONGODB_DBNAME"];
+                    options.ConnectionString = Configuration["ConnectionStrings:SSOServerDb"];
                     options.DocumentVersion = appSettings.SimpleAssemblyVersion;
                 });
 
             // Configure domain.
-            //services.AddDomainServices();
+            services.AddDomainServices();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
