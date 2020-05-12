@@ -3,7 +3,7 @@ using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Domain.Models.UserAgg;
 using Etherna.SSOServer.Services.Settings;
 using Etherna.SSOServer.Services.Utilities;
-using Etherna.SSOServer.WebApplication.ViewModels;
+using Etherna.SSOServer.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
@@ -11,7 +11,7 @@ using System;
 using System.Threading.Tasks;
 using Tavis.UriTemplates;
 
-namespace Etherna.SSOServer.WebApplication.Services
+namespace Etherna.SSOServer.Services
 {
     class LoginControllerService : ILoginControllerService
     {
