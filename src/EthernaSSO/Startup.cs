@@ -1,6 +1,7 @@
 using Digicando.MongODM.HF.Tasks;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.SystemStore;
 using Etherna.SSOServer.Persistence;
 using Etherna.SSOServer.Services.EntityStores;
 using Etherna.SSOServer.Services.Settings;
@@ -13,6 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
 using System.Reflection;
+using Digicando.MongODM;
 
 namespace Etherna.SSOServer
 {
@@ -29,6 +31,9 @@ namespace Etherna.SSOServer
         public void ConfigureServices(IServiceCollection services)
         {
             // Add Asp.Net Core framework services.
+            services.AddDataProtection()
+                .PersistKeysToDbContext(new DbContextOptions { ConnectionString = Configuration["ConnectionStrings:SystemDb"] });
+
             services.AddDefaultIdentity<User>(options =>
             {
                 options.User.AllowedUserNameCharacters = User.AllowedUserNameCharacters;
