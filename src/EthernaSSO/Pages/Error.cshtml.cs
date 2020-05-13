@@ -22,6 +22,8 @@ namespace Etherna.SSOServer.Pages
         public void OnGet()
         {
             RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier;
+
+            _logger.LogError($"Request {RequestId} throwed error");
         }
     }
 }
