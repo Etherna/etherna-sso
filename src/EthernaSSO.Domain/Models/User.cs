@@ -12,9 +12,12 @@ namespace Etherna.SSOServer.Domain.Models
     {
         // Consts.
         public const string AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._";
+        public const string EmailRegex = @"\A(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)\Z";
+        public const string UsernameRegex = "^[a-zA-Z0-9]+(?:[._-]?[a-zA-Z0-9])*$";
 
         // Fields.
         private List<UserLoginInfo> _logins = new List<UserLoginInfo>();
+        private List<string> _twoFactorRecoveryCode = new List<string>();
 
         // Constructors and dispose.
         ///// <summary>
@@ -46,8 +49,12 @@ namespace Etherna.SSOServer.Domain.Models
         }
         protected User() { }
 
+        // Static builders.
+
+
         // Properties.
         public virtual int AccessFailedCount { get; internal protected set; }
+        public virtual string? AuthenticatorKey { get; internal protected set; }
         public virtual string? Email { get; protected set; }
         public virtual bool EmailConfirmed { get; protected set; }
         public virtual EtherAccount EtherAccount { get; protected set; } = default!;
@@ -63,7 +70,15 @@ namespace Etherna.SSOServer.Domain.Models
         public virtual string? NormalizedEmail { get; protected set; }
         public virtual string? NormalizedUsername { get; protected set; }
         public virtual string? PasswordHash { get; internal protected set; }
+        public virtual string? PhoneNumber { get; protected set; }
+        public virtual bool PhoneNumberConfirmed { get; protected set; }
         public virtual string SecurityStamp { get; internal protected set; } = default!;
+        public virtual bool TwoFactorEnabled { get; internal protected set; }
+        public virtual IEnumerable<string> TwoFactorRecoveryCodes
+        {
+            get => _twoFactorRecoveryCode;
+            internal protected set => _twoFactorRecoveryCode = new List<string>(value ?? Array.Empty<string>());
+        }
         public virtual string? Username { get; protected set; }
 
         // Methods.
@@ -82,6 +97,21 @@ namespace Etherna.SSOServer.Domain.Models
         public virtual void ConfirmEmail() =>
             EmailConfirmed = true;
 
+        [PropertyAlterer(nameof(PhoneNumberConfirmed))]
+        public virtual void ConfirmPhoneNumber() =>
+            PhoneNumberConfirmed = true;
+
+        [PropertyAlterer(nameof(TwoFactorRecoveryCodes))]
+        public virtual bool RedeemTwoFactorRecoveryCode(string code)
+        {
+            if (_twoFactorRecoveryCode.Contains(code))
+            {
+                _twoFactorRecoveryCode.Remove(code);
+                return true;
+            }
+            return false;
+        }
+
         [PropertyAlterer(nameof(Logins))]
         public virtual void RemoveLogin(string loginProvider, string providerKey) =>
             _logins.RemoveAll(l => l.LoginProvider == loginProvider && l.ProviderKey == providerKey);
@@ -91,9 +121,7 @@ namespace Etherna.SSOServer.Domain.Models
         [PropertyAlterer(nameof(NormalizedEmail))]
         public virtual void SetEmail(string email)
         {
-            if (!Regex.IsMatch(email,
-                @"\A(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)\Z",
-                RegexOptions.IgnoreCase))
+            if (!Regex.IsMatch(email, EmailRegex, RegexOptions.IgnoreCase))
                 throw new ArgumentOutOfRangeException(nameof(email));
 
             if (Email != email)
@@ -104,11 +132,22 @@ namespace Etherna.SSOServer.Domain.Models
             }
         }
 
+        [PropertyAlterer(nameof(PhoneNumber))]
+        [PropertyAlterer(nameof(PhoneNumberConfirmed))]
+        public virtual void SetPhoneNumber(string phoneNumber)
+        {
+            if (PhoneNumber != phoneNumber)
+            {
+                PhoneNumber = phoneNumber;
+                PhoneNumberConfirmed = false;
+            }
+        }
+
         [PropertyAlterer(nameof(NormalizedUsername))]
         [PropertyAlterer(nameof(Username))]
         public virtual void SetUsername(string username)
         {
-            if (!Regex.IsMatch(username, "^[a-zA-Z0-9]+(?:[._-]?[a-zA-Z0-9])*$"))
+            if (!Regex.IsMatch(username, UsernameRegex))
                 throw new ArgumentOutOfRangeException(nameof(username));
 
             if (Username != username)

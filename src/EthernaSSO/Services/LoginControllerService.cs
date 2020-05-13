@@ -1,9 +1,7 @@
 ﻿using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
-using Etherna.SSOServer.Domain.Models.UserAgg;
 using Etherna.SSOServer.Services.Settings;
 using Etherna.SSOServer.Services.Utilities;
-using Etherna.SSOServer.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
@@ -13,7 +11,7 @@ using Tavis.UriTemplates;
 
 namespace Etherna.SSOServer.Services
 {
-    class LoginControllerService : ILoginControllerService
+    class LoginControllerService
     {
         // Fields.
         private readonly ISsoDbContext ssoDbContext;
@@ -63,26 +61,26 @@ namespace Etherna.SSOServer.Services
 
         public Task LogoutAsync() => signInManager.SignOutAsync();
 
-        public async Task<User?> RegisterWithPasswordAsync(RegisterPswdViewModel registerPswdViewModel)
-        {
-            // Generate new wallet.
-            var address = "";
-            var privateKey = "";
+        //public async Task<User?> RegisterWithPasswordAsync(RegisterPswdViewModel registerPswdViewModel)
+        //{
+        //    // Generate new wallet.
+        //    var address = "";
+        //    var privateKey = "";
 
-            // Encrypt private key.
+        //    // Encrypt private key.
 
-            // Init entity.
-            var user = new User(
-                new EtherAccount(address, privateKey, EtherAccount.EncryptionState.ServerEncrypted),
-                email: registerPswdViewModel.Email,
-                username: registerPswdViewModel.Username);
+        //    // Init entity.
+        //    var user = new User(
+        //        new EtherAccount(address, privateKey, EtherAccount.EncryptionState.ServerEncrypted),
+        //        email: registerPswdViewModel.Email,
+        //        username: registerPswdViewModel.Username);
 
-            // Register user.
-            var result = await userManager.CreateAsync(user, registerPswdViewModel.Password);
+        //    // Register user.
+        //    var result = await userManager.CreateAsync(user, registerPswdViewModel.Password);
             
-            if (result.Succeeded) return user;
-            else return null;
-        }
+        //    if (result.Succeeded) return user;
+        //    else return null;
+        //}
 
         public async Task RequestPasswordRecoveryAsync(string email)
         {

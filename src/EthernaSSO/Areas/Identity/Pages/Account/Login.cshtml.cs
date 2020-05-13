@@ -19,8 +19,8 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         public class InputModel
         {
             [Required]
-            [EmailAddress]
-            public string Email { get; set; } = default!;
+            [Display(Name = "Username or email")]
+            public string UsernameOrEmail { get; set; } = default!;
 
             [Required]
             [DataType(DataType.Password)]
@@ -47,7 +47,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         public string? ErrorMessage { get; set; }
 
         [BindProperty]
-        public InputModel? Input { get; set; }
+        public InputModel Input { get; set; } = default!;
 
         public List<AuthenticationScheme> ExternalLogins { get; } = new List<AuthenticationScheme>();
         public string? ReturnUrl { get; set; }
@@ -81,7 +81,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             {
                 // This doesn't count login failures towards account lockout
                 // To enable password failures to trigger account lockout, set lockoutOnFailure: true
-                var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
+                var result = await _signInManager.PasswordSignInAsync(Input.UsernameOrEmail, Input.Password, Input.RememberMe, lockoutOnFailure: false);
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("User logged in.");

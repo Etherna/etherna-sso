@@ -1,5 +1,4 @@
-﻿using Etherna.SSOServer.Domain;
-using Etherna.SSOServer.Domain.Models;
+﻿using Etherna.SSOServer.Domain.Models;
 using Microsoft.AspNetCore.Identity;
 using MongoDB.Driver.Linq;
 using System;
@@ -9,18 +8,22 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Etherna.SSOServer.Services.EntityStores
+namespace Etherna.SSOServer.Domain.IdentityStores
 {
     /// <summary>
     /// A facade for <see cref="User"/> used by Asp.Net Identity framework.
     /// </summary>
     public sealed class UserStore :
+        IUserAuthenticatorKeyStore<User>,
         IUserEmailStore<User>,
         IUserLockoutStore<User>,
         IUserLoginStore<User>,
         IUserPasswordStore<User>,
+        IUserPhoneNumberStore<User>,
         IUserSecurityStampStore<User>,
-        IUserStore<User>
+        IUserStore<User>,
+        IUserTwoFactorRecoveryCodeStore<User>,
+        IUserTwoFactorStore<User>
     {
         private readonly ISsoDbContext ssoDbContext;
 
@@ -39,6 +42,14 @@ namespace Etherna.SSOServer.Services.EntityStores
 
             user.AddLogin(new Domain.Models.UserAgg.UserLoginInfo(login.LoginProvider, login.ProviderKey));
             return Task.CompletedTask;
+        }
+
+        public Task<int> CountCodesAsync(User user, CancellationToken cancellationToken)
+        {
+            if (user is null)
+                throw new ArgumentNullException(nameof(user));
+
+            return Task.FromResult(user.TwoFactorRecoveryCodes.Count());
         }
 
         [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "External library doesn't declare exceptions")]
@@ -81,6 +92,14 @@ namespace Etherna.SSOServer.Services.EntityStores
                 throw new ArgumentNullException(nameof(user));
 
             return Task.FromResult(user.AccessFailedCount);
+        }
+
+        public Task<string?> GetAuthenticatorKeyAsync(User user, CancellationToken cancellationToken)
+        {
+            if (user is null)
+                throw new ArgumentNullException(nameof(user));
+
+            return Task.FromResult(user.AuthenticatorKey);
         }
 
         public Task<string?> GetEmailAsync(User user, CancellationToken cancellationToken)
@@ -149,12 +168,36 @@ namespace Etherna.SSOServer.Services.EntityStores
             return Task.FromResult(user.PasswordHash);
         }
 
+        public Task<string?> GetPhoneNumberAsync(User user, CancellationToken cancellationToken)
+        {
+            if (user is null)
+                throw new ArgumentNullException(nameof(user));
+
+            return Task.FromResult(user.PhoneNumber);
+        }
+
+        public Task<bool> GetPhoneNumberConfirmedAsync(User user, CancellationToken cancellationToken)
+        {
+            if (user is null)
+                throw new ArgumentNullException(nameof(user));
+
+            return Task.FromResult(user.PhoneNumberConfirmed);
+        }
+
         public Task<string> GetSecurityStampAsync(User user, CancellationToken cancellationToken)
         {
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
 
             return Task.FromResult(user.SecurityStamp);
+        }
+
+        public Task<bool> GetTwoFactorEnabledAsync(User user, CancellationToken cancellationToken)
+        {
+            if (user is null)
+                throw new ArgumentNullException(nameof(user));
+
+            return Task.FromResult(user.TwoFactorEnabled);
         }
 
         public Task<string> GetUserIdAsync(User user, CancellationToken cancellationToken)
@@ -189,6 +232,14 @@ namespace Etherna.SSOServer.Services.EntityStores
             return Task.FromResult(++user.AccessFailedCount);
         }
 
+        public Task<bool> RedeemCodeAsync(User user, string code, CancellationToken cancellationToken)
+        {
+            if (user is null)
+                throw new ArgumentNullException(nameof(user));
+
+            return Task.FromResult(user.RedeemTwoFactorRecoveryCode(code));
+        }
+
         public Task RemoveLoginAsync(User user, string loginProvider, string providerKey, CancellationToken cancellationToken)
         {
             if (user is null)
@@ -198,12 +249,30 @@ namespace Etherna.SSOServer.Services.EntityStores
             return Task.CompletedTask;
         }
 
+        public Task ReplaceCodesAsync(User user, IEnumerable<string> recoveryCodes, CancellationToken cancellationToken)
+        {
+            if (user is null)
+                throw new ArgumentNullException(nameof(user));
+
+            user.TwoFactorRecoveryCodes = recoveryCodes;
+            return Task.CompletedTask;
+        }
+
         public Task ResetAccessFailedCountAsync(User user, CancellationToken cancellationToken)
         {
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
 
             user.AccessFailedCount = 0;
+            return Task.CompletedTask;
+        }
+
+        public Task SetAuthenticatorKeyAsync(User user, string key, CancellationToken cancellationToken)
+        {
+            if (user is null)
+                throw new ArgumentNullException(nameof(user));
+
+            user.AuthenticatorKey = key;
             return Task.CompletedTask;
         }
 
@@ -220,10 +289,11 @@ namespace Etherna.SSOServer.Services.EntityStores
         {
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
-            if (!confirmed)
-                throw new InvalidOperationException("Can't unconfirm an email");
 
-            user.ConfirmEmail();
+            //if confirmed == false don't perform any action, because is already managed by domain
+            if (confirmed)
+                user.ConfirmEmail();
+
             return Task.CompletedTask;
         }
 
@@ -267,12 +337,42 @@ namespace Etherna.SSOServer.Services.EntityStores
             return Task.CompletedTask;
         }
 
+        public Task SetPhoneNumberAsync(User user, string phoneNumber, CancellationToken cancellationToken)
+        {
+            if (user is null)
+                throw new ArgumentNullException(nameof(user));
+
+            user.SetPhoneNumber(phoneNumber);
+            return Task.CompletedTask;
+        }
+
+        public Task SetPhoneNumberConfirmedAsync(User user, bool confirmed, CancellationToken cancellationToken)
+        {
+            if (user is null)
+                throw new ArgumentNullException(nameof(user));
+
+            //if confirmed == false don't perform any action, because is already managed by domain
+            if (confirmed)
+                user.ConfirmPhoneNumber();
+
+            return Task.CompletedTask;
+        }
+
         public Task SetSecurityStampAsync(User user, string stamp, CancellationToken cancellationToken)
         {
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
 
             user.SecurityStamp = stamp;
+            return Task.CompletedTask;
+        }
+
+        public Task SetTwoFactorEnabledAsync(User user, bool enabled, CancellationToken cancellationToken)
+        {
+            if (user is null)
+                throw new ArgumentNullException(nameof(user));
+
+            user.TwoFactorEnabled = enabled;
             return Task.CompletedTask;
         }
 

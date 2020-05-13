@@ -24,8 +24,12 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         public class InputModel
         {
             [Required]
+            [RegularExpression(Domain.Models.User.UsernameRegex)]
+            [Display(Name = "Username")]
+            public string Username { get; set; } = default!;
+
             [EmailAddress]
-            [Display(Name = "Email")]
+            [Display(Name = "Email (optional, needed for password recovery)")]
             public string Email { get; set; } = default!;
 
             [Required]
@@ -61,7 +65,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
         // Properties.
         [BindProperty]
-        public InputModel? Input { get; set; }
+        public InputModel Input { get; set; } = default!;
 
         public List<AuthenticationScheme> ExternalLogins { get; } = new List<AuthenticationScheme>();
         public string? ReturnUrl { get; set; }
@@ -82,7 +86,10 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             ExternalLogins.AddRange(await _signInManager.GetExternalAuthenticationSchemesAsync());
             if (ModelState.IsValid)
             {
-                var user = new User(new EtherAccount("0xD12C40D24C4307B825BFa150b1E578382488ca97"/*sample*/), email: Input.Email);
+                var user = new User(
+                    new EtherAccount("0xD12C40D24C4307B825BFa150b1E578382488ca97"/*sample*/),
+                    email: Input.Email,
+                    username: Input.Username);
                 var result = await _userManager.CreateAsync(user, Input.Password);
                 if (result.Succeeded)
                 {

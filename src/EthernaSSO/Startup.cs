@@ -1,10 +1,11 @@
+using Digicando.MongODM;
 using Digicando.MongODM.HF.Tasks;
 using Etherna.SSOServer.Domain;
+using Etherna.SSOServer.Domain.IdentityStores;
 using Etherna.SSOServer.Domain.Models;
-using Etherna.SSOServer.SystemStore;
 using Etherna.SSOServer.Persistence;
-using Etherna.SSOServer.Services.EntityStores;
 using Etherna.SSOServer.Services.Settings;
+using Etherna.SSOServer.SystemStore;
 using Hangfire;
 using Hangfire.Mongo;
 using Microsoft.AspNetCore.Builder;
@@ -14,7 +15,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
 using System.Reflection;
-using Digicando.MongODM;
 
 namespace Etherna.SSOServer
 {

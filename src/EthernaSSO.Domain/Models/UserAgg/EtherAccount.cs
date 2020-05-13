@@ -26,6 +26,8 @@ namespace Etherna.SSOServer.Domain.Models.UserAgg
                 PrivateKeyEncryption = privateKeyEncryption;
             }
         }
+        protected EtherAccount()
+        { }
 
         // Properties.
         public virtual string Address { get; protected set; } = default!;
