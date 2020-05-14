@@ -88,7 +88,7 @@ namespace Etherna.SSOServer
                 config.ConfirmEmailPageUrl = "/Account/ConfirmEmail";
             });
 
-            // Add persistence.
+            // Configure persistence.
             services.UseMongODM<HangfireTaskRunner>()
                 .AddDbContext<ISsoDbContext, SsoDbContext>(options =>
                 {
@@ -96,7 +96,7 @@ namespace Etherna.SSOServer
                     options.DocumentVersion = appSettings.SimpleAssemblyVersion;
                 });
 
-            // Configure domain.
+            // Configure domain services.
             services.AddDomainServices();
         }
 

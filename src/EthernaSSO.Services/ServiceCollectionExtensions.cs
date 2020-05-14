@@ -34,7 +34,7 @@ namespace Microsoft.Extensions.DependencyInjection
             });
 
             // Register services.
-            services.AddSingleton<IEmailSender, EmailSender>();
+            services.AddScoped<IEmailSender, EmailSender>();
         }
     }
 }
