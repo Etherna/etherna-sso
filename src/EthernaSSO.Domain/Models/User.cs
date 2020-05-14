@@ -1,6 +1,8 @@
 ﻿using Digicando.DomainHelper.Attributes;
 using Etherna.SSOServer.Domain.Models.UserAgg;
+using Nethereum.Hex.HexConvertors.Extensions;
 using Nethereum.Util;
+using Nethereum.Web3.Accounts;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -17,6 +19,7 @@ namespace Etherna.SSOServer.Domain.Models
         public const string UsernameRegex = "^[a-zA-Z0-9]+(?:[._-]?[a-zA-Z0-9])*$";
 
         // Fields.
+        private Account? _etherManagedAccount;
         private List<UserLoginInfo> _logins = new List<UserLoginInfo>();
         private List<string> _twoFactorRecoveryCode = new List<string>();
 
@@ -32,18 +35,24 @@ namespace Etherna.SSOServer.Domain.Models
         protected User() { }
 
         // Static builders.
-        public static User CreateManagedWithUsername(string username, EtherAccount etherAccount, string? email = default)
+        public static User CreateManagedWithUsername(string username, string? email = default)
         {
-            var user = new User { EtherManagedAccount = etherAccount };
+            var ecKey = Nethereum.Signer.EthECKey.GenerateKey();
+            var privateKey = ecKey.GetPrivateKeyAsBytes().ToHex();
+
+            var user = new User { EtherManagedPrivateKey = privateKey };
             user.SetUsername(username);
             if (email != null) user.SetEmail(email);
 
             return user;
         }
 
-        public static User CreateManagedWithEtherLoginAddress(string loginAddress, EtherAccount etherAccount)
+        public static User CreateManagedWithEtherLoginAddress(string loginAddress)
         {
-            var user = new User { EtherManagedAccount = etherAccount };
+            var ecKey = Nethereum.Signer.EthECKey.GenerateKey();
+            var privateKey = ecKey.GetPrivateKeyAsBytes().ToHex();
+
+            var user = new User { EtherManagedPrivateKey = privateKey };
             user.SetEtherLoginAddress(loginAddress);
 
             return user;
@@ -54,7 +63,22 @@ namespace Etherna.SSOServer.Domain.Models
         public virtual string? AuthenticatorKey { get; internal protected set; }
         public virtual string? Email { get; protected set; }
         public virtual bool EmailConfirmed { get; protected set; }
-        public virtual EtherAccount EtherManagedAccount { get; protected set; } = default!;
+        public virtual string EtherAddress => EtherManagedAccount?.Address ??
+            throw new InvalidOperationException("Can't find a valid ethereum address");
+        public virtual Account? EtherManagedAccount
+        {
+            get
+            {
+                if (EtherManagedPrivateKey is null)
+                    return null;
+
+                if (_etherManagedAccount is null)
+                    _etherManagedAccount = new Account(EtherManagedPrivateKey);
+
+                return _etherManagedAccount;
+            }
+        }
+        public virtual string? EtherManagedPrivateKey { get; protected set; } = default!;
         public virtual string? EtherLoginAddress { get; protected set; }
         public virtual bool HasPassword => !string.IsNullOrEmpty(PasswordHash);
         public virtual bool LockoutEnabled { get; internal protected set; }

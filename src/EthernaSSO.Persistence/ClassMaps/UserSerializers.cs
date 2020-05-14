@@ -20,7 +20,7 @@ namespace Etherna.SSOServer.Persistence.ClassMaps
                     cm.GetMemberMap(u => u.Email).SetIgnoreIfNull(true);
                     cm.GetMemberMap(u => u.EmailConfirmed).SetIgnoreIfNull(true);
                     cm.GetMemberMap(u => u.EtherLoginAddress).SetIgnoreIfNull(true);
-                    cm.GetMemberMap(u => u.EtherManagedAccount).SetIgnoreIfNull(true);
+                    cm.GetMemberMap(u => u.EtherManagedPrivateKey).SetIgnoreIfNull(true);
                     cm.GetMemberMap(u => u.LockoutEnabled).SetIgnoreIfNull(true);
                     cm.GetMemberMap(u => u.LockoutEnd).SetIgnoreIfNull(true);
                     cm.GetMemberMap(u => u.Logins).SetIgnoreIfNull(true);

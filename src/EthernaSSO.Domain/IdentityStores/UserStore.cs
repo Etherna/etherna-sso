@@ -75,7 +75,8 @@ namespace Etherna.SSOServer.Domain.IdentityStores
                 elements.FirstOrDefaultAsync(u => u.NormalizedEmail == normalizedEmail));
 
         public Task<User> FindByIdAsync(string userId, CancellationToken cancellationToken) =>
-            ssoDbContext.Users.FindOneAsync(userId, cancellationToken: cancellationToken);
+            //using try for avoid exception throwing inside Identity's userManager
+            ssoDbContext.Users.TryFindOneAsync(userId, cancellationToken: cancellationToken)!;
 
         public Task<User> FindByLoginAsync(string loginProvider, string providerKey, CancellationToken cancellationToken) =>
             ssoDbContext.Users.QueryElementsAsync(elements =>

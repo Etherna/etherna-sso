@@ -1,5 +1,4 @@
 ﻿using Etherna.SSOServer.Domain.Models;
-using Etherna.SSOServer.Domain.Models.UserAgg;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -83,11 +82,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 return Page();
 
             // Register new user.
-            //geneate new managed account
-            var managedAccount = new EtherAccount("0xD12C40D24C4307B825BFa150b1E578382488ca97"/*sample*/);
-
-            //create user
-            var user = Domain.Models.User.CreateManagedWithUsername(Input.Username, managedAccount, email: Input.Email);
+            var user = Domain.Models.User.CreateManagedWithUsername(Input.Username, email: Input.Email);
             var result = await _userManager.CreateAsync(user, Input.Password);
 
             if (result.Succeeded)
