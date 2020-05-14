@@ -31,15 +31,19 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         }
 
         // Fields.
-        private readonly SignInManager<User> _signInManager;
-        private readonly ILogger<LoginModel> _logger;
+        private readonly ILogger<LoginModel> logger;
+        private readonly SignInManager<User> signInManager;
+        private readonly UserManager<User> userManager;
 
         // Constructor.
-        public LoginModel(SignInManager<User> signInManager, 
-            ILogger<LoginModel> logger)
+        public LoginModel(
+            ILogger<LoginModel> logger,
+            SignInManager<User> signInManager,
+            UserManager<User> userManager)
         {
-            _signInManager = signInManager;
-            _logger = logger;
+            this.logger = logger;
+            this.signInManager = signInManager;
+            this.userManager = userManager;
         }
 
         // Properties.
@@ -65,7 +69,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             // Clear the existing external cookie to ensure a clean login process
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
 
-            ExternalLogins.AddRange(await _signInManager.GetExternalAuthenticationSchemesAsync());
+            ExternalLogins.AddRange(await signInManager.GetExternalAuthenticationSchemesAsync());
 
             ReturnUrl = returnUrl;
         }
@@ -75,34 +79,44 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             if (Input is null)
                 throw new InvalidOperationException();
 
+            // Init page and validate.
             returnUrl ??= Url.Content("~/");
 
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
+                return Page();
+
+            // Login.
+            //find user
+            var user = Input.UsernameOrEmail.Contains('@', StringComparison.InvariantCulture) ? //if is email
+                await userManager.FindByEmailAsync(Input.UsernameOrEmail) :
+                await userManager.FindByNameAsync(Input.UsernameOrEmail);
+            if (user is null)
             {
-                var result = await _signInManager.PasswordSignInAsync(Input.UsernameOrEmail, Input.Password, Input.RememberMe, lockoutOnFailure: true);
-                if (result.Succeeded)
-                {
-                    _logger.LogInformation("User logged in.");
-                    return LocalRedirect(returnUrl);
-                }
-                if (result.RequiresTwoFactor)
-                {
-                    return RedirectToPage("./LoginWith2fa", new { ReturnUrl = returnUrl, Input.RememberMe });
-                }
-                if (result.IsLockedOut)
-                {
-                    _logger.LogWarning("User account locked out.");
-                    return RedirectToPage("./Lockout");
-                }
-                else
-                {
-                    ModelState.AddModelError(string.Empty, "Invalid login attempt.");
-                    return Page();
-                }
+                ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                return Page();
             }
 
-            // If we got this far, something failed, redisplay form
-            return Page();
+            //validate login
+            var result = await signInManager.PasswordSignInAsync(user, Input.Password, Input.RememberMe, lockoutOnFailure: true);
+            if (result.Succeeded)
+            {
+                logger.LogInformation("User logged in.");
+                return LocalRedirect(returnUrl);
+            }
+            if (result.RequiresTwoFactor)
+            {
+                return RedirectToPage("./LoginWith2fa", new { ReturnUrl = returnUrl, Input.RememberMe });
+            }
+            if (result.IsLockedOut)
+            {
+                logger.LogWarning("User account locked out.");
+                return RedirectToPage("./Lockout");
+            }
+            else
+            {
+                ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                return Page();
+            }
         }
     }
 }

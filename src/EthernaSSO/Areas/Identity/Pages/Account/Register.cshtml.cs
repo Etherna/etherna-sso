@@ -40,19 +40,19 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         }
 
         // Fields.
-        private readonly SignInManager<User> _signInManager;
-        private readonly UserManager<User> _userManager;
-        private readonly ILogger<RegisterModel> _logger;
+        private readonly ILogger<RegisterModel> logger;
+        private readonly SignInManager<User> signInManager;
+        private readonly UserManager<User> userManager;
 
         // Constructor.
         public RegisterModel(
-            UserManager<User> userManager,
+            ILogger<RegisterModel> logger,
             SignInManager<User> signInManager,
-            ILogger<RegisterModel> logger)
+            UserManager<User> userManager)
         {
-            _userManager = userManager;
-            _signInManager = signInManager;
-            _logger = logger;
+            this.logger = logger;
+            this.signInManager = signInManager;
+            this.userManager = userManager;
         }
 
         // Properties.
@@ -66,7 +66,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         public async Task OnGetAsync(string? returnUrl = null)
         {
             ReturnUrl = returnUrl;
-            ExternalLogins.AddRange(await _signInManager.GetExternalAuthenticationSchemesAsync());
+            ExternalLogins.AddRange(await signInManager.GetExternalAuthenticationSchemesAsync());
         }
 
         public async Task<IActionResult> OnPostAsync(string? returnUrl = null)
@@ -76,20 +76,20 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
             // Init page and validate.
             returnUrl ??= Url.Content("~/");
-            ExternalLogins.AddRange(await _signInManager.GetExternalAuthenticationSchemesAsync());
+            ExternalLogins.AddRange(await signInManager.GetExternalAuthenticationSchemesAsync());
 
             if (!ModelState.IsValid)
                 return Page();
 
             // Register new user.
             var user = Domain.Models.User.CreateManagedWithUsername(Input.Username, email: Input.Email);
-            var result = await _userManager.CreateAsync(user, Input.Password);
+            var result = await userManager.CreateAsync(user, Input.Password);
 
             if (result.Succeeded)
             {
-                _logger.LogInformation("User created a new account with password.");
+                logger.LogInformation("User created a new account with password.");
 
-                if (_userManager.Options.SignIn.RequireConfirmedAccount)
+                if (userManager.Options.SignIn.RequireConfirmedAccount)
                     return RedirectToPage("RegisterConfirmation", new { email = Input.Email });
                 else
                     return LocalRedirect(returnUrl);
