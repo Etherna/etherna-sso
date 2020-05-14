@@ -5,6 +5,7 @@ using Digicando.MongODM.Serialization;
 using Digicando.MongODM.Utility;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Persistence.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,7 +32,7 @@ namespace Etherna.SSOServer.Persistence
 
         // Properties.
         //repositories
-        public ICollectionRepository<User, string> Users { get; } = new CollectionRepository<User, string>("users");
+        public ICollectionRepository<User, string> Users { get; } = new DomainCollectionRepository<User, string>("users");
 
         //other properties
         public IEventDispatcher EventDispatcher { get; }

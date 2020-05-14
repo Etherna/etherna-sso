@@ -1,4 +1,5 @@
 ﻿using Etherna.SSOServer.Services.Settings;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.Extensions.Options;
 using SendGrid;
 using SendGrid.Helpers.Mail;
@@ -8,11 +9,11 @@ using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Services.Utilities
 {
-    class EmailService : IEmailService
+    class EmailSender : IEmailSender
     {
         private readonly EmailSettings settings;
 
-        public EmailService(IOptions<EmailSettings> opts)
+        public EmailSender(IOptions<EmailSettings> opts)
         {
             settings = opts.Value;
         }

@@ -1,5 +1,6 @@
 ﻿using Digicando.DomainEvents;
 using Etherna.SSOServer.Services.Utilities;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using System;
 using System.Linq;
 using System.Reflection;
@@ -32,8 +33,8 @@ namespace Microsoft.Extensions.DependencyInjection
                 return dispatcher;
             });
 
-            // Configure domain services.
-            services.AddScoped<IEmailService, EmailService>();
+            // Register services.
+            services.AddSingleton<IEmailSender, EmailSender>();
         }
     }
 }

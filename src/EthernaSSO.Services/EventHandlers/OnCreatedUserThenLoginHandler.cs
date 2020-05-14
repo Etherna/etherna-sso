@@ -25,7 +25,7 @@ namespace Etherna.SSOServer.Services.EventHandlers
             if (@event is null)
                 throw new ArgumentNullException(nameof(@event));
 
-            return signInManager.SignInAsync(@event.Entity, true);
+            return signInManager.SignInAsync(@event.Entity, false);
         }
     }
 }

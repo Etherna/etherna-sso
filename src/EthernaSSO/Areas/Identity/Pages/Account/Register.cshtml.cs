@@ -3,16 +3,12 @@ using Etherna.SSOServer.Domain.Models.UserAgg;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Text;
-using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Areas.Identity.Pages.Account
@@ -30,7 +26,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
             [EmailAddress]
             [Display(Name = "Email (optional, needed for password recovery)")]
-            public string Email { get; set; } = default!;
+            public string? Email { get; set; } = default!;
 
             [Required]
             [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
@@ -48,19 +44,16 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         private readonly SignInManager<User> _signInManager;
         private readonly UserManager<User> _userManager;
         private readonly ILogger<RegisterModel> _logger;
-        private readonly IEmailSender _emailSender;
 
         // Constructor.
         public RegisterModel(
             UserManager<User> userManager,
             SignInManager<User> signInManager,
-            ILogger<RegisterModel> logger,
-            IEmailSender emailSender)
+            ILogger<RegisterModel> logger)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _logger = logger;
-            _emailSender = emailSender;
         }
 
         // Properties.
@@ -82,47 +75,35 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             if (Input is null)
                 throw new InvalidOperationException();
 
+            // Init page and validate.
             returnUrl ??= Url.Content("~/");
             ExternalLogins.AddRange(await _signInManager.GetExternalAuthenticationSchemesAsync());
-            if (ModelState.IsValid)
+
+            if (!ModelState.IsValid)
+                return Page();
+
+            // Register new user.
+            //geneate new managed account
+            var managedAccount = new EtherAccount("0xD12C40D24C4307B825BFa150b1E578382488ca97"/*sample*/);
+
+            //create user
+            var user = Domain.Models.User.CreateManagedWithUsername(Input.Username, managedAccount, email: Input.Email);
+            var result = await _userManager.CreateAsync(user, Input.Password);
+
+            if (result.Succeeded)
             {
-                var user = new User(
-                    new EtherAccount("0xD12C40D24C4307B825BFa150b1E578382488ca97"/*sample*/),
-                    email: Input.Email,
-                    username: Input.Username);
-                var result = await _userManager.CreateAsync(user, Input.Password);
-                if (result.Succeeded)
-                {
-                    _logger.LogInformation("User created a new account with password.");
+                _logger.LogInformation("User created a new account with password.");
 
-                    var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                    code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-                    var callbackUrl = Url.Page(
-                        "/Account/ConfirmEmail",
-                        pageHandler: null,
-                        values: new { area = "Identity", userId = user.Id, code },
-                        protocol: Request.Scheme);
-
-                    await _emailSender.SendEmailAsync(Input.Email, "Confirm your email",
-                        $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
-
-                    if (_userManager.Options.SignIn.RequireConfirmedAccount)
-                    {
-                        return RedirectToPage("RegisterConfirmation", new { email = Input.Email });
-                    }
-                    else
-                    {
-                        await _signInManager.SignInAsync(user, isPersistent: false);
-                        return LocalRedirect(returnUrl);
-                    }
-                }
-                foreach (var error in result.Errors)
-                {
-                    ModelState.AddModelError(string.Empty, error.Description);
-                }
+                if (_userManager.Options.SignIn.RequireConfirmedAccount)
+                    return RedirectToPage("RegisterConfirmation", new { email = Input.Email });
+                else
+                    return LocalRedirect(returnUrl);
             }
 
-            // If we got this far, something failed, redisplay form
+            // If we got this far, something failed, redisplay form printing errors.
+            foreach (var error in result.Errors)
+                ModelState.AddModelError(string.Empty, error.Description);
+
             return Page();
         }
     }

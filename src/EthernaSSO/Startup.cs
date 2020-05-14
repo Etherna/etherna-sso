@@ -83,6 +83,10 @@ namespace Etherna.SSOServer
                 config.AssemblyVersion = appSettings.AssemblyVersion;
             });
             services.Configure<EmailSettings>(Configuration);
+            services.Configure<PageSettings>(config =>
+            {
+                config.ConfirmEmailPageUrl = "/Account/ConfirmEmail";
+            });
 
             // Add persistence.
             services.UseMongODM<HangfireTaskRunner>()

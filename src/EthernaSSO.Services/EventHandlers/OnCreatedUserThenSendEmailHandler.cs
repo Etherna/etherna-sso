@@ -2,11 +2,14 @@
 using Etherna.SSOServer.Domain.Events;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Services.Settings;
-using Etherna.SSOServer.Services.Utilities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Options;
 using System;
+using System.Text;
+using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using Tavis.UriTemplates;
 
@@ -16,19 +19,19 @@ namespace Etherna.SSOServer.Services.EventHandlers
     {
         // Fields.
         private readonly IHttpContextAccessor contextAccessor;
-        private readonly IEmailService emailService;
-        private readonly MVCSettings options;
+        private readonly IEmailSender emailSender;
+        private readonly PageSettings options;
         private readonly UserManager<User> userManager;
 
         // Constructors.
         public OnCreatedUserThenSendEmailHandler(
             IHttpContextAccessor contextAccessor,
-            IEmailService emailService,
-            IOptions<MVCSettings> options,
+            IEmailSender emailService,
+            IOptions<PageSettings> options,
             UserManager<User> userManager)
         {
             this.contextAccessor = contextAccessor;
-            this.emailService = emailService;
+            this.emailSender = emailService;
             this.options = options.Value;
             this.userManager = userManager;
         }
@@ -41,20 +44,23 @@ namespace Etherna.SSOServer.Services.EventHandlers
             if (@event.Entity.Email is null)
                 return;
 
+            var user = @event.Entity;
+
             // Send an email with confirmation link.
-            var code = await userManager.GenerateEmailConfirmationTokenAsync(@event.Entity);
+            var code = await userManager.GenerateEmailConfirmationTokenAsync(user);
+            code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+
             var callbackUrl = new UriTemplate(
-                $"{contextAccessor.HttpContext.Request.Scheme}://{contextAccessor.HttpContext.Request.Host}" + "{/controller}{/action}{?userId,code}")
+                $"{contextAccessor.HttpContext.Request.Scheme}://{contextAccessor.HttpContext.Request.Host}{options.ConfirmEmailPageUrl}" + "{?area,userId,code}")
                 .AddParameters(new
                 {
-                    controller = options.ConfirmEmailController,
-                    action = options.ConfirmEmailAction,
+                    area = "Identity",
                     userId = @event.Entity.Id,
                     code
                 }).Resolve();
 
-            await emailService.SendEmailAsync(@event.Entity.Email, "Confirm your account",
-                $"Please confirm your account by clicking this link: <a href=\"{callbackUrl}\">confirm email</a>");
+            await emailSender.SendEmailAsync(user.Email, "Confirm your email",
+                $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
         }
     }
 }

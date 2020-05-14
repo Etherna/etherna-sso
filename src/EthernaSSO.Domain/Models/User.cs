@@ -1,5 +1,6 @@
 ﻿using Digicando.DomainHelper.Attributes;
 using Etherna.SSOServer.Domain.Models.UserAgg;
+using Nethereum.Util;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -28,40 +29,36 @@ namespace Etherna.SSOServer.Domain.Models
         //{
         //    Address = address;
         //}
-
-        /// <summary>
-        /// Web2 managed user registration
-        /// </summary>
-        /// <param name="account">The user's account, managed by SSO Server</param>
-        /// <param name="email">Optional user email</param>
-        /// <param name="username">Optional username</param>
-        /// <param name="web3LoginAddress">Optional address of account managed by user. Valid for authentication</param>
-        public User(
-            EtherAccount account,
-            string? email = default,
-            string? username = default,
-            string? web3LoginAddress = default)
-        {
-            EtherAccount = account;
-            if (email != null) SetEmail(email);
-            if (username != null) SetUsername(username);
-            if (web3LoginAddress != null) LoginAccount = new EtherAccount(web3LoginAddress);
-        }
         protected User() { }
 
         // Static builders.
+        public static User CreateManagedWithUsername(string username, EtherAccount etherAccount, string? email = default)
+        {
+            var user = new User { EtherManagedAccount = etherAccount };
+            user.SetUsername(username);
+            if (email != null) user.SetEmail(email);
 
+            return user;
+        }
+
+        public static User CreateManagedWithEtherLoginAddress(string loginAddress, EtherAccount etherAccount)
+        {
+            var user = new User { EtherManagedAccount = etherAccount };
+            user.SetEtherLoginAddress(loginAddress);
+
+            return user;
+        }
 
         // Properties.
         public virtual int AccessFailedCount { get; internal protected set; }
         public virtual string? AuthenticatorKey { get; internal protected set; }
         public virtual string? Email { get; protected set; }
         public virtual bool EmailConfirmed { get; protected set; }
-        public virtual EtherAccount EtherAccount { get; protected set; } = default!;
+        public virtual EtherAccount EtherManagedAccount { get; protected set; } = default!;
+        public virtual string? EtherLoginAddress { get; protected set; }
         public virtual bool HasPassword => !string.IsNullOrEmpty(PasswordHash);
         public virtual bool LockoutEnabled { get; internal protected set; }
         public virtual DateTimeOffset? LockoutEnd { get; internal protected set; }
-        public virtual EtherAccount? LoginAccount { get; protected set; }
         public virtual IEnumerable<UserLoginInfo> Logins
         {
             get => _logins;
@@ -115,6 +112,15 @@ namespace Etherna.SSOServer.Domain.Models
         [PropertyAlterer(nameof(Logins))]
         public virtual void RemoveLogin(string loginProvider, string providerKey) =>
             _logins.RemoveAll(l => l.LoginProvider == loginProvider && l.ProviderKey == providerKey);
+
+        [PropertyAlterer(nameof(EtherLoginAddress))]
+        public virtual void SetEtherLoginAddress(string address)
+        {
+            if (!address.IsValidEthereumAddressHexFormat())
+                throw new ArgumentException("The value is not a valid address", nameof(address));
+
+            EtherLoginAddress = address.ConvertToEthereumChecksumAddress();
+        }
 
         [PropertyAlterer(nameof(Email))]
         [PropertyAlterer(nameof(EmailConfirmed))]
