@@ -115,12 +115,22 @@ namespace Etherna.SSOServer.Domain.Models
         }
 
         [PropertyAlterer(nameof(EmailConfirmed))]
-        public virtual void ConfirmEmail() =>
+        public virtual void ConfirmEmail()
+        {
+            if (Email is null)
+                throw new InvalidOperationException();
+
             EmailConfirmed = true;
+        }
 
         [PropertyAlterer(nameof(PhoneNumberConfirmed))]
-        public virtual void ConfirmPhoneNumber() =>
+        public virtual void ConfirmPhoneNumber()
+        {
+            if (PhoneNumber is null)
+                throw new InvalidOperationException();
+
             PhoneNumberConfirmed = true;
+        }
 
         [PropertyAlterer(nameof(TwoFactorRecoveryCodes))]
         public virtual bool RedeemTwoFactorRecoveryCode(string code)

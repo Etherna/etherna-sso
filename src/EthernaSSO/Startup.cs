@@ -85,6 +85,7 @@ namespace Etherna.SSOServer
             services.Configure<EmailSettings>(Configuration);
             services.Configure<PageSettings>(config =>
             {
+                config.ConfirmEmailPageArea = "Identity";
                 config.ConfirmEmailPageUrl = "/Account/ConfirmEmail";
             });
 

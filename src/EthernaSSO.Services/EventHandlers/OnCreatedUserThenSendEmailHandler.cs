@@ -51,10 +51,10 @@ namespace Etherna.SSOServer.Services.EventHandlers
             code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
 
             var callbackUrl = new UriTemplate(
-                $"{contextAccessor.HttpContext.Request.Scheme}://{contextAccessor.HttpContext.Request.Host}{options.ConfirmEmailPageUrl}" + "{?area,userId,code}")
+                $"{contextAccessor.HttpContext.Request.Scheme}://{contextAccessor.HttpContext.Request.Host}" + "{/area}" + options.ConfirmEmailPageUrl + "{?userId,code}")
                 .AddParameters(new
                 {
-                    area = "Identity",
+                    area = options.ConfirmEmailPageArea,
                     userId = @event.Entity.Id,
                     code
                 }).Resolve();

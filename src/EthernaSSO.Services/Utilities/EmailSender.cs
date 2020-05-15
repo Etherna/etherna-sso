@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.Extensions.Options;
 using SendGrid;
 using SendGrid.Helpers.Mail;
+using System;
 using System.Net;
 using System.Net.Mail;
 using System.Threading.Tasks;
@@ -23,7 +24,8 @@ namespace Etherna.SSOServer.Services.Utilities
             {
                 EmailSettings.EmailService.Mailtrap => MailtrapSendEmailAsync(email, subject, message),
                 EmailSettings.EmailService.Sendgrid => SendgridSendEmailAsync(email, subject, message),
-                _ => Task.CompletedTask
+                EmailSettings.EmailService.FakeSender => Task.CompletedTask,
+                _ => throw new InvalidOperationException()
             };
 
         // Helpers.

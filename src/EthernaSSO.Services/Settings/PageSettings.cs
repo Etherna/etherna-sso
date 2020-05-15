@@ -2,6 +2,7 @@
 {
     public class PageSettings
     {
+        public string? ConfirmEmailPageArea { get; set; }
         public string ConfirmEmailPageUrl { get; set; } = default!;
     }
 }
