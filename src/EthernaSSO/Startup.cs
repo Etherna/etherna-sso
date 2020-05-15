@@ -5,15 +5,20 @@ using Etherna.SSOServer.Domain.IdentityStores;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Persistence;
 using Etherna.SSOServer.Services.Settings;
+using Etherna.SSOServer.Swagger;
 using Etherna.SSOServer.SystemStore;
 using Hangfire;
 using Hangfire.Mongo;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
+using Swashbuckle.AspNetCore.SwaggerGen;
 using System;
+using System.IO;
 using System.Reflection;
 
 namespace Etherna.SSOServer
@@ -30,7 +35,7 @@ namespace Etherna.SSOServer
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            // Add Asp.Net Core framework services.
+            // Configure Asp.Net Core framework services.
             services.AddDataProtection()
                 .PersistKeysToDbContext(new DbContextOptions { ConnectionString = Configuration["ConnectionStrings:SystemDb"] });
 
@@ -53,11 +58,26 @@ namespace Etherna.SSOServer
             });
 
             services.AddRazorPages();
-
-            // Add Hangfire services.
-            services.AddHangfire(config =>
+            services.AddControllers(); //used for APIs
+            services.AddApiVersioning(options =>
             {
-                config.UseMongoStorage(
+                options.ReportApiVersions = true;
+            });
+            services.AddVersionedApiExplorer(options =>
+            {
+                // add the versioned api explorer, which also adds IApiVersionDescriptionProvider service
+                // note: the specified format code will format the version as "'v'major[.minor][-status]"
+                options.GroupNameFormat = "'v'VVV";
+
+                // note: this option is only necessary when versioning by url segment. the SubstitutionFormat
+                // can also be used to control the format of the API version in route templates
+                options.SubstituteApiVersionInUrl = true;
+            });
+
+            // Configure Hangfire services.
+            services.AddHangfire(options =>
+            {
+                options.UseMongoStorage(
                     Configuration["ConnectionStrings:HangfireDb"],
                     new MongoStorageOptions
                     {
@@ -69,6 +89,19 @@ namespace Etherna.SSOServer
                     });
             });
 
+            // Configure Swagger services.
+            services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
+            services.AddSwaggerGen(options =>
+            {
+                //add a custom operation filter which sets default values
+                options.OperationFilter<SwaggerDefaultValues>();
+
+                //integrate xml comments
+                var xmlFile = typeof(Startup).GetTypeInfo().Assembly.GetName().Name + ".xml";
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                options.IncludeXmlComments(xmlPath);
+            });
+
             // Configure setting.
             var appSettings = new ApplicationSettings
             {
@@ -78,15 +111,15 @@ namespace Etherna.SSOServer
                     .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
                     ?.InformationalVersion!
             };
-            services.Configure<ApplicationSettings>(config =>
+            services.Configure<ApplicationSettings>(options =>
             {
-                config.AssemblyVersion = appSettings.AssemblyVersion;
+                options.AssemblyVersion = appSettings.AssemblyVersion;
             });
             services.Configure<EmailSettings>(Configuration);
-            services.Configure<PageSettings>(config =>
+            services.Configure<PageSettings>(options =>
             {
-                config.ConfirmEmailPageArea = "Identity";
-                config.ConfirmEmailPageUrl = "/Account/ConfirmEmail";
+                options.ConfirmEmailPageArea = "Identity";
+                options.ConfirmEmailPageUrl = "/Account/ConfirmEmail";
             });
 
             // Configure persistence.
@@ -102,7 +135,7 @@ namespace Etherna.SSOServer
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IApiVersionDescriptionProvider apiProvider)
         {
             if (env.IsDevelopment())
             {
@@ -125,7 +158,18 @@ namespace Etherna.SSOServer
 
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapControllers();
                 endpoints.MapRazorPages();
+            });
+
+            app.UseSwagger();
+            app.UseSwaggerUI(options =>
+            {
+                // build a swagger endpoint for each discovered API version
+                foreach (var description in apiProvider.ApiVersionDescriptions)
+                {
+                    options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", description.GroupName.ToUpperInvariant());
+                }
             });
         }
     }
