@@ -57,6 +57,7 @@ namespace Etherna.SSOServer
                 options.SlidingExpiration = true;
             });
 
+            services.AddCors();
             services.AddRazorPages();
             services.AddControllers(); //used for APIs
             services.AddApiVersioning(options =>
@@ -147,6 +148,23 @@ namespace Etherna.SSOServer
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
+
+            app.UseCors(builder =>
+            {
+                if (env.IsDevelopment())
+                {
+                    builder.AllowAnyOrigin()
+                           .AllowAnyHeader()
+                           .AllowAnyMethod();
+                }
+                else
+                {
+                    builder.WithOrigins("https://*.etherna.io")
+                           .SetIsOriginAllowedToAllowWildcardSubdomains()
+                           .AllowAnyHeader()
+                           .AllowAnyMethod();
+                }
+            });
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
