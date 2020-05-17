@@ -50,18 +50,24 @@ namespace Etherna.SSOServer.Services.Utilities
             await client.SendMailAsync(mail);
         }
 
-        private async Task SendgridSendEmailAsync(string email, string subject, string message)
+        private async Task<Response> SendgridSendEmailAsync(string email, string subject, string message)
         {
             var client = new SendGridClient(settings.ServiceKey);
 
-            var mail = MailHelper.CreateSingleEmail(
-                new EmailAddress(settings.SendingAddress, settings.DisplayName),
-                new EmailAddress(email),
-                subject,
-                message,
-                message);
+            var from = new EmailAddress(settings.SendingAddress, settings.DisplayName);
+            var to = new EmailAddress(email);
 
-            await client.SendEmailAsync(mail);
+            var plainTextContent = message;
+            var htmlContent = message;
+
+            var mail = MailHelper.CreateSingleEmail(
+                from,
+                to,
+                subject,
+                plainTextContent,
+                htmlContent);
+
+            return await client.SendEmailAsync(mail);
         }
     }
 }

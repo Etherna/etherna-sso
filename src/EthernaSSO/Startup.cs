@@ -116,7 +116,7 @@ namespace Etherna.SSOServer
             {
                 options.AssemblyVersion = appSettings.AssemblyVersion;
             });
-            services.Configure<EmailSettings>(Configuration);
+            services.Configure<EmailSettings>(Configuration.GetSection("Email"));
             services.Configure<PageSettings>(options =>
             {
                 options.ConfirmEmailPageArea = "Identity";
