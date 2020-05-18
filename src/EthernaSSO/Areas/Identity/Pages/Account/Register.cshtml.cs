@@ -92,7 +92,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 if (userManager.Options.SignIn.RequireConfirmedAccount)
                     return RedirectToPage("RegisterConfirmation", new { email = Input.Email });
                 else
-                    return LocalRedirect(returnUrl);
+                    return Redirect(returnUrl);
             }
 
             // If we got this far, something failed, redisplay form printing errors.
