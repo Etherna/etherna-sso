@@ -6,8 +6,6 @@ name: Build and deploy ASP.Net Core app to Azure Web App - ethernasso
 on:
   push:
     branches: [ master ]
-  pull_request:
-    branches: [ master ]
 
 jobs:
   build-and-deploy:
