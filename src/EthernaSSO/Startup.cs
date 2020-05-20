@@ -153,7 +153,7 @@ namespace Etherna.SSOServer
             {
                 if (env.IsDevelopment())
                 {
-                    builder.AllowAnyOrigin()
+                    builder.SetIsOriginAllowed(_ => true)
                            .AllowAnyHeader()
                            .AllowAnyMethod()
                            .AllowCredentials();
