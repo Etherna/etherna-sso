@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace Etherna.SSOServer.Areas.Api.Controllers
 {
     [ApiController]
-    [ApiVersion("0.1")]
+    [ApiVersion("0.2")]
     [Route("api/v{api-version:apiVersion}/[controller]")]
     public class IdentityController : Controller
     {

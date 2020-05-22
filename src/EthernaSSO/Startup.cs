@@ -1,12 +1,13 @@
 using Digicando.MongODM;
 using Digicando.MongODM.HF.Tasks;
+using Etherna.SSOServer.DataProtectionStore;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.IdentityStores;
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.IdentityServer;
 using Etherna.SSOServer.Persistence;
 using Etherna.SSOServer.Services.Settings;
 using Etherna.SSOServer.Swagger;
-using Etherna.SSOServer.SystemStore;
 using Hangfire;
 using Hangfire.Mongo;
 using Microsoft.AspNetCore.Builder;
@@ -25,12 +26,16 @@ namespace Etherna.SSOServer
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        public Startup(
+            IConfiguration configuration,
+            IWebHostEnvironment environment)
         {
             Configuration = configuration;
+            Environment = environment;
         }
 
         public IConfiguration Configuration { get; }
+        public IWebHostEnvironment Environment { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -74,6 +79,21 @@ namespace Etherna.SSOServer
                 // can also be used to control the format of the API version in route templates
                 options.SubstituteApiVersionInUrl = true;
             });
+
+            // Configure IdentityServer.
+            var builder = services.AddIdentityServer()
+                .AddInMemoryApiResources(Config.Apis)
+                .AddInMemoryClients(Config.Clients);
+            if (Environment.IsDevelopment())
+            {
+                builder.AddDeveloperSigningCredential();
+            }
+            else
+            {
+#pragma warning disable CA2000 // Dispose objects before losing scope
+                builder.AddSigningCredential(AzureKeyVaultAccessor.GetIdentityServerCertificate(Configuration));
+#pragma warning restore CA2000 // Dispose objects before losing scope
+            }
 
             // Configure Hangfire services.
             services.AddHangfire(options =>
@@ -136,9 +156,9 @@ namespace Etherna.SSOServer
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IApiVersionDescriptionProvider apiProvider)
+        public void Configure(IApplicationBuilder app, IApiVersionDescriptionProvider apiProvider)
         {
-            if (env.IsDevelopment())
+            if (Environment.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
@@ -151,7 +171,7 @@ namespace Etherna.SSOServer
 
             app.UseCors(builder =>
             {
-                if (env.IsDevelopment())
+                if (Environment.IsDevelopment())
                 {
                     builder.SetIsOriginAllowed(_ => true)
                            .AllowAnyHeader()
@@ -173,6 +193,7 @@ namespace Etherna.SSOServer
 
             app.UseRouting();
 
+            app.UseIdentityServer();
             app.UseAuthentication();
             app.UseAuthorization();
 

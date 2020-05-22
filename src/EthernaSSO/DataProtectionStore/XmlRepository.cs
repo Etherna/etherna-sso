@@ -9,18 +9,15 @@ using System.Linq;
 using System.Xml;
 using System.Xml.Linq;
 
-namespace Etherna.SSOServer.SystemStore
+namespace Etherna.SSOServer.DataProtectionStore
 {
     public class XmlRepository : IXmlRepository
     {
-        // Consts.
-        public const string CollectionName = "dataProtectionKeys";
-
         // Fields.
         private readonly IMongoCollection<BsonDocument> collection;
 
         // Constructors.
-        public XmlRepository(DbContextOptions options)
+        public XmlRepository(DbContextOptions options, string name)
         {
             if (options is null)
                 throw new ArgumentNullException(nameof(options));
@@ -28,7 +25,7 @@ namespace Etherna.SSOServer.SystemStore
             // Initialize MongoDB driver.
             var client = new MongoClient(options.ConnectionString);
             var database = client.GetDatabase(options.DBName);
-            collection = database.GetCollection<BsonDocument>(CollectionName);
+            collection = database.GetCollection<BsonDocument>(name);
         }
 
         // Methods.
