@@ -8,8 +8,8 @@ namespace Etherna.SSOServer.IdentityServer
         public static IEnumerable<ApiResource> Apis =>
             new List<ApiResource>
             {
-                new ApiResource("ethernaIndexApiAdmin", "Etherna Index API Administrator"),
-                new ApiResource("ethernaIndexApiDefault", "Etherna Index API Default")
+                new ApiResource("ethernaAdminApi", "Etherna Admin API"),
+                new ApiResource("ethernaUserApi", "Etherna User API")
             };
 
         public static IEnumerable<Client> Clients => //will disappear client authentication
@@ -17,7 +17,7 @@ namespace Etherna.SSOServer.IdentityServer
             {
                 new Client
                 {
-                    ClientId = "client",
+                    ClientId = "ethernaIndex",
 
                     // no interactive user, use the clientid/secret for authentication
                     AllowedGrantTypes = GrantTypes.ClientCredentials,
@@ -25,12 +25,19 @@ namespace Etherna.SSOServer.IdentityServer
                     // secret for authentication
                     ClientSecrets =
                     {
-                        new Secret("secret".Sha256())
+                        new Secret("ethernaIndexSecret".Sha256())
                     },
 
                     // scopes that client has access to
-                    AllowedScopes = { "ethernaIndexApiDefault" }
-                }
+                    AllowedScopes = { "ethernaUserApi" }
+                },
+            };
+
+        public static IEnumerable<IdentityResource> Ids =>
+            new IdentityResource[]
+            {
+                new IdentityResources.OpenId(),
+                new IdentityResources.Profile(),
             };
     }
 }

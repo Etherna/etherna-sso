@@ -83,7 +83,9 @@ namespace Etherna.SSOServer
             // Configure IdentityServer.
             var builder = services.AddIdentityServer()
                 .AddInMemoryApiResources(Config.Apis)
-                .AddInMemoryClients(Config.Clients);
+                .AddInMemoryClients(Config.Clients)
+                .AddInMemoryIdentityResources(Config.Ids)
+                .AddAspNetIdentity<User>();
             if (Environment.IsDevelopment())
             {
                 builder.AddDeveloperSigningCredential();

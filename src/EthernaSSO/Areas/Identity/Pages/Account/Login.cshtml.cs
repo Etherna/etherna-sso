@@ -1,4 +1,6 @@
 ﻿using Etherna.SSOServer.Domain.Models;
+using IdentityServer4.Events;
+using IdentityServer4.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -31,16 +33,22 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         }
 
         // Fields.
+        private readonly IEventService eventService;
+        private readonly IIdentityServerInteractionService idServerInteractService;
         private readonly ILogger<LoginModel> logger;
         private readonly SignInManager<User> signInManager;
         private readonly UserManager<User> userManager;
 
         // Constructor.
         public LoginModel(
+            IEventService eventService,
+            IIdentityServerInteractionService idServerInteractService,
             ILogger<LoginModel> logger,
             SignInManager<User> signInManager,
             UserManager<User> userManager)
         {
+            this.eventService = eventService;
+            this.idServerInteractService = idServerInteractService;
             this.logger = logger;
             this.signInManager = signInManager;
             this.userManager = userManager;
@@ -86,6 +94,9 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 return Page();
 
             // Login.
+            //check if we are in the context of an authorization request
+            var context = await idServerInteractService.GetAuthorizationContextAsync(returnUrl);
+
             //find user
             var user = Input.UsernameOrEmail.Contains('@', StringComparison.InvariantCulture) ? //if is email
                 await userManager.FindByEmailAsync(Input.UsernameOrEmail) :
@@ -98,22 +109,36 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
             //validate login
             var result = await signInManager.PasswordSignInAsync(user, Input.Password, Input.RememberMe, lockoutOnFailure: true);
+
             if (result.Succeeded)
             {
+                await eventService.RaiseAsync(new UserLoginSuccessEvent(user.Username, user.Id, user.Username, clientId: context?.ClientId));
                 logger.LogInformation("User logged in.");
-                return Redirect(returnUrl);
+
+                if (context != null)
+                {
+                    //we can trust returnUrl since GetAuthorizationContextAsync returned non-null
+                    return Redirect(returnUrl);
+                }
+
+                //request for a local page, otherwise user might have clicked on a malicious link - should be logged
+                return LocalRedirect(returnUrl);
             }
-            if (result.RequiresTwoFactor)
+
+            else if (result.RequiresTwoFactor)
             {
                 return RedirectToPage("./LoginWith2fa", new { ReturnUrl = returnUrl, Input.RememberMe });
             }
-            if (result.IsLockedOut)
+
+            else if (result.IsLockedOut)
             {
                 logger.LogWarning("User account locked out.");
                 return RedirectToPage("./Lockout");
             }
+
             else
             {
+                await eventService.RaiseAsync(new UserLoginFailureEvent(Input.UsernameOrEmail, "invalid credentials", clientId: context?.ClientId));
                 ModelState.AddModelError(string.Empty, "Invalid login attempt.");
                 return Page();
             }
