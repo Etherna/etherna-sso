@@ -84,9 +84,6 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
         public async Task<IActionResult> OnPostAsync(string? returnUrl = null)
         {
-            if (Input is null)
-                throw new InvalidOperationException();
-
             // Init page and validate.
             returnUrl ??= Url.Content("~/");
 

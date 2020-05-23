@@ -1,4 +1,6 @@
 ﻿using Etherna.SSOServer.Domain.Models;
+using IdentityServer4.Events;
+using IdentityServer4.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -40,16 +42,22 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         }
 
         // Fields.
+        private readonly IEventService eventService;
+        private readonly IIdentityServerInteractionService idServerInteractService;
         private readonly ILogger<RegisterModel> logger;
         private readonly SignInManager<User> signInManager;
         private readonly UserManager<User> userManager;
 
         // Constructor.
         public RegisterModel(
+            IEventService eventService,
+            IIdentityServerInteractionService idServerInteractService,
             ILogger<RegisterModel> logger,
             SignInManager<User> signInManager,
             UserManager<User> userManager)
         {
+            this.eventService = eventService;
+            this.idServerInteractService = idServerInteractService;
             this.logger = logger;
             this.signInManager = signInManager;
             this.userManager = userManager;
@@ -71,9 +79,6 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
         public async Task<IActionResult> OnPostAsync(string? returnUrl = null)
         {
-            if (Input is null)
-                throw new InvalidOperationException();
-
             // Init page and validate.
             returnUrl ??= Url.Content("~/");
             ExternalLogins.AddRange(await signInManager.GetExternalAuthenticationSchemesAsync());
@@ -82,17 +87,32 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 return Page();
 
             // Register new user.
+            //check if we are in the context of an authorization request
+            var context = await idServerInteractService.GetAuthorizationContextAsync(returnUrl);
+
             var user = Domain.Models.User.CreateManagedWithUsername(Input.Username, email: Input.Email);
             var result = await userManager.CreateAsync(user, Input.Password);
 
             if (result.Succeeded)
             {
+                await eventService.RaiseAsync(new UserLoginSuccessEvent(user.Username, user.Id, user.Username, clientId: context?.ClientId));
                 logger.LogInformation("User created a new account with password.");
 
                 if (userManager.Options.SignIn.RequireConfirmedAccount)
+                {
                     return RedirectToPage("RegisterConfirmation", new { email = Input.Email });
+                }
                 else
-                    return Redirect(returnUrl);
+                {
+                    if (context != null)
+                    {
+                        //we can trust returnUrl since GetAuthorizationContextAsync returned non-null
+                        return Redirect(returnUrl);
+                    }
+
+                    //request for a local page, otherwise user might have clicked on a malicious link - should be logged
+                    return LocalRedirect(returnUrl);
+                }
             }
 
             // If we got this far, something failed, redisplay form printing errors.
