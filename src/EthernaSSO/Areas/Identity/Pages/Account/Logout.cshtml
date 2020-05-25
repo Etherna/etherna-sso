@@ -1,0 +1,19 @@
+﻿@page
+@model LogoutModel
+@{
+    ViewData["Title"] = "Log out";
+}
+
+<header>
+    <h1>@ViewData["Title"]</h1>
+    <p>Do you want to logout from Etherna?</p>
+    <form asp-action="Logout">
+        <fieldset>
+            <input type="hidden" name="LogoutId" value="@Model.LogoutId" />
+            <input type="hidden" name="LogoutPromptAccepted" value="true" />
+            <div class="form-group">
+                <button class="btn btn-primary">Yes</button>
+            </div>
+        </fieldset>
+    </form>
+</header>
