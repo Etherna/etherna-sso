@@ -81,10 +81,11 @@ namespace Etherna.SSOServer
             });
 
             // Configure IdentityServer.
+            var idServerConfig = new IdServerConfig(Configuration);
             var builder = services.AddIdentityServer()
-                .AddInMemoryApiResources(Config.Apis)
-                .AddInMemoryClients(Config.Clients)
-                .AddInMemoryIdentityResources(Config.Ids)
+                .AddInMemoryApiResources(idServerConfig.Apis)
+                .AddInMemoryClients(idServerConfig.Clients)
+                .AddInMemoryIdentityResources(idServerConfig.IdResources)
                 .AddAspNetIdentity<User>();
             if (Environment.IsDevelopment())
             {
