@@ -82,7 +82,10 @@ namespace Etherna.SSOServer
 
             // Configure IdentityServer.
             var idServerConfig = new IdServerConfig(Configuration);
-            var builder = services.AddIdentityServer()
+            var builder = services.AddIdentityServer(options =>
+            {
+                options.UserInteraction.ErrorUrl = "/Error";
+            })
                 .AddInMemoryApiResources(idServerConfig.Apis)
                 .AddInMemoryClients(idServerConfig.Clients)
                 .AddInMemoryIdentityResources(idServerConfig.IdResources)

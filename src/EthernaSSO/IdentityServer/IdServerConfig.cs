@@ -30,7 +30,7 @@ namespace Etherna.SSOServer.IdentityServer
                 new ApiResource("ethernaGatewayApi", "Etherna Gateway API")
             };
 
-        public IEnumerable<Client> Clients => //will disappear client authentication
+        public IEnumerable<Client> Clients =>
             new List<Client>
             {
                 // interactive ASP.NET Core MVC client
@@ -50,10 +50,11 @@ namespace Etherna.SSOServer.IdentityServer
                     // where to redirect to after logout
                     PostLogoutRedirectUris = { $"{ethernaIndexBaseUrl}/signout-callback-oidc" },
 
+                    AlwaysIncludeUserClaimsInIdToken = true,
                     AllowedScopes = new List<string>
                     {
                         IdentityServerConstants.StandardScopes.OpenId,
-                        IdentityServerConstants.StandardScopes.Profile
+                        "ether_accounts"
                     }
                 }
             };
@@ -62,7 +63,16 @@ namespace Etherna.SSOServer.IdentityServer
             new IdentityResource[]
             {
                 new IdentityResources.OpenId(),
-                new IdentityResources.Profile(),
+                new IdentityResource()
+                {
+                    DisplayName = "Ether accounts",
+                    Name = "ether_accounts",
+                    UserClaims = new List<string>()
+                    {
+                        "ether_address",
+                        "ether_prev_addresses"
+                    }
+                }
             };
     }
 }

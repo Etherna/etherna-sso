@@ -72,27 +72,24 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 ModelState.AddModelError(string.Empty, ErrorMessage);
             }
 
-            returnUrl ??= Url.Content("~/");
-
             // Clear the existing external cookie to ensure a clean login process
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
 
             ExternalLogins.AddRange(await signInManager.GetExternalAuthenticationSchemesAsync());
-
-            ReturnUrl = returnUrl;
+            ReturnUrl = returnUrl ?? Url.Content("~/");
         }
 
         public async Task<IActionResult> OnPostAsync(string? returnUrl = null)
         {
             // Init page and validate.
-            returnUrl ??= Url.Content("~/");
+            ReturnUrl = returnUrl ?? Url.Content("~/");
 
             if (!ModelState.IsValid)
                 return Page();
 
             // Login.
             //check if we are in the context of an authorization request
-            var context = await idServerInteractService.GetAuthorizationContextAsync(returnUrl);
+            var context = await idServerInteractService.GetAuthorizationContextAsync(ReturnUrl);
 
             //find user
             var user = Input.UsernameOrEmail.Contains('@', StringComparison.InvariantCulture) ? //if is email
@@ -115,16 +112,16 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 if (context != null)
                 {
                     //we can trust returnUrl since GetAuthorizationContextAsync returned non-null
-                    return Redirect(returnUrl);
+                    return Redirect(ReturnUrl);
                 }
 
                 //request for a local page, otherwise user might have clicked on a malicious link - should be logged
-                return LocalRedirect(returnUrl);
+                return LocalRedirect(ReturnUrl);
             }
 
             else if (result.RequiresTwoFactor)
             {
-                return RedirectToPage("./LoginWith2fa", new { ReturnUrl = returnUrl, Input.RememberMe });
+                return RedirectToPage("./LoginWith2fa", new { ReturnUrl, Input.RememberMe });
             }
 
             else if (result.IsLockedOut)
