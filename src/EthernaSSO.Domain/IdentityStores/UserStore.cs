@@ -52,7 +52,7 @@ namespace Etherna.SSOServer.Domain.IdentityStores
             if (login is null)
                 throw new ArgumentNullException(nameof(login));
 
-            user.AddLogin(new Domain.Models.UserAgg.UserLoginInfo(login.LoginProvider, login.ProviderKey));
+            user.AddLogin(new Domain.Models.UserAgg.UserLoginInfo(login.LoginProvider, login.ProviderKey, login.ProviderDisplayName));
             return Task.CompletedTask;
         }
 

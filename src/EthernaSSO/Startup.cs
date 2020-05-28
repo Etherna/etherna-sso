@@ -10,6 +10,7 @@ using Etherna.SSOServer.Services.Settings;
 using Etherna.SSOServer.Swagger;
 using Hangfire;
 using Hangfire.Mongo;
+using IdentityServer4;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
@@ -79,6 +80,18 @@ namespace Etherna.SSOServer
                 // can also be used to control the format of the API version in route templates
                 options.SubstituteApiVersionInUrl = true;
             });
+
+            // Configure authentication.
+            services.AddAuthentication()
+                .AddGoogle(options =>
+                {
+                    var googleAuthNSection = Configuration.GetSection("Authentication:Google");
+
+                    options.ClientId = googleAuthNSection["ClientId"];
+                    options.ClientSecret = googleAuthNSection["ClientSecret"];
+
+                    options.SignInScheme = IdentityServerConstants.ExternalCookieAuthenticationScheme;
+                });
 
             // Configure IdentityServer.
             var idServerConfig = new IdServerConfig(Configuration);

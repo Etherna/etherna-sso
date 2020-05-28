@@ -98,21 +98,14 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 await eventService.RaiseAsync(new UserLoginSuccessEvent(user.Username, user.Id, user.Username, clientId: context?.ClientId));
                 logger.LogInformation("User created a new account with password.");
 
-                if (userManager.Options.SignIn.RequireConfirmedAccount)
+                if (context != null)
                 {
-                    return RedirectToPage("RegisterConfirmation", new { email = Input.Email });
+                    //we can trust returnUrl since GetAuthorizationContextAsync returned non-null
+                    return Redirect(returnUrl);
                 }
-                else
-                {
-                    if (context != null)
-                    {
-                        //we can trust returnUrl since GetAuthorizationContextAsync returned non-null
-                        return Redirect(returnUrl);
-                    }
 
-                    //request for a local page, otherwise user might have clicked on a malicious link - should be logged
-                    return LocalRedirect(returnUrl);
-                }
+                //request for a local page, otherwise user might have clicked on a malicious link - should be logged
+                return LocalRedirect(returnUrl);
             }
 
             // If we got this far, something failed, redisplay form printing errors.

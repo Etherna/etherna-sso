@@ -43,25 +43,34 @@ namespace Etherna.SSOServer.Domain.Models
         protected User() { }
 
         // Static builders.
-        public static User CreateManagedWithUsername(string username, string? email = default)
+        public static User CreateManagedWithEtherLoginAddress(string loginAddress)
         {
-            var ecKey = Nethereum.Signer.EthECKey.GenerateKey();
-            var privateKey = ecKey.GetPrivateKeyAsBytes().ToHex();
+            var privateKey = GenerateEtherPrivateKey();
 
             var user = new User { EtherManagedPrivateKey = privateKey };
-            user.SetUsername(username);
+            user.SetEtherLoginAddress(loginAddress);
+
+            return user;
+        }
+
+        public static User CreateManagedWithExternalLogin(UserLoginInfo loginInfo, string? email = default)
+        {
+            var privateKey = GenerateEtherPrivateKey();
+
+            var user = new User { EtherManagedPrivateKey = privateKey };
+            user.AddLogin(loginInfo);
             if (email != null) user.SetEmail(email);
 
             return user;
         }
 
-        public static User CreateManagedWithEtherLoginAddress(string loginAddress)
+        public static User CreateManagedWithUsername(string username, string? email = default)
         {
-            var ecKey = Nethereum.Signer.EthECKey.GenerateKey();
-            var privateKey = ecKey.GetPrivateKeyAsBytes().ToHex();
+            var privateKey = GenerateEtherPrivateKey();
 
             var user = new User { EtherManagedPrivateKey = privateKey };
-            user.SetEtherLoginAddress(loginAddress);
+            user.SetUsername(username);
+            if (email != null) user.SetEmail(email);
 
             return user;
         }
@@ -262,7 +271,14 @@ namespace Etherna.SSOServer.Domain.Models
         }
 
         // Helpers.
-        private string NormalizeEmail(string email)
+        private static string GenerateEtherPrivateKey()
+        {
+            var ecKey = Nethereum.Signer.EthECKey.GenerateKey();
+            var privateKey = ecKey.GetPrivateKeyAsBytes().ToHex();
+            return privateKey;
+        }
+
+        private static string NormalizeEmail(string email)
         {
             if (email is null)
                 throw new ArgumentNullException(nameof(email));
@@ -278,7 +294,7 @@ namespace Etherna.SSOServer.Domain.Models
             return $"{cleanedUsername}@{domain}";
         }
 
-        private string NormalizeUsername(string username)
+        private static string NormalizeUsername(string username)
         {
             if (username is null)
                 throw new ArgumentNullException(nameof(username));
