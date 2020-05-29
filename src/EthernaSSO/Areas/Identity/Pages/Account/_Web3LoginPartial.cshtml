@@ -1,0 +1,13 @@
+﻿@{
+    var browserIsWeb3Enabled = false;
+}
+
+@if (browserIsWeb3Enabled)
+{
+    <p>/*TODO: Login with Metamask*/</p>
+}
+else
+{
+    <a href="https://metamask.io/"><img src="/images/metamask-logo.svg" /></a>
+    <p>Do you need a new web3 wallet? Try to install <a href="https://metamask.io/">Metamask</a></p>
+}
