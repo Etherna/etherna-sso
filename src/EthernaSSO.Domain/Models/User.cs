@@ -1,5 +1,6 @@
 ﻿using Digicando.DomainHelper.Attributes;
 using Etherna.SSOServer.Domain.Models.UserAgg;
+using Microsoft.AspNetCore.Identity;
 using Nethereum.Hex.HexConvertors.Extensions;
 using Nethereum.Util;
 using Nethereum.Web3.Accounts;
@@ -9,6 +10,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using UserLoginInfo = Etherna.SSOServer.Domain.Models.UserAgg.UserLoginInfo;
 
 namespace Etherna.SSOServer.Domain.Models
 {
@@ -97,8 +99,10 @@ namespace Etherna.SSOServer.Domain.Models
                 new UserClaim(DefaultClaimTypes.EtherAddress, EtherAddress),
                 new UserClaim(DefaultClaimTypes.EtherPreviousAddress, JsonSerializer.Serialize(_etherPreviousAddresses))
             };
+        [PersonalData]
         public virtual string? Email { get; protected set; }
         public virtual bool EmailConfirmed { get; protected set; }
+        [PersonalData]
         public virtual string EtherAddress => EtherManagedAccount?.Address ??
             throw new InvalidOperationException("Can't find a valid ethereum address");
         public virtual Account? EtherManagedAccount
@@ -115,11 +119,13 @@ namespace Etherna.SSOServer.Domain.Models
             }
         }
         public virtual string? EtherManagedPrivateKey { get; protected set; } = default!;
+        [PersonalData]
         public virtual IEnumerable<string> EtherPreviousAddresses
         {
             get => _etherPreviousAddresses;
             protected set => _etherPreviousAddresses = new List<string>(value ?? Array.Empty<string>());
         }
+        [PersonalData]
         public virtual string? EtherLoginAddress { get; protected set; }
         public virtual bool HasPassword => !string.IsNullOrEmpty(PasswordHash);
         public virtual bool LockoutEnabled { get; internal protected set; }
@@ -132,6 +138,7 @@ namespace Etherna.SSOServer.Domain.Models
         public virtual string? NormalizedEmail { get; protected set; }
         public virtual string? NormalizedUsername { get; protected set; }
         public virtual string? PasswordHash { get; internal protected set; }
+        [PersonalData]
         public virtual string? PhoneNumber { get; protected set; }
         public virtual bool PhoneNumberConfirmed { get; protected set; }
         public virtual string SecurityStamp { get; internal protected set; } = default!;
@@ -141,6 +148,7 @@ namespace Etherna.SSOServer.Domain.Models
             get => _twoFactorRecoveryCode;
             internal protected set => _twoFactorRecoveryCode = new List<string>(value ?? Array.Empty<string>());
         }
+        [PersonalData]
         public virtual string? Username { get; protected set; }
 
         // Methods.
