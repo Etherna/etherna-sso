@@ -174,12 +174,12 @@ namespace Etherna.SSOServer.Domain.IdentityStores
             return Task.FromResult(user.NormalizedEmail);
         }
 
-        public Task<string?> GetNormalizedUserNameAsync(User user, CancellationToken cancellationToken)
+        public Task<string> GetNormalizedUserNameAsync(User user, CancellationToken cancellationToken)
         {
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
 
-            return Task.FromResult(user.NormalizedUsername);
+            return Task.FromResult(user.NormalizedUsername ?? string.Empty); //Identity doesn't handle claims with null username
         }
 
         public Task<string?> GetPasswordHashAsync(User user, CancellationToken cancellationToken)
@@ -230,12 +230,12 @@ namespace Etherna.SSOServer.Domain.IdentityStores
             return Task.FromResult(user.Id);
         }
 
-        public Task<string?> GetUserNameAsync(User user, CancellationToken cancellationToken)
+        public Task<string> GetUserNameAsync(User user, CancellationToken cancellationToken)
         {
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
 
-            return Task.FromResult(user.Username);
+            return Task.FromResult(user.Username ?? string.Empty); //Identity doesn't handle claims with null username
         }
 
         public async Task<IList<User>> GetUsersForClaimAsync(Claim claim, CancellationToken cancellationToken)

@@ -28,6 +28,20 @@
     </div>
 </div>
 
+@if (Model.DuplicateEmail)
+{
+    <div class="row">
+        <div class="col-md-6">
+            <hr />
+            <p class="text-break">
+                It looks like that this Email is already been used.<br />
+                Please <a asp-page="./Login" asp-route-returnUrl="@Model.ReturnUrl">Login</a>
+                with your previous account, or change it for create a new one.
+            </p>
+        </div>
+    </div>
+}
+
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 }
