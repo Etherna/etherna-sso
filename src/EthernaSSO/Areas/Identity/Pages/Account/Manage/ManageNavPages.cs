@@ -11,6 +11,10 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
 
         public static string ChangePassword => "ChangePassword";
 
+        public static string DownloadPersonalData => "DownloadPersonalData";
+
+        public static string DeletePersonalData => "DeletePersonalData";
+
         public static string ExternalLogins => "ExternalLogins";
 
         public static string PersonalData => "PersonalData";
@@ -39,6 +43,22 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
                 throw new ArgumentNullException(nameof(viewContext));
 
             return PageNavClass(viewContext, ChangePassword);
+        }
+
+        public static string? DownloadPersonalDataNavClass(ViewContext viewContext)
+        {
+            if (viewContext is null)
+                throw new ArgumentNullException(nameof(viewContext));
+
+            return PageNavClass(viewContext, DownloadPersonalData);
+        }
+
+        public static string? DeletePersonalDataNavClass(ViewContext viewContext)
+        {
+            if (viewContext is null)
+                throw new ArgumentNullException(nameof(viewContext));
+
+            return PageNavClass(viewContext, DeletePersonalData);
         }
 
         public static string? ExternalLoginsNavClass(ViewContext viewContext)

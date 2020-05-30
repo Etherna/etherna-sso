@@ -1,6 +1,8 @@
 ﻿using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Extensions;
 using IdentityServer4.Events;
 using IdentityServer4.Services;
+using IdentityServer4.Stores;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -42,6 +44,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         }
 
         // Fields.
+        private readonly IClientStore clientStore;
         private readonly IEventService eventService;
         private readonly IIdentityServerInteractionService idServerInteractService;
         private readonly ILogger<RegisterModel> logger;
@@ -50,12 +53,14 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
         // Constructor.
         public RegisterModel(
+            IClientStore clientStore,
             IEventService eventService,
             IIdentityServerInteractionService idServerInteractService,
             ILogger<RegisterModel> logger,
             SignInManager<User> signInManager,
             UserManager<User> userManager)
         {
+            this.clientStore = clientStore;
             this.eventService = eventService;
             this.idServerInteractService = idServerInteractService;
             this.logger = logger;
@@ -98,21 +103,21 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 await eventService.RaiseAsync(new UserLoginSuccessEvent(user.Username, user.Id, user.Username, clientId: context?.ClientId));
                 logger.LogInformation("User created a new account with password.");
 
-                if (userManager.Options.SignIn.RequireConfirmedAccount)
+                if (context != null)
                 {
-                    return RedirectToPage("RegisterConfirmation", new { email = Input.Email });
-                }
-                else
-                {
-                    if (context != null)
+                    if (await clientStore.IsPkceClientAsync(context.ClientId))
                     {
-                        //we can trust returnUrl since GetAuthorizationContextAsync returned non-null
-                        return Redirect(returnUrl);
+                        // if the client is PKCE then we assume it's native, so this change in how to
+                        // return the response is for better UX for the end user.
+                        return this.LoadingPage("/Redirect", returnUrl);
                     }
 
-                    //request for a local page, otherwise user might have clicked on a malicious link - should be logged
-                    return LocalRedirect(returnUrl);
+                    //we can trust returnUrl since GetAuthorizationContextAsync returned non-null
+                    return Redirect(returnUrl);
                 }
+
+                //request for a local page, otherwise user might have clicked on a malicious link - should be logged
+                return LocalRedirect(returnUrl);
             }
 
             // If we got this far, something failed, redisplay form printing errors.
