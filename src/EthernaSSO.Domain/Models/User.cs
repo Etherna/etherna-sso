@@ -78,6 +78,10 @@ namespace Etherna.SSOServer.Domain.Models
         // Properties.
         public virtual int AccessFailedCount { get; internal protected set; }
         public virtual string? AuthenticatorKey { get; internal protected set; }
+        public virtual bool CanLoginWithEmail => NormalizedEmail != null && PasswordHash != null;
+        public virtual bool CanLoginWithEtherAddress => EtherLoginAddress != null;
+        public virtual bool CanLoginWithExternalProvider => Logins.Any();
+        public virtual bool CanLoginWithUsername => NormalizedEmail != null && PasswordHash != null;
         public virtual IEnumerable<UserClaim> Claims
         {
             get => DefaultClaims.Union(_customClaims);

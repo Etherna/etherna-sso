@@ -91,7 +91,14 @@ namespace Etherna.SSOServer
 
                     options.ClientId = googleAuthNSection["ClientId"];
                     options.ClientSecret = googleAuthNSection["ClientSecret"];
-                });
+                })
+                .AddFacebook(options =>
+                {
+                    var facebookAuthNSection = Configuration.GetSection("Authentication:Facebook");
+
+                    options.AppId = facebookAuthNSection["ClientId"];
+                    options.AppSecret = facebookAuthNSection["ClientSecret"];
+                }); ;
 
             // Configure IdentityServer.
             var idServerConfig = new IdServerConfig(Configuration);
