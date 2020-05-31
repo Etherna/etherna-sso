@@ -9,6 +9,7 @@ namespace Etherna.SSOServer.IdentityServer
     public class IdServerConfig
     {
         // Fields.
+        private readonly string ethernaDappBaseUrl;
         private readonly string ethernaIndexBaseUrl;
         private readonly string ethernaIndexSecret;
 
@@ -17,6 +18,8 @@ namespace Etherna.SSOServer.IdentityServer
         {
             if (configuration is null)
                 throw new ArgumentNullException(nameof(configuration));
+
+            ethernaDappBaseUrl = configuration["IdServer:Clients:EthernaDapp:BaseUrl"];
 
             ethernaIndexBaseUrl = configuration["IdServer:Clients:EthernaIndex:BaseUrl"];
             ethernaIndexSecret = configuration["IdServer:Clients:EthernaIndex:Secret"];
@@ -33,7 +36,33 @@ namespace Etherna.SSOServer.IdentityServer
         public IEnumerable<Client> Clients =>
             new List<Client>
             {
-                // interactive ASP.NET Core MVC client
+                //dapp
+                new Client
+                {
+                    ClientId = "ethernaDappClientId",
+                    ClientName = "Etherna Dapp",
+
+                    AllowedGrantTypes = GrantTypes.Code,
+                    RequirePkce = true,
+                    RequireConsent = false,
+                    RequireClientSecret = false,
+                    
+                    // where to redirect to after login
+                    RedirectUris = { $"{ethernaDappBaseUrl}/callback.html" },
+
+                    // where to redirect to after logout
+                    PostLogoutRedirectUris = { $"{ethernaDappBaseUrl}/index.html" },
+
+                    AllowedCorsOrigins = { ethernaDappBaseUrl },
+
+                    AllowedScopes = new List<string>
+                    {
+                        IdentityServerConstants.StandardScopes.OpenId,
+                        "ether_accounts"
+                    }
+                },
+
+                //index
                 new Client
                 {
                     ClientId = "ethernaIndexClientId",

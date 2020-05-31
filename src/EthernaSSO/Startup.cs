@@ -23,7 +23,9 @@ using Microsoft.Extensions.Options;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System;
 using System.IO;
+using System.Net;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace Etherna.SSOServer
 {
@@ -54,7 +56,7 @@ namespace Etherna.SSOServer
 
             services.ConfigureApplicationCookie(options =>
             {
-                // Cookie settings
+                // Cookie settings.
                 options.Cookie.HttpOnly = true;
                 options.ExpireTimeSpan = TimeSpan.FromDays(30);
 
@@ -63,6 +65,16 @@ namespace Etherna.SSOServer
                 options.AccessDeniedPath = "/Identity/Account/AccessDenied";
 
                 options.SlidingExpiration = true;
+
+                // Response 401 for unauthorized call on api.
+                options.Events.OnRedirectToLogin = context =>
+                {
+                    if (context.Request.Path.StartsWithSegments("/api", StringComparison.InvariantCulture))
+                        context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                    else
+                        context.Response.Redirect(context.RedirectUri);
+                    return Task.CompletedTask;
+                };
             });
 
             services.AddCors();
