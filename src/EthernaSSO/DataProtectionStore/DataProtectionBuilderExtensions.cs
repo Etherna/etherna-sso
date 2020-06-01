@@ -3,10 +3,12 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Etherna.SSOServer.SystemStore
+namespace Etherna.SSOServer.DataProtectionStore
 {
     public static class DataProtectionBuilderExtensions
     {
+        private const string KeyCollectionName = "dataProtectionKeys";
+
         /// <summary>
         /// Configures the data protection system to persist keys to a MongoDb datastore
         /// </summary>
@@ -22,7 +24,7 @@ namespace Etherna.SSOServer.SystemStore
 
             builder.Services.Configure<KeyManagementOptions>(options =>
             {
-                options.XmlRepository = new XmlRepository(dbContextOptions);
+                options.XmlRepository = new XmlRepository(dbContextOptions, KeyCollectionName);
             });
 
             return builder;

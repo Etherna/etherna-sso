@@ -1,36 +1,46 @@
 using Digicando.MongODM;
 using Digicando.MongODM.HF.Tasks;
+using Etherna.SSOServer.DataProtectionStore;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.IdentityStores;
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Identity;
+using Etherna.SSOServer.IdentityServer;
 using Etherna.SSOServer.Persistence;
 using Etherna.SSOServer.Services.Settings;
 using Etherna.SSOServer.Swagger;
-using Etherna.SSOServer.SystemStore;
 using Hangfire;
 using Hangfire.Mongo;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System;
 using System.IO;
+using System.Net;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace Etherna.SSOServer
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        public Startup(
+            IConfiguration configuration,
+            IWebHostEnvironment environment)
         {
             Configuration = configuration;
+            Environment = environment;
         }
 
         public IConfiguration Configuration { get; }
+        public IWebHostEnvironment Environment { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -39,14 +49,14 @@ namespace Etherna.SSOServer
             services.AddDataProtection()
                 .PersistKeysToDbContext(new DbContextOptions { ConnectionString = Configuration["ConnectionStrings:SystemDb"] });
 
-            services.AddDefaultIdentity<User>(options =>
-            {
-                options.User.AllowedUserNameCharacters = User.AllowedUserNameCharacters;
-            }).AddUserStore<UserStore>();
+            services.AddDefaultIdentity<User>()
+                .AddUserStore<UserStore>();
+            //replace default UserValidator with custom. Default one doesn't allow null usernames
+            services.Replace(ServiceDescriptor.Scoped<IUserValidator<User>, CustomUserValidator>());
 
             services.ConfigureApplicationCookie(options =>
             {
-                // Cookie settings
+                // Cookie settings.
                 options.Cookie.HttpOnly = true;
                 options.ExpireTimeSpan = TimeSpan.FromDays(30);
 
@@ -55,6 +65,16 @@ namespace Etherna.SSOServer
                 options.AccessDeniedPath = "/Identity/Account/AccessDenied";
 
                 options.SlidingExpiration = true;
+
+                // Response 401 for unauthorized call on api.
+                options.Events.OnRedirectToLogin = context =>
+                {
+                    if (context.Request.Path.StartsWithSegments("/api", StringComparison.InvariantCulture))
+                        context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                    else
+                        context.Response.Redirect(context.RedirectUri);
+                    return Task.CompletedTask;
+                };
             });
 
             services.AddCors();
@@ -74,6 +94,44 @@ namespace Etherna.SSOServer
                 // can also be used to control the format of the API version in route templates
                 options.SubstituteApiVersionInUrl = true;
             });
+
+            // Configure authentication.
+            services.AddAuthentication()
+                .AddGoogle(options =>
+                {
+                    var googleAuthNSection = Configuration.GetSection("Authentication:Google");
+
+                    options.ClientId = googleAuthNSection["ClientId"];
+                    options.ClientSecret = googleAuthNSection["ClientSecret"];
+                })
+                .AddFacebook(options =>
+                {
+                    var facebookAuthNSection = Configuration.GetSection("Authentication:Facebook");
+
+                    options.AppId = facebookAuthNSection["ClientId"];
+                    options.AppSecret = facebookAuthNSection["ClientSecret"];
+                }); ;
+
+            // Configure IdentityServer.
+            var idServerConfig = new IdServerConfig(Configuration);
+            var builder = services.AddIdentityServer(options =>
+            {
+                options.UserInteraction.ErrorUrl = "/Error";
+            })
+                .AddInMemoryApiResources(idServerConfig.Apis)
+                .AddInMemoryClients(idServerConfig.Clients)
+                .AddInMemoryIdentityResources(idServerConfig.IdResources)
+                .AddAspNetIdentity<User>();
+            if (Environment.IsDevelopment())
+            {
+                builder.AddDeveloperSigningCredential();
+            }
+            else
+            {
+#pragma warning disable CA2000 // Dispose objects before losing scope
+                builder.AddSigningCredential(AzureKeyVaultAccessor.GetIdentityServerCertificate(Configuration));
+#pragma warning restore CA2000 // Dispose objects before losing scope
+            }
 
             // Configure Hangfire services.
             services.AddHangfire(options =>
@@ -136,9 +194,9 @@ namespace Etherna.SSOServer
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IApiVersionDescriptionProvider apiProvider)
+        public void Configure(IApplicationBuilder app, IApiVersionDescriptionProvider apiProvider)
         {
-            if (env.IsDevelopment())
+            if (Environment.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
@@ -151,7 +209,7 @@ namespace Etherna.SSOServer
 
             app.UseCors(builder =>
             {
-                if (env.IsDevelopment())
+                if (Environment.IsDevelopment())
                 {
                     builder.SetIsOriginAllowed(_ => true)
                            .AllowAnyHeader()
@@ -173,6 +231,7 @@ namespace Etherna.SSOServer
 
             app.UseRouting();
 
+            app.UseIdentityServer();
             app.UseAuthentication();
             app.UseAuthorization();
 

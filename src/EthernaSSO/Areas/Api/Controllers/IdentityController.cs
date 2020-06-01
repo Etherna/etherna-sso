@@ -1,29 +1,26 @@
 ﻿using Etherna.SSOServer.Areas.Api.DtoModels;
 using Etherna.SSOServer.Attributes;
 using Etherna.SSOServer.Domain.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using System;
 using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Areas.Api.Controllers
 {
     [ApiController]
-    [ApiVersion("0.1")]
+    [ApiVersion("0.2")]
     [Route("api/v{api-version:apiVersion}/[controller]")]
     public class IdentityController : Controller
     {
         // Fields.
-        private readonly SignInManager<User> signInManager;
         private readonly UserManager<User> userManager;
 
         // Constructors.
         public IdentityController(
-            SignInManager<User> signInManager,
             UserManager<User> userManager)
         {
-            this.signInManager = signInManager;
             this.userManager = userManager;
         }
 
@@ -33,16 +30,13 @@ namespace Etherna.SSOServer.Areas.Api.Controllers
         /// </summary>
         /// <response code="200">Current user information</response>
         [HttpGet]
+        [Authorize]
         [SimpleExceptionFilter]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<UserDto> GetCurrentUserAsync()
+        public async Task<PrivateUserDto> GetCurrentUserAsync()
         {
-            if (!signInManager.IsSignedIn(User))
-                throw new UnauthorizedAccessException();
-
             var user = await userManager.GetUserAsync(User);
-            return new UserDto(user);
+            return new PrivateUserDto(user);
         }
     }
 }

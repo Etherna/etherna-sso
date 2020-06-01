@@ -1,10 +1,12 @@
 ﻿using Etherna.SSOServer.Domain.Models;
 using Microsoft.AspNetCore.Identity;
+using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,6 +17,7 @@ namespace Etherna.SSOServer.Domain.IdentityStores
     /// </summary>
     public sealed class UserStore :
         IUserAuthenticatorKeyStore<User>,
+        IUserClaimStore<User>,
         IUserEmailStore<User>,
         IUserLockoutStore<User>,
         IUserLoginStore<User>,
@@ -33,6 +36,15 @@ namespace Etherna.SSOServer.Domain.IdentityStores
             this.ssoDbContext = ssoDbContext;
         }
 
+        public Task AddClaimsAsync(User user, IEnumerable<Claim> claims, CancellationToken cancellationToken)
+        {
+            if (user is null)
+                throw new ArgumentNullException(nameof(user));
+
+            user.AddClaims(claims.Select(c => new Models.UserAgg.UserClaim(c.Type, c.Value)));
+            return Task.CompletedTask;
+        }
+
         public Task AddLoginAsync(User user, UserLoginInfo login, CancellationToken cancellationToken)
         {
             if (user is null)
@@ -40,7 +52,7 @@ namespace Etherna.SSOServer.Domain.IdentityStores
             if (login is null)
                 throw new ArgumentNullException(nameof(login));
 
-            user.AddLogin(new Domain.Models.UserAgg.UserLoginInfo(login.LoginProvider, login.ProviderKey));
+            user.AddLogin(new Domain.Models.UserAgg.UserLoginInfo(login.LoginProvider, login.ProviderKey, login.ProviderDisplayName));
             return Task.CompletedTask;
         }
 
@@ -103,6 +115,15 @@ namespace Etherna.SSOServer.Domain.IdentityStores
             return Task.FromResult(user.AuthenticatorKey);
         }
 
+        public Task<IList<Claim>> GetClaimsAsync(User user, CancellationToken cancellationToken)
+        {
+            if (user is null)
+                throw new ArgumentNullException(nameof(user));
+
+            return Task.FromResult<IList<Claim>>(
+                user.Claims.Select(c => new Claim(c.Type, c.Value)).ToList());
+        }
+
         public Task<string?> GetEmailAsync(User user, CancellationToken cancellationToken)
         {
             if (user is null)
@@ -153,12 +174,12 @@ namespace Etherna.SSOServer.Domain.IdentityStores
             return Task.FromResult(user.NormalizedEmail);
         }
 
-        public Task<string?> GetNormalizedUserNameAsync(User user, CancellationToken cancellationToken)
+        public Task<string> GetNormalizedUserNameAsync(User user, CancellationToken cancellationToken)
         {
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
 
-            return Task.FromResult(user.NormalizedUsername);
+            return Task.FromResult(user.NormalizedUsername ?? string.Empty); //Identity doesn't handle claims with null username
         }
 
         public Task<string?> GetPasswordHashAsync(User user, CancellationToken cancellationToken)
@@ -209,12 +230,19 @@ namespace Etherna.SSOServer.Domain.IdentityStores
             return Task.FromResult(user.Id);
         }
 
-        public Task<string?> GetUserNameAsync(User user, CancellationToken cancellationToken)
+        public Task<string> GetUserNameAsync(User user, CancellationToken cancellationToken)
         {
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
 
-            return Task.FromResult(user.Username);
+            return Task.FromResult(user.Username ?? string.Empty); //Identity doesn't handle claims with null username
+        }
+
+        public async Task<IList<User>> GetUsersForClaimAsync(Claim claim, CancellationToken cancellationToken)
+        {
+            return await ssoDbContext.Users.QueryElementsAsync(
+                users => users.Where(u => u.Claims.Any(c => c.Type == claim.Type && c.Value == claim.Value))
+                              .ToListAsync());
         }
 
         public Task<bool> HasPasswordAsync(User user, CancellationToken cancellationToken)
@@ -241,12 +269,36 @@ namespace Etherna.SSOServer.Domain.IdentityStores
             return Task.FromResult(user.RedeemTwoFactorRecoveryCode(code));
         }
 
+        public Task RemoveClaimsAsync(User user, IEnumerable<Claim> claims, CancellationToken cancellationToken)
+        {
+            if (user is null)
+                throw new ArgumentNullException(nameof(user));
+
+            user.RemoveClaims(claims.Select(c => new Models.UserAgg.UserClaim(c.Type, c.Value)));
+            return Task.CompletedTask;
+        }
+
         public Task RemoveLoginAsync(User user, string loginProvider, string providerKey, CancellationToken cancellationToken)
         {
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
 
             user.RemoveLogin(loginProvider, providerKey);
+            return Task.CompletedTask;
+        }
+
+        public Task ReplaceClaimAsync(User user, Claim claim, Claim newClaim, CancellationToken cancellationToken)
+        {
+            if (user is null)
+                throw new ArgumentNullException(nameof(user));
+            if (claim is null)
+                throw new ArgumentNullException(nameof(claim));
+            if (newClaim is null)
+                throw new ArgumentNullException(nameof(newClaim));
+
+            user.RemoveClaims(new[] { new Models.UserAgg.UserClaim(claim.Type, claim.Value) });
+            user.AddClaims(new[] { new Models.UserAgg.UserClaim(newClaim.Type, newClaim.Value) });
+
             return Task.CompletedTask;
         }
 

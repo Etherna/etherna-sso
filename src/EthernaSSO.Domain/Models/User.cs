@@ -1,5 +1,6 @@
 ﻿using Digicando.DomainHelper.Attributes;
 using Etherna.SSOServer.Domain.Models.UserAgg;
+using Microsoft.AspNetCore.Identity;
 using Nethereum.Hex.HexConvertors.Extensions;
 using Nethereum.Util;
 using Nethereum.Web3.Accounts;
@@ -7,7 +8,9 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Text.Json;
 using System.Text.RegularExpressions;
+using UserLoginInfo = Etherna.SSOServer.Domain.Models.UserAgg.UserLoginInfo;
 
 namespace Etherna.SSOServer.Domain.Models
 {
@@ -17,9 +20,16 @@ namespace Etherna.SSOServer.Domain.Models
         public const string AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._";
         public const string EmailRegex = @"\A(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)\Z";
         public const string UsernameRegex = "^[a-zA-Z0-9]+(?:[._-]?[a-zA-Z0-9])*$";
+        public static class DefaultClaimTypes
+        {
+            public const string EtherAddress = "ether_address";
+            public const string EtherPreviousAddress = "ether_prev_addresses";
+        }
 
         // Fields.
+        private readonly List<UserClaim> _customClaims = new List<UserClaim>();
         private Account? _etherManagedAccount;
+        private List<string> _etherPreviousAddresses = new List<string>();
         private List<UserLoginInfo> _logins = new List<UserLoginInfo>();
         private List<string> _twoFactorRecoveryCode = new List<string>();
 
@@ -35,10 +45,30 @@ namespace Etherna.SSOServer.Domain.Models
         protected User() { }
 
         // Static builders.
+        public static User CreateManagedWithEtherLoginAddress(string loginAddress)
+        {
+            var privateKey = GenerateEtherPrivateKey();
+
+            var user = new User { EtherManagedPrivateKey = privateKey };
+            user.SetEtherLoginAddress(loginAddress);
+
+            return user;
+        }
+
+        public static User CreateManagedWithExternalLogin(UserLoginInfo loginInfo, string? email = default)
+        {
+            var privateKey = GenerateEtherPrivateKey();
+
+            var user = new User { EtherManagedPrivateKey = privateKey };
+            user.AddLogin(loginInfo);
+            if (email != null) user.SetEmail(email);
+
+            return user;
+        }
+
         public static User CreateManagedWithUsername(string username, string? email = default)
         {
-            var ecKey = Nethereum.Signer.EthECKey.GenerateKey();
-            var privateKey = ecKey.GetPrivateKeyAsBytes().ToHex();
+            var privateKey = GenerateEtherPrivateKey();
 
             var user = new User { EtherManagedPrivateKey = privateKey };
             user.SetUsername(username);
@@ -47,22 +77,32 @@ namespace Etherna.SSOServer.Domain.Models
             return user;
         }
 
-        public static User CreateManagedWithEtherLoginAddress(string loginAddress)
-        {
-            var ecKey = Nethereum.Signer.EthECKey.GenerateKey();
-            var privateKey = ecKey.GetPrivateKeyAsBytes().ToHex();
-
-            var user = new User { EtherManagedPrivateKey = privateKey };
-            user.SetEtherLoginAddress(loginAddress);
-
-            return user;
-        }
-
         // Properties.
         public virtual int AccessFailedCount { get; internal protected set; }
         public virtual string? AuthenticatorKey { get; internal protected set; }
+        public virtual bool CanLoginWithEmail => NormalizedEmail != null && PasswordHash != null;
+        public virtual bool CanLoginWithEtherAddress => EtherLoginAddress != null;
+        public virtual bool CanLoginWithExternalProvider => Logins.Any();
+        public virtual bool CanLoginWithUsername => NormalizedEmail != null && PasswordHash != null;
+        public virtual IEnumerable<UserClaim> Claims
+        {
+            get => DefaultClaims.Union(_customClaims);
+            protected set
+            {
+                _customClaims.Clear();
+                AddClaims(value ?? Array.Empty<UserClaim>());
+            }
+        }
+        public virtual IEnumerable<UserClaim> DefaultClaims =>
+            new []
+            {
+                new UserClaim(DefaultClaimTypes.EtherAddress, EtherAddress),
+                new UserClaim(DefaultClaimTypes.EtherPreviousAddress, JsonSerializer.Serialize(_etherPreviousAddresses))
+            };
+        [PersonalData]
         public virtual string? Email { get; protected set; }
         public virtual bool EmailConfirmed { get; protected set; }
+        [PersonalData]
         public virtual string EtherAddress => EtherManagedAccount?.Address ??
             throw new InvalidOperationException("Can't find a valid ethereum address");
         public virtual Account? EtherManagedAccount
@@ -79,6 +119,13 @@ namespace Etherna.SSOServer.Domain.Models
             }
         }
         public virtual string? EtherManagedPrivateKey { get; protected set; } = default!;
+        [PersonalData]
+        public virtual IEnumerable<string> EtherPreviousAddresses
+        {
+            get => _etherPreviousAddresses;
+            protected set => _etherPreviousAddresses = new List<string>(value ?? Array.Empty<string>());
+        }
+        [PersonalData]
         public virtual string? EtherLoginAddress { get; protected set; }
         public virtual bool HasPassword => !string.IsNullOrEmpty(PasswordHash);
         public virtual bool LockoutEnabled { get; internal protected set; }
@@ -91,6 +138,7 @@ namespace Etherna.SSOServer.Domain.Models
         public virtual string? NormalizedEmail { get; protected set; }
         public virtual string? NormalizedUsername { get; protected set; }
         public virtual string? PasswordHash { get; internal protected set; }
+        [PersonalData]
         public virtual string? PhoneNumber { get; protected set; }
         public virtual bool PhoneNumberConfirmed { get; protected set; }
         public virtual string SecurityStamp { get; internal protected set; } = default!;
@@ -100,9 +148,35 @@ namespace Etherna.SSOServer.Domain.Models
             get => _twoFactorRecoveryCode;
             internal protected set => _twoFactorRecoveryCode = new List<string>(value ?? Array.Empty<string>());
         }
+        [PersonalData]
         public virtual string? Username { get; protected set; }
 
         // Methods.
+        [PropertyAlterer(nameof(Claims))]
+        public virtual void AddClaims(IEnumerable<UserClaim> claims)
+        {
+            if (claims is null)
+                throw new ArgumentNullException(nameof(claims));
+
+            foreach (var claim in claims)
+            {
+                //keep default claims managed by model
+                switch (claim.Type)
+                {
+                    case DefaultClaimTypes.EtherAddress:
+                    case DefaultClaimTypes.EtherPreviousAddress:
+                        continue;
+                }
+
+                //don't add duplicate claims
+                if (_customClaims.Any(c => c.Type == claim.Type &&
+                                           c.Value == claim.Value))
+                    continue;
+
+                _customClaims.Add(claim);
+            }
+        }
+
         [PropertyAlterer(nameof(Logins))]
         public virtual bool AddLogin(UserLoginInfo userLoginInfo)
         {
@@ -141,6 +215,17 @@ namespace Etherna.SSOServer.Domain.Models
                 return true;
             }
             return false;
+        }
+
+        [PropertyAlterer(nameof(Claims))]
+        public virtual void RemoveClaims(IEnumerable<UserClaim> claims)
+        {
+            if (claims is null)
+                throw new ArgumentNullException(nameof(claims));
+
+            foreach (var claim in claims)
+                _customClaims.RemoveAll(c => c.Type == claim.Type &&
+                                             c.Value == claim.Value);
         }
 
         [PropertyAlterer(nameof(Logins))]
@@ -198,7 +283,14 @@ namespace Etherna.SSOServer.Domain.Models
         }
 
         // Helpers.
-        private string NormalizeEmail(string email)
+        private static string GenerateEtherPrivateKey()
+        {
+            var ecKey = Nethereum.Signer.EthECKey.GenerateKey();
+            var privateKey = ecKey.GetPrivateKeyAsBytes().ToHex();
+            return privateKey;
+        }
+
+        private static string NormalizeEmail(string email)
         {
             if (email is null)
                 throw new ArgumentNullException(nameof(email));
@@ -214,7 +306,7 @@ namespace Etherna.SSOServer.Domain.Models
             return $"{cleanedUsername}@{domain}";
         }
 
-        private string NormalizeUsername(string username)
+        private static string NormalizeUsername(string username)
         {
             if (username is null)
                 throw new ArgumentNullException(nameof(username));

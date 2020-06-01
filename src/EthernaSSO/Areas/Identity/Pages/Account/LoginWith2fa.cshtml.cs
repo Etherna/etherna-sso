@@ -1,4 +1,8 @@
 ﻿using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Extensions;
+using IdentityServer4.Events;
+using IdentityServer4.Services;
+using IdentityServer4.Stores;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -13,22 +17,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
     [AllowAnonymous]
     public class LoginWith2faModel : PageModel
     {
-        private readonly SignInManager<User> _signInManager;
-        private readonly ILogger<LoginWith2faModel> _logger;
-
-        public LoginWith2faModel(SignInManager<User> signInManager, ILogger<LoginWith2faModel> logger)
-        {
-            _signInManager = signInManager;
-            _logger = logger;
-        }
-
-        [BindProperty]
-        public InputModel Input { get; set; } = default!;
-
-        public bool RememberMe { get; set; }
-
-        public string? ReturnUrl { get; set; }
-
+        // Models.
         public class InputModel
         {
             [Required]
@@ -41,10 +30,41 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             public bool RememberMachine { get; set; }
         }
 
+        // Fields.
+        private readonly IClientStore clientStore;
+        private readonly IEventService eventService;
+        private readonly IIdentityServerInteractionService idServerInteractService;
+        private readonly ILogger<LoginWith2faModel> logger;
+        private readonly SignInManager<User> signInManager;
+
+        // Constructor.
+        public LoginWith2faModel(
+            IClientStore clientStore,
+            IEventService eventService,
+            IIdentityServerInteractionService idServerInteractService,
+            ILogger<LoginWith2faModel> logger,
+            SignInManager<User> signInManager)
+        {
+            this.clientStore = clientStore;
+            this.eventService = eventService;
+            this.idServerInteractService = idServerInteractService;
+            this.logger = logger;
+            this.signInManager = signInManager;
+        }
+
+        // Properties.
+        [BindProperty]
+        public InputModel Input { get; set; } = default!;
+
+        public bool RememberMe { get; set; }
+
+        public string? ReturnUrl { get; set; }
+
+        // Methods.
         public async Task<IActionResult> OnGetAsync(bool rememberMe, string? returnUrl = null)
         {
             // Ensure the user has gone through the username & password screen first
-            var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
+            var user = await signInManager.GetTwoFactorAuthenticationUserAsync();
 
             if (user == null)
             {
@@ -59,14 +79,18 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
         public async Task<IActionResult> OnPostAsync(bool rememberMe, string? returnUrl = null)
         {
+            // Init page and validate.
             if (!ModelState.IsValid)
-            {
                 return Page();
-            }
 
             returnUrl ??= Url.Content("~/");
 
-            var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
+            // Login.
+            //check if we are in the context of an authorization request
+            var context = await idServerInteractService.GetAuthorizationContextAsync(returnUrl);
+
+            //check 2fa
+            var user = await signInManager.GetTwoFactorAuthenticationUserAsync();
             if (user == null)
             {
                 throw new InvalidOperationException($"Unable to load two-factor authentication user.");
@@ -75,21 +99,37 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             var authenticatorCode = Input.TwoFactorCode.Replace(" ", string.Empty, StringComparison.InvariantCulture)
                                                        .Replace("-", string.Empty, StringComparison.InvariantCulture);
 
-            var result = await _signInManager.TwoFactorAuthenticatorSignInAsync(authenticatorCode, rememberMe, Input.RememberMachine);
+            var result = await signInManager.TwoFactorAuthenticatorSignInAsync(authenticatorCode, rememberMe, Input.RememberMachine);
 
             if (result.Succeeded)
             {
-                _logger.LogInformation("User with ID '{UserId}' logged in with 2fa.", user.Id);
-                return Redirect(returnUrl);
+                await eventService.RaiseAsync(new UserLoginSuccessEvent(user.Username, user.Id, user.Username, clientId: context?.ClientId));
+                logger.LogInformation($"User with ID '{user.Id}' logged in with 2fa.");
+
+                if (context != null)
+                {
+                    if (await clientStore.IsPkceClientAsync(context.ClientId))
+                    {
+                        // if the client is PKCE then we assume it's native, so this change in how to
+                        // return the response is for better UX for the end user.
+                        return this.LoadingPage("/Redirect", returnUrl);
+                    }
+
+                    //we can trust returnUrl since GetAuthorizationContextAsync returned non-null
+                    return Redirect(returnUrl);
+                }
+
+                //request for a local page, otherwise user might have clicked on a malicious link - should be logged
+                return LocalRedirect(returnUrl);
             }
             else if (result.IsLockedOut)
             {
-                _logger.LogWarning("User with ID '{UserId}' account locked out.", user.Id);
+                logger.LogWarning("User with ID '{UserId}' account locked out.", user.Id);
                 return RedirectToPage("./Lockout");
             }
             else
             {
-                _logger.LogWarning("Invalid authenticator code entered for user with ID '{UserId}'.", user.Id);
+                logger.LogWarning("Invalid authenticator code entered for user with ID '{UserId}'.", user.Id);
                 ModelState.AddModelError(string.Empty, "Invalid authenticator code.");
                 return Page();
             }

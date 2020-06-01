@@ -1,0 +1,22 @@
+﻿@page
+@model LoggedOutModel
+@{
+    ViewData["Title"] = "Logged out";
+}
+
+<header>
+    <h1>@ViewData["Title"]</h1>
+    <p>You have successfully logged out from Etherna.</p>
+
+    @if (Model.PostLogoutRedirectUri != null)
+    {
+        <div>
+            Click <a class="PostLogoutRedirectUri" href="@Model.PostLogoutRedirectUri">here</a> to return to <span>@Model.ClientName</span>.
+        </div>
+    }
+
+    @if (Model.SignOutIFrameUrl != null)
+    {
+        <iframe width="0" height="0" frameborder="0" class="signout" src="@Model.SignOutIFrameUrl"></iframe>
+    }
+</header>

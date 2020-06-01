@@ -1,4 +1,8 @@
 ﻿using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Extensions;
+using IdentityServer4.Events;
+using IdentityServer4.Services;
+using IdentityServer4.Stores;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -31,16 +35,25 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         }
 
         // Fields.
+        private readonly IClientStore clientStore;
+        private readonly IEventService eventService;
+        private readonly IIdentityServerInteractionService idServerInteractService;
         private readonly ILogger<LoginModel> logger;
         private readonly SignInManager<User> signInManager;
         private readonly UserManager<User> userManager;
 
         // Constructor.
         public LoginModel(
+            IClientStore clientStore,
+            IEventService eventService,
+            IIdentityServerInteractionService idServerInteractService,
             ILogger<LoginModel> logger,
             SignInManager<User> signInManager,
             UserManager<User> userManager)
         {
+            this.clientStore = clientStore;
+            this.eventService = eventService;
+            this.idServerInteractService = idServerInteractService;
             this.logger = logger;
             this.signInManager = signInManager;
             this.userManager = userManager;
@@ -64,28 +77,25 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 ModelState.AddModelError(string.Empty, ErrorMessage);
             }
 
-            returnUrl ??= Url.Content("~/");
-
             // Clear the existing external cookie to ensure a clean login process
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
 
             ExternalLogins.AddRange(await signInManager.GetExternalAuthenticationSchemesAsync());
-
-            ReturnUrl = returnUrl;
+            ReturnUrl = returnUrl ?? Url.Content("~/");
         }
 
         public async Task<IActionResult> OnPostAsync(string? returnUrl = null)
         {
-            if (Input is null)
-                throw new InvalidOperationException();
-
             // Init page and validate.
-            returnUrl ??= Url.Content("~/");
+            ReturnUrl = returnUrl ?? Url.Content("~/");
 
             if (!ModelState.IsValid)
                 return Page();
 
             // Login.
+            //check if we are in the context of an authorization request
+            var context = await idServerInteractService.GetAuthorizationContextAsync(ReturnUrl);
+
             //find user
             var user = Input.UsernameOrEmail.Contains('@', StringComparison.InvariantCulture) ? //if is email
                 await userManager.FindByEmailAsync(Input.UsernameOrEmail) :
@@ -98,22 +108,43 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
             //validate login
             var result = await signInManager.PasswordSignInAsync(user, Input.Password, Input.RememberMe, lockoutOnFailure: true);
+
             if (result.Succeeded)
             {
+                await eventService.RaiseAsync(new UserLoginSuccessEvent(user.Username, user.Id, user.Username, clientId: context?.ClientId));
                 logger.LogInformation("User logged in.");
-                return Redirect(returnUrl);
+
+                if (context != null)
+                {
+                    if (await clientStore.IsPkceClientAsync(context.ClientId))
+                    {
+                        // if the client is PKCE then we assume it's native, so this change in how to
+                        // return the response is for better UX for the end user.
+                        return this.LoadingPage("/Redirect", ReturnUrl);
+                    }
+
+                    //we can trust returnUrl since GetAuthorizationContextAsync returned non-null
+                    return Redirect(ReturnUrl);
+                }
+
+                //request for a local page, otherwise user might have clicked on a malicious link - should be logged
+                return LocalRedirect(ReturnUrl);
             }
-            if (result.RequiresTwoFactor)
+
+            else if (result.RequiresTwoFactor)
             {
-                return RedirectToPage("./LoginWith2fa", new { ReturnUrl = returnUrl, Input.RememberMe });
+                return RedirectToPage("./LoginWith2fa", new { ReturnUrl, Input.RememberMe });
             }
-            if (result.IsLockedOut)
+
+            else if (result.IsLockedOut)
             {
                 logger.LogWarning("User account locked out.");
                 return RedirectToPage("./Lockout");
             }
+
             else
             {
+                await eventService.RaiseAsync(new UserLoginFailureEvent(Input.UsernameOrEmail, "invalid credentials", clientId: context?.ClientId));
                 ModelState.AddModelError(string.Empty, "Invalid login attempt.");
                 return Page();
             }

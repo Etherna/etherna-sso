@@ -6,6 +6,7 @@ using Digicando.MongODM.Utility;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Persistence.Repositories;
+using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,7 +33,18 @@ namespace Etherna.SSOServer.Persistence
 
         // Properties.
         //repositories
-        public ICollectionRepository<User, string> Users { get; } = new DomainCollectionRepository<User, string>("users");
+        public ICollectionRepository<User, string> Users { get; } = new DomainCollectionRepository<User, string>(
+            new CollectionRepositoryOptions<User>("users")
+            {
+                IndexBuilders = new[]
+                {
+                    (Builders<User>.IndexKeys.Ascending(u => u.NormalizedEmail),
+                     new CreateIndexOptions<User> { Unique = true, Sparse = true }),
+
+                    (Builders<User>.IndexKeys.Ascending(u => u.NormalizedUsername),
+                     new CreateIndexOptions<User> { Unique = true, Sparse = true })
+                }
+            });
 
         //other properties
         public IEventDispatcher EventDispatcher { get; }
