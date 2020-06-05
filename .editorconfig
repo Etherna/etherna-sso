@@ -25,7 +25,7 @@ dotnet_diagnostic.CA1812.severity = none    # Doing extensive use of Dependency 
 dotnet_diagnostic.CA1822.severity = none    # Don't like static members
 
 # CA2007: Consider calling ConfigureAwait on the awaited task
-dotnet_diagnostic.CA2007.severity = none    # .Net Core doesn't have a SynchronizationContext
+dotnet_diagnostic.CA2007.severity = none    # Not needed with .Net Core. More info https://devblogs.microsoft.com/dotnet/configureawait-faq/
 
 # CS1591: Missing XML comment for publicly visible type or member
 dotnet_diagnostic.CS1591.severity = none

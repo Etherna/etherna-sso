@@ -1,4 +1,4 @@
-﻿using Digicando.MongODM.Models;
+﻿using Etherna.MongODM.Models;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 

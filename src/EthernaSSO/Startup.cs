@@ -1,5 +1,5 @@
-using Digicando.MongODM;
-using Digicando.MongODM.HF.Tasks;
+using Etherna.MongODM;
+using Etherna.MongODM.HF.Tasks;
 using Etherna.SSOServer.DataProtectionStore;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.IdentityStores;

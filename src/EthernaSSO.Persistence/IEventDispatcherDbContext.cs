@@ -1,5 +1,5 @@
-﻿using Digicando.DomainEvents;
-using Digicando.MongODM;
+﻿using Etherna.DomainEvents;
+using Etherna.MongODM;
 
 namespace Etherna.SSOServer.Persistence
 {

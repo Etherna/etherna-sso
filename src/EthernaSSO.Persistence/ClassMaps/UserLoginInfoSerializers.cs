@@ -1,5 +1,5 @@
-﻿using Digicando.MongODM;
-using Digicando.MongODM.Serialization;
+﻿using Etherna.MongODM;
+using Etherna.MongODM.Serialization;
 using Etherna.SSOServer.Domain.Models.UserAgg;
 
 namespace Etherna.SSOServer.Persistence.ClassMaps

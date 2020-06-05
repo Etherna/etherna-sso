@@ -1,8 +1,8 @@
-﻿using Digicando.DomainEvents;
-using Digicando.MongODM;
-using Digicando.MongODM.Repositories;
-using Digicando.MongODM.Serialization;
-using Digicando.MongODM.Utility;
+﻿using Etherna.DomainEvents;
+using Etherna.MongODM;
+using Etherna.MongODM.Repositories;
+using Etherna.MongODM.Serialization;
+using Etherna.MongODM.Utility;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Persistence.Repositories;
@@ -43,6 +43,15 @@ namespace Etherna.SSOServer.Persistence
 
                     (Builders<User>.IndexKeys.Ascending(u => u.NormalizedUsername),
                      new CreateIndexOptions<User> { Unique = true, Sparse = true })
+                }
+            });
+        public ICollectionRepository<Web3LoginToken, string> Web3LoginTokens { get; } = new DomainCollectionRepository<Web3LoginToken, string>(
+            new CollectionRepositoryOptions<Web3LoginToken>("web3LoginTokens")
+            {
+                IndexBuilders = new[]
+                {
+                    (Builders<Web3LoginToken>.IndexKeys.Ascending(u => u.EtherAddress),
+                     new CreateIndexOptions<Web3LoginToken> { Unique = true })
                 }
             });
 

@@ -1,6 +1,6 @@
-﻿using Digicando.DomainEvents;
-using Digicando.MongODM;
-using Digicando.MongODM.Repositories;
+﻿using Etherna.DomainEvents;
+using Etherna.MongODM;
+using Etherna.MongODM.Repositories;
 using Etherna.SSOServer.Domain.Events;
 using Etherna.SSOServer.Domain.Models;
 using MongoDB.Driver.Linq;

@@ -1,13 +1,22 @@
-﻿@{
-    var browserIsWeb3Enabled = false;
-}
+﻿<div id="metamask-login" style="display:none">
+    <div>
+        <p>
+            <button class="btn btn-primary" title="Log in using your Web3 Wallet">Login with Web3 Wallet</button>
+        </p>
+    </div>
+</div>
 
-@if (browserIsWeb3Enabled)
-{
-    <p>/*TODO: Login with Metamask*/</p>
-}
-else
-{
+<div id="install-metamask" style="display:none">
     <a href="https://metamask.io/"><img src="/images/metamask-logo.svg" /></a>
     <p>Do you need a new web3 wallet? Try to install <a href="https://metamask.io/">Metamask</a></p>
-}
+</div>
+
+<script type="text/javascript">
+    window.addEventListener('load', function () {
+        if (typeof window.web3 !== "undefined") {
+            $('#metamask-login').show();
+        } else {
+            $('#install-metamask').show();
+        }
+    });
+</script>

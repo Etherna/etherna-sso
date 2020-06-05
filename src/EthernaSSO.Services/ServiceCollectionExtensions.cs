@@ -1,4 +1,4 @@
-﻿using Digicando.DomainEvents;
+﻿using Etherna.DomainEvents;
 using Etherna.SSOServer.Services.Utilities;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using System;

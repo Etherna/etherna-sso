@@ -1,4 +1,4 @@
-﻿using Digicando.MongODM.Exceptions;
+﻿using Etherna.MongODM.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using System;

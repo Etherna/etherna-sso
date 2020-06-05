@@ -1,7 +1,7 @@
-﻿using Digicando.DomainEvents;
-using Digicando.MongODM;
-using Digicando.MongODM.Models;
-using Digicando.MongODM.Repositories;
+﻿using Etherna.DomainEvents;
+using Etherna.MongODM;
+using Etherna.MongODM.Models;
+using Etherna.MongODM.Repositories;
 using Etherna.SSOServer.Domain.Events;
 using System;
 using System.Collections.Generic;

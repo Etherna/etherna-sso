@@ -1,4 +1,4 @@
-﻿using Digicando.DomainHelper.Attributes;
+﻿using Etherna.MongODM.Attributes;
 using Etherna.SSOServer.Domain.Models.UserAgg;
 using Microsoft.AspNetCore.Identity;
 using Nethereum.Hex.HexConvertors.Extensions;
