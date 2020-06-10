@@ -99,18 +99,19 @@ namespace Etherna.SSOServer
             services.AddAuthentication()
                 .AddGoogle(options =>
                 {
-                    var googleAuthNSection = Configuration.GetSection("Authentication:Google");
-
-                    options.ClientId = googleAuthNSection["ClientId"];
-                    options.ClientSecret = googleAuthNSection["ClientSecret"];
+                    options.ClientId = Configuration["Authentication:Google:ClientId"];
+                    options.ClientSecret = Configuration["Authentication:Google:ClientSecret"];
                 })
                 .AddFacebook(options =>
                 {
-                    var facebookAuthNSection = Configuration.GetSection("Authentication:Facebook");
-
-                    options.AppId = facebookAuthNSection["ClientId"];
-                    options.AppSecret = facebookAuthNSection["ClientSecret"];
-                }); ;
+                    options.AppId = Configuration["Authentication:Facebook:ClientId"];
+                    options.AppSecret = Configuration["Authentication:Facebook:ClientSecret"];
+                })
+                .AddTwitter(options =>
+                {
+                    options.ConsumerKey = Configuration["Authentication:Twitter:ClientId"];
+                    options.ConsumerSecret = Configuration["Authentication:Twitter:ClientSecret"];
+                });
 
             // Configure IdentityServer.
             var idServerConfig = new IdServerConfig(Configuration);
