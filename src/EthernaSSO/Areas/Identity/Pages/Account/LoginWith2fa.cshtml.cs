@@ -103,12 +103,12 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
             if (result.Succeeded)
             {
-                await eventService.RaiseAsync(new UserLoginSuccessEvent(user.Username, user.Id, user.Username, clientId: context?.ClientId));
+                await eventService.RaiseAsync(new UserLoginSuccessEvent(user.Username, user.Id, user.Username, clientId: context?.Client?.ClientId));
                 logger.LogInformation($"User with ID '{user.Id}' logged in with 2fa.");
 
-                if (context != null)
+                if (context?.Client != null)
                 {
-                    if (await clientStore.IsPkceClientAsync(context.ClientId))
+                    if (await clientStore.IsPkceClientAsync(context.Client.ClientId))
                     {
                         // if the client is PKCE then we assume it's native, so this change in how to
                         // return the response is for better UX for the end user.

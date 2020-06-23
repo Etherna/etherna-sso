@@ -51,7 +51,7 @@ namespace Etherna.SSOServer.IdentityServer
                     RedirectUris = { $"{ethernaDappBaseUrl}/callback.html" },
 
                     // where to redirect to after logout
-                    PostLogoutRedirectUris = { $"{ethernaDappBaseUrl}/index.html" },
+                    PostLogoutRedirectUris = { ethernaDappBaseUrl },
 
                     AllowedCorsOrigins = { ethernaDappBaseUrl },
 

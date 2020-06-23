@@ -122,12 +122,12 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 // Check if external login is in the context of an OIDC request.
                 var context = await idServerInteractionService.GetAuthorizationContextAsync(returnUrl);
 
-                await eventService.RaiseAsync(new UserLoginSuccessEvent(info.LoginProvider, info.ProviderKey, info.ProviderKey, info.Principal.Identity.Name, true, context?.ClientId));
+                await eventService.RaiseAsync(new UserLoginSuccessEvent(info.LoginProvider, info.ProviderKey, info.ProviderKey, info.Principal.Identity.Name, true, context?.Client?.ClientId));
                 logger.LogInformation($"{info.Principal.Identity.Name} logged in with {info.LoginProvider} provider.");
 
-                if (context != null)
+                if (context?.Client != null)
                 {
-                    if (await clientStore.IsPkceClientAsync(context.ClientId))
+                    if (await clientStore.IsPkceClientAsync(context.Client.ClientId))
                     {
                         // If the client is PKCE then we assume it's native, so this change in how to
                         // return the response is for better UX for the end user.
@@ -200,12 +200,12 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                     // Check if external login is in the context of an OIDC request.
                     var context = await idServerInteractionService.GetAuthorizationContextAsync(returnUrl);
 
-                    await eventService.RaiseAsync(new UserLoginSuccessEvent(info.LoginProvider, info.ProviderKey, info.ProviderKey, info.Principal.Identity.Name, true, context?.ClientId));
+                    await eventService.RaiseAsync(new UserLoginSuccessEvent(info.LoginProvider, info.ProviderKey, info.ProviderKey, info.Principal.Identity.Name, true, context?.Client?.ClientId));
                     logger.LogInformation($"User created an account using {info.LoginProvider} provider.");
 
-                    if (context != null)
+                    if (context?.Client != null)
                     {
-                        if (await clientStore.IsPkceClientAsync(context.ClientId))
+                        if (await clientStore.IsPkceClientAsync(context.Client.ClientId))
                         {
                             // If the client is PKCE then we assume it's native, so this change in how to
                             // return the response is for better UX for the end user.
