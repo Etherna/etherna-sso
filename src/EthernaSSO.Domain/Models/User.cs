@@ -45,12 +45,13 @@ namespace Etherna.SSOServer.Domain.Models
         protected User() { }
 
         // Static builders.
-        public static User CreateManagedWithEtherLoginAddress(string loginAddress)
+        public static User CreateManagedWithEtherLoginAddress(string loginAddress, string? email = default)
         {
             var privateKey = GenerateEtherPrivateKey();
 
             var user = new User { EtherManagedPrivateKey = privateKey };
             user.SetEtherLoginAddress(loginAddress);
+            if (email != null) user.SetEmail(email);
 
             return user;
         }
