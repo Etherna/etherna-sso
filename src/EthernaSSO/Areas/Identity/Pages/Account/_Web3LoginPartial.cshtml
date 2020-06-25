@@ -1,4 +1,9 @@
-﻿<div id="metamask-login" style="display:none">
+﻿@{
+    var retriveAuthMessageUrl = Url.Page("Web3Login", "RetriveAuthMessage");
+    var confirmSignatureUrl = Url.Page("Web3Login", "ConfirmSignature", new { returnUrl = Model.ReturnUrl });
+}
+
+<div id="metamask-login" style="display:none">
     <div>
         <div id="metmask-login-alert" class="alert alert-danger" style="display:none"></div>
         <p>
@@ -37,7 +42,7 @@
         function getSignMsg(accounts) {
             if (accounts.length) {
                 var address = (web3.utils || web3).toChecksumAddress(accounts[0]);
-                var msgUrl = '/Identity/Account/Web3Login?handler=RetriveAuthMessage&etherAddress=' + address;
+                var msgUrl = '@Html.Raw(retriveAuthMessageUrl)' + '&etherAddress=' + address;
                 $.ajax({
                     url: msgUrl,
                     success: function (msg) {
@@ -60,7 +65,7 @@
             function signCallback(newSig, oldSig) {
                 const sig = oldSig || newSig;
                 if (typeof sig === "string") {
-                    var redirect = '/Identity/Account/Web3Login?handler=ConfirmSignature&etherAddress=' + address + '&signature=' + sig;
+                    var redirect = '@Html.Raw(confirmSignatureUrl)' + '&etherAddress=' + address + '&signature=' + sig;
                     window.location.href = redirect;
                 } else {
                     showError();
