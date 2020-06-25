@@ -1,7 +1,8 @@
 ﻿<div id="metamask-login" style="display:none">
     <div>
+        <div id="metmask-login-alert" class="alert alert-danger" style="display:none"></div>
         <p>
-            <button class="btn btn-primary" title="Log in using your Web3 Wallet">Login with Web3 Wallet</button>
+            <button id="metmask-login-btn" class="btn btn-primary" title="Log in using your Web3 Wallet">Login with Web3 Wallet</button>
         </p>
     </div>
 </div>
@@ -13,10 +14,75 @@
 
 <script type="text/javascript">
     window.addEventListener('load', function () {
-        if (typeof window.web3 !== "undefined") {
+        var web3 = window.web3;
+
+        /* Web3 login toggle */
+        if (typeof web3 !== "undefined") {
             $('#metamask-login').show();
         } else {
             $('#install-metamask').show();
+        }
+
+        /* Handle msg signing */
+        $('#metmask-login-btn').on('click', function () {
+            hideError();
+
+            if (typeof window.ethereum !== 'undefined') {
+                window.ethereum.enable().then(getSignMsg).catch(showError);
+            } else {
+                web3.eth.getAccounts().then(getSignMsg).catch(showError);
+            }
+        });
+
+        function getSignMsg(accounts) {
+            if (accounts.length) {
+                var address = (web3.utils || web3).toChecksumAddress(accounts[0]);
+                var msgUrl = '/Identity/Account/Web3Login?handler=RetriveAuthMessage&etherAddress=' + address;
+                $.ajax({
+                    url: msgUrl,
+                    success: function (msg) {
+                        signAndRedirect(msg, address)
+                    },
+                    beforeSend: function () {
+                        $('#metmask-login-btn').prop('disabled', true);
+                    },
+                    complete: function () {
+                        $('#metmask-login-btn').prop('disabled', false);
+                    },
+                    error: showError
+                });
+            } else {
+                showError();
+            }
+        }
+
+        function signAndRedirect(msg, address) {
+            function signCallback(newSig, oldSig) {
+                const sig = oldSig || newSig;
+                if (typeof sig === "string") {
+                    var redirect = '/Identity/Account/Web3Login?handler=ConfirmSignature&etherAddress=' + address + '&signature=' + sig;
+                    window.location.href = redirect;
+                } else {
+                    showError();
+                }
+            }
+            if (web3.eth.personal) {
+                // new web3
+                web3.eth.personal.sign(msg, address).then(signCallback).catch(showError);
+            } else {
+                // old web3
+                web3.personal.sign(msg, address, signCallback);
+            }
+        }
+
+        function showError(error) {
+            var msg = error && error.message || 'Cannot get the account address. Make sure your wallet is up to date.';
+            $('#metmask-login-alert').show();
+            $('#metmask-login-alert').text(msg);
+        }
+
+        function hideError() {
+            $('#metmask-login-alert').hide();
         }
     });
 </script>

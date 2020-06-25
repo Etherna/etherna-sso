@@ -69,7 +69,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         public IActionResult OnGet()
             => RedirectToPage("./Login");
 
-        public async Task<string> OnGetRetriveAuthMessageAsync(string etherAddress)
+        public async Task<IActionResult> OnGetRetriveAuthMessageAsync(string etherAddress)
         {
             var token = await ssoDbContext.Web3LoginTokens.TryFindOneAsync(t => t.EtherAddress == etherAddress);
             if (token is null)
@@ -78,7 +78,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 await ssoDbContext.Web3LoginTokens.CreateAsync(token);
             }
 
-            return ComposeAuthMessage(token.Code);
+            return new JsonResult(ComposeAuthMessage(token.Code));
         }
 
         public async Task<IActionResult> OnGetConfirmSignature(string etherAddress, string signature, string? returnUrl = null)
