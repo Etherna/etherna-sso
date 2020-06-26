@@ -227,7 +227,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
         // Helpers.
         private static string ComposeAuthMessage(string code) =>
-            $"Sign this message for authenticate with Etherna!\nCode: {code}";
+            $"Sign this message for authenticate with Etherna! Code: {code}";
 
         private static bool VerifySignature(string authCode, string etherAccount, string signature)
         {

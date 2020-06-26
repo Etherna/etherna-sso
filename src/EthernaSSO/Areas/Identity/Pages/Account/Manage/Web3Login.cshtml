@@ -1,20 +1,34 @@
-﻿@{
+﻿@page
+@model Etherna.SSOServer.Areas.Identity.Pages.Account.Manage.Web3LoginModel
+@{
+    ViewData["Title"] = "Manage Web3 Login";
+    ViewData["ActivePage"] = ManageNavPages.Web3Login;
     var retriveAuthMessageUrl = Url.Page("Web3Login", "RetriveAuthMessage");
-    var confirmSignatureUrl = Url.Page("Web3Login", "ConfirmSignature", new { returnUrl = Model.ReturnUrl });
+    var confirmSignatureUrl = Url.Page("Web3Login", "ConfirmSignature");
 }
 
-<div id="metamask-login" style="display:none">
-    <div>
-        <div id="web3-login-alert" class="alert alert-danger" style="display:none"></div>
-        <p>
-            <button id="web3-login-btn" class="btn btn-primary" title="Log in using your Web3 Wallet">Login with Web3 Wallet</button>
-        </p>
-    </div>
-</div>
+<h4>@ViewData["Title"]</h4>
+<partial name="_StatusMessage" model="Model.StatusMessage" />
+<div class="row">
+    <div class="col-md-6">
+        <div asp-validation-summary="All" class="text-danger"></div>
+        <div class="form-group">
+            <label asp-for="Web3Login"></label>
+            <input asp-for="Web3Login" class="form-control" disabled />
+        </div>
 
-<div id="install-metamask" style="display:none">
-    <a href="https://metamask.io/"><img src="/images/metamask-logo.svg" /></a>
-    <p>Do you need a new web3 wallet? Try to install <a href="https://metamask.io/">Metamask</a></p>
+        <div id="change-web3-login" style="display:none">
+            <div id="change-web3-login-alert" class="alert alert-danger" style="display:none"></div>
+            <p>
+                <button id="change-web3-login-btn" class="btn btn-link" title="Change Web3 login address">Change Web3 login address</button>
+            </p>
+        </div>
+
+        <div id="install-metamask" style="display:none">
+            <a href="https://metamask.io/"><img src="/images/metamask-logo.svg" /></a>
+            <p>Do you need a new web3 wallet? Try to install <a href="https://metamask.io/">Metamask</a></p>
+        </div>
+    </div>
 </div>
 
 <script type="text/javascript">
@@ -23,13 +37,13 @@
 
         /* Web3 login toggle */
         if (typeof web3 !== "undefined") {
-            $('#metamask-login').show();
+            $('#change-web3-login').show();
         } else {
             $('#install-metamask').show();
         }
 
         /* Handle msg signing */
-        $('#web3-login-btn').on('click', function () {
+        $('#change-web3-login-btn').on('click', function () {
             hideError();
 
             if (typeof window.ethereum !== 'undefined') {
@@ -49,10 +63,10 @@
                         signAndRedirect(msg, address)
                     },
                     beforeSend: function () {
-                        $('#web3-login-btn').prop('disabled', true);
+                        $('#change-web3-login-btn').prop('disabled', true);
                     },
                     complete: function () {
-                        $('#web3-login-btn').prop('disabled', false);
+                        $('#change-web3-login-btn').prop('disabled', false);
                     },
                     error: showError
                 });
@@ -82,12 +96,14 @@
 
         function showError(error) {
             var msg = error && error.message || 'Cannot get the account address. Make sure your wallet is up to date.';
-            $('#web3-login-alert').show();
-            $('#web3-login-alert').text(msg);
+            $('#change-web3-login-alert').show();
+            $('#change-web3-login-alert').text(msg);
         }
 
         function hideError() {
-            $('#web3-login-alert').hide();
+            $('#change-web3-login-alert').hide();
         }
     });
+
+    <partial name="_ValidationScriptsPartial" />
 </script>
