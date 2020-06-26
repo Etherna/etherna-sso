@@ -22,7 +22,7 @@
             <div id="manage-web3-login" style="display:none">
                 <div id="manage-web3-login-alert" class="alert alert-danger" style="display:none"></div>
                 <p>
-                    <button id="change-web3-login" class="btn btn-link" title="Change Web3 login address">Change Web3 login address</button>
+                    <button id="change-web3-login" class="btn btn-link" type="button" title="Change Web3 login address">Change Web3 login address</button>
                     @if (Model.ShowRemoveButton)
                     {
                         <button id="remove-web3-login" class="btn btn-link" method="delete" type="submit" title="Remove Web3 login">Remove web3 login</button>
@@ -40,76 +40,8 @@
 
 <script type="text/javascript">
     window.addEventListener('load', function () {
-        var web3 = window.web3;
-
-        /* Web3 login toggle */
-        if (typeof web3 !== "undefined") {
-            $('#manage-web3-login').show();
-        } else {
-            $('#install-metamask').show();
-        }
-
-        /* Handle msg signing */
-        $('#change-web3-login').on('click', function () {
-            hideError();
-
-            if (typeof window.ethereum !== 'undefined') {
-                window.ethereum.enable().then(getSignMsg).catch(showError);
-            } else {
-                web3.eth.getAccounts().then(getSignMsg).catch(showError);
-            }
-        });
-
-        function getSignMsg(accounts) {
-            if (accounts.length) {
-                var address = (web3.utils || web3).toChecksumAddress(accounts[0]);
-                var msgUrl = '@Html.Raw(retriveAuthMessageUrl)' + '&etherAddress=' + address;
-                $.ajax({
-                    url: msgUrl,
-                    success: function (msg) {
-                        signAndRedirect(msg, address)
-                    },
-                    beforeSend: function () {
-                        $('#change-web3-login').prop('disabled', true);
-                    },
-                    complete: function () {
-                        $('#change-web3-login').prop('disabled', false);
-                    },
-                    error: showError
-                });
-            } else {
-                showError();
-            }
-        }
-
-        function signAndRedirect(msg, address) {
-            function signCallback(newSig, oldSig) {
-                const sig = oldSig || newSig;
-                if (typeof sig === "string") {
-                    var redirect = '@Html.Raw(confirmSignatureUrl)' + '&etherAddress=' + address + '&signature=' + sig;
-                    window.location.href = redirect;
-                } else {
-                    showError();
-                }
-            }
-            if (web3.eth.personal) {
-                // new web3
-                web3.eth.personal.sign(msg, address).then(signCallback).catch(showError);
-            } else {
-                // old web3
-                web3.personal.sign(msg, address, signCallback);
-            }
-        }
-
-        function showError(error) {
-            var msg = error && error.message || 'Cannot get the account address. Make sure your wallet is up to date.';
-            $('#manage-web3-login-alert').show();
-            $('#manage-web3-login-alert').text(msg);
-        }
-
-        function hideError() {
-            $('#manage-web3-login-alert').hide();
-        }
+        window.EthernaWeb3Singin.constants.retriveAuthMessageUrl = '@Html.Raw(retriveAuthMessageUrl)';
+        window.EthernaWeb3Singin.constants.confirmSignatureUrl = '@Html.Raw(confirmSignatureUrl)';
     });
 </script>
 
