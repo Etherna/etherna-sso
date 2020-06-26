@@ -1,6 +1,6 @@
 ﻿@{
     var retriveAuthMessageUrl = Url.Page("Web3Login", "RetriveAuthMessage");
-    var confirmSignatureUrl = Url.Page("Web3Login", "ConfirmSignature"@*, new { returnUrl = Model.ReturnUrl }*@);
+    var confirmSignatureUrl = Url.Page("Web3Login", "ConfirmSignature", new { returnUrl = Model.ReturnUrl });
 }
 
 <div id="web3-login" style="display:none">
