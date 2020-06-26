@@ -3,6 +3,7 @@
 @{
     ViewData["Title"] = "Manage Web3 Login";
     ViewData["ActivePage"] = ManageNavPages.Web3Login;
+
     var retriveAuthMessageUrl = Url.Page("Web3Login", "RetriveAuthMessage");
     var confirmSignatureUrl = Url.Page("Web3Login", "ConfirmSignature");
 }
@@ -11,23 +12,29 @@
 <partial name="_StatusMessage" model="Model.StatusMessage" />
 <div class="row">
     <div class="col-md-6">
-        <div asp-validation-summary="All" class="text-danger"></div>
-        <div class="form-group">
-            <label asp-for="Web3Login"></label>
-            <input asp-for="Web3Login" class="form-control" disabled />
-        </div>
+        <form id="web3-login-form">
+            <div asp-validation-summary="All" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="Web3Login"></label>
+                <input asp-for="Web3Login" class="form-control" disabled />
+            </div>
 
-        <div id="change-web3-login" style="display:none">
-            <div id="change-web3-login-alert" class="alert alert-danger" style="display:none"></div>
-            <p>
-                <button id="change-web3-login-btn" class="btn btn-link" title="Change Web3 login address">Change Web3 login address</button>
-            </p>
-        </div>
+            <div id="manage-web3-login" style="display:none">
+                <div id="manage-web3-login-alert" class="alert alert-danger" style="display:none"></div>
+                <p>
+                    <button id="change-web3-login" class="btn btn-link" title="Change Web3 login address">Change Web3 login address</button>
+                    @if (Model.ShowRemoveButton)
+                    {
+                        <button id="remove-web3-login" class="btn btn-link" method="delete" type="submit" title="Remove Web3 login">Remove web3 login</button>
+                    }
+                </p>
+            </div>
 
-        <div id="install-metamask" style="display:none">
-            <a href="https://metamask.io/"><img src="/images/metamask-logo.svg" /></a>
-            <p>Do you need a new web3 wallet? Try to install <a href="https://metamask.io/">Metamask</a></p>
-        </div>
+            <div id="install-metamask" style="display:none">
+                <a href="https://metamask.io/"><img src="/images/metamask-logo.svg" /></a>
+                <p>Do you need a new web3 wallet? Try to install <a href="https://metamask.io/">Metamask</a></p>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -37,13 +44,13 @@
 
         /* Web3 login toggle */
         if (typeof web3 !== "undefined") {
-            $('#change-web3-login').show();
+            $('#manage-web3-login').show();
         } else {
             $('#install-metamask').show();
         }
 
         /* Handle msg signing */
-        $('#change-web3-login-btn').on('click', function () {
+        $('#change-web3-login').on('click', function () {
             hideError();
 
             if (typeof window.ethereum !== 'undefined') {
@@ -63,10 +70,10 @@
                         signAndRedirect(msg, address)
                     },
                     beforeSend: function () {
-                        $('#change-web3-login-btn').prop('disabled', true);
+                        $('#change-web3-login').prop('disabled', true);
                     },
                     complete: function () {
-                        $('#change-web3-login-btn').prop('disabled', false);
+                        $('#change-web3-login').prop('disabled', false);
                     },
                     error: showError
                 });
@@ -96,14 +103,16 @@
 
         function showError(error) {
             var msg = error && error.message || 'Cannot get the account address. Make sure your wallet is up to date.';
-            $('#change-web3-login-alert').show();
-            $('#change-web3-login-alert').text(msg);
+            $('#manage-web3-login-alert').show();
+            $('#manage-web3-login-alert').text(msg);
         }
 
         function hideError() {
-            $('#change-web3-login-alert').hide();
+            $('#manage-web3-login-alert').hide();
         }
     });
-
-    <partial name="_ValidationScriptsPartial" />
 </script>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

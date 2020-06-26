@@ -23,7 +23,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             _signInManager = signInManager;
         }
 
-        [Display(Name = "Ethereum address")]
+        [Display(Name = "Ethereum address (server managed)")]
         public string EthereumAddress { get; set; } = default!;
         public string Username { get; set; } = default!;
 

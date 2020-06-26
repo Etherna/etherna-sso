@@ -13,16 +13,16 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
     public class ExternalLoginsModel : PageModel
     {
         // Fields.
-        private readonly UserManager<User> userManager;
         private readonly SignInManager<User> signInManager;
+        private readonly UserManager<User> userManager;
 
         // Constructor.
         public ExternalLoginsModel(
-            UserManager<User> userManager,
-            SignInManager<User> signInManager)
+            SignInManager<User> signInManager,
+            UserManager<User> userManager)
         {
-            this.userManager = userManager;
             this.signInManager = signInManager;
+            this.userManager = userManager;
         }
 
         // Properties.

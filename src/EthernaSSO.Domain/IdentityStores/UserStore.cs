@@ -283,7 +283,7 @@ namespace Etherna.SSOServer.Domain.IdentityStores
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
 
-            user.RemoveLogin(loginProvider, providerKey);
+            user.RemoveExternalLogin(loginProvider, providerKey);
             return Task.CompletedTask;
         }
 

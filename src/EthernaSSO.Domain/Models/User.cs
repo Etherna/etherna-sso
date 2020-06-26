@@ -229,8 +229,12 @@ namespace Etherna.SSOServer.Domain.Models
                                              c.Value == claim.Value);
         }
 
+        [PropertyAlterer(nameof(EtherLoginAddress))]
+        public void RemoveEtherLoginAddress() =>
+            EtherLoginAddress = null;
+
         [PropertyAlterer(nameof(Logins))]
-        public virtual void RemoveLogin(string loginProvider, string providerKey) =>
+        public virtual void RemoveExternalLogin(string loginProvider, string providerKey) =>
             _logins.RemoveAll(l => l.LoginProvider == loginProvider && l.ProviderKey == providerKey);
 
         [PropertyAlterer(nameof(EtherLoginAddress))]
