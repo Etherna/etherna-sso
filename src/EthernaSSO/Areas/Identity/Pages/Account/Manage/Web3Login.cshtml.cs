@@ -4,6 +4,8 @@ using Etherna.SSOServer.Services.Domain;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using MongoDB.Driver.Linq;
+using Nethereum.Util;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 
@@ -75,16 +77,28 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
                 return RedirectToPage();
             }
 
+            //delete used token
+            await ssoDbContext.Web3LoginTokens.DeleteAsync(token);
+
             // Add web3 login to user.
             var user = await userManager.GetUserAsync(User);
             if (user == null)
                 return NotFound($"Unable to load user with ID '{userManager.GetUserId(User)}'.");
 
-            user.SetEtherLoginAddress(etherAddress);
-            await ssoDbContext.SaveChangesAsync();
+            if (!user.EtherLoginAddress.IsTheSameAddress(etherAddress))
+            {
+                //check for uniqueness
+                if (await ssoDbContext.Users.QueryElementsAsync(elements =>
+                    elements.AnyAsync(u => u.EtherLoginAddress == etherAddress)))
+                {
+                    StatusMessage = $"Can't assign Web3 login. It has already been used with another account.";
+                    return RedirectToPage();
+                }
 
-            // Delete used token.
-            await ssoDbContext.Web3LoginTokens.DeleteAsync(token);
+                //set address
+                user.SetEtherLoginAddress(etherAddress);
+                await ssoDbContext.SaveChangesAsync();
+            }
 
             StatusMessage = $"Web3 login has been updated";
             return RedirectToPage();
