@@ -1,0 +1,56 @@
+﻿@page
+@model Web3LoginModel
+@{
+    ViewData["Title"] = "Register";
+}
+
+<h1>@ViewData["Title"]</h1>
+<h4 id="external-login-title">Associate your Web3 account.</h4>
+<hr />
+
+<div id="web3-login-description">
+    <p class="text-info">
+        You've successfully authenticated with Web3.<br/>
+        Now you can enter an optional email address below, and click the Register button to finish logging in.
+    </p>
+    <p class="text-secondary">
+        Due to a current Swarm limitation, we are not able to use directly your wallet for sign Swarm Feeds.<br />
+        Currently your wallet is used only for login. After issue will be solved, we will be able to update your account to an autonomous one.
+    </p>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <form asp-page-handler="Confirmation"
+              asp-route-etherAddress="@Model.EtherAddress"
+              asp-route-returnUrl="@Model.ReturnUrl"
+              asp-route-signature="@Model.Signature"
+              method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="Input.Email"></label>
+                <input asp-for="Input.Email" class="form-control" />
+                <span asp-validation-for="Input.Email" class="text-danger"></span>
+            </div>
+            <button type="submit" class="btn btn-primary">Register</button>
+        </form>
+    </div>
+</div>
+
+@if (Model.DuplicateEmail)
+{
+    <div class="row">
+        <div class="col-md-6">
+            <hr />
+            <p class="text-break">
+                It looks like that this Email is already been used.<br />
+                Please <a asp-page="./Login" asp-route-returnUrl="@Model.ReturnUrl">Login</a>
+                with your previous account, or change it for create a new one.
+            </p>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

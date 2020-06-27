@@ -1,0 +1,51 @@
+﻿@page
+@model Etherna.SSOServer.Areas.Identity.Pages.Account.Manage.Web3LoginModel
+@{
+    ViewData["Title"] = "Manage web3 Login";
+    ViewData["ActivePage"] = ManageNavPages.Web3Login;
+
+    var retriveAuthMessageUrl = Url.Page("Web3Login", "RetriveAuthMessage");
+    var confirmSignatureUrl = Url.Page("Web3Login", "ConfirmSignature");
+}
+
+<h4>@ViewData["Title"]</h4>
+<partial name="_StatusMessage" model="Model.StatusMessage" />
+<div class="row">
+    <div class="col-md-6">
+        <form id="web3-login-form" method="post">
+            <div asp-validation-summary="All" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="Web3Login"></label>
+                <input asp-for="Web3Login" class="form-control" disabled />
+            </div>
+
+            <div id="manage-web3-login" style="display:none">
+                <div id="manage-web3-login-alert" class="alert alert-danger" style="display:none"></div>
+                <p>
+                    <button id="change-web3-login" class="btn btn-link" type="button" title="Change Web3 login address">Change web3 login address</button> <br/>
+                    @if (Model.ShowRemoveButton)
+                    {
+                        <button type="submit" class="btn btn-link" asp-page-handler="Remove" title="Remove Web3 login">Remove web3 login</button>
+                    }
+                </p>
+            </div>
+
+            <div id="install-metamask" style="display:none">
+                <a href="https://metamask.io/"><img src="/images/metamask-logo.svg" /></a>
+                <p>Do you need a new web3 wallet? Try to install <a href="https://metamask.io/">Metamask</a></p>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script type="text/javascript">
+    window.addEventListener('load', function () {
+        window.EthernaWeb3Singin.constants.retriveAuthMessageUrl = '@Html.Raw(retriveAuthMessageUrl)';
+        window.EthernaWeb3Singin.constants.confirmSignatureUrl = '@Html.Raw(confirmSignatureUrl)';
+    });
+</script>
+<script src="~/js/etherna-web3-signin.js" asp-append-version="true"></script>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

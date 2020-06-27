@@ -13,16 +13,16 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
     public class ExternalLoginsModel : PageModel
     {
         // Fields.
-        private readonly UserManager<User> userManager;
         private readonly SignInManager<User> signInManager;
+        private readonly UserManager<User> userManager;
 
         // Constructor.
         public ExternalLoginsModel(
-            UserManager<User> userManager,
-            SignInManager<User> signInManager)
+            SignInManager<User> signInManager,
+            UserManager<User> userManager)
         {
-            this.userManager = userManager;
             this.signInManager = signInManager;
+            this.userManager = userManager;
         }
 
         // Properties.
@@ -45,11 +45,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             CurrentLogins.AddRange(await userManager.GetLoginsAsync(user));
             OtherLogins.AddRange((await signInManager.GetExternalAuthenticationSchemesAsync())
                 .Where(auth => CurrentLogins.All(ul => auth.Name != ul.LoginProvider)));
-
-            ShowRemoveButton = user.CanLoginWithEtherAddress ||
-                user.CanLoginWithEmail ||
-                user.CanLoginWithUsername ||
-                CurrentLogins.Count > 1;
+            ShowRemoveButton = user.CanRemoveExternalLogin;
 
             return Page();
         }

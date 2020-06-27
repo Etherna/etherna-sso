@@ -1,0 +1,31 @@
+﻿@using Microsoft.CSharp.RuntimeBinder
+@{
+    string? returnUrl = null;
+    try { returnUrl = Model.ReturnUrl; }
+    catch (RuntimeBinderException) { }
+
+    var retriveAuthMessageUrl = Url.Page("Web3Login", "RetriveAuthMessage");
+    var confirmSignatureUrl = Url.Page("Web3Login", "ConfirmSignature", new { returnUrl });
+}
+
+<div id="web3-login" style="display:none">
+    <div>
+        <div id="web3-login-alert" class="alert alert-danger" style="display:none"></div>
+        <p>
+            <button id="web3-login-btn" class="btn btn-primary" title="Log in using your Web3 Wallet">Login with Web3 Wallet</button>
+        </p>
+    </div>
+</div>
+
+<div id="install-metamask" style="display:none">
+    <a href="https://metamask.io/"><img src="/images/metamask-logo.svg" /></a>
+    <p>Do you need a new web3 wallet? Try to install <a href="https://metamask.io/">Metamask</a></p>
+</div>
+
+<script type="text/javascript">
+    window.addEventListener('load', function () {
+        window.EthernaWeb3Singin.constants.retriveAuthMessageUrl = '@Html.Raw(retriveAuthMessageUrl)';
+        window.EthernaWeb3Singin.constants.confirmSignatureUrl = '@Html.Raw(confirmSignatureUrl)';
+    });
+</script>
+<script src="~/js/etherna-web3-signin.js" asp-append-version="true"></script>

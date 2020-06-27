@@ -1,5 +1,5 @@
-﻿using Digicando.DomainEvents;
-using Digicando.MongODM.Models;
+﻿using Etherna.DomainEvents;
+using Etherna.MongODM.Models;
 using System;
 using System.Collections.Generic;
 

@@ -1,4 +1,4 @@
-﻿using Digicando.MongODM;
+﻿using Etherna.MongODM;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.Extensions.DependencyInjection;
