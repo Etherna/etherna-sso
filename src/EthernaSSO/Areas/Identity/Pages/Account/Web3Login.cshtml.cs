@@ -1,6 +1,7 @@
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Extensions;
+using Etherna.SSOServer.Services.Domain;
 using IdentityServer4.Events;
 using IdentityServer4.Services;
 using IdentityServer4.Stores;
@@ -8,8 +9,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
-using Nethereum.Signer;
-using Nethereum.Util;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 
@@ -33,6 +32,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         private readonly SignInManager<User> signInManager;
         private readonly ISsoDbContext ssoDbContext;
         private readonly UserManager<User> userManager;
+        private readonly IWeb3AuthnService web3AuthnService;
 
         // Constructor.
         public Web3LoginModel(
@@ -42,7 +42,8 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             ILogger<ExternalLoginModel> logger,
             SignInManager<User> signInManager,
             ISsoDbContext ssoDbContext,
-            UserManager<User> userManager)
+            UserManager<User> userManager,
+            IWeb3AuthnService web3AuthnService)
         {
             this.clientStore = clientStore;
             this.eventService = eventService;
@@ -51,6 +52,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             this.signInManager = signInManager;
             this.ssoDbContext = ssoDbContext;
             this.userManager = userManager;
+            this.web3AuthnService = web3AuthnService;
         }
 
         // Properties.
@@ -69,17 +71,8 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         public IActionResult OnGet()
             => RedirectToPage("./Login");
 
-        public async Task<IActionResult> OnGetRetriveAuthMessageAsync(string etherAddress)
-        {
-            var token = await ssoDbContext.Web3LoginTokens.TryFindOneAsync(t => t.EtherAddress == etherAddress);
-            if (token is null)
-            {
-                token = new Web3LoginToken(etherAddress);
-                await ssoDbContext.Web3LoginTokens.CreateAsync(token);
-            }
-
-            return new JsonResult(ComposeAuthMessage(token.Code));
-        }
+        public async Task<IActionResult> OnGetRetriveAuthMessageAsync(string etherAddress) =>
+            new JsonResult(await web3AuthnService.RetriveAuthnMessageAsync(etherAddress));
 
         public async Task<IActionResult> OnGetConfirmSignature(string etherAddress, string signature, string? returnUrl = null)
         {
@@ -95,7 +88,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             }
 
             //check signature
-            var verifiedSignature = VerifySignature(token.Code, etherAddress, signature);
+            var verifiedSignature = web3AuthnService.VerifySignature(token.Code, etherAddress, signature);
 
             if (!verifiedSignature)
             {
@@ -165,7 +158,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             }
 
             //check signature
-            var verifiedSignature = VerifySignature(token.Code, etherAddress, signature);
+            var verifiedSignature = web3AuthnService.VerifySignature(token.Code, etherAddress, signature);
 
             if (!verifiedSignature)
             {
@@ -174,69 +167,52 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             }
 
             // Skip registration if invalid.
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
+                return Page();
+
+            // Check for duplicate email.
+            if (Input.Email != null)
             {
-                // Check for duplicate email.
-                if (Input.Email != null)
+                var emailFromUser = await userManager.FindByEmailAsync(Input.Email);
+                if (emailFromUser != null) //if duplicate email
                 {
-                    var emailFromUser = await userManager.FindByEmailAsync(Input.Email);
-                    if (emailFromUser != null) //if duplicate email
-                    {
-                        ModelState.AddModelError(string.Empty, "Email already registered.");
-                        DuplicateEmail = true;
+                    ModelState.AddModelError(string.Empty, "Email already registered.");
+                    DuplicateEmail = true;
 
-                        return Page();
-                    }
-                }
-
-                // Create user.
-                var user = Domain.Models.User.CreateManagedWithEtherLoginAddress(etherAddress, Input.Email);
-
-                var result = await userManager.CreateAsync(user);
-                if (result.Succeeded)
-                {
-                    // Check if external login is in the context of an OIDC request.
-                    var context = await idServerInteractionService.GetAuthorizationContextAsync(returnUrl);
-
-                    await eventService.RaiseAsync(new UserLoginSuccessEvent("web3", etherAddress, etherAddress, "web3", true, context?.Client?.ClientId));
-                    logger.LogInformation($"User created an account using web3 address.");
-
-                    if (context?.Client != null)
-                    {
-                        if (await clientStore.IsPkceClientAsync(context.Client.ClientId))
-                        {
-                            // If the client is PKCE then we assume it's native, so this change in how to
-                            // return the response is for better UX for the end user.
-                            return this.LoadingPage("/Redirect", returnUrl);
-                        }
-                    }
-
-                    return Redirect(returnUrl);
-                }
-
-                // Report errors.
-                foreach (var error in result.Errors)
-                {
-                    ModelState.AddModelError(string.Empty, error.Description);
+                    return Page();
                 }
             }
 
-            // Show page again if there was errors.
+            // Create user.
+            var user = Domain.Models.User.CreateManagedWithEtherLoginAddress(etherAddress, Input.Email);
+
+            var result = await userManager.CreateAsync(user);
+            if (result.Succeeded)
+            {
+                // Check if external login is in the context of an OIDC request.
+                var context = await idServerInteractionService.GetAuthorizationContextAsync(returnUrl);
+
+                await eventService.RaiseAsync(new UserLoginSuccessEvent("web3", etherAddress, etherAddress, "web3", true, context?.Client?.ClientId));
+                logger.LogInformation($"User created an account using web3 address.");
+
+                if (context?.Client != null)
+                {
+                    if (await clientStore.IsPkceClientAsync(context.Client.ClientId))
+                    {
+                        // If the client is PKCE then we assume it's native, so this change in how to
+                        // return the response is for better UX for the end user.
+                        return this.LoadingPage("/Redirect", returnUrl);
+                    }
+                }
+
+                return Redirect(returnUrl);
+            }
+
+            // Report errors and show page again.
+            foreach (var error in result.Errors)
+                ModelState.AddModelError(string.Empty, error.Description);
+
             return Page();
-        }
-
-        // Helpers.
-        private static string ComposeAuthMessage(string code) =>
-            $"Sign this message for authenticate with Etherna! Code: {code}";
-
-        private static bool VerifySignature(string authCode, string etherAccount, string signature)
-        {
-            var message = ComposeAuthMessage(authCode);
-
-            var signer = new EthereumMessageSigner();
-            var recAddress = signer.EncodeUTF8AndEcRecover(message, signature);
-
-            return recAddress.IsTheSameAddress(etherAccount);
         }
     }
 }

@@ -1,10 +1,9 @@
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Services.Domain;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Nethereum.Signer;
-using Nethereum.Util;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 
@@ -16,16 +15,19 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
         private readonly SignInManager<User> signInManager;
         private readonly ISsoDbContext ssoDbContext;
         private readonly UserManager<User> userManager;
+        private readonly IWeb3AuthnService web3AuthnService;
 
         // Constructor.
         public Web3LoginModel(
             SignInManager<User> signInManager,
             ISsoDbContext ssoDbContext,
-            UserManager<User> userManager)
+            UserManager<User> userManager,
+            IWeb3AuthnService web3AuthnService)
         {
             this.signInManager = signInManager;
             this.ssoDbContext = ssoDbContext;
             this.userManager = userManager;
+            this.web3AuthnService = web3AuthnService;
         }
 
         // Properties.
@@ -50,17 +52,8 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             return Page();
         }
 
-        public async Task<IActionResult> OnGetRetriveAuthMessageAsync(string etherAddress)
-        {
-            var token = await ssoDbContext.Web3LoginTokens.TryFindOneAsync(t => t.EtherAddress == etherAddress);
-            if (token is null)
-            {
-                token = new Web3LoginToken(etherAddress);
-                await ssoDbContext.Web3LoginTokens.CreateAsync(token);
-            }
-
-            return new JsonResult(ComposeAuthMessage(token.Code));
-        }
+        public async Task<IActionResult> OnGetRetriveAuthMessageAsync(string etherAddress) =>
+            new JsonResult(await web3AuthnService.RetriveAuthnMessageAsync(etherAddress));
 
         public async Task<IActionResult> OnGetConfirmSignature(string etherAddress, string signature)
         {
@@ -74,7 +67,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             }
 
             //check signature
-            var verifiedSignature = VerifySignature(token.Code, etherAddress, signature);
+            var verifiedSignature = web3AuthnService.VerifySignature(token.Code, etherAddress, signature);
 
             if (!verifiedSignature)
             {
@@ -110,20 +103,6 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             StatusMessage = "Web3 login was removed.";
 
             return RedirectToPage();
-        }
-
-        // Helpers.
-        private static string ComposeAuthMessage(string code) =>
-            $"Sign this message for verify web3 address! Code: {code}";
-
-        private static bool VerifySignature(string authCode, string etherAccount, string signature)
-        {
-            var message = ComposeAuthMessage(authCode);
-
-            var signer = new EthereumMessageSigner();
-            var recAddress = signer.EncodeUTF8AndEcRecover(message, signature);
-
-            return recAddress.IsTheSameAddress(etherAccount);
         }
     }
 }
