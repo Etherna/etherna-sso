@@ -137,16 +137,7 @@ namespace Etherna.SSOServer
             // Configure Hangfire services.
             services.AddHangfire(options =>
             {
-                options.UseMongoStorage(
-                    Configuration["ConnectionStrings:HangfireDb"],
-                    new MongoStorageOptions
-                    {
-                        MigrationOptions = new MongoMigrationOptions
-                        {
-                            Strategy = MongoMigrationStrategy.Migrate,
-                            BackupStrategy = MongoBackupStrategy.Collections
-                        }
-                    });
+                options.UseMongoStorage(Configuration["ConnectionStrings:HangfireDb"]);
             });
 
             // Configure Swagger services.

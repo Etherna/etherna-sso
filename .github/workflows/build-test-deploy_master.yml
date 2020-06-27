@@ -1,7 +1,7 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and deploy ASP.Net Core app to Azure Web App - ethernasso
+name: Build test and deploy ASP.Net Core app - ethernasso
 
 on:
   push:
@@ -10,17 +10,22 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-
+    
     steps:
-    - uses: actions/checkout@v1
-
-    - name: Set up .NET Core
-      uses: actions/setup-dotnet@v1
+    - uses: actions/checkout@master
       with:
-        dotnet-version: '3.1.102'
-
+        fetch-depth: 0
+        
+    - name: Setup .NET Core SDK
+      uses: actions/setup-dotnet@master
+      with:
+        dotnet-version: '3.1.x'
+        
     - name: Build with dotnet
       run: dotnet build --configuration Release
+
+    - name: Run unit tests
+      run: dotnet test --configuration Release
 
     - name: dotnet publish
       run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/myapp
