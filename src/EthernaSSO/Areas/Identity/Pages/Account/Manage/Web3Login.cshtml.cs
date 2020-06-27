@@ -44,10 +44,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             if (user == null)
                 return NotFound($"Unable to load user with ID '{userManager.GetUserId(User)}'.");
 
-            ShowRemoveButton = user.CanLoginWithEtherAddress &&
-                (user.CanLoginWithEmail ||
-                 user.CanLoginWithExternalProvider ||
-                 user.CanLoginWithUsername);
+            ShowRemoveButton = user.CanRemoveEtherLoginAddress;
             Web3Login = user.EtherLoginAddress;
 
             return Page();

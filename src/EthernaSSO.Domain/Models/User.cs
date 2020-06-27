@@ -84,7 +84,18 @@ namespace Etherna.SSOServer.Domain.Models
         public virtual bool CanLoginWithEmail => NormalizedEmail != null && PasswordHash != null;
         public virtual bool CanLoginWithEtherAddress => EtherLoginAddress != null;
         public virtual bool CanLoginWithExternalProvider => Logins.Any();
-        public virtual bool CanLoginWithUsername => NormalizedEmail != null && PasswordHash != null;
+        public virtual bool CanLoginWithUsername => NormalizedUsername != null && PasswordHash != null;
+        public virtual bool CanRemoveEtherLoginAddress =>
+            CanLoginWithEtherAddress &&
+                (CanLoginWithEmail ||
+                 CanLoginWithExternalProvider ||
+                 CanLoginWithUsername);
+        public virtual bool CanRemoveExternalLogin =>
+            CanLoginWithExternalProvider &&
+                (CanLoginWithEmail ||
+                 CanLoginWithEtherAddress ||
+                 CanLoginWithUsername ||
+                 Logins.Count() >= 2);
         public virtual IEnumerable<UserClaim> Claims
         {
             get => DefaultClaims.Union(_customClaims);
@@ -230,12 +241,22 @@ namespace Etherna.SSOServer.Domain.Models
         }
 
         [PropertyAlterer(nameof(EtherLoginAddress))]
-        public void RemoveEtherLoginAddress() =>
+        public void RemoveEtherLoginAddress()
+        {
+            if (!CanRemoveEtherLoginAddress)
+                throw new InvalidOperationException();
+
             EtherLoginAddress = null;
+        }
 
         [PropertyAlterer(nameof(Logins))]
-        public virtual void RemoveExternalLogin(string loginProvider, string providerKey) =>
+        public virtual void RemoveExternalLogin(string loginProvider, string providerKey)
+        {
+            if (!CanRemoveExternalLogin)
+                throw new InvalidOperationException();
+
             _logins.RemoveAll(l => l.LoginProvider == loginProvider && l.ProviderKey == providerKey);
+        }
 
         [PropertyAlterer(nameof(EtherLoginAddress))]
         public virtual void SetEtherLoginAddress(string address)

@@ -45,11 +45,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             CurrentLogins.AddRange(await userManager.GetLoginsAsync(user));
             OtherLogins.AddRange((await signInManager.GetExternalAuthenticationSchemesAsync())
                 .Where(auth => CurrentLogins.All(ul => auth.Name != ul.LoginProvider)));
-
-            ShowRemoveButton = user.CanLoginWithEtherAddress ||
-                user.CanLoginWithEmail ||
-                user.CanLoginWithUsername ||
-                CurrentLogins.Count > 1;
+            ShowRemoveButton = user.CanRemoveExternalLogin;
 
             return Page();
         }
