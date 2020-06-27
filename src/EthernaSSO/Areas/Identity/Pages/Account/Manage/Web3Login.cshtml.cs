@@ -91,6 +91,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
                 return NotFound($"Unable to load user with ID '{userManager.GetUserId(User)}'.");
 
             user.SetEtherLoginAddress(etherAddress);
+            await ssoDbContext.SaveChangesAsync();
 
             // Delete used token.
             await ssoDbContext.Web3LoginTokens.DeleteAsync(token);
@@ -99,13 +100,14 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             return RedirectToPage();
         }
 
-        public async Task<IActionResult> OnDeleteAsync()
+        public async Task<IActionResult> OnPostRemoveAsync()
         {
             var user = await userManager.GetUserAsync(User);
             if (user == null)
                 return NotFound($"Unable to load user with ID '{userManager.GetUserId(User)}'.");
 
             user.RemoveEtherLoginAddress();
+            await ssoDbContext.SaveChangesAsync();
 
             await signInManager.RefreshSignInAsync(user);
             StatusMessage = "Web3 login was removed.";
@@ -115,7 +117,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
 
         // Helpers.
         private static string ComposeAuthMessage(string code) =>
-            $"Sign this message for verify web3 login! Code: {code}";
+            $"Sign this message for verify web3 address! Code: {code}";
 
         private static bool VerifySignature(string authCode, string etherAccount, string signature)
         {

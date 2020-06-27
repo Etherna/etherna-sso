@@ -1,6 +1,11 @@
-﻿@{
+﻿@using Microsoft.CSharp.RuntimeBinder
+@{
+    string? returnUrl = null;
+    try { returnUrl = Model.ReturnUrl; }
+    catch (RuntimeBinderException) { }
+
     var retriveAuthMessageUrl = Url.Page("Web3Login", "RetriveAuthMessage");
-    var confirmSignatureUrl = Url.Page("Web3Login", "ConfirmSignature", new { returnUrl = Model.ReturnUrl });
+    var confirmSignatureUrl = Url.Page("Web3Login", "ConfirmSignature", new { returnUrl });
 }
 
 <div id="web3-login" style="display:none">
@@ -23,3 +28,4 @@
         window.EthernaWeb3Singin.constants.confirmSignatureUrl = '@Html.Raw(confirmSignatureUrl)';
     });
 </script>
+<script src="~/js/etherna-web3-signin.js" asp-append-version="true"></script>

@@ -1,7 +1,7 @@
 ﻿@page
 @model Etherna.SSOServer.Areas.Identity.Pages.Account.Manage.Web3LoginModel
 @{
-    ViewData["Title"] = "Manage Web3 Login";
+    ViewData["Title"] = "Manage web3 Login";
     ViewData["ActivePage"] = ManageNavPages.Web3Login;
 
     var retriveAuthMessageUrl = Url.Page("Web3Login", "RetriveAuthMessage");
@@ -12,7 +12,7 @@
 <partial name="_StatusMessage" model="Model.StatusMessage" />
 <div class="row">
     <div class="col-md-6">
-        <form id="web3-login-form">
+        <form id="web3-login-form" method="post">
             <div asp-validation-summary="All" class="text-danger"></div>
             <div class="form-group">
                 <label asp-for="Web3Login"></label>
@@ -22,10 +22,10 @@
             <div id="manage-web3-login" style="display:none">
                 <div id="manage-web3-login-alert" class="alert alert-danger" style="display:none"></div>
                 <p>
-                    <button id="change-web3-login" class="btn btn-link" type="button" title="Change Web3 login address">Change Web3 login address</button>
+                    <button id="change-web3-login" class="btn btn-link" type="button" title="Change Web3 login address">Change web3 login address</button> <br/>
                     @if (Model.ShowRemoveButton)
                     {
-                        <button id="remove-web3-login" class="btn btn-link" method="delete" type="submit" title="Remove Web3 login">Remove web3 login</button>
+                        <button type="submit" class="btn btn-link" asp-page-handler="Remove" title="Remove Web3 login">Remove web3 login</button>
                     }
                 </p>
             </div>
@@ -44,6 +44,7 @@
         window.EthernaWeb3Singin.constants.confirmSignatureUrl = '@Html.Raw(confirmSignatureUrl)';
     });
 </script>
+<script src="~/js/etherna-web3-signin.js" asp-append-version="true"></script>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
