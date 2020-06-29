@@ -38,6 +38,9 @@ namespace Etherna.SSOServer.Persistence
             {
                 IndexBuilders = new[]
                 {
+                    (Builders<User>.IndexKeys.Ascending(u => u.EtherAddress),
+                     new CreateIndexOptions<User>{ Unique = true }),
+
                     (Builders<User>.IndexKeys.Ascending(u => u.EtherLoginAddress),
                      new CreateIndexOptions<User>{ Unique = true, Sparse = true }),
 
