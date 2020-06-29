@@ -49,7 +49,10 @@ namespace Etherna.SSOServer
             services.AddDataProtection()
                 .PersistKeysToDbContext(new DbContextOptions { ConnectionString = Configuration["ConnectionStrings:SystemDb"] });
 
-            services.AddDefaultIdentity<User>()
+            services.AddDefaultIdentity<User>(options =>
+            {
+                options.User.RequireUniqueEmail = true;
+            })
                 .AddUserStore<UserStore>();
             //replace default UserValidator with custom. Default one doesn't allow null usernames
             services.Replace(ServiceDescriptor.Scoped<IUserValidator<User>, CustomUserValidator>());

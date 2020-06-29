@@ -43,7 +43,12 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             var result = await _userManager.ChangeEmailAsync(user, email, code);
             if (!result.Succeeded)
             {
-                StatusMessage = "Error changing email.";
+                var stringBuilder = new StringBuilder();
+                stringBuilder.Append("Error changing email.");
+                foreach (var error in result.Errors)
+                    stringBuilder.Append(" " + error.Description ?? error.Code);
+
+                StatusMessage = stringBuilder.ToString();
                 return Page();
             }
 
