@@ -19,7 +19,7 @@ namespace Etherna.SSOServer.Domain.Models
         // Consts.
         public const string AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._";
         public const string EmailRegex = @"\A(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)\Z";
-        public const string UsernameRegex = "^[a-zA-Z0-9]+(?:[._-]?[a-zA-Z0-9])*$";
+        public const string UsernameRegex = "^[a-zA-Z0-9_]{5,20}$";
         public static class DefaultClaimTypes
         {
             public const string EtherAddress = "ether_address";
