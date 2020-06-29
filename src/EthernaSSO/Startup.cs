@@ -51,6 +51,13 @@ namespace Etherna.SSOServer
 
             services.AddDefaultIdentity<User>(options =>
             {
+                options.Password.RequireDigit = true;
+                options.Password.RequiredLength = 6;
+                options.Password.RequireLowercase = true;
+                options.Password.RequireNonAlphanumeric = true;
+                options.Password.RequireUppercase = true;
+
+                //options.User.AllowedUserNameCharacters = ""; //overrided by regex validation with User.UsernameRegex
                 options.User.RequireUniqueEmail = true;
             })
                 .AddUserStore<UserStore>();
