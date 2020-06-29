@@ -23,7 +23,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         public class InputModel
         {
             [Required]
-            [RegularExpression(Domain.Models.User.UsernameRegex)]
+            [RegularExpression(Domain.Models.User.UsernameRegex, ErrorMessage = "Allowed characters are a-z, A-Z, 0-9, _. Permitted length is between 5 and 20.")]
             [Display(Name = "Username")]
             public string Username { get; set; } = default!;
 
