@@ -28,6 +28,9 @@ namespace Etherna.SSOServer.Persistence.ClassMaps
                     cm.GetMemberMap(u => u.NormalizedUsername).SetIgnoreIfNull(true);
                     cm.GetMemberMap(u => u.PasswordHash).SetIgnoreIfNull(true);
                     cm.GetMemberMap(u => u.Username).SetIgnoreIfNull(true);
+
+                    // Force serialization of readonly props.
+                    cm.MapProperty(u => u.EtherAddress);
                 });
         }
     }

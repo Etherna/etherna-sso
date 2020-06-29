@@ -308,15 +308,8 @@ namespace Etherna.SSOServer.Domain.Models
             }
         }
 
-        // Helpers.
-        private static string GenerateEtherPrivateKey()
-        {
-            var ecKey = Nethereum.Signer.EthECKey.GenerateKey();
-            var privateKey = ecKey.GetPrivateKeyAsBytes().ToHex();
-            return privateKey;
-        }
-
-        private static string NormalizeEmail(string email)
+        // Public static helpers.
+        public static string NormalizeEmail(string email)
         {
             if (email is null)
                 throw new ArgumentNullException(nameof(email));
@@ -332,7 +325,7 @@ namespace Etherna.SSOServer.Domain.Models
             return $"{cleanedUsername}@{domain}";
         }
 
-        private static string NormalizeUsername(string username)
+        public static string NormalizeUsername(string username)
         {
             if (username is null)
                 throw new ArgumentNullException(nameof(username));
@@ -340,6 +333,14 @@ namespace Etherna.SSOServer.Domain.Models
             username = username.ToUpper(CultureInfo.InvariantCulture); //to upper case
 
             return username;
+        }
+
+        // Private helpers.
+        private static string GenerateEtherPrivateKey()
+        {
+            var ecKey = Nethereum.Signer.EthECKey.GenerateKey();
+            var privateKey = ecKey.GetPrivateKeyAsBytes().ToHex();
+            return privateKey;
         }
     }
 }
