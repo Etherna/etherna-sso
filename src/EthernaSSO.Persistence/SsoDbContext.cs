@@ -68,11 +68,11 @@ namespace Etherna.SSOServer.Persistence
         public IEventDispatcher EventDispatcher { get; }
 
         // Protected properties.
-        protected override IEnumerable<IModelSerializerCollector> SerializerCollectors =>
+        protected override IEnumerable<IModelMapsCollector> ModelMapsCollectors =>
             from t in typeof(SsoDbContext).GetTypeInfo().Assembly.GetTypes()
             where t.IsClass && t.Namespace == SerializersNamespace
-            where t.GetInterfaces().Contains(typeof(IModelSerializerCollector))
-            select Activator.CreateInstance(t) as IModelSerializerCollector;
+            where t.GetInterfaces().Contains(typeof(IModelMapsCollector))
+            select Activator.CreateInstance(t) as IModelMapsCollector;
 
         // Methods.
         public override Task SaveChangesAsync(CancellationToken cancellationToken = default)

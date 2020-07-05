@@ -4,7 +4,7 @@ using Etherna.SSOServer.Domain.Models;
 
 namespace Etherna.SSOServer.Persistence.ModelMaps
 {
-    class Web3LoginTokenMap : IModelSerializerCollector
+    class Web3LoginTokenMap : IModelMapsCollector
     {
         public void Register(IDbContext dbContext)
         {

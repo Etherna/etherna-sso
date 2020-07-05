@@ -7,7 +7,7 @@ using MongoDB.Bson.Serialization.Serializers;
 
 namespace Etherna.SSOServer.Persistence.ModelMaps
 {
-    class ModelBaseMap : IModelSerializerCollector
+    class ModelBaseMap : IModelMapsCollector
     {
         public void Register(IDbContext dbContext)
         {
