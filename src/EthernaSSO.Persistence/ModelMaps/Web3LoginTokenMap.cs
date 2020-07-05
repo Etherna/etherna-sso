@@ -2,9 +2,9 @@
 using Etherna.MongODM.Serialization;
 using Etherna.SSOServer.Domain.Models;
 
-namespace Etherna.SSOServer.Persistence.ClassMaps
+namespace Etherna.SSOServer.Persistence.ModelMaps
 {
-    class Web3LoginTokenSerializers : IModelSerializerCollector
+    class Web3LoginTokenMap : IModelSerializerCollector
     {
         public void Register(IDbContext dbContext)
         {

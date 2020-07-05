@@ -19,7 +19,7 @@ namespace Etherna.SSOServer.Persistence
     public class SsoDbContext : DbContext, IEventDispatcherDbContext, ISsoDbContext
     {
         // Consts.
-        private const string SerializersNamespace = "Etherna.SSOServer.Persistence.ClassMaps";
+        private const string SerializersNamespace = "Etherna.SSOServer.Persistence.ModelMaps";
 
         // Constructor.
         public SsoDbContext(

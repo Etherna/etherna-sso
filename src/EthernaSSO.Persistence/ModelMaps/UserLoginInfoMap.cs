@@ -2,9 +2,9 @@
 using Etherna.MongODM.Serialization;
 using Etherna.SSOServer.Domain.Models.UserAgg;
 
-namespace Etherna.SSOServer.Persistence.ClassMaps
+namespace Etherna.SSOServer.Persistence.ModelMaps
 {
-    class UserLoginInfoSerializers : IModelSerializerCollector
+    class UserLoginInfoMap : IModelSerializerCollector
     {
         public void Register(IDbContext dbContext)
         {

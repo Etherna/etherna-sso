@@ -5,9 +5,9 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization.IdGenerators;
 using MongoDB.Bson.Serialization.Serializers;
 
-namespace Etherna.SSOServer.Persistence.ClassMaps
+namespace Etherna.SSOServer.Persistence.ModelMaps
 {
-    class ModelBaseSerializers : IModelSerializerCollector
+    class ModelBaseMap : IModelSerializerCollector
     {
         public void Register(IDbContext dbContext)
         {
