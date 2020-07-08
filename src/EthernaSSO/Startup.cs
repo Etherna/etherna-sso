@@ -11,6 +11,8 @@ using Etherna.SSOServer.Services.Settings;
 using Etherna.SSOServer.Swagger;
 using Hangfire;
 using Hangfire.Mongo;
+using Hangfire.Mongo.Migration.Strategies;
+using Hangfire.Mongo.Migration.Strategies.Backup;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
@@ -147,7 +149,14 @@ namespace Etherna.SSOServer
             // Configure Hangfire services.
             services.AddHangfire(options =>
             {
-                options.UseMongoStorage(Configuration["ConnectionStrings:HangfireDb"]);
+                options.UseMongoStorage(Configuration["ConnectionStrings:HangfireDb"], new MongoStorageOptions
+                {
+                    MigrationOptions = new MongoMigrationOptions //don't remove, could throw exception
+                    {
+                        MigrationStrategy = new MigrateMongoMigrationStrategy(),
+                        BackupStrategy = new CollectionMongoBackupStrategy()
+                    }
+                });
             });
 
             // Configure Swagger services.
