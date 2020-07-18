@@ -13,9 +13,6 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
                 {
                     cm.AutoMap();
 
-                    // Set creator.
-                    cm.SetCreator(() => dbContext.ProxyGenerator.CreateInstance<User>(dbContext));
-
                     // Set members to ignore if null.
                     cm.GetMemberMap(u => u.Email).SetIgnoreIfNull(true);
                     cm.GetMemberMap(u => u.EmailConfirmed).SetIgnoreIfNull(true);

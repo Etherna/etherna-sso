@@ -17,7 +17,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="MongODM.Core" Version="0.20.0-alpha.1" />
+    <PackageReference Include="MongODM.Core" Version="0.21.0-alpha.33" />
     <PackageReference Include="Nethereum.Accounts" Version="3.7.1" />
   </ItemGroup>
 

@@ -8,14 +8,7 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
     {
         public void Register(IDbContext dbContext)
         {
-            dbContext.DocumentSchemaRegister.RegisterModelSchema<UserClaim>("0.2.0",
-                cm =>
-                {
-                    cm.AutoMap();
-
-                    // Set creator.
-                    cm.SetCreator(() => dbContext.ProxyGenerator.CreateInstance<UserClaim>(dbContext));
-                });
+            dbContext.DocumentSchemaRegister.RegisterModelSchema<UserClaim>("0.2.0");
         }
     }
 }
