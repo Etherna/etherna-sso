@@ -193,11 +193,11 @@ namespace Etherna.SSOServer
             });
 
             // Configure persistence.
-            services.UseMongODM<HangfireTaskRunner>()
+            services.UseMongODM<HangfireTaskRunner, ModelBase>()
                 .AddDbContext<ISsoDbContext, SsoDbContext>(options =>
                 {
+                    options.ApplicationVersion = appSettings.SimpleAssemblyVersion;
                     options.ConnectionString = Configuration["ConnectionStrings:SSOServerDb"];
-                    options.DocumentVersion = appSettings.SimpleAssemblyVersion;
                 });
 
             // Configure domain services.

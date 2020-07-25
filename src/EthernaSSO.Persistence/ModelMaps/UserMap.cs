@@ -2,9 +2,9 @@
 using Etherna.MongODM.Serialization;
 using Etherna.SSOServer.Domain.Models;
 
-namespace Etherna.SSOServer.Persistence.ClassMaps
+namespace Etherna.SSOServer.Persistence.ModelMaps
 {
-    class UserSerializers : IModelSerializerCollector
+    class UserMap : IModelMapsCollector
     {
         public void Register(IDbContext dbContext)
         {
@@ -12,9 +12,6 @@ namespace Etherna.SSOServer.Persistence.ClassMaps
                 cm =>
                 {
                     cm.AutoMap();
-
-                    // Set creator.
-                    cm.SetCreator(() => dbContext.ProxyGenerator.CreateInstance<User>(dbContext));
 
                     // Set members to ignore if null.
                     cm.GetMemberMap(u => u.Email).SetIgnoreIfNull(true);

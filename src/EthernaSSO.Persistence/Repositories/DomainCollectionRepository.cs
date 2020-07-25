@@ -42,8 +42,9 @@ namespace Etherna.SSOServer.Persistence.Repositories
             await base.CreateAsync(models, cancellationToken);
 
             // Dispatch created events.
-            await EventDispatcher.DispatchAsync(
-                models.Select(m => new EntityCreatedEvent<TModel>(m)));
+            if (EventDispatcher != null) //could be null in seeding
+                await EventDispatcher.DispatchAsync(
+                    models.Select(m => new EntityCreatedEvent<TModel>(m)));
         }
 
         public override async Task CreateAsync(TModel model, CancellationToken cancellationToken = default)
@@ -51,8 +52,9 @@ namespace Etherna.SSOServer.Persistence.Repositories
             await base.CreateAsync(model);
 
             // Dispatch created event.
-            await EventDispatcher.DispatchAsync(
-                new EntityCreatedEvent<TModel>(model));
+            if (EventDispatcher != null) //could be null in seeding
+                await EventDispatcher.DispatchAsync(
+                    new EntityCreatedEvent<TModel>(model));
         }
 
         public override async Task DeleteAsync(TModel model, CancellationToken cancellationToken = default)
@@ -60,8 +62,9 @@ namespace Etherna.SSOServer.Persistence.Repositories
             await base.DeleteAsync(model, cancellationToken);
 
             // Dispatch deleted event.
-            await EventDispatcher.DispatchAsync(
-                new EntityDeletedEvent<TModel>(model));
+            if (EventDispatcher != null) //could be null in seeding
+                await EventDispatcher.DispatchAsync(
+                    new EntityDeletedEvent<TModel>(model));
         }
     }
 }

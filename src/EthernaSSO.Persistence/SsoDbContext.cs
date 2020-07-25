@@ -19,14 +19,14 @@ namespace Etherna.SSOServer.Persistence
     public class SsoDbContext : DbContext, IEventDispatcherDbContext, ISsoDbContext
     {
         // Consts.
-        private const string SerializersNamespace = "Etherna.SSOServer.Persistence.ClassMaps";
+        private const string SerializersNamespace = "Etherna.SSOServer.Persistence.ModelMaps";
 
         // Constructor.
         public SsoDbContext(
-            IDbContextDependencies dbContextDependencies,
+            IDbDependencies dbDependencies,
             IEventDispatcher eventDispatcher,
             DbContextOptions<SsoDbContext> options)
-            : base(dbContextDependencies, options)
+            : base(dbDependencies, options)
         {
             EventDispatcher = eventDispatcher;
         }
@@ -68,17 +68,18 @@ namespace Etherna.SSOServer.Persistence
         public IEventDispatcher EventDispatcher { get; }
 
         // Protected properties.
-        protected override IEnumerable<IModelSerializerCollector> SerializerCollectors =>
+        protected override IEnumerable<IModelMapsCollector> ModelMapsCollectors =>
             from t in typeof(SsoDbContext).GetTypeInfo().Assembly.GetTypes()
             where t.IsClass && t.Namespace == SerializersNamespace
-            where t.GetInterfaces().Contains(typeof(IModelSerializerCollector))
-            select Activator.CreateInstance(t) as IModelSerializerCollector;
+            where t.GetInterfaces().Contains(typeof(IModelMapsCollector))
+            select Activator.CreateInstance(t) as IModelMapsCollector;
 
         // Methods.
         public override Task SaveChangesAsync(CancellationToken cancellationToken = default)
         {
             // Dispatch events.
-            foreach (var model in ChangedModelsList.Select(m => (EntityModelBase)m))
+            foreach (var model in ChangedModelsList.Where(m => m is EntityModelBase)
+                                                   .Select(m => (EntityModelBase)m))
             {
                 EventDispatcher.DispatchAsync(model.Events);
                 model.ClearEvents();
