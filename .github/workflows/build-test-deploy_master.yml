@@ -12,12 +12,12 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@master
+    - uses: actions/checkout@main
       with:
         fetch-depth: 0
         
     - name: Setup .NET Core SDK
-      uses: actions/setup-dotnet@master
+      uses: actions/setup-dotnet@main
       with:
         dotnet-version: '3.1.x'
         
