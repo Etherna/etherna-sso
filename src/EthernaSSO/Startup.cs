@@ -246,12 +246,20 @@ namespace Etherna.SSOServer
             app.UseAuthentication();
             app.UseAuthorization();
 
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
-                endpoints.MapRazorPages();
-            });
+            // Add Hangfire.
+            app.UseHangfireDashboard("/admin/hangfire");
+            if (!Environment.IsStaging()) //don't start server in staging
+                app.UseHangfireServer(new BackgroundJobServerOptions
+                {
+                    Queues = new[]
+                    {
+                        MongODM.Tasks.Queues.DB_MAINTENANCE,
+                        "default"
+                    },
+                    WorkerCount = System.Environment.ProcessorCount * 2
+                });
 
+            // Add Swagger.
             app.UseSwagger();
             app.UseSwaggerUI(options =>
             {
@@ -260,6 +268,13 @@ namespace Etherna.SSOServer
                 {
                     options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", description.GroupName.ToUpperInvariant());
                 }
+            });
+
+            // Add endpoints.
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+                endpoints.MapRazorPages();
             });
         }
     }
