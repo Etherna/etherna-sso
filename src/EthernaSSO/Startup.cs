@@ -4,6 +4,7 @@ using Etherna.SSOServer.DataProtectionStore;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.IdentityStores;
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Hangfire;
 using Etherna.SSOServer.Identity;
 using Etherna.SSOServer.IdentityServer;
 using Etherna.SSOServer.Persistence;
@@ -247,7 +248,11 @@ namespace Etherna.SSOServer
             app.UseAuthorization();
 
             // Add Hangfire.
-            app.UseHangfireDashboard("/admin/hangfire");
+            app.UseHangfireDashboard("/admin/hangfire",
+                new DashboardOptions
+                {
+                    Authorization = new[] { new AdminAuthFilter() }
+                });
             if (!Environment.IsStaging()) //don't start server in staging
                 app.UseHangfireServer(new BackgroundJobServerOptions
                 {
