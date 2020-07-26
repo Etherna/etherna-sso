@@ -43,65 +43,35 @@ namespace Etherna.SSOServer.Identity
 
             var errors = new List<IdentityError>();
 
-            await ValidateUserName(manager, user, errors);
-            await ValidateEmail(manager, user, errors);
+            // Validate fields.
+            await ValidateUsernameAsync(manager, user, errors);
+            await ValidateEmailAsync(manager, user, errors);
+
+            // Validate logins.
+            ValidateLogins(user, errors);
 
             return errors.Count > 0 ? IdentityResult.Failed(errors.ToArray()) : IdentityResult.Success;
         }
 
         // Helpers.
-        private async Task ValidateUserName(UserManager<User> manager, User user, ICollection<IdentityError> errors)
-        {
-            var userName = await manager.GetUserNameAsync(user);
-
-            //allow null usernames
-            if (string.IsNullOrWhiteSpace(userName))
-            {
-                return;
-            }
-
-            //check validity with regex
-            else if (!Regex.IsMatch(userName, User.UsernameRegex))
-            {
-                errors.Add(Describer.InvalidUserName(userName));
-            }
-
-            //check unique
-            else
-            {
-                var owner = await manager.FindByNameAsync(userName);
-                if (owner != null &&
-                    !string.Equals(await manager.GetUserIdAsync(owner), await manager.GetUserIdAsync(user), StringComparison.InvariantCulture))
-                {
-                    errors.Add(Describer.DuplicateUserName(userName));
-                }
-            }
-        }
-
-        private async Task ValidateEmail(UserManager<User> manager, User user, List<IdentityError> errors)
+        private async Task ValidateEmailAsync(UserManager<User> manager, User user, List<IdentityError> errors)
         {
             var email = await manager.GetEmailAsync(user);
 
-            if (email != null)
+            //allow null emails
+            if (string.IsNullOrWhiteSpace(email))
+                return;
+
+            //check validity
+            if (!new EmailAddressAttribute().IsValid(email))
             {
-                //check validity
-                if (!new EmailAddressAttribute().IsValid(email))
-                {
-                    errors.Add(Describer.InvalidEmail(email));
-                    return;
-                }
+                errors.Add(Describer.InvalidEmail(email));
+                return;
             }
 
+            //check unique
             if (manager.Options.User.RequireUniqueEmail)
             {
-                //check not empty
-                if (string.IsNullOrWhiteSpace(email))
-                {
-                    errors.Add(Describer.InvalidEmail(email));
-                    return;
-                }
-
-                //check unique
                 var owner = await manager.FindByEmailAsync(email);
                 if (owner != null &&
                     !string.Equals(await manager.GetUserIdAsync(owner), await manager.GetUserIdAsync(user), StringComparison.InvariantCulture))
@@ -109,7 +79,42 @@ namespace Etherna.SSOServer.Identity
                     errors.Add(Describer.DuplicateEmail(email));
                 }
             }
+        }
 
+        private void ValidateLogins(User user, List<IdentityError> errors)
+        {
+            var hasValidLogin =
+                user.CanLoginWithEmail ||
+                user.CanLoginWithEtherAddress ||
+                user.CanLoginWithExternalProvider ||
+                user.CanLoginWithUsername;
+
+            if (!hasValidLogin)
+                errors.Add(Describer.DefaultError());
+        }
+
+        private async Task ValidateUsernameAsync(UserManager<User> manager, User user, ICollection<IdentityError> errors)
+        {
+            var username = await manager.GetUserNameAsync(user);
+
+            //allow null usernames
+            if (string.IsNullOrWhiteSpace(username))
+                return;
+
+            //check validity with regex
+            if (!Regex.IsMatch(username, User.UsernameRegex))
+            {
+                errors.Add(Describer.InvalidUserName(username));
+                return;
+            }
+
+            //check unique
+            var owner = await manager.FindByNameAsync(username);
+            if (owner != null &&
+                !string.Equals(await manager.GetUserIdAsync(owner), await manager.GetUserIdAsync(user), StringComparison.InvariantCulture))
+            {
+                errors.Add(Describer.DuplicateUserName(username));
+            }
         }
     }
 }
