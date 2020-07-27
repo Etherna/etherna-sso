@@ -45,7 +45,8 @@ namespace Etherna.SSOServer.Persistence
                     (Builders<User>.IndexKeys.Ascending(u => u.EtherLoginAddress),
                      new CreateIndexOptions<User>{ Unique = true, Sparse = true }),
 
-                    (Builders<User>.IndexKeys.Ascending(u => u.Logins),
+                    (Builders<User>.IndexKeys.Ascending("Logins.LoginProvider")
+                                             .Ascending("Logins.ProviderKey"),
                      new CreateIndexOptions<User>{ Unique = true, Sparse = true }),
 
                     (Builders<User>.IndexKeys.Ascending(u => u.NormalizedEmail),
