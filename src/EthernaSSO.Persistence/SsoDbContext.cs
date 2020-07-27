@@ -1,5 +1,6 @@
 ﻿using Etherna.DomainEvents;
 using Etherna.MongODM;
+using Etherna.MongODM.Migration;
 using Etherna.MongODM.Repositories;
 using Etherna.MongODM.Serialization;
 using Etherna.MongODM.Utility;
@@ -63,6 +64,12 @@ namespace Etherna.SSOServer.Persistence
                      new CreateIndexOptions<Web3LoginToken> { Unique = true })
                 }
             });
+
+        //migrations
+        public override IEnumerable<MongoMigrationBase> DocumentMigrationList => new MongoMigrationBase[]
+        {
+            new MongoDocumentMigration<User, string>(Users, "0.2.2", "9406c9ce-4107-4205-a40d-0caea3a47092"),
+        };
 
         //other properties
         public IEventDispatcher EventDispatcher { get; }
