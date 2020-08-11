@@ -49,7 +49,7 @@ namespace Etherna.SSOServer.Persistence.Repositories
 
         public override async Task CreateAsync(TModel model, CancellationToken cancellationToken = default)
         {
-            await base.CreateAsync(model);
+            await base.CreateAsync(model, cancellationToken);
 
             // Dispatch created event.
             if (EventDispatcher != null) //could be null in seeding
