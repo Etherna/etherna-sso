@@ -1,20 +1,28 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Threading.Tasks;
-using Etherna.SSOServer.Domain.Models;
+﻿using Etherna.SSOServer.Domain.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using System;
+using System.ComponentModel.DataAnnotations;
+using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
 {
     public partial class IndexModel : PageModel
     {
+        // Model.
+        public class InputModel
+        {
+            [Phone]
+            [Display(Name = "Phone number")]
+            public string? PhoneNumber { get; set; }
+        }
+
+        // Fields.
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
 
+        // Constructor.
         public IndexModel(
             UserManager<User> userManager,
             SignInManager<User> signInManager)
@@ -23,6 +31,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             _signInManager = signInManager;
         }
 
+        // Properties.
         [Display(Name = "Ethereum address (server managed)")]
         public string EthereumAddress { get; set; } = default!;
         public string Username { get; set; } = default!;
@@ -33,27 +42,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
         [BindProperty]
         public InputModel Input { get; set; } = default!;
 
-        public class InputModel
-        {
-            [Phone]
-            [Display(Name = "Phone number")]
-            public string? PhoneNumber { get; set; }
-        }
-
-        private async Task LoadAsync(User user)
-        {
-            var userName = await _userManager.GetUserNameAsync(user);
-            var phoneNumber = await _userManager.GetPhoneNumberAsync(user);
-
-            EthereumAddress = user.EtherAddress;
-            Username = userName;
-
-            Input = new InputModel
-            {
-                PhoneNumber = phoneNumber
-            };
-        }
-
+        // Methods.
         public async Task<IActionResult> OnGetAsync()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -94,6 +83,21 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             await _signInManager.RefreshSignInAsync(user);
             StatusMessage = "Your profile has been updated";
             return RedirectToPage();
+        }
+
+        // Helpers.
+        private async Task LoadAsync(User user)
+        {
+            var userName = await _userManager.GetUserNameAsync(user);
+            var phoneNumber = await _userManager.GetPhoneNumberAsync(user);
+
+            EthereumAddress = user.EtherAddress;
+            Username = userName;
+
+            Input = new InputModel
+            {
+                PhoneNumber = phoneNumber
+            };
         }
     }
 }

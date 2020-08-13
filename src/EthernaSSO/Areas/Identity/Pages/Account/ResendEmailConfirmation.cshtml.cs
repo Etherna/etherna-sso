@@ -15,18 +15,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
     [AllowAnonymous]
     public class ResendEmailConfirmationModel : PageModel
     {
-        private readonly UserManager<User> _userManager;
-        private readonly IEmailSender _emailSender;
-
-        public ResendEmailConfirmationModel(UserManager<User> userManager, IEmailSender emailSender)
-        {
-            _userManager = userManager;
-            _emailSender = emailSender;
-        }
-
-        [BindProperty]
-        public InputModel Input { get; set; } = default!;
-
+        // Model.
         public class InputModel
         {
             [Required]
@@ -34,10 +23,22 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             public string Email { get; set; } = default!;
         }
 
-        public void OnGet()
+        // Fields.
+        private readonly UserManager<User> _userManager;
+        private readonly IEmailSender _emailSender;
+
+        // Constructor.
+        public ResendEmailConfirmationModel(UserManager<User> userManager, IEmailSender emailSender)
         {
+            _userManager = userManager;
+            _emailSender = emailSender;
         }
 
+        // Proeprties.
+        [BindProperty]
+        public InputModel Input { get; set; } = default!;
+
+        // Methods.
         public async Task<IActionResult> OnPostAsync()
         {
             if (!ModelState.IsValid)
