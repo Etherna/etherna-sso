@@ -132,7 +132,7 @@ namespace Etherna.SSOServer
             {
                 options.UserInteraction.ErrorUrl = "/Error";
             })
-                .AddInMemoryApiResources(idServerConfig.Apis)
+                .AddInMemoryApiScopes(idServerConfig.ApiScopes)
                 .AddInMemoryClients(idServerConfig.Clients)
                 .AddInMemoryIdentityResources(idServerConfig.IdResources)
                 .AddAspNetIdentity<User>();

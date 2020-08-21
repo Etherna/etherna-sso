@@ -17,6 +17,8 @@ namespace Etherna.SSOServer.IdentityServer
         private readonly string ethernaIndexBaseUrl;
         private readonly string ethernaIndexSecret;
 
+        private readonly string requestFilterSecret;
+
         // Constructor.
         public IdServerConfig(IConfiguration configuration)
         {
@@ -30,14 +32,15 @@ namespace Etherna.SSOServer.IdentityServer
 
             ethernaIndexBaseUrl = configuration["IdServer:Clients:EthernaIndex:BaseUrl"];
             ethernaIndexSecret = configuration["IdServer:Clients:EthernaIndex:Secret"];
+
+            requestFilterSecret = configuration["IdServer:Clients:RequestFilter:Secret"];
         }
 
         // Properties.
-        public IEnumerable<ApiResource> Apis =>
-            new List<ApiResource>
+        public IEnumerable<ApiScope> ApiScopes =>
+            new List<ApiScope>
             {
-                new ApiResource("ethernaIndexApi", "Etherna Index API"),
-                new ApiResource("ethernaGatewayApi", "Etherna Gateway API")
+                new ApiScope("ethernaCredit_serviceInteract_api", "Etherna Credit service interact API")
             };
 
         public IEnumerable<Client> Clients =>
@@ -68,7 +71,7 @@ namespace Etherna.SSOServer.IdentityServer
                     }
                 },
 
-                //dapp
+                //dapp [deprecated]
                 new Client
                 {
                     ClientId = "ethernaDappClientId",
@@ -117,7 +120,24 @@ namespace Etherna.SSOServer.IdentityServer
                         IdentityServerConstants.StandardScopes.OpenId,
                         "ether_accounts"
                     }
-                }
+                },
+
+                //request filter
+                new Client
+                {
+                    ClientId = "requestFilterClientId",
+                    ClientName = "Request Filter",
+                    ClientSecrets = { new Secret(requestFilterSecret.Sha256()) },
+
+                    // no interactive user, use the clientid/secret for authentication
+                    AllowedGrantTypes = GrantTypes.ClientCredentials,
+
+                    // scopes that client has access to
+                    AllowedScopes =
+                    {
+                        "ethernaCredit_serviceInteract_api"
+                    }
+                },
             };
 
         public IEnumerable<IdentityResource> IdResources =>
