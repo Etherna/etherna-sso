@@ -71,6 +71,7 @@ namespace Etherna.SSOServer
             {
                 // Cookie settings.
                 options.Cookie.HttpOnly = true;
+                options.Cookie.Name = Configuration["Application:CompactName"];
                 options.ExpireTimeSpan = TimeSpan.FromDays(30);
 
                 options.LoginPath = "/Identity/Account/Login";
