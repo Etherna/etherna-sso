@@ -12,19 +12,19 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Azure.Identity" Version="1.2.2" />
+    <PackageReference Include="Azure.Identity" Version="1.2.3" />
     <PackageReference Include="Azure.Security.KeyVault.Secrets" Version="4.1.0" />
     <PackageReference Include="GitVersionTask" Version="5.3.7">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Hangfire.AspNetCore" Version="1.7.12" />
-    <PackageReference Include="IdentityServer4.AspNetIdentity" Version="4.0.4" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.Facebook" Version="3.1.7" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="3.1.7" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.Twitter" Version="3.1.7" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="3.1.7" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="3.1.7" />
+    <PackageReference Include="Hangfire.AspNetCore" Version="1.7.13" />
+    <PackageReference Include="IdentityServer4.AspNetIdentity" Version="4.1.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Facebook" Version="3.1.8" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="3.1.8" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Twitter" Version="3.1.8" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="3.1.8" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="3.1.8" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning.ApiExplorer" Version="4.1.1" />
     <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="3.3.0">
       <PrivateAssets>all</PrivateAssets>
@@ -34,7 +34,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.1.4" />
     <PackageReference Include="MongODM.AspNetCore" Version="0.21.0" />
     <PackageReference Include="MongODM.Hangfire" Version="0.21.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="5.5.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="5.6.1" />
   </ItemGroup>
 
   <ItemGroup>
