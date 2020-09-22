@@ -14,10 +14,13 @@ namespace Etherna.SSOServer.IdentityServer
 
         private readonly string ethernaDappBaseUrl;
 
+        private readonly string ethernaGatevalCreditSecret;
+
+        private readonly string ethernaGatevalUserBaseUrl;
+        private readonly string ethernaGatevalUserSecret;
+
         private readonly string ethernaIndexBaseUrl;
         private readonly string ethernaIndexSecret;
-
-        private readonly string requestFilterSecret;
 
         // Constructor.
         public IdServerConfig(IConfiguration configuration)
@@ -30,10 +33,13 @@ namespace Etherna.SSOServer.IdentityServer
 
             ethernaDappBaseUrl = configuration["IdServer:Clients:EthernaDapp:BaseUrl"];
 
+            ethernaGatevalCreditSecret = configuration["IdServer:Clients:EthernaGatevalCredit:Secret"];
+
+            ethernaGatevalUserBaseUrl = configuration["IdServer:Clients:EthernaGatevalUser:BaseUrl"];
+            ethernaGatevalUserSecret = configuration["IdServer:Clients:EthernaGatevalUser:Secret"];
+
             ethernaIndexBaseUrl = configuration["IdServer:Clients:EthernaIndex:BaseUrl"];
             ethernaIndexSecret = configuration["IdServer:Clients:EthernaIndex:Secret"];
-
-            requestFilterSecret = configuration["IdServer:Clients:RequestFilter:Secret"];
         }
 
         // Properties.
@@ -97,6 +103,48 @@ namespace Etherna.SSOServer.IdentityServer
                     }
                 },
 
+                //gateway validator (credit client)
+                new Client
+                {
+                    ClientId = "ethernaGatevalCreditClientId",
+                    ClientName = "Etherna Gateway Validator",
+                    ClientSecrets = { new Secret(ethernaGatevalCreditSecret.Sha256()) },
+
+                    // no interactive user, use the clientid/secret for authentication
+                    AllowedGrantTypes = GrantTypes.ClientCredentials,
+
+                    // scopes that client has access to
+                    AllowedScopes =
+                    {
+                        "ethernaCredit_serviceInteract_api"
+                    }
+                },
+                
+                //gateway validator (user login)
+                new Client
+                {
+                    ClientId = "ethernaGatevalUserClientId",
+                    ClientName = "Etherna Gateway",
+                    ClientSecrets = { new Secret(ethernaGatevalUserSecret.Sha256()) },
+
+                    AllowedGrantTypes = GrantTypes.Code,
+                    RequireConsent = false,
+                    RequirePkce = true,
+
+                    // where to redirect to after login
+                    RedirectUris = { $"{ethernaGatevalUserBaseUrl}/signin-oidc" },
+
+                    // where to redirect to after logout
+                    PostLogoutRedirectUris = { $"{ethernaGatevalUserBaseUrl}/signout-callback-oidc" },
+
+                    AlwaysIncludeUserClaimsInIdToken = true,
+                    AllowedScopes = new List<string>
+                    {
+                        IdentityServerConstants.StandardScopes.OpenId,
+                        "ether_accounts"
+                    }
+                },
+
                 //index
                 new Client
                 {
@@ -119,23 +167,6 @@ namespace Etherna.SSOServer.IdentityServer
                     {
                         IdentityServerConstants.StandardScopes.OpenId,
                         "ether_accounts"
-                    }
-                },
-
-                //request filter
-                new Client
-                {
-                    ClientId = "requestFilterClientId",
-                    ClientName = "Request Filter",
-                    ClientSecrets = { new Secret(requestFilterSecret.Sha256()) },
-
-                    // no interactive user, use the clientid/secret for authentication
-                    AllowedGrantTypes = GrantTypes.ClientCredentials,
-
-                    // scopes that client has access to
-                    AllowedScopes =
-                    {
-                        "ethernaCredit_serviceInteract_api"
                     }
                 },
             };
