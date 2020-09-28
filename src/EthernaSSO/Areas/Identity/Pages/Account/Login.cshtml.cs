@@ -77,10 +77,8 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 ModelState.AddModelError(string.Empty, ErrorMessage);
             }
 
-            // Clear the existing external cookie to ensure a clean login process
-            await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+            await Initialize();
 
-            ExternalLogins.AddRange(await signInManager.GetExternalAuthenticationSchemesAsync());
             ReturnUrl = returnUrl ?? Url.Content("~/");
         }
 
@@ -90,7 +88,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             ReturnUrl = returnUrl ?? Url.Content("~/");
 
             if (!ModelState.IsValid)
-                return Page();
+                return await InitializedPage();
 
             // Login.
             //check if we are in the context of an authorization request
@@ -103,7 +101,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             if (user is null)
             {
                 ModelState.AddModelError(string.Empty, "Invalid login attempt.");
-                return Page();
+                return await InitializedPage();
             }
 
             //validate login
@@ -146,8 +144,24 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             {
                 await eventService.RaiseAsync(new UserLoginFailureEvent(Input.UsernameOrEmail, "invalid credentials", clientId: context?.Client?.ClientId));
                 ModelState.AddModelError(string.Empty, "Invalid login attempt.");
-                return Page();
+                return await InitializedPage();
             }
+        }
+
+        // Helpers.
+        private async Task Initialize()
+        {
+            //clear the existing external cookie to ensure a clean login process
+            await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+
+            //load data
+            ExternalLogins.AddRange(await signInManager.GetExternalAuthenticationSchemesAsync());
+        }
+
+        private async Task<IActionResult> InitializedPage()
+        {
+            await Initialize();
+            return Page();
         }
     }
 }
