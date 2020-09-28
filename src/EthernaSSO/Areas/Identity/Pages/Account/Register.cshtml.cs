@@ -78,8 +78,8 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         // Methods.
         public async Task OnGetAsync(string? returnUrl = null)
         {
+            await Initialize();
             ReturnUrl = returnUrl;
-            ExternalLogins.AddRange(await signInManager.GetExternalAuthenticationSchemesAsync());
         }
 
         public async Task<IActionResult> OnPostAsync(string? returnUrl = null)
@@ -89,7 +89,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             ExternalLogins.AddRange(await signInManager.GetExternalAuthenticationSchemesAsync());
 
             if (!ModelState.IsValid)
-                return Page();
+                return await InitializedPage();
 
             // Register new user.
             //check if we are in the context of an authorization request
@@ -124,6 +124,22 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             foreach (var error in result.Errors)
                 ModelState.AddModelError(string.Empty, error.Description);
 
+            return await InitializedPage();
+        }
+
+        // Helpers.
+        private async Task Initialize()
+        {
+            //clear the existing external cookie to ensure a clean login process
+            await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+
+            //load data
+            ExternalLogins.AddRange(await signInManager.GetExternalAuthenticationSchemesAsync());
+        }
+
+        private async Task<IActionResult> InitializedPage()
+        {
+            await Initialize();
             return Page();
         }
     }
