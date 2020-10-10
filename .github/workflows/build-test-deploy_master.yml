@@ -32,9 +32,9 @@ jobs:
       run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/myapp
 
     - name: Deploy to Azure Web App
-      uses: azure/webapps-deploy@v1
+      uses: azure/webapps-deploy@v2
       with:
         app-name: 'ethernasso'
         slot-name: 'production'
         publish-profile: ${{ secrets.AzureAppService_PublishProfile_049d3406e4224fdba5d92af409b184e9 }}
-        package: ${{env.DOTNET_ROOT}}/myapp 
+        package: ${{env.DOTNET_ROOT}}/myapp
