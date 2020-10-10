@@ -1,8 +1,11 @@
-﻿using IdentityServer4;
+﻿using Etherna.SSOServer.Exceptions;
+using IdentityServer4;
 using IdentityServer4.Models;
 using Microsoft.Extensions.Configuration;
+using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Etherna.SSOServer.IdentityServer
 {
@@ -14,10 +17,10 @@ namespace Etherna.SSOServer.IdentityServer
 
         private readonly string ethernaDappBaseUrl;
 
-        private readonly string ethernaGatevalCreditSecret;
+        private readonly string ethernaGatewayCreditSecret;
 
-        private readonly string ethernaGatevalUserBaseUrl;
-        private readonly string ethernaGatevalUserSecret;
+        private readonly string[] ethernaGatewayWebappBaseUrls;
+        private readonly string ethernaGatewayWebappSecret;
 
         private readonly string ethernaIndexBaseUrl;
         private readonly string ethernaIndexSecret;
@@ -28,18 +31,18 @@ namespace Etherna.SSOServer.IdentityServer
             if (configuration is null)
                 throw new ArgumentNullException(nameof(configuration));
 
-            ethernaCreditBaseUrl = configuration["IdServer:Clients:EthernaCredit:BaseUrl"];
-            ethernaCreditSecret = configuration["IdServer:Clients:EthernaCredit:Secret"];
+            ethernaCreditBaseUrl = configuration["IdServer:Clients:EthernaCredit:BaseUrl"] ?? throw new ServiceConfigurationException();
+            ethernaCreditSecret = configuration["IdServer:Clients:EthernaCredit:Secret"] ?? throw new ServiceConfigurationException();
 
-            ethernaDappBaseUrl = configuration["IdServer:Clients:EthernaDapp:BaseUrl"];
+            ethernaDappBaseUrl = configuration["IdServer:Clients:EthernaDapp:BaseUrl"] ?? throw new ServiceConfigurationException();
 
-            ethernaGatevalCreditSecret = configuration["IdServer:Clients:EthernaGatevalCredit:Secret"];
+            ethernaGatewayCreditSecret = configuration["IdServer:Clients:EthernaGatewayCreditClient:Secret"] ?? throw new ServiceConfigurationException();
 
-            ethernaGatevalUserBaseUrl = configuration["IdServer:Clients:EthernaGatevalUser:BaseUrl"];
-            ethernaGatevalUserSecret = configuration["IdServer:Clients:EthernaGatevalUser:Secret"];
+            ethernaGatewayWebappBaseUrls = configuration.GetSection("IdServer:Clients:EthernaGatewayWebapp:BaseUrls").Get<string[]>() ?? throw new ServiceConfigurationException();
+            ethernaGatewayWebappSecret = configuration["IdServer:Clients:EthernaGatewayWebapp:Secret"] ?? throw new ServiceConfigurationException();
 
-            ethernaIndexBaseUrl = configuration["IdServer:Clients:EthernaIndex:BaseUrl"];
-            ethernaIndexSecret = configuration["IdServer:Clients:EthernaIndex:Secret"];
+            ethernaIndexBaseUrl = configuration["IdServer:Clients:EthernaIndex:BaseUrl"] ?? throw new ServiceConfigurationException();
+            ethernaIndexSecret = configuration["IdServer:Clients:EthernaIndex:Secret"] ?? throw new ServiceConfigurationException();
         }
 
         // Properties.
@@ -108,7 +111,7 @@ namespace Etherna.SSOServer.IdentityServer
                 {
                     ClientId = "ethernaGatevalCreditClientId",
                     ClientName = "Etherna Gateway Validator",
-                    ClientSecrets = { new Secret(ethernaGatevalCreditSecret.Sha256()) },
+                    ClientSecrets = { new Secret(ethernaGatewayCreditSecret.Sha256()) },
 
                     // no interactive user, use the clientid/secret for authentication
                     AllowedGrantTypes = GrantTypes.ClientCredentials,
@@ -125,17 +128,17 @@ namespace Etherna.SSOServer.IdentityServer
                 {
                     ClientId = "ethernaGatevalUserClientId",
                     ClientName = "Etherna Gateway",
-                    ClientSecrets = { new Secret(ethernaGatevalUserSecret.Sha256()) },
+                    ClientSecrets = { new Secret(ethernaGatewayWebappSecret.Sha256()) },
 
                     AllowedGrantTypes = GrantTypes.Code,
                     RequireConsent = false,
                     RequirePkce = true,
 
                     // where to redirect to after login
-                    RedirectUris = { $"{ethernaGatevalUserBaseUrl}/signin-oidc" },
+                    RedirectUris = ethernaGatewayWebappBaseUrls.Select(url => $"{url}/signin-oidc").ToList(),
 
                     // where to redirect to after logout
-                    PostLogoutRedirectUris = { $"{ethernaGatevalUserBaseUrl}/signout-callback-oidc" },
+                    PostLogoutRedirectUris = ethernaGatewayWebappBaseUrls.Select(url => $"{url}/signout-callback-oidc").ToList(),
 
                     AlwaysIncludeUserClaimsInIdToken = true,
                     AllowedScopes = new List<string>
