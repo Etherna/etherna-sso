@@ -21,15 +21,17 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{10DAD3ED-0
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{1C01CDAC-366E-4F9B-8A52-25F7770FE92A}"
 	ProjectSection(SolutionItems) = preProject
+		.dockerignore = .dockerignore
 		.editorconfig = .editorconfig
 		.gitignore = .gitignore
+		Dockerfile = Dockerfile
 		GitVersion.yml = GitVersion.yml
 		nuget.config = nuget.config
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{61C8B690-EEA5-440E-B5B5-7C8D5098503C}"
 	ProjectSection(SolutionItems) = preProject
-		.github\workflows\build-test-deploy_master.yml = .github\workflows\build-test-deploy_master.yml
+		.github\workflows\stable-release.yml = .github\workflows\stable-release.yml
 	EndProjectSection
 EndProject
 Global
