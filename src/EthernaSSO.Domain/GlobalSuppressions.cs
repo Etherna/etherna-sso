@@ -5,4 +5,4 @@
 
 using System.Diagnostics.CodeAnalysis;
 
-[assembly: SuppressMessage("Usage", "CA2214:Do not call overridable methods in constructors", Justification = "Overridability is needed for permit to use proxy models. Setting methods for data validation", Scope = "namespaceanddescendants", Target = "Etherna.SSOServer.Domain.Models")]
+[assembly: SuppressMessage("Usage", "CA2214:Do not call overridable methods in constructors", Justification = "Overridability is needed for permit to use proxy models. Setting methods for data validation", Scope = "namespaceanddescendants", Target = "~N:Etherna.SSOServer.Domain.Models")]
