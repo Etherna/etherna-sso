@@ -136,7 +136,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                     {
                         // If the client is PKCE then we assume it's native, so this change in how to
                         // return the response is for better UX for the end user.
-                        return this.LoadingPage("/Redirect", returnUrl);
+                        return this.LoadingPage("/Redirect", returnUrl!);
                     }
                 }
 
@@ -215,7 +215,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                     {
                         // If the client is PKCE then we assume it's native, so this change in how to
                         // return the response is for better UX for the end user.
-                        return this.LoadingPage("/Redirect", returnUrl);
+                        return this.LoadingPage("/Redirect", returnUrl!);
                     }
                 }
 

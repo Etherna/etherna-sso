@@ -52,6 +52,8 @@ namespace Etherna.SSOServer.DataProtectionStore
 
                 var jsonStr = bsonDoc.ToJson();
                 var xDocument = JsonConvert.DeserializeXNode(jsonStr)!;
+                if (xDocument.Root is null)
+                    throw new InvalidOperationException();
                 return xDocument.Root;
             }).ToList();
         }

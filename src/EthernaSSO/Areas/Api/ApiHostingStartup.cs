@@ -14,6 +14,7 @@
 
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Linq;
 using System.Reflection;
 
@@ -40,6 +41,8 @@ namespace Etherna.SSOServer.Areas.Api
                                             select t)
                 {
                     var serviceInterfaceType = serviceType.GetInterface($"I{serviceType.Name}");
+                    if (serviceInterfaceType is null)
+                        throw new InvalidOperationException();
                     services.AddScoped(serviceInterfaceType, serviceType);
                 }
             });

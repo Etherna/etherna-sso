@@ -93,7 +93,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             if (Url.IsLocalUrl(returnUrl) == false && idServerInteractionService.IsValidReturnUrl(returnUrl) == false)
             {
                 //user might have clicked on a malicious link - should be logged
-                throw new Exception("invalid return URL");
+                throw new InvalidOperationException("invalid return URL");
             }
 
             // Request a redirect to the external login provider.
@@ -115,7 +115,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             }
 
             // Log claims.
-            if (logger.IsEnabled(LogLevel.Debug))
+            if (logger.IsEnabled(LogLevel.Debug) && authResult.Principal is not null)
             {
                 var externalClaims = authResult.Principal.Claims.Select(c => $"{c.Type}: {c.Value}");
                 logger.LogDebug("External claims: {@claims}", externalClaims);
@@ -123,7 +123,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
             // Get external login info and user.
             var info = await signInManager.GetExternalLoginInfoAsync();
-            if (info == null)
+            if (info is null || info.Principal.Identity is null)
             {
                 ErrorMessage = "Error loading external login information.";
                 return RedirectToPage("./Login", new { ReturnUrl = returnUrl });
@@ -145,7 +145,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                     {
                         // If the client is PKCE then we assume it's native, so this change in how to
                         // return the response is for better UX for the end user.
-                        return this.LoadingPage("/Redirect", returnUrl);
+                        return this.LoadingPage("/Redirect", returnUrl!);
                     }
                 }
 
@@ -180,7 +180,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
             // Get the information about the user from the external login provider
             var info = await signInManager.GetExternalLoginInfoAsync();
-            if (info == null)
+            if (info is null || info.Principal.Identity is null)
             {
                 ErrorMessage = "Error loading external login information during confirmation.";
                 return RedirectToPage("./Login", new { ReturnUrl = returnUrl });
@@ -223,7 +223,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                         {
                             // If the client is PKCE then we assume it's native, so this change in how to
                             // return the response is for better UX for the end user.
-                            return this.LoadingPage("/Redirect", returnUrl);
+                            return this.LoadingPage("/Redirect", returnUrl!);
                         }
                     }
 

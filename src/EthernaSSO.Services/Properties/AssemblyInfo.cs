@@ -12,13 +12,6 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-namespace Etherna.SSOServer.Services.Settings
-{
-    public class ApplicationSettings
-    {
-        string? _assemblyVersion;
+using System;
 
-        public string AssemblyVersion { get => _assemblyVersion ?? "1.0.0"; set => _assemblyVersion = value; }
-        public string SimpleAssemblyVersion => AssemblyVersion.Split('+')[0];
-    }
-}
+[assembly: CLSCompliant(false)]

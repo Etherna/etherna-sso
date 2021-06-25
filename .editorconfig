@@ -6,6 +6,9 @@ root = true
 
 #### Suppress warnings ####
 
+# CA1002: Do not expose generic lists
+dotnet_diagnostic.CA1002.severity = none	# Assemblies that raises this warning is not meant to be a reusable library
+
 # CA1034: Nested types should not be visible
 dotnet_diagnostic.CA1034.severity = none    # Asp.Net Core Pages uses nested models
 
