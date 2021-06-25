@@ -123,7 +123,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                     {
                         // if the client is PKCE then we assume it's native, so this change in how to
                         // return the response is for better UX for the end user.
-                        return this.LoadingPage("/Redirect", returnUrl);
+                        return this.LoadingPage("/Redirect", returnUrl!);
                     }
 
                     //we can trust returnUrl since GetAuthorizationContextAsync returned non-null

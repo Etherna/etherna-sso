@@ -88,7 +88,7 @@ namespace Etherna.SSOServer.Identity
             {
                 var owner = await manager.FindByEmailAsync(email);
                 if (owner != null &&
-                    !string.Equals(await manager.GetUserIdAsync(owner), await manager.GetUserIdAsync(user), StringComparison.InvariantCulture))
+                    !string.Equals(await manager.GetUserIdAsync(owner), await manager.GetUserIdAsync(user), StringComparison.Ordinal))
                 {
                     errors.Add(Describer.DuplicateEmail(email));
                 }
@@ -125,7 +125,7 @@ namespace Etherna.SSOServer.Identity
             //check unique
             var owner = await manager.FindByNameAsync(username);
             if (owner != null &&
-                !string.Equals(await manager.GetUserIdAsync(owner), await manager.GetUserIdAsync(user), StringComparison.InvariantCulture))
+                !string.Equals(await manager.GetUserIdAsync(owner), await manager.GetUserIdAsync(user), StringComparison.Ordinal))
             {
                 errors.Add(Describer.DuplicateUserName(username));
             }

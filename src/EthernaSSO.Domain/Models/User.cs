@@ -1,4 +1,18 @@
-﻿using Etherna.MongODM.Attributes;
+﻿//   Copyright 2021-present Etherna Sagl
+//
+//   Licensed under the Apache License, Version 2.0 (the "License");
+//   you may not use this file except in compliance with the License.
+//   You may obtain a copy of the License at
+//
+//       http://www.apache.org/licenses/LICENSE-2.0
+//
+//   Unless required by applicable law or agreed to in writing, software
+//   distributed under the License is distributed on an "AS IS" BASIS,
+//   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//   See the License for the specific language governing permissions and
+//   limitations under the License.
+
+using Etherna.MongODM.Attributes;
 using Etherna.SSOServer.Domain.Models.UserAgg;
 using Microsoft.AspNetCore.Identity;
 using Nethereum.Hex.HexConvertors.Extensions;
@@ -27,11 +41,11 @@ namespace Etherna.SSOServer.Domain.Models
         }
 
         // Fields.
-        private readonly List<UserClaim> _customClaims = new List<UserClaim>();
+        private readonly List<UserClaim> _customClaims = new();
         private Account? _etherManagedAccount;
-        private List<string> _etherPreviousAddresses = new List<string>();
-        private List<UserLoginInfo> _logins = new List<UserLoginInfo>();
-        private List<string> _twoFactorRecoveryCode = new List<string>();
+        private List<string> _etherPreviousAddresses = new();
+        private List<UserLoginInfo> _logins = new();
+        private List<string> _twoFactorRecoveryCode = new();
 
         // Constructors and dispose.
         ///// <summary>
