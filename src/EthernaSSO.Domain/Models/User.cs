@@ -255,7 +255,7 @@ namespace Etherna.SSOServer.Domain.Models
         }
 
         [PropertyAlterer(nameof(EtherLoginAddress))]
-        public void RemoveEtherLoginAddress()
+        public virtual void RemoveEtherLoginAddress()
         {
             if (!CanRemoveEtherLoginAddress)
                 throw new InvalidOperationException();
