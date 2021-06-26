@@ -67,7 +67,7 @@ namespace Etherna.SSOServer.Persistence
                      new CreateIndexOptions<User> { Unique = true, Sparse = true }),
 
                     (Builders<User>.IndexKeys.Ascending(u => u.NormalizedUsername),
-                     new CreateIndexOptions<User> { Unique = true, Sparse = true })
+                     new CreateIndexOptions<User> { Unique = true })
                 }
             });
         public ICollectionRepository<Web3LoginToken, string> Web3LoginTokens { get; } = new DomainCollectionRepository<Web3LoginToken, string>(

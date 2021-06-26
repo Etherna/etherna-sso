@@ -25,8 +25,8 @@
 
 <div id="web3-login-description">
     <p class="text-info">
-        You've successfully authenticated with Web3.<br/>
-        Now you can enter an optional email address below, and click the Register button to finish logging in.
+        You've successfully authenticated with Web3.<br />
+        Please enter an username and an optional email address below, and click the Register button to finish logging in.
     </p>
     <p class="text-secondary">
         Due to a current Swarm limitation, we are not able to use directly your wallet for sign Swarm Feeds.<br />
@@ -43,6 +43,11 @@
               method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
+                <label asp-for="Input.Username"></label>
+                <input asp-for="Input.Username" class="form-control" />
+                <span asp-validation-for="Input.Username" class="text-danger"></span>
+            </div>
+            <div class="form-group">
                 <label asp-for="Input.Email"></label>
                 <input asp-for="Input.Email" class="form-control" />
                 <span asp-validation-for="Input.Email" class="text-danger"></span>
@@ -52,15 +57,14 @@
     </div>
 </div>
 
-@if (Model.DuplicateEmail)
+@if (Model.DuplicateEmail || Model.DuplicateUsername)
 {
     <div class="row">
         <div class="col-md-6">
             <hr />
             <p class="text-break">
-                It looks like that this Email is already been used.<br />
                 Please <a asp-page="./Login" asp-route-returnUrl="@Model.ReturnUrl">Login</a>
-                with your previous account, or change it for create a new one.
+                with your previous account, or change info for create a new one.
             </p>
         </div>
     </div>

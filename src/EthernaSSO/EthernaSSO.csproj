@@ -14,6 +14,7 @@
     <AnalysisMode>AllEnabledByDefault</AnalysisMode>
     <CopyRefAssembliesToPublishDirectory>false</CopyRefAssembliesToPublishDirectory>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <UserSecretsId>6c47859e-0bb2-4c0d-bf9f-e9e3dbd37d00</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

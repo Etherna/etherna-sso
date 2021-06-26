@@ -111,10 +111,6 @@ namespace Etherna.SSOServer.Configs.Identity
         {
             var username = await manager.GetUserNameAsync(user);
 
-            //allow null usernames
-            if (string.IsNullOrWhiteSpace(username))
-                return;
-
             //check validity with regex
             if (!Regex.IsMatch(username, User.UsernameRegex))
             {
