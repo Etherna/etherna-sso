@@ -12,8 +12,8 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-using Etherna.MongODM;
-using Etherna.MongODM.Serialization;
+using Etherna.MongODM.Core;
+using Etherna.MongODM.Core.Serialization;
 using Etherna.SSOServer.Domain.Models;
 
 namespace Etherna.SSOServer.Persistence.ModelMaps
@@ -22,26 +22,26 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
     {
         public void Register(IDbContext dbContext)
         {
-            dbContext.DocumentSchemaRegister.RegisterModelSchema<User>("0.1.0",
-                cm =>
+            dbContext.SchemaRegister.AddModelMapsSchema<User>("a492aaa7-196c-4ec0-8fb5-255d099d0b9f",
+                modelMap =>
                 {
-                    cm.AutoMap();
+                    modelMap.AutoMap();
 
                     // Set members to ignore if null.
-                    cm.GetMemberMap(u => u.Email).SetIgnoreIfNull(true);
-                    cm.GetMemberMap(u => u.EmailConfirmed).SetIgnoreIfNull(true);
-                    cm.GetMemberMap(u => u.EtherLoginAddress).SetIgnoreIfNull(true);
-                    cm.GetMemberMap(u => u.EtherManagedPrivateKey).SetIgnoreIfNull(true);
-                    cm.GetMemberMap(u => u.LockoutEnabled).SetIgnoreIfNull(true);
-                    cm.GetMemberMap(u => u.LockoutEnd).SetIgnoreIfNull(true);
-                    cm.GetMemberMap(u => u.Logins).SetIgnoreIfNull(true);
-                    cm.GetMemberMap(u => u.NormalizedEmail).SetIgnoreIfNull(true);
-                    cm.GetMemberMap(u => u.NormalizedUsername).SetIgnoreIfNull(true);
-                    cm.GetMemberMap(u => u.PasswordHash).SetIgnoreIfNull(true);
-                    cm.GetMemberMap(u => u.Username).SetIgnoreIfNull(true);
+                    modelMap.GetMemberMap(u => u.Email).SetIgnoreIfNull(true);
+                    modelMap.GetMemberMap(u => u.EmailConfirmed).SetIgnoreIfNull(true);
+                    modelMap.GetMemberMap(u => u.EtherLoginAddress).SetIgnoreIfNull(true);
+                    modelMap.GetMemberMap(u => u.EtherManagedPrivateKey).SetIgnoreIfNull(true);
+                    modelMap.GetMemberMap(u => u.LockoutEnabled).SetIgnoreIfNull(true);
+                    modelMap.GetMemberMap(u => u.LockoutEnd).SetIgnoreIfNull(true);
+                    modelMap.GetMemberMap(u => u.Logins).SetIgnoreIfNull(true);
+                    modelMap.GetMemberMap(u => u.NormalizedEmail).SetIgnoreIfNull(true);
+                    modelMap.GetMemberMap(u => u.NormalizedUsername).SetIgnoreIfNull(true);
+                    modelMap.GetMemberMap(u => u.PasswordHash).SetIgnoreIfNull(true);
+                    modelMap.GetMemberMap(u => u.Username).SetIgnoreIfNull(true);
 
                     // Force serialization of readonly props.
-                    cm.MapProperty(u => u.EtherAddress);
+                    modelMap.MapProperty(u => u.EtherAddress);
                 });
         }
     }

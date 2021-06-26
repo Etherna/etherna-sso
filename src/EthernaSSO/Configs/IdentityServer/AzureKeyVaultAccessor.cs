@@ -18,7 +18,7 @@ using Microsoft.Extensions.Configuration;
 using System;
 using System.Security.Cryptography.X509Certificates;
 
-namespace Etherna.SSOServer.IdentityServer
+namespace Etherna.SSOServer.Configs.IdentityServer
 {
     public static class AzureKeyVaultAccessor
     {

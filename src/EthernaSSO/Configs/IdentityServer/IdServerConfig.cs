@@ -21,7 +21,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Etherna.SSOServer.IdentityServer
+namespace Etherna.SSOServer.Configs.IdentityServer
 {
     public class IdServerConfig
     {

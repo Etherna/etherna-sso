@@ -12,8 +12,8 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-using Etherna.MongODM;
-using Etherna.MongODM.Serialization;
+using Etherna.MongODM.Core;
+using Etherna.MongODM.Core.Serialization;
 using Etherna.SSOServer.Domain.Models;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.IdGenerators;
@@ -26,16 +26,16 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
         public void Register(IDbContext dbContext)
         {
             // register class maps.
-            dbContext.DocumentSchemaRegister.RegisterModelSchema<ModelBase>("0.1.0");
+            dbContext.SchemaRegister.AddModelMapsSchema<ModelBase>("eff57bde-15fb-44ba-ab38-e600ad2835e2");
 
-            dbContext.DocumentSchemaRegister.RegisterModelSchema<EntityModelBase<string>>("0.1.0",
-                cm =>
+            dbContext.SchemaRegister.AddModelMapsSchema<EntityModelBase<string>>("7ddc64f6-3459-4641-957a-7c1dce83d56e",
+                modelMap =>
                 {
-                    cm.AutoMap();
+                    modelMap.AutoMap();
 
                     // Set Id representation.
-                    cm.IdMemberMap.SetSerializer(new StringSerializer(BsonType.ObjectId))
-                                  .SetIdGenerator(new StringObjectIdGenerator());
+                    modelMap.IdMemberMap.SetSerializer(new StringSerializer(BsonType.ObjectId))
+                                        .SetIdGenerator(new StringObjectIdGenerator());
                 });
         }
     }

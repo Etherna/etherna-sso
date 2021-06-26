@@ -12,7 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-using Etherna.MongODM;
+using Etherna.MongODM.Core.Options;
 using Microsoft.AspNetCore.DataProtection.Repositories;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -23,7 +23,7 @@ using System.Linq;
 using System.Xml;
 using System.Xml.Linq;
 
-namespace Etherna.SSOServer.DataProtectionStore
+namespace Etherna.SSOServer.Configs.SystemStore
 {
     public class XmlRepository : IXmlRepository
     {

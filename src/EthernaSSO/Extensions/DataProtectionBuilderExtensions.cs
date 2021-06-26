@@ -12,12 +12,13 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-using Etherna.MongODM;
+using Etherna.MongODM.Core.Options;
+using Etherna.SSOServer.Configs.SystemStore;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Etherna.SSOServer.DataProtectionStore
+namespace Etherna.SSOServer.Extensions
 {
     public static class DataProtectionBuilderExtensions
     {

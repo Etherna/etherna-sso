@@ -12,18 +12,18 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-using Etherna.MongODM;
-using Etherna.MongODM.HF.Tasks;
-using Etherna.SSOServer.DataProtectionStore;
+using Etherna.MongODM.Core.Options;
+using Etherna.SSOServer.Configs;
+using Etherna.SSOServer.Configs.Hangfire;
+using Etherna.SSOServer.Configs.Identity;
+using Etherna.SSOServer.Configs.IdentityServer;
+using Etherna.SSOServer.Configs.Swagger;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.IdentityStores;
 using Etherna.SSOServer.Domain.Models;
-using Etherna.SSOServer.Hangfire;
-using Etherna.SSOServer.Identity;
-using Etherna.SSOServer.IdentityServer;
+using Etherna.SSOServer.Extensions;
 using Etherna.SSOServer.Persistence;
 using Etherna.SSOServer.Services.Settings;
-using Etherna.SSOServer.Swagger;
 using Hangfire;
 using Hangfire.Mongo;
 using Hangfire.Mongo.Migration.Strategies;
@@ -162,19 +162,6 @@ namespace Etherna.SSOServer
 #pragma warning restore CA2000 // Dispose objects before losing scope
             }
 
-            // Configure Hangfire services.
-            services.AddHangfire(options =>
-            {
-                options.UseMongoStorage(Configuration["ConnectionStrings:HangfireDb"], new MongoStorageOptions
-                {
-                    MigrationOptions = new MongoMigrationOptions //don't remove, could throw exception
-                    {
-                        MigrationStrategy = new MigrateMongoMigrationStrategy(),
-                        BackupStrategy = new CollectionMongoBackupStrategy()
-                    }
-                });
-            });
-
             // Configure Swagger services.
             services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
             services.AddSwaggerGen(options =>
@@ -189,17 +176,10 @@ namespace Etherna.SSOServer
             });
 
             // Configure setting.
-            var appSettings = new ApplicationSettings
-            {
-                AssemblyVersion = GetType()
-                    .GetTypeInfo()
-                    .Assembly
-                    .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
-                    ?.InformationalVersion!
-            };
+            var assemblyVersion = new AssemblyVersion(GetType().GetTypeInfo().Assembly);
             services.Configure<ApplicationSettings>(options =>
             {
-                options.AssemblyVersion = appSettings.AssemblyVersion;
+                options.AssemblyVersion = assemblyVersion.Version;
             });
             services.Configure<EmailSettings>(Configuration.GetSection("Email"));
             services.Configure<PageSettings>(options =>
@@ -209,12 +189,32 @@ namespace Etherna.SSOServer
             });
 
             // Configure persistence.
-            services.UseMongODM<HangfireTaskRunner, ModelBase>()
+            services.AddMongODMWithHangfire<ModelBase>(configureHangfireOptions: options =>
+            {
+                options.ConnectionString = Configuration["ConnectionStrings:HangfireDb"];
+                options.StorageOptions = new MongoStorageOptions
+                {
+                    MigrationOptions = new MongoMigrationOptions //don't remove, could throw exception
+                    {
+                        MigrationStrategy = new MigrateMongoMigrationStrategy(),
+                        BackupStrategy = new CollectionMongoBackupStrategy()
+                    }
+                };
+            }, configureMongODMOptions: options =>
+            {
+                options.DbMaintenanceQueueName = TaskQueues.DB_MAINTENANCE;
+            })
                 .AddDbContext<ISsoDbContext, SsoDbContext>(options =>
                 {
-                    options.ApplicationVersion = appSettings.SimpleAssemblyVersion;
+                    options.DocumentSemVer.CurrentVersion = assemblyVersion.SimpleVersion;
                     options.ConnectionString = Configuration["ConnectionStrings:SSOServerDb"];
                 });
+
+            services.AddMongODMAdminDashboard(new MongODM.AspNetCore.UI.DashboardOptions
+            {
+                AuthFilters = new[] { new Configs.MongODM.AdminAuthFilter() },
+                BasePath = "/admin/db"
+            });
 
             // Configure domain services.
             services.AddDomainServices();
@@ -273,7 +273,7 @@ namespace Etherna.SSOServer
                 {
                     Queues = new[]
                     {
-                        MongODM.Tasks.Queues.DB_MAINTENANCE,
+                        TaskQueues.DB_MAINTENANCE,
                         "default"
                     },
                     WorkerCount = System.Environment.ProcessorCount * 2

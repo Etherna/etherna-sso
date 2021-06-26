@@ -13,8 +13,8 @@
 //   limitations under the License.
 
 using Etherna.DomainEvents;
-using Etherna.MongODM;
-using Etherna.MongODM.Repositories;
+using Etherna.MongODM.Core;
+using Etherna.MongODM.Core.Repositories;
 using Etherna.SSOServer.Domain.Events;
 using Etherna.SSOServer.Domain.Models;
 using MongoDB.Driver.Linq;

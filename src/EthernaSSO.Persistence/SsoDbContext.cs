@@ -13,11 +13,11 @@
 //   limitations under the License.
 
 using Etherna.DomainEvents;
-using Etherna.MongODM;
-using Etherna.MongODM.Migration;
-using Etherna.MongODM.Repositories;
-using Etherna.MongODM.Serialization;
-using Etherna.MongODM.Utility;
+using Etherna.MongODM.Core;
+using Etherna.MongODM.Core.Migration;
+using Etherna.MongODM.Core.Options;
+using Etherna.MongODM.Core.Repositories;
+using Etherna.MongODM.Core.Serialization;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Persistence.Repositories;
@@ -81,10 +81,7 @@ namespace Etherna.SSOServer.Persistence
             });
 
         //migrations
-        public override IEnumerable<MongoMigrationBase> DocumentMigrationList => new MongoMigrationBase[]
-        {
-            new MongoDocumentMigration<User, string>(Users, "0.2.2", "9406c9ce-4107-4205-a40d-0caea3a47092"),
-        };
+        public override IEnumerable<DocumentMigration> DocumentMigrationList => Array.Empty<DocumentMigration>();
 
         //other properties
         public IEventDispatcher EventDispatcher { get; }
