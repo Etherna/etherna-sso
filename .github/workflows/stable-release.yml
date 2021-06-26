@@ -2,7 +2,7 @@ name: Stable release on Docker Hub
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
 
 jobs:
   build:
