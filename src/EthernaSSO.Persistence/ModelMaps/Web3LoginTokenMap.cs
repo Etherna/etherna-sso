@@ -12,8 +12,8 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-using Etherna.MongODM;
-using Etherna.MongODM.Serialization;
+using Etherna.MongODM.Core;
+using Etherna.MongODM.Core.Serialization;
 using Etherna.SSOServer.Domain.Models;
 
 namespace Etherna.SSOServer.Persistence.ModelMaps
@@ -22,7 +22,7 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
     {
         public void Register(IDbContext dbContext)
         {
-            dbContext.DocumentSchemaRegister.RegisterModelSchema<Web3LoginToken>("0.2.0");
+            dbContext.SchemaRegister.AddModelMapsSchema<Web3LoginToken>("150f4cdf-099a-4195-a145-45f1f9eda60c");
         }
     }
 }

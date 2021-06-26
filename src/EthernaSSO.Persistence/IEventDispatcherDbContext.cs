@@ -13,7 +13,7 @@
 //   limitations under the License.
 
 using Etherna.DomainEvents;
-using Etherna.MongODM;
+using Etherna.MongODM.Core;
 
 namespace Etherna.SSOServer.Persistence
 {

@@ -12,13 +12,16 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-namespace Etherna.SSOServer.Services.Settings
-{
-    public class ApplicationSettings
-    {
-        string? _assemblyVersion;
+using Hangfire.Dashboard;
 
-        public string AssemblyVersion { get => _assemblyVersion ?? "1.0.0"; set => _assemblyVersion = value; }
-        public string SimpleAssemblyVersion => AssemblyVersion.Split('+')[0];
+namespace Etherna.SSOServer.Configs.Hangfire
+{
+    public class AdminAuthFilter : IDashboardAuthorizationFilter
+    {
+        public bool Authorize(DashboardContext context)
+        {
+            var httpContext = context.GetHttpContext();
+            return httpContext.User.Identity?.IsAuthenticated ?? false;
+        }
     }
 }

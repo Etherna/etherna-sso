@@ -13,7 +13,7 @@
 //   limitations under the License.
 
 using Etherna.DomainEvents;
-using Etherna.MongODM.Models;
+using Etherna.MongODM.Core.Domain.Models;
 
 namespace Etherna.SSOServer.Domain.Events
 {

@@ -20,7 +20,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace Etherna.SSOServer.Identity
+namespace Etherna.SSOServer.Configs.Identity
 {
     public class CustomUserValidator : IUserValidator<User>
     {

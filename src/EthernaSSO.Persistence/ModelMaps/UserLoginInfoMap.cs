@@ -12,8 +12,8 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-using Etherna.MongODM;
-using Etherna.MongODM.Serialization;
+using Etherna.MongODM.Core;
+using Etherna.MongODM.Core.Serialization;
 using Etherna.SSOServer.Domain.Models.UserAgg;
 
 namespace Etherna.SSOServer.Persistence.ModelMaps
@@ -22,7 +22,7 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
     {
         public void Register(IDbContext dbContext)
         {
-            dbContext.DocumentSchemaRegister.RegisterModelSchema<UserLoginInfo>("0.1.0");
+            dbContext.SchemaRegister.AddModelMapsSchema<UserLoginInfo>("6cec179b-807a-4ff9-977b-9314a60725a7");
         }
     }
 }
