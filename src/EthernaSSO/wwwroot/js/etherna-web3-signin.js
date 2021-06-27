@@ -14,7 +14,7 @@ var EthernaWeb3Singin = {
         confirmSignatureUrl: null
     },
 
-    load: function() {
+    load: function () {
         if (typeof window.web3 !== "undefined") {
             $(EthernaWeb3Singin.constants.web3LoginViewSelector).show();
             $(EthernaWeb3Singin.constants.manageWeb3ViewSelector).show();
@@ -30,13 +30,14 @@ var EthernaWeb3Singin = {
         EthernaWeb3Singin.hideError();
 
         if (typeof window.ethereum !== 'undefined') {
+            window.web3 = new Web3(window.ethereum);
             window.ethereum.enable().then(EthernaWeb3Singin.getSignMsg).catch(EthernaWeb3Singin.showError);
         } else {
             window.web3.eth.getAccounts().then(EthernaWeb3Singin.getSignMsg).catch(EthernaWeb3Singin.showError);
         }
     },
 
-    getSignMsg: function(accounts) {
+    getSignMsg: function (accounts) {
         if (accounts && accounts.length) {
             var web3 = window.web3;
             var address = (web3.utils || web3).toChecksumAddress(accounts[0]);
@@ -59,7 +60,7 @@ var EthernaWeb3Singin = {
         }
     },
 
-    signAndRedirect: function(msg, address) {
+    signAndRedirect: function (msg, address) {
         var confirmSignatureUrl = EthernaWeb3Singin.constants.confirmSignatureUrl;
         function signCallback(newSig, oldSig) {
             const sig = oldSig || newSig;
@@ -81,13 +82,13 @@ var EthernaWeb3Singin = {
         }
     },
 
-    showError: function(error) {
+    showError: function (error) {
         var msg = error && error.message || 'Cannot get the account address. Make sure your wallet is up to date.';
         $(EthernaWeb3Singin.constants.errorAlertSelector).show();
         $(EthernaWeb3Singin.constants.errorAlertSelector).text(msg);
     },
 
-    hideError: function() {
+    hideError: function () {
         $(EthernaWeb3Singin.constants.errorAlertSelector).hide();
     }
 }
