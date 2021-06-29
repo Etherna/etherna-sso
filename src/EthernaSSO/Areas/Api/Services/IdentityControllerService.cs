@@ -16,6 +16,7 @@ using Etherna.SSOServer.Areas.Api.DtoModels;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
 using Microsoft.AspNetCore.Identity;
+using MongoDB.Driver.Linq;
 using Nethereum.Util;
 using System;
 using System.Linq;
@@ -27,15 +28,15 @@ namespace Etherna.SSOServer.Areas.Api.Services
     public class IdentityControllerService : IIdentityControllerService
     {
         // Fields.
-        private readonly ISsoDbContext ssoDbContext;
+        private readonly ISsoDbContext context;
         private readonly UserManager<User> userManager;
 
         // Constructors.
         public IdentityControllerService(
-            ISsoDbContext ssoDbContext,
+            ISsoDbContext context,
             UserManager<User> userManager)
         {
-            this.ssoDbContext = ssoDbContext;
+            this.context = context;
             this.userManager = userManager;
         }
 
@@ -53,7 +54,7 @@ namespace Etherna.SSOServer.Areas.Api.Services
 
             etherAddress = etherAddress.ConvertToEthereumChecksumAddress();
 
-            var user = await ssoDbContext.Users.FindOneAsync(
+            var user = await context.Users.FindOneAsync(
                 u => u.EtherAddress == etherAddress ||
                 u.EtherPreviousAddresses.Contains(etherAddress));
             return new UserDto(user);
@@ -63,8 +64,11 @@ namespace Etherna.SSOServer.Areas.Api.Services
         {
             username = User.NormalizeUsername(username);
 
-            var user = await ssoDbContext.Users.FindOneAsync(u => u.NormalizedUsername == username);
+            var user = await context.Users.FindOneAsync(u => u.NormalizedUsername == username);
             return new UserDto(user);
         }
+
+        public Task<bool> IsEmailRegisteredAsync(string email) =>
+            context.Users.QueryElementsAsync(users => users.AnyAsync(u => u.NormalizedEmail == User.NormalizeEmail(email)));
     }
 }
