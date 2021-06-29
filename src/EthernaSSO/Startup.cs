@@ -76,6 +76,8 @@ namespace Etherna.SSOServer
                 //options.User.AllowedUserNameCharacters = ""; //overrided by regex validation with User.UsernameRegex
                 options.User.RequireUniqueEmail = true;
             })
+                .AddRoles<Role>()
+                .AddRoleStore<RoleStore>()
                 .AddUserStore<UserStore>();
             //replace default UserValidator with custom. Default one doesn't allow null usernames
             services.Replace(ServiceDescriptor.Scoped<IUserValidator<User>, CustomUserValidator>());

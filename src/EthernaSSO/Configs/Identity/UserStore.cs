@@ -31,6 +31,7 @@ namespace Etherna.SSOServer.Configs.Identity
     /// A facade for <see cref="User"/> used by Asp.Net Identity framework.
     /// </summary>
     public sealed class UserStore :
+        IQueryableUserStore<User>,
         IUserAuthenticatorKeyStore<User>,
         IUserClaimStore<User>,
         IUserEmailStore<User>,
@@ -38,19 +39,26 @@ namespace Etherna.SSOServer.Configs.Identity
         IUserLoginStore<User>,
         IUserPasswordStore<User>,
         IUserPhoneNumberStore<User>,
+        IUserRoleStore<User>,
         IUserSecurityStampStore<User>,
         IUserStore<User>,
         IUserTwoFactorRecoveryCodeStore<User>,
         IUserTwoFactorStore<User>
     {
-        private readonly ISsoDbContext ssoDbContext;
+        // Fields.
+        private readonly ISsoDbContext context;
 
+        // Constructor.
         public UserStore(
-            ISsoDbContext ssoDbContext)
+            ISsoDbContext context)
         {
-            this.ssoDbContext = ssoDbContext;
+            this.context = context;
         }
 
+        // Properties.
+        public IQueryable<User> Users => context.Users.Collection.AsQueryable();
+
+        // Methods.
         public Task AddClaimsAsync(User user, IEnumerable<Claim> claims, CancellationToken cancellationToken)
         {
             if (user is null)
@@ -71,6 +79,20 @@ namespace Etherna.SSOServer.Configs.Identity
             return Task.CompletedTask;
         }
 
+        public async Task AddToRoleAsync(User user, string roleName, CancellationToken cancellationToken)
+        {
+            if (user is null)
+                throw new ArgumentNullException(nameof(user));
+            if (roleName is null)
+                throw new ArgumentNullException(nameof(roleName));
+
+            var role = await context.Roles.QueryElementsAsync(elements =>
+                elements.Where(r => r.Name == roleName)
+                        .FirstAsync());
+
+            user.AddRole(role);
+        }
+
         public Task<int> CountCodesAsync(User user, CancellationToken cancellationToken)
         {
             if (user is null)
@@ -82,7 +104,7 @@ namespace Etherna.SSOServer.Configs.Identity
         [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "External library doesn't declare exceptions")]
         public async Task<IdentityResult> CreateAsync(User user, CancellationToken cancellationToken)
         {
-            try { await ssoDbContext.Users.CreateAsync(user, cancellationToken); }
+            try { await context.Users.CreateAsync(user, cancellationToken); }
             catch { return IdentityResult.Failed(); }
             return IdentityResult.Success;
         }
@@ -90,7 +112,7 @@ namespace Etherna.SSOServer.Configs.Identity
         [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "External library doesn't declare exceptions")]
         public async Task<IdentityResult> DeleteAsync(User user, CancellationToken cancellationToken)
         {
-            try { await ssoDbContext.Users.DeleteAsync(user, cancellationToken); }
+            try { await context.Users.DeleteAsync(user, cancellationToken); }
             catch { return IdentityResult.Failed(); }
             return IdentityResult.Success;
         }
@@ -98,20 +120,20 @@ namespace Etherna.SSOServer.Configs.Identity
         public void Dispose() { }
 
         public Task<User> FindByEmailAsync(string normalizedEmail, CancellationToken cancellationToken) =>
-            ssoDbContext.Users.QueryElementsAsync(elements =>
+            context.Users.QueryElementsAsync(elements =>
                 elements.FirstOrDefaultAsync(u => u.NormalizedEmail == normalizedEmail));
 
         public Task<User> FindByIdAsync(string userId, CancellationToken cancellationToken) =>
             //using try for avoid exception throwing inside Identity's userManager
-            ssoDbContext.Users.TryFindOneAsync(userId, cancellationToken: cancellationToken)!;
+            context.Users.TryFindOneAsync(userId, cancellationToken: cancellationToken)!;
 
         public Task<User> FindByLoginAsync(string loginProvider, string providerKey, CancellationToken cancellationToken) =>
-            ssoDbContext.Users.QueryElementsAsync(elements =>
+            context.Users.QueryElementsAsync(elements =>
                 elements.FirstOrDefaultAsync(u => u.Logins.Any(
                     l => l.LoginProvider == loginProvider && l.ProviderKey == providerKey)));
 
         public Task<User> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken) =>
-            ssoDbContext.Users.QueryElementsAsync(elements =>
+            context.Users.QueryElementsAsync(elements =>
                 elements.FirstOrDefaultAsync(u => u.NormalizedUsername == normalizedUserName));
 
         public Task<int> GetAccessFailedCountAsync(User user, CancellationToken cancellationToken)
@@ -194,7 +216,7 @@ namespace Etherna.SSOServer.Configs.Identity
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
 
-            return Task.FromResult(user.NormalizedUsername ?? string.Empty); //Identity doesn't handle claims with null username
+            return Task.FromResult(user.NormalizedUsername);
         }
 
         public Task<string?> GetPasswordHashAsync(User user, CancellationToken cancellationToken)
@@ -219,6 +241,14 @@ namespace Etherna.SSOServer.Configs.Identity
                 throw new ArgumentNullException(nameof(user));
 
             return Task.FromResult(user.PhoneNumberConfirmed);
+        }
+
+        public Task<IList<string>> GetRolesAsync(User user, CancellationToken cancellationToken)
+        {
+            if (user is null)
+                throw new ArgumentNullException(nameof(user));
+
+            return Task.FromResult<IList<string>>(user.Roles.Select(r => r.Name).ToList());
         }
 
         public Task<string> GetSecurityStampAsync(User user, CancellationToken cancellationToken)
@@ -255,8 +285,15 @@ namespace Etherna.SSOServer.Configs.Identity
 
         public async Task<IList<User>> GetUsersForClaimAsync(Claim claim, CancellationToken cancellationToken)
         {
-            return await ssoDbContext.Users.QueryElementsAsync(
+            return await context.Users.QueryElementsAsync(
                 users => users.Where(u => u.Claims.Any(c => c.Type == claim.Type && c.Value == claim.Value))
+                              .ToListAsync());
+        }
+
+        public async Task<IList<User>> GetUsersInRoleAsync(string roleName, CancellationToken cancellationToken)
+        {
+            return await context.Users.QueryElementsAsync(
+                users => users.Where(u => u.Roles.Any(r => r.Name == roleName))
                               .ToListAsync());
         }
 
@@ -277,6 +314,14 @@ namespace Etherna.SSOServer.Configs.Identity
             return Task.FromResult(user.AccessFailedCount);
         }
 
+        public Task<bool> IsInRoleAsync(User user, string roleName, CancellationToken cancellationToken)
+        {
+            if (user is null)
+                throw new ArgumentNullException(nameof(user));
+
+            return Task.FromResult(user.Roles.Any(r => r.Name == roleName));
+        }
+
         public Task<bool> RedeemCodeAsync(User user, string code, CancellationToken cancellationToken)
         {
             if (user is null)
@@ -291,6 +336,15 @@ namespace Etherna.SSOServer.Configs.Identity
                 throw new ArgumentNullException(nameof(user));
 
             user.RemoveClaims(claims.Select(c => new Domain.Models.UserAgg.UserClaim(c.Type, c.Value)));
+            return Task.CompletedTask;
+        }
+
+        public Task RemoveFromRoleAsync(User user, string roleName, CancellationToken cancellationToken)
+        {
+            if (user is null)
+                throw new ArgumentNullException(nameof(user));
+
+            user.RemoveRole(roleName);
             return Task.CompletedTask;
         }
 
@@ -456,7 +510,7 @@ namespace Etherna.SSOServer.Configs.Identity
         [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "External library doesn't declare exceptions")]
         public async Task<IdentityResult> UpdateAsync(User user, CancellationToken cancellationToken)
         {
-            try { await ssoDbContext.Users.ReplaceAsync(user, cancellationToken: cancellationToken); }
+            try { await context.Users.ReplaceAsync(user, cancellationToken: cancellationToken); }
             catch { return IdentityResult.Failed(); }
             return IdentityResult.Success;
         }

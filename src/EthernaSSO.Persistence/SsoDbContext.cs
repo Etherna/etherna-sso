@@ -48,26 +48,38 @@ namespace Etherna.SSOServer.Persistence
 
         // Properties.
         //repositories
+        public ICollectionRepository<Role, string> Roles { get; } = new DomainCollectionRepository<Role, string>(
+            new CollectionRepositoryOptions<Role>("roles")
+            {
+                IndexBuilders = new[]
+                {
+                    (Builders<Role>.IndexKeys.Ascending(r => r.NormalizedName),
+                     new CreateIndexOptions<Role> { Unique = true })
+                }
+            });
         public ICollectionRepository<User, string> Users { get; } = new DomainCollectionRepository<User, string>(
             new CollectionRepositoryOptions<User>("users")
             {
                 IndexBuilders = new[]
                 {
                     (Builders<User>.IndexKeys.Ascending(u => u.EtherAddress),
-                     new CreateIndexOptions<User>{ Unique = true }),
+                     new CreateIndexOptions<User> { Unique = true }),
 
                     (Builders<User>.IndexKeys.Ascending(u => u.EtherLoginAddress),
-                     new CreateIndexOptions<User>{ Unique = true, Sparse = true }),
+                     new CreateIndexOptions<User> { Unique = true, Sparse = true }),
 
                     (Builders<User>.IndexKeys.Ascending("Logins.LoginProvider")
                                              .Ascending("Logins.ProviderKey"),
-                     new CreateIndexOptions<User>{ Unique = true, Sparse = true }),
+                     new CreateIndexOptions<User> { Unique = true, Sparse = true }),
 
                     (Builders<User>.IndexKeys.Ascending(u => u.NormalizedEmail),
                      new CreateIndexOptions<User> { Unique = true, Sparse = true }),
 
                     (Builders<User>.IndexKeys.Ascending(u => u.NormalizedUsername),
-                     new CreateIndexOptions<User> { Unique = true })
+                     new CreateIndexOptions<User> { Unique = true }),
+
+                    (Builders<User>.IndexKeys.Ascending("Roles.Name"),
+                     new CreateIndexOptions<User>())
                 }
             });
         public ICollectionRepository<Web3LoginToken, string> Web3LoginTokens { get; } = new DomainCollectionRepository<Web3LoginToken, string>(

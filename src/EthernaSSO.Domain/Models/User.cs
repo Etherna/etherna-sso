@@ -45,6 +45,7 @@ namespace Etherna.SSOServer.Domain.Models
         private Account? _etherManagedAccount;
         private List<string> _etherPreviousAddresses = new();
         private List<UserLoginInfo> _logins = new();
+        private List<Role> _roles = new();
         private List<string> _twoFactorRecoveryCode = new();
 
         // Constructors and dispose.
@@ -169,6 +170,11 @@ namespace Etherna.SSOServer.Domain.Models
         [PersonalData]
         public virtual string? PhoneNumber { get; protected set; }
         public virtual bool PhoneNumberConfirmed { get; protected set; }
+        public virtual IEnumerable<Role> Roles
+        {
+            get => _roles;
+            protected set => _roles = new List<Role>(value ?? Array.Empty<Role>());
+        }
         public virtual string SecurityStamp { get; set; } = default!;
         public virtual bool TwoFactorEnabled { get; set; }
         public virtual IEnumerable<string> TwoFactorRecoveryCodes
@@ -214,6 +220,13 @@ namespace Etherna.SSOServer.Domain.Models
 
             _logins.Add(userLoginInfo);
             return true;
+        }
+
+        [PropertyAlterer(nameof(Roles))]
+        public virtual void AddRole(Role role)
+        {
+            if (!_roles.Contains(role))
+                _roles.Add(role);
         }
 
         [PropertyAlterer(nameof(EmailConfirmed))]
@@ -269,13 +282,17 @@ namespace Etherna.SSOServer.Domain.Models
         }
 
         [PropertyAlterer(nameof(Logins))]
-        public virtual void RemoveExternalLogin(string loginProvider, string providerKey)
+        public virtual bool RemoveExternalLogin(string loginProvider, string providerKey)
         {
             if (!CanRemoveExternalLogin)
                 throw new InvalidOperationException();
 
-            _logins.RemoveAll(l => l.LoginProvider == loginProvider && l.ProviderKey == providerKey);
+            return _logins.RemoveAll(l => l.LoginProvider == loginProvider && l.ProviderKey == providerKey) > 0;
         }
+
+        [PropertyAlterer(nameof(Roles))]
+        public virtual bool RemoveRole(string roleName) =>
+            _roles.RemoveAll(r => r.Name == roleName) > 0;
 
         [PropertyAlterer(nameof(AccessFailedCount))]
         public virtual void ResetAccessFailedCount() => AccessFailedCount = 0;
