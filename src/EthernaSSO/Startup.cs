@@ -19,7 +19,6 @@ using Etherna.SSOServer.Configs.Identity;
 using Etherna.SSOServer.Configs.IdentityServer;
 using Etherna.SSOServer.Configs.Swagger;
 using Etherna.SSOServer.Domain;
-using Etherna.SSOServer.Domain.IdentityStores;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Extensions;
 using Etherna.SSOServer.Persistence;

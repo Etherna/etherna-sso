@@ -95,8 +95,8 @@ namespace Etherna.SSOServer.Domain.Models
         }
 
         // Properties.
-        public virtual int AccessFailedCount { get; internal protected set; }
-        public virtual string? AuthenticatorKey { get; internal protected set; }
+        public virtual int AccessFailedCount { get; protected set; }
+        public virtual string? AuthenticatorKey { get; set; }
         public virtual bool CanLoginWithEmail => NormalizedEmail != null && PasswordHash != null;
         public virtual bool CanLoginWithEtherAddress => EtherLoginAddress != null;
         public virtual bool CanLoginWithExternalProvider => Logins.Any();
@@ -156,8 +156,8 @@ namespace Etherna.SSOServer.Domain.Models
         [PersonalData]
         public virtual string? EtherLoginAddress { get; protected set; }
         public virtual bool HasPassword => !string.IsNullOrEmpty(PasswordHash);
-        public virtual bool LockoutEnabled { get; internal protected set; }
-        public virtual DateTimeOffset? LockoutEnd { get; internal protected set; }
+        public virtual bool LockoutEnabled { get; set; }
+        public virtual DateTimeOffset? LockoutEnd { get; set; }
         public virtual IEnumerable<UserLoginInfo> Logins
         {
             get => _logins;
@@ -165,16 +165,16 @@ namespace Etherna.SSOServer.Domain.Models
         }
         public virtual string? NormalizedEmail { get; protected set; }
         public virtual string NormalizedUsername { get; protected set; } = default!;
-        public virtual string? PasswordHash { get; internal protected set; }
+        public virtual string? PasswordHash { get; set; }
         [PersonalData]
         public virtual string? PhoneNumber { get; protected set; }
         public virtual bool PhoneNumberConfirmed { get; protected set; }
-        public virtual string SecurityStamp { get; internal protected set; } = default!;
-        public virtual bool TwoFactorEnabled { get; internal protected set; }
+        public virtual string SecurityStamp { get; set; } = default!;
+        public virtual bool TwoFactorEnabled { get; set; }
         public virtual IEnumerable<string> TwoFactorRecoveryCodes
         {
             get => _twoFactorRecoveryCode;
-            internal protected set => _twoFactorRecoveryCode = new List<string>(value ?? Array.Empty<string>());
+            set => _twoFactorRecoveryCode = new List<string>(value ?? Array.Empty<string>());
         }
         [PersonalData]
         public virtual string Username { get; protected set; } = default!;
@@ -234,6 +234,9 @@ namespace Etherna.SSOServer.Domain.Models
             PhoneNumberConfirmed = true;
         }
 
+        [PropertyAlterer(nameof(AccessFailedCount))]
+        public virtual void IncrementAccessFailedCount() => AccessFailedCount++;
+
         [PropertyAlterer(nameof(TwoFactorRecoveryCodes))]
         public virtual bool RedeemTwoFactorRecoveryCode(string code)
         {
@@ -273,6 +276,9 @@ namespace Etherna.SSOServer.Domain.Models
 
             _logins.RemoveAll(l => l.LoginProvider == loginProvider && l.ProviderKey == providerKey);
         }
+
+        [PropertyAlterer(nameof(AccessFailedCount))]
+        public virtual void ResetAccessFailedCount() => AccessFailedCount = 0;
 
         [PropertyAlterer(nameof(EtherLoginAddress))]
         public virtual void SetEtherLoginAddress(string address)

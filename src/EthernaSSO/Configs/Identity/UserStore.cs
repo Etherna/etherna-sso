@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
 using Microsoft.AspNetCore.Identity;
 using MongoDB.Driver;
@@ -24,7 +25,7 @@ using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Etherna.SSOServer.Domain.IdentityStores
+namespace Etherna.SSOServer.Configs.Identity
 {
     /// <summary>
     /// A facade for <see cref="User"/> used by Asp.Net Identity framework.
@@ -55,7 +56,7 @@ namespace Etherna.SSOServer.Domain.IdentityStores
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
 
-            user.AddClaims(claims.Select(c => new Models.UserAgg.UserClaim(c.Type, c.Value)));
+            user.AddClaims(claims.Select(c => new Domain.Models.UserAgg.UserClaim(c.Type, c.Value)));
             return Task.CompletedTask;
         }
 
@@ -272,7 +273,8 @@ namespace Etherna.SSOServer.Domain.IdentityStores
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
 
-            return Task.FromResult(++user.AccessFailedCount);
+            user.IncrementAccessFailedCount();
+            return Task.FromResult(user.AccessFailedCount);
         }
 
         public Task<bool> RedeemCodeAsync(User user, string code, CancellationToken cancellationToken)
@@ -288,7 +290,7 @@ namespace Etherna.SSOServer.Domain.IdentityStores
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
 
-            user.RemoveClaims(claims.Select(c => new Models.UserAgg.UserClaim(c.Type, c.Value)));
+            user.RemoveClaims(claims.Select(c => new Domain.Models.UserAgg.UserClaim(c.Type, c.Value)));
             return Task.CompletedTask;
         }
 
@@ -310,8 +312,8 @@ namespace Etherna.SSOServer.Domain.IdentityStores
             if (newClaim is null)
                 throw new ArgumentNullException(nameof(newClaim));
 
-            user.RemoveClaims(new[] { new Models.UserAgg.UserClaim(claim.Type, claim.Value) });
-            user.AddClaims(new[] { new Models.UserAgg.UserClaim(newClaim.Type, newClaim.Value) });
+            user.RemoveClaims(new[] { new Domain.Models.UserAgg.UserClaim(claim.Type, claim.Value) });
+            user.AddClaims(new[] { new Domain.Models.UserAgg.UserClaim(newClaim.Type, newClaim.Value) });
 
             return Task.CompletedTask;
         }
@@ -330,7 +332,7 @@ namespace Etherna.SSOServer.Domain.IdentityStores
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
 
-            user.AccessFailedCount = 0;
+            user.ResetAccessFailedCount();
             return Task.CompletedTask;
         }
 
@@ -378,8 +380,7 @@ namespace Etherna.SSOServer.Domain.IdentityStores
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
 
-            user.LockoutEnd = lockoutEnd.HasValue ?
-                (DateTimeOffset?)new DateTime(lockoutEnd.Value.Ticks, DateTimeKind.Utc) : null;
+            user.LockoutEnd = lockoutEnd.HasValue ? new DateTime(lockoutEnd.Value.Ticks, DateTimeKind.Utc) : null;
             return Task.CompletedTask;
         }
 

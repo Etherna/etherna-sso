@@ -13,10 +13,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <FrameworkReference Include="Microsoft.AspNetCore.App" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="DomainEvents" Version="1.1.1" />
     <PackageReference Include="MongODM.Core" Version="0.22.1" />
     <PackageReference Include="Nethereum.Accounts" Version="3.8.0" />
