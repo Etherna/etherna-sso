@@ -90,11 +90,12 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                     AllowedScopes = new List<string>
                     {
                         IdentityServerConstants.StandardScopes.OpenId,
+                        IdentityServerConstants.StandardScopes.Profile,
                         "ether_accounts"
                     }
                 },
 
-                //dapp [deprecated]
+                //dapp
                 new Client
                 {
                     ClientId = "ethernaDappClientId",
@@ -116,6 +117,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                     AllowedScopes = new List<string>
                     {
                         IdentityServerConstants.StandardScopes.OpenId,
+                        IdentityServerConstants.StandardScopes.Profile,
                         "ether_accounts"
                     }
                 },
@@ -158,6 +160,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                     AllowedScopes = new List<string>
                     {
                         IdentityServerConstants.StandardScopes.OpenId,
+                        IdentityServerConstants.StandardScopes.Profile,
                         "ether_accounts"
                     }
                 },
@@ -183,6 +186,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                     AllowedScopes = new List<string>
                     {
                         IdentityServerConstants.StandardScopes.OpenId,
+                        IdentityServerConstants.StandardScopes.Profile,
                         "ether_accounts"
                     }
                 },
@@ -192,6 +196,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
             new IdentityResource[]
             {
                 new IdentityResources.OpenId(),
+                new IdentityResources.Profile(),
                 new IdentityResource()
                 {
                     DisplayName = "Ether accounts",
