@@ -14,6 +14,7 @@
 
 using Etherna.MongODM.Core;
 using Etherna.MongODM.Core.Serialization;
+using Etherna.SSOServer.Domain.Models;
 
 namespace Etherna.SSOServer.Persistence.ModelMaps
 {
@@ -21,7 +22,7 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
     {
         public void Register(IDbContext dbContext)
         {
-            dbContext.SchemaRegister.AddModelMapsSchema<RoleMap>("82413cc7-9f38-4ea2-a841-4d9479ab4f11");
+            dbContext.SchemaRegister.AddModelMapsSchema<Role>("82413cc7-9f38-4ea2-a841-4d9479ab4f11");
         }
     }
 }
