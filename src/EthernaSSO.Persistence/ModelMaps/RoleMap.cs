@@ -12,14 +12,17 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-namespace Etherna.SSOServer.Configs
-{
-    public class ApplicationSettings
-    {
-        // Fields.
-        string? _assemblyVersion;
+using Etherna.MongODM.Core;
+using Etherna.MongODM.Core.Serialization;
+using Etherna.SSOServer.Domain.Models;
 
-        // Properties.
-        public string AssemblyVersion { get => _assemblyVersion ?? "1.0.0"; set => _assemblyVersion = value; }
+namespace Etherna.SSOServer.Persistence.ModelMaps
+{
+    class RoleMap : IModelMapsCollector
+    {
+        public void Register(IDbContext dbContext)
+        {
+            dbContext.SchemaRegister.AddModelMapsSchema<Role>("82413cc7-9f38-4ea2-a841-4d9479ab4f11");
+        }
     }
 }

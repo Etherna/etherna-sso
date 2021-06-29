@@ -20,6 +20,7 @@ namespace Etherna.SSOServer.Domain
 {
     public interface ISsoDbContext : IDbContext
     {
+        ICollectionRepository<Role, string> Roles { get; }
         ICollectionRepository<User, string> Users { get; }
         ICollectionRepository<Web3LoginToken, string> Web3LoginTokens { get; }
     }
