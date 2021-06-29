@@ -59,23 +59,25 @@ namespace Etherna.SSOServer.Domain.Models
         protected User() { }
 
         // Static builders.
-        public static User CreateManagedWithEtherLoginAddress(string loginAddress, string? email = default)
+        public static User CreateManagedWithEtherLoginAddress(string loginAddress, string username, string? email = default)
         {
             var privateKey = GenerateEtherPrivateKey();
 
             var user = new User { EtherManagedPrivateKey = privateKey };
             user.SetEtherLoginAddress(loginAddress);
+            user.SetUsername(username);
             if (email != null) user.SetEmail(email);
 
             return user;
         }
 
-        public static User CreateManagedWithExternalLogin(UserLoginInfo loginInfo, string? email = default)
+        public static User CreateManagedWithExternalLogin(UserLoginInfo loginInfo, string username, string? email = default)
         {
             var privateKey = GenerateEtherPrivateKey();
 
             var user = new User { EtherManagedPrivateKey = privateKey };
             user.AddLogin(loginInfo);
+            user.SetUsername(username);
             if (email != null) user.SetEmail(email);
 
             return user;
@@ -144,7 +146,7 @@ namespace Etherna.SSOServer.Domain.Models
                 return _etherManagedAccount;
             }
         }
-        public virtual string? EtherManagedPrivateKey { get; protected set; } = default!;
+        public virtual string? EtherManagedPrivateKey { get; protected set; }
         [PersonalData]
         public virtual IEnumerable<string> EtherPreviousAddresses
         {
@@ -162,7 +164,7 @@ namespace Etherna.SSOServer.Domain.Models
             protected set => _logins = new List<UserLoginInfo>(value ?? Array.Empty<UserLoginInfo>());
         }
         public virtual string? NormalizedEmail { get; protected set; }
-        public virtual string? NormalizedUsername { get; protected set; }
+        public virtual string NormalizedUsername { get; protected set; } = default!;
         public virtual string? PasswordHash { get; internal protected set; }
         [PersonalData]
         public virtual string? PhoneNumber { get; protected set; }
@@ -175,7 +177,7 @@ namespace Etherna.SSOServer.Domain.Models
             internal protected set => _twoFactorRecoveryCode = new List<string>(value ?? Array.Empty<string>());
         }
         [PersonalData]
-        public virtual string? Username { get; protected set; }
+        public virtual string Username { get; protected set; } = default!;
 
         // Methods.
         [PropertyAlterer(nameof(Claims))]

@@ -41,6 +41,11 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             [EmailAddress]
             [Display(Name = "Email (optional)")]
             public string? Email { get; set; }
+
+            [Required]
+            [RegularExpression(Domain.Models.User.UsernameRegex, ErrorMessage = "Allowed characters are a-z, A-Z, 0-9, _. Permitted length is between 5 and 20.")]
+            [Display(Name = "Username")]
+            public string Username { get; set; } = default!;
         }
 
         // Fields.
@@ -76,6 +81,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         public InputModel Input { get; set; } = default!;
 
         public bool DuplicateEmail { get; set; }
+        public bool DuplicateUsername { get; set; }
         public string? ProviderDisplayName { get; set; }
         public string? ReturnUrl { get; set; }
 
@@ -163,13 +169,13 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             {
                 ReturnUrl = returnUrl;
                 ProviderDisplayName = info.ProviderDisplayName;
-                if (info.Principal.HasClaim(c => c.Type == ClaimTypes.Email))
+                Input = new InputModel
                 {
-                    Input = new InputModel
-                    {
-                        Email = info.Principal.FindFirstValue(ClaimTypes.Email)
-                    };
-                }
+                    Email = info.Principal.HasClaim(c => c.Type == ClaimTypes.Email) ?
+                        info.Principal.FindFirstValue(ClaimTypes.Email) : null,
+                    Username = info.Principal.HasClaim(c => c.Type == ClaimTypes.Name) ?
+                        info.Principal.FindFirstValue(ClaimTypes.Name) : ""
+                };
                 return Page();
             }
         }
@@ -189,23 +195,37 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             // Skip registration if invalid.
             if (ModelState.IsValid)
             {
+                // Check for duplicate username.
+                var userByUsername = await userManager.FindByNameAsync(Input.Username);
+                if (userByUsername != null) //if duplicate username
+                {
+                    ModelState.AddModelError(string.Empty, "Username already registered.");
+                    DuplicateUsername = true;
+                }
+
                 // Check for duplicate email.
                 if (Input.Email != null)
                 {
-                    var emailFromUser = await userManager.FindByEmailAsync(Input.Email);
-                    if (emailFromUser != null) //if duplicate email
+                    var userByEmail = await userManager.FindByEmailAsync(Input.Email);
+                    if (userByEmail != null) //if duplicate email
                     {
                         ModelState.AddModelError(string.Empty, "Email already registered.");
                         DuplicateEmail = true;
-                        ReturnUrl = returnUrl;
-                        ProviderDisplayName = info.ProviderDisplayName;
-                        return Page();
                     }
+                }
+
+                // Duplicate elements error.
+                if (DuplicateUsername || DuplicateEmail)
+                {
+                    ReturnUrl = returnUrl;
+                    ProviderDisplayName = info.ProviderDisplayName;
+                    return Page();
                 }
 
                 // Create user.
                 var user = Domain.Models.User.CreateManagedWithExternalLogin(
                     new Domain.Models.UserAgg.UserLoginInfo(info.LoginProvider, info.ProviderKey, info.ProviderDisplayName),
+                    Input.Username,
                     Input.Email);
 
                 var result = await userManager.CreateAsync(user);
