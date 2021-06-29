@@ -63,6 +63,18 @@ namespace Etherna.SSOServer.Areas.Api.Controllers
             identityControllerService.GetUserByEtherAddressAsync(etherAddress);
 
         /// <summary>
+        /// Verify if an email is registered.
+        /// </summary>
+        /// <param name="email">User's email</param>
+        /// <response code="200">True if email is registered, false otherwise</response>
+        [HttpGet("email/{email}")]
+        [SimpleExceptionFilter]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public Task<bool> IsEmailRegistered(string email) =>
+            identityControllerService.IsEmailRegisteredAsync(email);
+
+        /// <summary>
         /// Get information about user by its username.
         /// </summary>
         /// <param name="username">User's username</param>

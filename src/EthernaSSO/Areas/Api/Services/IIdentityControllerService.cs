@@ -25,5 +25,7 @@ namespace Etherna.SSOServer.Areas.Api.Services
         Task<UserDto> GetUserByEtherAddressAsync(string etherAddress);
 
         Task<UserDto> GetUserByUsernameAsync(string username);
+
+        Task<bool> IsEmailRegisteredAsync(string email);
     }
 }
