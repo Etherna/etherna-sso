@@ -272,6 +272,21 @@ namespace Etherna.SSOServer.Domain.Models
                                              c.Value == claim.Value);
         }
 
+        [PropertyAlterer(nameof(Email))]
+        [PropertyAlterer(nameof(EmailConfirmed))]
+        [PropertyAlterer(nameof(NormalizedEmail))]
+        public virtual bool RemoveEmail()
+        {
+            if (Email is null)
+                return false;
+
+            Email = null;
+            NormalizedEmail = null;
+            EmailConfirmed = false;
+
+            return true;
+        }
+
         [PropertyAlterer(nameof(EtherLoginAddress))]
         public virtual void RemoveEtherLoginAddress()
         {
