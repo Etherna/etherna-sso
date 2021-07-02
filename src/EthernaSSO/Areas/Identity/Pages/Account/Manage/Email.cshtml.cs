@@ -112,11 +112,11 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             if (user == null)
                 return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
 
-            if (!ModelState.IsValid)
-            {
-                await LoadAsync(user);
-                return Page();
-            }
+            // if (!ModelState.IsValid)
+            // {
+            //     await LoadAsync(user);
+            //     return Page();
+            // }
 
             var userId = await _userManager.GetUserIdAsync(user);
             var email = await _userManager.GetEmailAsync(user);
@@ -144,7 +144,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
 
             Input = new InputModel
             {
-                NewEmail = email ?? string.Empty,
+                NewEmail = string.Empty,
             };
 
             IsEmailConfirmed = await _userManager.IsEmailConfirmedAsync(user);
