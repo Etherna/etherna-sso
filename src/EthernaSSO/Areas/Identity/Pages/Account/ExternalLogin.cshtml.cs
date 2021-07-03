@@ -246,6 +246,9 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 var result = await userManager.CreateAsync(user);
                 if (result.Succeeded)
                 {
+                    // Login.
+                    await signInManager.SignInAsync(user, false);
+
                     // Check if external login is in the context of an OIDC request.
                     var context = await idServerInteractionService.GetAuthorizationContextAsync(returnUrl);
 

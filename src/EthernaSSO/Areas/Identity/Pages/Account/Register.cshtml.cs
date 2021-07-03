@@ -115,6 +115,9 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
             if (result.Succeeded)
             {
+                // Login.
+                await signInManager.SignInAsync(user, false);
+
                 // Rise event and create log.
                 await eventDispatcher.DispatchAsync(new UserLoginSuccessEvent(user, clientId: context?.Client?.ClientId));
                 logger.LogInformation("User created a new account with password.");

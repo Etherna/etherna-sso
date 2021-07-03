@@ -29,7 +29,7 @@ using Tavis.UriTemplates;
 
 namespace Etherna.SSOServer.Services.EventHandlers
 {
-    class OnCreatedUserThenSendEmailHandler : EventHandlerBase<EntityCreatedEvent<User>>
+    class OnCreatedUserThenSendConfirmationEmailHandler : EventHandlerBase<EntityCreatedEvent<User>>
     {
         // Fields.
         private readonly IHttpContextAccessor contextAccessor;
@@ -38,7 +38,7 @@ namespace Etherna.SSOServer.Services.EventHandlers
         private readonly UserManager<User> userManager;
 
         // Constructors.
-        public OnCreatedUserThenSendEmailHandler(
+        public OnCreatedUserThenSendConfirmationEmailHandler(
             IHttpContextAccessor contextAccessor,
             IEmailSender emailService,
             IOptions<PageSettings> options,
