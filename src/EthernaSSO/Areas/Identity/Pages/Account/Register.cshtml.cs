@@ -12,9 +12,10 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Etherna.DomainEvents;
+using Etherna.SSOServer.Domain.Events;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Extensions;
-using IdentityServer4.Events;
 using IdentityServer4.Services;
 using IdentityServer4.Stores;
 using Microsoft.AspNetCore.Authentication;
@@ -59,7 +60,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
         // Fields.
         private readonly IClientStore clientStore;
-        private readonly IEventService eventService;
+        private readonly IEventDispatcher eventDispatcher;
         private readonly IIdentityServerInteractionService idServerInteractService;
         private readonly ILogger<RegisterModel> logger;
         private readonly SignInManager<User> signInManager;
@@ -68,14 +69,14 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         // Constructor.
         public RegisterModel(
             IClientStore clientStore,
-            IEventService eventService,
+            IEventDispatcher eventDispatcher,
             IIdentityServerInteractionService idServerInteractService,
             ILogger<RegisterModel> logger,
             SignInManager<User> signInManager,
             UserManager<User> userManager)
         {
             this.clientStore = clientStore;
-            this.eventService = eventService;
+            this.eventDispatcher = eventDispatcher;
             this.idServerInteractService = idServerInteractService;
             this.logger = logger;
             this.signInManager = signInManager;
@@ -114,9 +115,11 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
             if (result.Succeeded)
             {
-                await eventService.RaiseAsync(new UserLoginSuccessEvent(user.Username, user.Id, user.Username, clientId: context?.Client?.ClientId));
+                // Rise event and create log.
+                await eventDispatcher.DispatchAsync(new UserLoginSuccessEvent(user, clientId: context?.Client?.ClientId));
                 logger.LogInformation("User created a new account with password.");
 
+                // Identify redirect.
                 if (context?.Client != null)
                 {
                     if (await clientStore.IsPkceClientAsync(context.Client.ClientId))

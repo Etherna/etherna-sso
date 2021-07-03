@@ -12,9 +12,10 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Etherna.DomainEvents;
+using Etherna.SSOServer.Domain.Events;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Extensions;
-using IdentityServer4.Events;
 using IdentityServer4.Services;
 using IdentityServer4.Stores;
 using Microsoft.AspNetCore.Authentication;
@@ -50,7 +51,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
         // Fields.
         private readonly IClientStore clientStore;
-        private readonly IEventService eventService;
+        private readonly IEventDispatcher eventDispatcher;
         private readonly IIdentityServerInteractionService idServerInteractionService;
         private readonly ILogger<ExternalLoginModel> logger;
         private readonly SignInManager<User> signInManager;
@@ -59,14 +60,14 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         // Constructor.
         public ExternalLoginModel(
             IClientStore clientStore,
-            IEventService eventService,
+            IEventDispatcher eventDispatcher,
             IIdentityServerInteractionService idServerInteractionService,
             ILogger<ExternalLoginModel> logger,
             SignInManager<User> signInManager,
             UserManager<User> userManager)
         {
             this.clientStore = clientStore;
-            this.eventService = eventService;
+            this.eventDispatcher = eventDispatcher;
             this.idServerInteractionService = idServerInteractionService;
             this.logger = logger;
             this.signInManager = signInManager;
@@ -142,9 +143,16 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 // Check if external login is in the context of an OIDC request.
                 var context = await idServerInteractionService.GetAuthorizationContextAsync(returnUrl);
 
-                await eventService.RaiseAsync(new UserLoginSuccessEvent(info.LoginProvider, info.ProviderKey, info.ProviderKey, info.Principal.Identity.Name, true, context?.Client?.ClientId));
+                // Rise event and create log.
+                var user = await userManager.GetUserAsync(info.Principal);
+                await eventDispatcher.DispatchAsync(new UserLoginSuccessEvent(
+                    user,
+                    clientId: context?.Client?.ClientId,
+                    provider: info.LoginProvider,
+                    providerUserId: info.ProviderKey));
                 logger.LogInformation($"{info.Principal.Identity.Name} logged in with {info.LoginProvider} provider.");
 
+                // Identify redirect.
                 if (context?.Client != null)
                 {
                     if (await clientStore.IsPkceClientAsync(context.Client.ClientId))
@@ -234,9 +242,15 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                     // Check if external login is in the context of an OIDC request.
                     var context = await idServerInteractionService.GetAuthorizationContextAsync(returnUrl);
 
-                    await eventService.RaiseAsync(new UserLoginSuccessEvent(info.LoginProvider, info.ProviderKey, info.ProviderKey, info.Principal.Identity.Name, true, context?.Client?.ClientId));
+                    // Rise event and create log.
+                    await eventDispatcher.DispatchAsync(new UserLoginSuccessEvent(
+                        user,
+                        clientId: context?.Client?.ClientId,
+                        provider: info.LoginProvider,
+                        providerUserId: info.ProviderKey));
                     logger.LogInformation($"User created an account using {info.LoginProvider} provider.");
 
+                    // Identify redirect.
                     if (context?.Client != null)
                     {
                         if (await clientStore.IsPkceClientAsync(context.Client.ClientId))

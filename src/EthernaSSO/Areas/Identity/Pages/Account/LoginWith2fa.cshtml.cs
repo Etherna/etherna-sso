@@ -12,9 +12,10 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Etherna.DomainEvents;
+using Etherna.SSOServer.Domain.Events;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Extensions;
-using IdentityServer4.Events;
 using IdentityServer4.Services;
 using IdentityServer4.Stores;
 using Microsoft.AspNetCore.Authorization;
@@ -46,7 +47,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
         // Fields.
         private readonly IClientStore clientStore;
-        private readonly IEventService eventService;
+        private readonly IEventDispatcher eventDispatcher;
         private readonly IIdentityServerInteractionService idServerInteractService;
         private readonly ILogger<LoginWith2faModel> logger;
         private readonly SignInManager<User> signInManager;
@@ -54,13 +55,13 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         // Constructor.
         public LoginWith2faModel(
             IClientStore clientStore,
-            IEventService eventService,
+            IEventDispatcher eventDispatcher,
             IIdentityServerInteractionService idServerInteractService,
             ILogger<LoginWith2faModel> logger,
             SignInManager<User> signInManager)
         {
             this.clientStore = clientStore;
-            this.eventService = eventService;
+            this.eventDispatcher = eventDispatcher;
             this.idServerInteractService = idServerInteractService;
             this.logger = logger;
             this.signInManager = signInManager;
@@ -117,9 +118,11 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
             if (result.Succeeded)
             {
-                await eventService.RaiseAsync(new UserLoginSuccessEvent(user.Username, user.Id, user.Username, clientId: context?.Client?.ClientId));
+                // Rise event and create log.
+                await eventDispatcher.DispatchAsync(new UserLoginSuccessEvent(user, clientId: context?.Client?.ClientId));
                 logger.LogInformation($"User with ID '{user.Id}' logged in with 2fa.");
 
+                // Identify redirect.
                 if (context?.Client != null)
                 {
                     if (await clientStore.IsPkceClientAsync(context.Client.ClientId))

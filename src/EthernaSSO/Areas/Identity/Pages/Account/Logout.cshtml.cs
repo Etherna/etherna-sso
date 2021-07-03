@@ -12,9 +12,9 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Etherna.DomainEvents;
+using Etherna.SSOServer.Domain.Events;
 using Etherna.SSOServer.Domain.Models;
-using IdentityServer4.Events;
-using IdentityServer4.Extensions;
 using IdentityServer4.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -36,22 +36,25 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         }
 
         // Fields.
-        private readonly IEventService eventService;
+        private readonly IEventDispatcher eventDispatcher;
         private readonly IIdentityServerInteractionService idServerInteractService;
         private readonly ILogger<LogoutModel> logger;
         private readonly SignInManager<User> signInManager;
+        private readonly UserManager<User> userManager;
 
         // Constructor.
         public LogoutModel(
-            IEventService eventService,
+            IEventDispatcher eventDispatcher,
             IIdentityServerInteractionService idServerInteractService,
             ILogger<LogoutModel> logger,
-            SignInManager<User> signInManager)
+            SignInManager<User> signInManager,
+            UserManager<User> userManager)
         {
-            this.eventService = eventService;
+            this.eventDispatcher = eventDispatcher;
             this.idServerInteractService = idServerInteractService;
             this.logger = logger;
             this.signInManager = signInManager;
+            this.userManager = userManager;
         }
 
         // Properties.
@@ -114,7 +117,8 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 await signInManager.SignOutAsync();
 
                 logger.LogInformation("User logged out.");
-                await eventService.RaiseAsync(new UserLogoutSuccessEvent(User.GetSubjectId(), User.GetDisplayName()));
+                var user = await userManager.GetUserAsync(User);
+                await eventDispatcher.DispatchAsync(new UserLogoutSuccessEvent(user));
             }
 
             return RedirectToPage("LoggedOut", new
