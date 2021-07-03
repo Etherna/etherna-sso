@@ -21,8 +21,8 @@ namespace Etherna.SSOServer.Services.EventHandlers
         public override async Task HandleAsync(UserLogoutSuccessEvent @event)
         {
             await identityServerEventService.RaiseAsync(new IdentityServer4.Events.UserLogoutSuccessEvent(
-                @event.User.Id,
-                @event.User.Username));
+                @event.User?.Id,
+                @event.User?.Username));
         }
     }
 }
