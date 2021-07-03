@@ -13,6 +13,7 @@
 //   limitations under the License.
 
 using Etherna.DomainEvents;
+using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Events;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Extensions;
@@ -25,6 +26,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
+using MongoDB.Driver.Linq;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -55,6 +57,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         private readonly IIdentityServerInteractionService idServerInteractionService;
         private readonly ILogger<ExternalLoginModel> logger;
         private readonly SignInManager<User> signInManager;
+        private readonly ISsoDbContext ssoDbContext;
         private readonly UserManager<User> userManager;
 
         // Constructor.
@@ -64,6 +67,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             IIdentityServerInteractionService idServerInteractionService,
             ILogger<ExternalLoginModel> logger,
             SignInManager<User> signInManager,
+            ISsoDbContext ssoDbContext,
             UserManager<User> userManager)
         {
             this.clientStore = clientStore;
@@ -71,6 +75,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             this.idServerInteractionService = idServerInteractionService;
             this.logger = logger;
             this.signInManager = signInManager;
+            this.ssoDbContext = ssoDbContext;
             this.userManager = userManager;
         }
 
@@ -144,7 +149,9 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 var context = await idServerInteractionService.GetAuthorizationContextAsync(returnUrl);
 
                 // Rise event and create log.
-                var user = await userManager.GetUserAsync(info.Principal);
+                var user = await ssoDbContext.Users.QueryElementsAsync(elements =>
+                    elements.FirstOrDefaultAsync(u => u.Logins.Any(
+                        l => l.LoginProvider == info.LoginProvider && l.ProviderKey == info.ProviderKey)));
                 await eventDispatcher.DispatchAsync(new UserLoginSuccessEvent(
                     user,
                     clientId: context?.Client?.ClientId,

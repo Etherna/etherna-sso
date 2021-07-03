@@ -10,7 +10,8 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
         public void Register(IDbContext dbContext)
         {
             dbContext.SchemaRegister.AddModelMapsSchema<LogBase>("e74be9bc-0c1f-48bf-a567-715c487d754b");
-            dbContext.SchemaRegister.AddModelMapsSchema<UserLoggedInLog>("1178a7ac-50a1-4670-82b4-67e69b15dbc0", mm =>
+            dbContext.SchemaRegister.AddModelMapsSchema<UserLoginFailureLog>("5a52cbe4-6596-4162-88ad-e059abfa604b");
+            dbContext.SchemaRegister.AddModelMapsSchema<UserLoginSuccessLog>("1178a7ac-50a1-4670-82b4-67e69b15dbc0", mm =>
             {
                 mm.AutoMap();
 

@@ -64,7 +64,10 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
                     mm.MapIdMember(m => m.Id);
                     mm.IdMemberMap.SetSerializer(new StringSerializer(BsonType.ObjectId));
                 });
-                config.AddModelMapsSchema<User>("834af7e2-c858-410a-b7b9-bdaf516fa215", mm => { });
+                config.AddModelMapsSchema<User>("834af7e2-c858-410a-b7b9-bdaf516fa215", mm =>
+                {
+                    mm.MapMember(m => m.EtherAddress);
+                });
             });
     }
 }

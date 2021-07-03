@@ -6,22 +6,22 @@ using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Services.EventHandlers
 {
-    class OnUserLoginSuccessThenCreateLogHandler : EventHandlerBase<UserLoginSuccessEvent>
+    class OnUserLoginFailureThenCreateLogHandler : EventHandlerBase<UserLoginFailureEvent>
     {
         // Fields.
         private readonly ISsoDbContext ssoDbContext;
 
         // Constructors.
-        public OnUserLoginSuccessThenCreateLogHandler(
+        public OnUserLoginFailureThenCreateLogHandler(
             ISsoDbContext ssoDbContext)
         {
             this.ssoDbContext = ssoDbContext;
         }
 
         // Methods.
-        public override async Task HandleAsync(UserLoginSuccessEvent @event)
+        public override async Task HandleAsync(UserLoginFailureEvent @event)
         {
-            var log = new UserLoginSuccessLog(@event.User);
+            var log = new UserLoginFailureLog(@event.Error, @event.Identifier);
             await ssoDbContext.Logs.CreateAsync(log);
         }
     }
