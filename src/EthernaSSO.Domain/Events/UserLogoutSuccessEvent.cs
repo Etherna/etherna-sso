@@ -12,18 +12,18 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-using Etherna.MongODM.Core;
-using Etherna.MongODM.Core.Repositories;
+using Etherna.DomainEvents;
 using Etherna.SSOServer.Domain.Models;
-using Etherna.SSOServer.Domain.Models.Logs;
 
-namespace Etherna.SSOServer.Domain
+namespace Etherna.SSOServer.Domain.Events
 {
-    public interface ISsoDbContext : IDbContext
+    public class UserLogoutSuccessEvent : IDomainEvent
     {
-        ICollectionRepository<LogBase, string> Logs { get; }
-        ICollectionRepository<Role, string> Roles { get; }
-        ICollectionRepository<User, string> Users { get; }
-        ICollectionRepository<Web3LoginToken, string> Web3LoginTokens { get; }
+        public UserLogoutSuccessEvent(User? user)
+        {
+            User = user;
+        }
+
+        public User? User { get; } //nullable because user may have been removed
     }
 }

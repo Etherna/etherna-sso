@@ -157,6 +157,7 @@ namespace Etherna.SSOServer.Domain.Models
         [PersonalData]
         public virtual string? EtherLoginAddress { get; protected set; }
         public virtual bool HasPassword => !string.IsNullOrEmpty(PasswordHash);
+        public virtual DateTime LastLoginDateTime { get; protected set; }
         public virtual bool LockoutEnabled { get; set; }
         public virtual DateTimeOffset? LockoutEnd { get; set; }
         public virtual IEnumerable<UserLoginInfo> Logins
@@ -345,6 +346,12 @@ namespace Etherna.SSOServer.Domain.Models
                 NormalizedUsername = NormalizeUsername(username);
                 Username = username;
             }
+        }
+
+        [PropertyAlterer(nameof(LastLoginDateTime))]
+        public virtual void UpdateLastLoginDateTime()
+        {
+            LastLoginDateTime = DateTime.Now;
         }
 
         // Public static helpers.

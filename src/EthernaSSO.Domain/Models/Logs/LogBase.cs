@@ -12,18 +12,15 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-using Etherna.MongODM.Core;
-using Etherna.MongODM.Core.Repositories;
-using Etherna.SSOServer.Domain.Models;
-using Etherna.SSOServer.Domain.Models.Logs;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace Etherna.SSOServer.Domain
+namespace Etherna.SSOServer.Domain.Models.Logs
 {
-    public interface ISsoDbContext : IDbContext
+    public abstract class LogBase : EntityModelBase<string>
     {
-        ICollectionRepository<LogBase, string> Logs { get; }
-        ICollectionRepository<Role, string> Roles { get; }
-        ICollectionRepository<User, string> Users { get; }
-        ICollectionRepository<Web3LoginToken, string> Web3LoginTokens { get; }
     }
 }

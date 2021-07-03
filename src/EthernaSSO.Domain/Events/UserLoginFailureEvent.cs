@@ -13,19 +13,24 @@
 //   limitations under the License.
 
 using Etherna.DomainEvents;
-using Etherna.MongODM.Core.Domain.Models;
 using System;
 
 namespace Etherna.SSOServer.Domain.Events
 {
-    public class EntityCreatedEvent<TModel> : IDomainEvent
-        where TModel : class, IEntityModel
+    public class UserLoginFailureEvent : IDomainEvent
     {
-        public EntityCreatedEvent(TModel entity)
+        public UserLoginFailureEvent(string identifier, string error, string? clientId)
         {
-            Entity = entity ?? throw new ArgumentNullException(nameof(entity));
+            if (string.IsNullOrWhiteSpace(error))
+                throw new ArgumentException($"'{nameof(error)}' cannot be null or whitespace.", nameof(error));
+
+            ClientId = clientId;
+            Error = error;
+            Identifier = identifier ?? throw new ArgumentNullException(nameof(identifier));
         }
 
-        public TModel Entity { get; }
+        public string? ClientId { get; }
+        public string Error { get; }
+        public string Identifier { get; }
     }
 }

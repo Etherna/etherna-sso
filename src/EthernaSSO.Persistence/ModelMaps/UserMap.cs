@@ -14,7 +14,10 @@
 
 using Etherna.MongODM.Core;
 using Etherna.MongODM.Core.Serialization;
+using Etherna.MongODM.Core.Serialization.Serializers;
 using Etherna.SSOServer.Domain.Models;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Serializers;
 
 namespace Etherna.SSOServer.Persistence.ModelMaps
 {
@@ -44,5 +47,27 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
                     modelMap.MapProperty(u => u.EtherAddress);
                 });
         }
+
+        /// <summary>
+        /// A minimal serialized with only id
+        /// </summary>
+        public static ReferenceSerializer<User, string> ReferenceSerializer(
+            IDbContext dbContext,
+            bool useCascadeDelete = false) =>
+            new(dbContext, config =>
+            {
+                config.UseCascadeDelete = useCascadeDelete;
+                config.AddModelMapsSchema<ModelBase>("597f29ee-f2d6-40b0-a6f4-86279f72fa68");
+                config.AddModelMapsSchema<EntityModelBase>("9cf5d6bf-9c4b-49e7-9826-dafc30826e10", mm => { });
+                config.AddModelMapsSchema<EntityModelBase<string>>("1ab18071-641f-405a-91bd-93a2b5c1733e", mm =>
+                {
+                    mm.MapIdMember(m => m.Id);
+                    mm.IdMemberMap.SetSerializer(new StringSerializer(BsonType.ObjectId));
+                });
+                config.AddModelMapsSchema<User>("834af7e2-c858-410a-b7b9-bdaf516fa215", mm =>
+                {
+                    mm.MapMember(m => m.EtherAddress);
+                });
+            });
     }
 }
