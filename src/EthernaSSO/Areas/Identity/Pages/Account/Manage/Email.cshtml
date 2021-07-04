@@ -46,6 +46,10 @@
                         <button id="email-verification" type="submit" asp-page-handler="SendVerificationEmail" class="btn btn-link">Send verification email</button>
                     }
                 }
+                @if (!string.IsNullOrEmpty(Model.Email))
+                {
+                    <button id="remove-email-button" type="submit" asp-page-handler="RemoveEmail" class="btn btn-link">Remove email</button>
+                }
             </div>
         </form>
 
@@ -56,10 +60,6 @@
                 <span asp-validation-for="Input.NewEmail" class="text-danger"></span>
             </div>
             <button id="change-email-button" type="submit" asp-page-handler="ChangeEmail" class="btn btn-primary">Change email</button>
-            @if (Model.Email is not null)
-            {
-                <button id="remove-email-button" type="submit" asp-page-handler="RemoveEmail" class="btn btn-primary">Remove email</button>
-            }
         </form>
     </div>
 </div>
