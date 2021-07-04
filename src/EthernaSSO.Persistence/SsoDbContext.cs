@@ -59,29 +59,31 @@ namespace Etherna.SSOServer.Persistence
                      new CreateIndexOptions<Role> { Unique = true })
                 }
             });
-        public ICollectionRepository<User, string> Users { get; } = new DomainCollectionRepository<User, string>(
-            new CollectionRepositoryOptions<User>("users")
+        public ICollectionRepository<UserBase, string> Users { get; } = new DomainCollectionRepository<UserBase, string>(
+            new CollectionRepositoryOptions<UserBase>("users")
             {
                 IndexBuilders = new[]
                 {
-                    (Builders<User>.IndexKeys.Ascending(u => u.EtherAddress),
-                     new CreateIndexOptions<User> { Unique = true }),
+                    //UserBase
+                    (Builders<UserBase>.IndexKeys.Ascending(u => u.EtherAddress),
+                     new CreateIndexOptions<UserBase> { Unique = true }),
 
-                    (Builders<User>.IndexKeys.Ascending(u => u.EtherLoginAddress),
-                     new CreateIndexOptions<User> { Unique = true, Sparse = true }),
+                    (Builders<UserBase>.IndexKeys.Ascending(u => u.NormalizedEmail),
+                     new CreateIndexOptions<UserBase> { Unique = true, Sparse = true }),
 
-                    (Builders<User>.IndexKeys.Ascending("Logins.LoginProvider")
-                                             .Ascending("Logins.ProviderKey"),
-                     new CreateIndexOptions<User> { Unique = true, Sparse = true }),
+                    (Builders<UserBase>.IndexKeys.Ascending(u => u.NormalizedUsername),
+                     new CreateIndexOptions<UserBase> { Unique = true }),
 
-                    (Builders<User>.IndexKeys.Ascending(u => u.NormalizedEmail),
-                     new CreateIndexOptions<User> { Unique = true, Sparse = true }),
+                    (Builders<UserBase>.IndexKeys.Ascending("Roles.Name"),
+                     new CreateIndexOptions<UserBase>()),
 
-                    (Builders<User>.IndexKeys.Ascending(u => u.NormalizedUsername),
-                     new CreateIndexOptions<User> { Unique = true }),
+                    //UserWeb2
+                    (Builders<UserBase>.IndexKeys.Ascending("EtherLoginAddress"),
+                     new CreateIndexOptions<UserBase> { Unique = true, Sparse = true }),
 
-                    (Builders<User>.IndexKeys.Ascending("Roles.Name"),
-                     new CreateIndexOptions<User>())
+                    (Builders<UserBase>.IndexKeys.Ascending("Logins.LoginProvider")
+                                                 .Ascending("Logins.ProviderKey"),
+                     new CreateIndexOptions<UserBase> { Unique = true, Sparse = true }),
                 }
             });
         public ICollectionRepository<Web3LoginToken, string> Web3LoginTokens { get; } = new DomainCollectionRepository<Web3LoginToken, string>(

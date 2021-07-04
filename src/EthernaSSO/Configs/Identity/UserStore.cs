@@ -28,22 +28,22 @@ using System.Threading.Tasks;
 namespace Etherna.SSOServer.Configs.Identity
 {
     /// <summary>
-    /// A facade for <see cref="User"/> used by Asp.Net Identity framework.
+    /// A facade for <see cref="UserBase"/> used by Asp.Net Identity framework.
     /// </summary>
     public sealed class UserStore :
-        IQueryableUserStore<User>,
-        IUserAuthenticatorKeyStore<User>,
-        IUserClaimStore<User>,
-        IUserEmailStore<User>,
-        IUserLockoutStore<User>,
-        IUserLoginStore<User>,
-        IUserPasswordStore<User>,
-        IUserPhoneNumberStore<User>,
-        IUserRoleStore<User>,
-        IUserSecurityStampStore<User>,
-        IUserStore<User>,
-        IUserTwoFactorRecoveryCodeStore<User>,
-        IUserTwoFactorStore<User>
+        IQueryableUserStore<UserBase>,
+        IUserAuthenticatorKeyStore<UserBase>,
+        IUserClaimStore<UserBase>,
+        IUserEmailStore<UserBase>,
+        IUserLockoutStore<UserBase>,
+        IUserLoginStore<UserBase>,
+        IUserPasswordStore<UserBase>,
+        IUserPhoneNumberStore<UserBase>,
+        IUserRoleStore<UserBase>,
+        IUserSecurityStampStore<UserBase>,
+        IUserStore<UserBase>,
+        IUserTwoFactorRecoveryCodeStore<UserBase>,
+        IUserTwoFactorStore<UserBase>
     {
         // Fields.
         private readonly ISsoDbContext context;
@@ -56,10 +56,10 @@ namespace Etherna.SSOServer.Configs.Identity
         }
 
         // Properties.
-        public IQueryable<User> Users => context.Users.Collection.AsQueryable();
+        public IQueryable<UserBase> Users => context.Users.Collection.AsQueryable();
 
         // Methods.
-        public Task AddClaimsAsync(User user, IEnumerable<Claim> claims, CancellationToken cancellationToken)
+        public Task AddClaimsAsync(UserBase user, IEnumerable<Claim> claims, CancellationToken cancellationToken)
         {
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
@@ -68,18 +68,18 @@ namespace Etherna.SSOServer.Configs.Identity
             return Task.CompletedTask;
         }
 
-        public Task AddLoginAsync(User user, UserLoginInfo login, CancellationToken cancellationToken)
+        public Task AddLoginAsync(UserBase user, UserLoginInfo login, CancellationToken cancellationToken)
         {
-            if (user is null)
-                throw new ArgumentNullException(nameof(user));
+            if (user is not UserWeb2 userWeb2)
+                throw new ArgumentException("User is not a web2 account", nameof(user));
             if (login is null)
                 throw new ArgumentNullException(nameof(login));
 
-            user.AddLogin(new Domain.Models.UserAgg.UserLoginInfo(login.LoginProvider, login.ProviderKey, login.ProviderDisplayName));
+            userWeb2.AddLogin(new Domain.Models.UserAgg.UserLoginInfo(login.LoginProvider, login.ProviderKey, login.ProviderDisplayName));
             return Task.CompletedTask;
         }
 
-        public async Task AddToRoleAsync(User user, string roleName, CancellationToken cancellationToken)
+        public async Task AddToRoleAsync(UserBase user, string roleName, CancellationToken cancellationToken)
         {
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
@@ -93,16 +93,16 @@ namespace Etherna.SSOServer.Configs.Identity
             user.AddRole(role);
         }
 
-        public Task<int> CountCodesAsync(User user, CancellationToken cancellationToken)
+        public Task<int> CountCodesAsync(UserBase user, CancellationToken cancellationToken)
         {
-            if (user is null)
-                throw new ArgumentNullException(nameof(user));
+            if (user is not UserWeb2 userWeb2)
+                throw new ArgumentException("User is not a web2 account", nameof(user));
 
-            return Task.FromResult(user.TwoFactorRecoveryCodes.Count());
+            return Task.FromResult(userWeb2.TwoFactorRecoveryCodes.Count());
         }
 
         [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "External library doesn't declare exceptions")]
-        public async Task<IdentityResult> CreateAsync(User user, CancellationToken cancellationToken)
+        public async Task<IdentityResult> CreateAsync(UserBase user, CancellationToken cancellationToken)
         {
             try { await context.Users.CreateAsync(user, cancellationToken); }
             catch { return IdentityResult.Failed(); }
@@ -110,7 +110,7 @@ namespace Etherna.SSOServer.Configs.Identity
         }
 
         [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "External library doesn't declare exceptions")]
-        public async Task<IdentityResult> DeleteAsync(User user, CancellationToken cancellationToken)
+        public async Task<IdentityResult> DeleteAsync(UserBase user, CancellationToken cancellationToken)
         {
             try { await context.Users.DeleteAsync(user, cancellationToken); }
             catch { return IdentityResult.Failed(); }
@@ -119,40 +119,41 @@ namespace Etherna.SSOServer.Configs.Identity
 
         public void Dispose() { }
 
-        public Task<User> FindByEmailAsync(string normalizedEmail, CancellationToken cancellationToken) =>
+        public Task<UserBase> FindByEmailAsync(string normalizedEmail, CancellationToken cancellationToken) =>
             context.Users.QueryElementsAsync(elements =>
                 elements.FirstOrDefaultAsync(u => u.NormalizedEmail == normalizedEmail));
 
-        public Task<User> FindByIdAsync(string userId, CancellationToken cancellationToken) =>
+        public Task<UserBase> FindByIdAsync(string userId, CancellationToken cancellationToken) =>
             //using try for avoid exception throwing inside Identity's userManager
             context.Users.TryFindOneAsync(userId, cancellationToken: cancellationToken)!;
 
-        public Task<User> FindByLoginAsync(string loginProvider, string providerKey, CancellationToken cancellationToken) =>
-            context.Users.QueryElementsAsync(elements =>
-                elements.FirstOrDefaultAsync(u => u.Logins.Any(
-                    l => l.LoginProvider == loginProvider && l.ProviderKey == providerKey)));
+        public async Task<UserBase> FindByLoginAsync(string loginProvider, string providerKey, CancellationToken cancellationToken) =>
+            await context.Users.QueryElementsAsync(users =>
+                users.OfType<UserWeb2>()
+                     .FirstOrDefaultAsync(u => u.Logins.Any(
+                         l => l.LoginProvider == loginProvider && l.ProviderKey == providerKey)));
 
-        public Task<User> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken) =>
+        public Task<UserBase> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken) =>
             context.Users.QueryElementsAsync(elements =>
                 elements.FirstOrDefaultAsync(u => u.NormalizedUsername == normalizedUserName));
 
-        public Task<int> GetAccessFailedCountAsync(User user, CancellationToken cancellationToken)
+        public Task<int> GetAccessFailedCountAsync(UserBase user, CancellationToken cancellationToken)
         {
-            if (user is null)
-                throw new ArgumentNullException(nameof(user));
+            if (user is not UserWeb2 userWeb2)
+                throw new ArgumentException("User is not a web2 account", nameof(user));
 
-            return Task.FromResult(user.AccessFailedCount);
+            return Task.FromResult(userWeb2.AccessFailedCount);
         }
 
-        public Task<string?> GetAuthenticatorKeyAsync(User user, CancellationToken cancellationToken)
+        public Task<string?> GetAuthenticatorKeyAsync(UserBase user, CancellationToken cancellationToken)
         {
-            if (user is null)
-                throw new ArgumentNullException(nameof(user));
+            if (user is not UserWeb2 userWeb2)
+                throw new ArgumentException("User is not a web2 account", nameof(user));
 
-            return Task.FromResult(user.AuthenticatorKey);
+            return Task.FromResult(userWeb2.AuthenticatorKey);
         }
 
-        public Task<IList<Claim>> GetClaimsAsync(User user, CancellationToken cancellationToken)
+        public Task<IList<Claim>> GetClaimsAsync(UserBase user, CancellationToken cancellationToken)
         {
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
@@ -161,7 +162,7 @@ namespace Etherna.SSOServer.Configs.Identity
                 user.Claims.Select(c => new Claim(c.Type, c.Value)).ToList());
         }
 
-        public Task<string?> GetEmailAsync(User user, CancellationToken cancellationToken)
+        public Task<string?> GetEmailAsync(UserBase user, CancellationToken cancellationToken)
         {
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
@@ -169,7 +170,7 @@ namespace Etherna.SSOServer.Configs.Identity
             return Task.FromResult(user.Email);
         }
 
-        public Task<bool> GetEmailConfirmedAsync(User user, CancellationToken cancellationToken)
+        public Task<bool> GetEmailConfirmedAsync(UserBase user, CancellationToken cancellationToken)
         {
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
@@ -177,7 +178,7 @@ namespace Etherna.SSOServer.Configs.Identity
             return Task.FromResult(user.EmailConfirmed);
         }
 
-        public Task<bool> GetLockoutEnabledAsync(User user, CancellationToken cancellationToken)
+        public Task<bool> GetLockoutEnabledAsync(UserBase user, CancellationToken cancellationToken)
         {
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
@@ -185,7 +186,7 @@ namespace Etherna.SSOServer.Configs.Identity
             return Task.FromResult(user.LockoutEnabled);
         }
 
-        public Task<DateTimeOffset?> GetLockoutEndDateAsync(User user, CancellationToken cancellationToken)
+        public Task<DateTimeOffset?> GetLockoutEndDateAsync(UserBase user, CancellationToken cancellationToken)
         {
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
@@ -193,17 +194,17 @@ namespace Etherna.SSOServer.Configs.Identity
             return Task.FromResult(user.LockoutEnd);
         }
 
-        public Task<IList<UserLoginInfo>> GetLoginsAsync(User user, CancellationToken cancellationToken)
+        public Task<IList<UserLoginInfo>> GetLoginsAsync(UserBase user, CancellationToken cancellationToken)
         {
-            if (user is null)
-                throw new ArgumentNullException(nameof(user));
+            if (user is not UserWeb2 userWeb2)
+                throw new ArgumentException("User is not a web2 account", nameof(user));
 
             return Task.FromResult<IList<UserLoginInfo>>(
-                user.Logins.Select(l => new UserLoginInfo(l.LoginProvider, l.ProviderKey, l.LoginProvider))
+                userWeb2.Logins.Select(l => new UserLoginInfo(l.LoginProvider, l.ProviderKey, l.LoginProvider))
                            .ToList());
         }
 
-        public Task<string?> GetNormalizedEmailAsync(User user, CancellationToken cancellationToken)
+        public Task<string?> GetNormalizedEmailAsync(UserBase user, CancellationToken cancellationToken)
         {
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
@@ -211,7 +212,7 @@ namespace Etherna.SSOServer.Configs.Identity
             return Task.FromResult(user.NormalizedEmail);
         }
 
-        public Task<string> GetNormalizedUserNameAsync(User user, CancellationToken cancellationToken)
+        public Task<string> GetNormalizedUserNameAsync(UserBase user, CancellationToken cancellationToken)
         {
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
@@ -219,15 +220,15 @@ namespace Etherna.SSOServer.Configs.Identity
             return Task.FromResult(user.NormalizedUsername);
         }
 
-        public Task<string?> GetPasswordHashAsync(User user, CancellationToken cancellationToken)
+        public Task<string?> GetPasswordHashAsync(UserBase user, CancellationToken cancellationToken)
         {
-            if (user is null)
-                throw new ArgumentNullException(nameof(user));
+            if (user is not UserWeb2 userWeb2)
+                throw new ArgumentException("User is not a web2 account", nameof(user));
 
-            return Task.FromResult(user.PasswordHash);
+            return Task.FromResult(userWeb2.PasswordHash);
         }
 
-        public Task<string?> GetPhoneNumberAsync(User user, CancellationToken cancellationToken)
+        public Task<string?> GetPhoneNumberAsync(UserBase user, CancellationToken cancellationToken)
         {
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
@@ -235,7 +236,7 @@ namespace Etherna.SSOServer.Configs.Identity
             return Task.FromResult(user.PhoneNumber);
         }
 
-        public Task<bool> GetPhoneNumberConfirmedAsync(User user, CancellationToken cancellationToken)
+        public Task<bool> GetPhoneNumberConfirmedAsync(UserBase user, CancellationToken cancellationToken)
         {
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
@@ -243,7 +244,7 @@ namespace Etherna.SSOServer.Configs.Identity
             return Task.FromResult(user.PhoneNumberConfirmed);
         }
 
-        public Task<IList<string>> GetRolesAsync(User user, CancellationToken cancellationToken)
+        public Task<IList<string>> GetRolesAsync(UserBase user, CancellationToken cancellationToken)
         {
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
@@ -251,7 +252,7 @@ namespace Etherna.SSOServer.Configs.Identity
             return Task.FromResult<IList<string>>(user.Roles.Select(r => r.Name).ToList());
         }
 
-        public Task<string> GetSecurityStampAsync(User user, CancellationToken cancellationToken)
+        public Task<string> GetSecurityStampAsync(UserBase user, CancellationToken cancellationToken)
         {
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
@@ -259,15 +260,15 @@ namespace Etherna.SSOServer.Configs.Identity
             return Task.FromResult(user.SecurityStamp);
         }
 
-        public Task<bool> GetTwoFactorEnabledAsync(User user, CancellationToken cancellationToken)
+        public Task<bool> GetTwoFactorEnabledAsync(UserBase user, CancellationToken cancellationToken)
         {
-            if (user is null)
-                throw new ArgumentNullException(nameof(user));
+            if (user is not UserWeb2 userWeb2)
+                throw new ArgumentException("User is not a web2 account", nameof(user));
 
-            return Task.FromResult(user.TwoFactorEnabled);
+            return Task.FromResult(userWeb2.TwoFactorEnabled);
         }
 
-        public Task<string> GetUserIdAsync(User user, CancellationToken cancellationToken)
+        public Task<string> GetUserIdAsync(UserBase user, CancellationToken cancellationToken)
         {
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
@@ -275,7 +276,7 @@ namespace Etherna.SSOServer.Configs.Identity
             return Task.FromResult(user.Id);
         }
 
-        public Task<string> GetUserNameAsync(User user, CancellationToken cancellationToken)
+        public Task<string> GetUserNameAsync(UserBase user, CancellationToken cancellationToken)
         {
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
@@ -283,38 +284,38 @@ namespace Etherna.SSOServer.Configs.Identity
             return Task.FromResult(user.Username ?? string.Empty); //Identity doesn't handle claims with null username
         }
 
-        public async Task<IList<User>> GetUsersForClaimAsync(Claim claim, CancellationToken cancellationToken)
+        public async Task<IList<UserBase>> GetUsersForClaimAsync(Claim claim, CancellationToken cancellationToken)
         {
             return await context.Users.QueryElementsAsync(
                 users => users.Where(u => u.Claims.Any(c => c.Type == claim.Type && c.Value == claim.Value))
                               .ToListAsync());
         }
 
-        public async Task<IList<User>> GetUsersInRoleAsync(string roleName, CancellationToken cancellationToken)
+        public async Task<IList<UserBase>> GetUsersInRoleAsync(string roleName, CancellationToken cancellationToken)
         {
             return await context.Users.QueryElementsAsync(
                 users => users.Where(u => u.Roles.Any(r => r.Name == roleName))
                               .ToListAsync());
         }
 
-        public Task<bool> HasPasswordAsync(User user, CancellationToken cancellationToken)
+        public Task<bool> HasPasswordAsync(UserBase user, CancellationToken cancellationToken)
         {
-            if (user is null)
-                throw new ArgumentNullException(nameof(user));
+            if (user is not UserWeb2 userWeb2)
+                throw new ArgumentException("User is not a web2 account", nameof(user));
 
-            return Task.FromResult(user.HasPassword);
+            return Task.FromResult(userWeb2.HasPassword);
         }
 
-        public Task<int> IncrementAccessFailedCountAsync(User user, CancellationToken cancellationToken)
+        public Task<int> IncrementAccessFailedCountAsync(UserBase user, CancellationToken cancellationToken)
         {
-            if (user is null)
-                throw new ArgumentNullException(nameof(user));
+            if (user is not UserWeb2 userWeb2)
+                throw new ArgumentException("User is not a web2 account", nameof(user));
 
-            user.IncrementAccessFailedCount();
-            return Task.FromResult(user.AccessFailedCount);
+            userWeb2.IncrementAccessFailedCount();
+            return Task.FromResult(userWeb2.AccessFailedCount);
         }
 
-        public Task<bool> IsInRoleAsync(User user, string roleName, CancellationToken cancellationToken)
+        public Task<bool> IsInRoleAsync(UserBase user, string roleName, CancellationToken cancellationToken)
         {
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
@@ -322,15 +323,15 @@ namespace Etherna.SSOServer.Configs.Identity
             return Task.FromResult(user.Roles.Any(r => r.Name == roleName));
         }
 
-        public Task<bool> RedeemCodeAsync(User user, string code, CancellationToken cancellationToken)
+        public Task<bool> RedeemCodeAsync(UserBase user, string code, CancellationToken cancellationToken)
         {
-            if (user is null)
-                throw new ArgumentNullException(nameof(user));
+            if (user is not UserWeb2 userWeb2)
+                throw new ArgumentException("User is not a web2 account", nameof(user));
 
-            return Task.FromResult(user.RedeemTwoFactorRecoveryCode(code));
+            return Task.FromResult(userWeb2.RedeemTwoFactorRecoveryCode(code));
         }
 
-        public Task RemoveClaimsAsync(User user, IEnumerable<Claim> claims, CancellationToken cancellationToken)
+        public Task RemoveClaimsAsync(UserBase user, IEnumerable<Claim> claims, CancellationToken cancellationToken)
         {
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
@@ -339,7 +340,7 @@ namespace Etherna.SSOServer.Configs.Identity
             return Task.CompletedTask;
         }
 
-        public Task RemoveFromRoleAsync(User user, string roleName, CancellationToken cancellationToken)
+        public Task RemoveFromRoleAsync(UserBase user, string roleName, CancellationToken cancellationToken)
         {
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
@@ -348,16 +349,16 @@ namespace Etherna.SSOServer.Configs.Identity
             return Task.CompletedTask;
         }
 
-        public Task RemoveLoginAsync(User user, string loginProvider, string providerKey, CancellationToken cancellationToken)
+        public Task RemoveLoginAsync(UserBase user, string loginProvider, string providerKey, CancellationToken cancellationToken)
         {
-            if (user is null)
-                throw new ArgumentNullException(nameof(user));
+            if (user is not UserWeb2 userWeb2)
+                throw new ArgumentException("User is not a web2 account", nameof(user));
 
-            user.RemoveExternalLogin(loginProvider, providerKey);
+            userWeb2.RemoveExternalLogin(loginProvider, providerKey);
             return Task.CompletedTask;
         }
 
-        public Task ReplaceClaimAsync(User user, Claim claim, Claim newClaim, CancellationToken cancellationToken)
+        public Task ReplaceClaimAsync(UserBase user, Claim claim, Claim newClaim, CancellationToken cancellationToken)
         {
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
@@ -372,34 +373,34 @@ namespace Etherna.SSOServer.Configs.Identity
             return Task.CompletedTask;
         }
 
-        public Task ReplaceCodesAsync(User user, IEnumerable<string> recoveryCodes, CancellationToken cancellationToken)
+        public Task ReplaceCodesAsync(UserBase user, IEnumerable<string> recoveryCodes, CancellationToken cancellationToken)
         {
-            if (user is null)
-                throw new ArgumentNullException(nameof(user));
+            if (user is not UserWeb2 userWeb2)
+                throw new ArgumentException("User is not a web2 account", nameof(user));
 
-            user.TwoFactorRecoveryCodes = recoveryCodes;
+            userWeb2.TwoFactorRecoveryCodes = recoveryCodes;
             return Task.CompletedTask;
         }
 
-        public Task ResetAccessFailedCountAsync(User user, CancellationToken cancellationToken)
+        public Task ResetAccessFailedCountAsync(UserBase user, CancellationToken cancellationToken)
         {
-            if (user is null)
-                throw new ArgumentNullException(nameof(user));
+            if (user is not UserWeb2 userWeb2)
+                throw new ArgumentException("User is not a web2 account", nameof(user));
 
-            user.ResetAccessFailedCount();
+            userWeb2.ResetAccessFailedCount();
             return Task.CompletedTask;
         }
 
-        public Task SetAuthenticatorKeyAsync(User user, string key, CancellationToken cancellationToken)
+        public Task SetAuthenticatorKeyAsync(UserBase user, string key, CancellationToken cancellationToken)
         {
-            if (user is null)
-                throw new ArgumentNullException(nameof(user));
+            if (user is not UserWeb2 userWeb2)
+                throw new ArgumentException("User is not a web2 account", nameof(user));
 
-            user.AuthenticatorKey = key;
+            userWeb2.AuthenticatorKey = key;
             return Task.CompletedTask;
         }
 
-        public Task SetEmailAsync(User user, string email, CancellationToken cancellationToken)
+        public Task SetEmailAsync(UserBase user, string email, CancellationToken cancellationToken)
         {
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
@@ -408,7 +409,7 @@ namespace Etherna.SSOServer.Configs.Identity
             return Task.CompletedTask;
         }
 
-        public Task SetEmailConfirmedAsync(User user, bool confirmed, CancellationToken cancellationToken)
+        public Task SetEmailConfirmedAsync(UserBase user, bool confirmed, CancellationToken cancellationToken)
         {
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
@@ -420,7 +421,7 @@ namespace Etherna.SSOServer.Configs.Identity
             return Task.CompletedTask;
         }
 
-        public Task SetLockoutEnabledAsync(User user, bool enabled, CancellationToken cancellationToken)
+        public Task SetLockoutEnabledAsync(UserBase user, bool enabled, CancellationToken cancellationToken)
         {
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
@@ -429,7 +430,7 @@ namespace Etherna.SSOServer.Configs.Identity
             return Task.CompletedTask;
         }
 
-        public Task SetLockoutEndDateAsync(User user, DateTimeOffset? lockoutEnd, CancellationToken cancellationToken)
+        public Task SetLockoutEndDateAsync(UserBase user, DateTimeOffset? lockoutEnd, CancellationToken cancellationToken)
         {
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
@@ -438,28 +439,28 @@ namespace Etherna.SSOServer.Configs.Identity
             return Task.CompletedTask;
         }
 
-        public Task SetNormalizedEmailAsync(User user, string normalizedEmail, CancellationToken cancellationToken)
+        public Task SetNormalizedEmailAsync(UserBase user, string normalizedEmail, CancellationToken cancellationToken)
         {
             //don't perform any action, because email normalization is already performed by domain
             return Task.CompletedTask;
         }
 
-        public Task SetNormalizedUserNameAsync(User user, string normalizedName, CancellationToken cancellationToken)
+        public Task SetNormalizedUserNameAsync(UserBase user, string normalizedName, CancellationToken cancellationToken)
         {
             //don't perform any action, because username normalization is already performed by domain
             return Task.CompletedTask;
         }
 
-        public Task SetPasswordHashAsync(User user, string passwordHash, CancellationToken cancellationToken)
+        public Task SetPasswordHashAsync(UserBase user, string passwordHash, CancellationToken cancellationToken)
         {
-            if (user is null)
-                throw new ArgumentNullException(nameof(user));
+            if (user is not UserWeb2 userWeb2)
+                throw new ArgumentException("User is not a web2 account", nameof(user));
 
-            user.PasswordHash = passwordHash;
+            userWeb2.PasswordHash = passwordHash;
             return Task.CompletedTask;
         }
 
-        public Task SetPhoneNumberAsync(User user, string phoneNumber, CancellationToken cancellationToken)
+        public Task SetPhoneNumberAsync(UserBase user, string phoneNumber, CancellationToken cancellationToken)
         {
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
@@ -468,7 +469,7 @@ namespace Etherna.SSOServer.Configs.Identity
             return Task.CompletedTask;
         }
 
-        public Task SetPhoneNumberConfirmedAsync(User user, bool confirmed, CancellationToken cancellationToken)
+        public Task SetPhoneNumberConfirmedAsync(UserBase user, bool confirmed, CancellationToken cancellationToken)
         {
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
@@ -480,7 +481,7 @@ namespace Etherna.SSOServer.Configs.Identity
             return Task.CompletedTask;
         }
 
-        public Task SetSecurityStampAsync(User user, string stamp, CancellationToken cancellationToken)
+        public Task SetSecurityStampAsync(UserBase user, string stamp, CancellationToken cancellationToken)
         {
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
@@ -489,16 +490,16 @@ namespace Etherna.SSOServer.Configs.Identity
             return Task.CompletedTask;
         }
 
-        public Task SetTwoFactorEnabledAsync(User user, bool enabled, CancellationToken cancellationToken)
+        public Task SetTwoFactorEnabledAsync(UserBase user, bool enabled, CancellationToken cancellationToken)
         {
-            if (user is null)
-                throw new ArgumentNullException(nameof(user));
+            if (user is not UserWeb2 userWeb2)
+                throw new ArgumentException("User is not a web2 account", nameof(user));
 
-            user.TwoFactorEnabled = enabled;
+            userWeb2.TwoFactorEnabled = enabled;
             return Task.CompletedTask;
         }
 
-        public Task SetUserNameAsync(User user, string userName, CancellationToken cancellationToken)
+        public Task SetUserNameAsync(UserBase user, string userName, CancellationToken cancellationToken)
         {
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
@@ -508,7 +509,7 @@ namespace Etherna.SSOServer.Configs.Identity
         }
 
         [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "External library doesn't declare exceptions")]
-        public async Task<IdentityResult> UpdateAsync(User user, CancellationToken cancellationToken)
+        public async Task<IdentityResult> UpdateAsync(UserBase user, CancellationToken cancellationToken)
         {
             try { await context.Users.ReplaceAsync(user, cancellationToken: cancellationToken); }
             catch { return IdentityResult.Failed(); }

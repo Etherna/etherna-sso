@@ -29,20 +29,20 @@ using Tavis.UriTemplates;
 
 namespace Etherna.SSOServer.Services.EventHandlers
 {
-    class OnCreatedUserThenSendConfirmationEmailHandler : EventHandlerBase<EntityCreatedEvent<User>>
+    class OnCreatedUserThenSendConfirmationEmailHandler : EventHandlerBase<EntityCreatedEvent<UserBase>>
     {
         // Fields.
         private readonly IHttpContextAccessor contextAccessor;
         private readonly IEmailSender emailSender;
         private readonly PageSettings options;
-        private readonly UserManager<User> userManager;
+        private readonly UserManager<UserBase> userManager;
 
         // Constructors.
         public OnCreatedUserThenSendConfirmationEmailHandler(
             IHttpContextAccessor contextAccessor,
             IEmailSender emailService,
             IOptions<PageSettings> options,
-            UserManager<User> userManager)
+            UserManager<UserBase> userManager)
         {
             this.contextAccessor = contextAccessor;
             this.emailSender = emailService;
@@ -51,7 +51,7 @@ namespace Etherna.SSOServer.Services.EventHandlers
         }
 
         // Methods.
-        public override async Task HandleAsync(EntityCreatedEvent<User> @event)
+        public override async Task HandleAsync(EntityCreatedEvent<UserBase> @event)
         {
             if (@event is null)
                 throw new ArgumentNullException(nameof(@event));

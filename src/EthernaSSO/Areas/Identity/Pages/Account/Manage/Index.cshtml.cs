@@ -33,13 +33,13 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
         }
 
         // Fields.
-        private readonly UserManager<User> _userManager;
-        private readonly SignInManager<User> _signInManager;
+        private readonly UserManager<UserBase> _userManager;
+        private readonly SignInManager<UserBase> _signInManager;
 
         // Constructor.
         public IndexModel(
-            UserManager<User> userManager,
-            SignInManager<User> signInManager)
+            UserManager<UserBase> userManager,
+            SignInManager<UserBase> signInManager)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -100,7 +100,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
         }
 
         // Helpers.
-        private async Task LoadAsync(User user)
+        private async Task LoadAsync(UserBase user)
         {
             var userName = await _userManager.GetUserNameAsync(user);
             var phoneNumber = await _userManager.GetPhoneNumberAsync(user);

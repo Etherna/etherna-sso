@@ -29,12 +29,12 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
     {
         // Fields.
         private readonly ILogger<DownloadPersonalDataModel> logger;
-        private readonly UserManager<User> userManager;
+        private readonly UserManager<UserBase> userManager;
 
         // Constructor.
         public DownloadPersonalDataModel(
             ILogger<DownloadPersonalDataModel> logger,
-            UserManager<User> userManager)
+            UserManager<UserBase> userManager)
         {
             this.logger = logger;
             this.userManager = userManager;
@@ -51,7 +51,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
 
             // Only include personal data for download
             var personalData = new Dictionary<string, string>();
-            var personalDataProps = typeof(User).GetProperties().Where(
+            var personalDataProps = typeof(UserBase).GetProperties().Where(
                             prop => Attribute.IsDefined(prop, typeof(PersonalDataAttribute)));
             foreach (var p in personalDataProps)
             {

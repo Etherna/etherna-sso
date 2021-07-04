@@ -65,7 +65,7 @@ namespace Etherna.SSOServer
             services.AddDataProtection()
                 .PersistKeysToDbContext(new DbContextOptions { ConnectionString = Configuration["ConnectionStrings:SystemDb"] });
 
-            services.AddDefaultIdentity<User>(options =>
+            services.AddDefaultIdentity<UserBase>(options =>
             {
                 options.Password.RequireDigit = true;
                 options.Password.RequiredLength = 6;
@@ -80,7 +80,7 @@ namespace Etherna.SSOServer
                 .AddRoleStore<RoleStore>()
                 .AddUserStore<UserStore>();
             //replace default UserValidator with custom. Default one doesn't allow null usernames
-            services.Replace(ServiceDescriptor.Scoped<IUserValidator<User>, CustomUserValidator>());
+            services.Replace(ServiceDescriptor.Scoped<IUserValidator<UserBase>, CustomUserValidator>());
 
             services.ConfigureApplicationCookie(options =>
             {
@@ -151,7 +151,7 @@ namespace Etherna.SSOServer
                 .AddInMemoryApiScopes(idServerConfig.ApiScopes)
                 .AddInMemoryClients(idServerConfig.Clients)
                 .AddInMemoryIdentityResources(idServerConfig.IdResources)
-                .AddAspNetIdentity<User>();
+                .AddAspNetIdentity<UserBase>();
             if (Environment.IsDevelopment())
             {
                 builder.AddDeveloperSigningCredential();

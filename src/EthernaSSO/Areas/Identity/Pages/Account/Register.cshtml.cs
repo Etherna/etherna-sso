@@ -24,7 +24,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
@@ -38,7 +37,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         public class InputModel
         {
             [Required]
-            [RegularExpression(Domain.Models.User.UsernameRegex, ErrorMessage = "Allowed characters are a-z, A-Z, 0-9, _. Permitted length is between 5 and 20.")]
+            [RegularExpression(UserBase.UsernameRegex, ErrorMessage = "Allowed characters are a-z, A-Z, 0-9, _. Permitted length is between 5 and 20.")]
             [Display(Name = "Username")]
             public string Username { get; set; } = default!;
 
@@ -63,8 +62,8 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         private readonly IEventDispatcher eventDispatcher;
         private readonly IIdentityServerInteractionService idServerInteractService;
         private readonly ILogger<RegisterModel> logger;
-        private readonly SignInManager<User> signInManager;
-        private readonly UserManager<User> userManager;
+        private readonly SignInManager<UserBase> signInManager;
+        private readonly UserManager<UserBase> userManager;
 
         // Constructor.
         public RegisterModel(
@@ -72,8 +71,8 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             IEventDispatcher eventDispatcher,
             IIdentityServerInteractionService idServerInteractService,
             ILogger<RegisterModel> logger,
-            SignInManager<User> signInManager,
-            UserManager<User> userManager)
+            SignInManager<UserBase> signInManager,
+            UserManager<UserBase> userManager)
         {
             this.clientStore = clientStore;
             this.eventDispatcher = eventDispatcher;
@@ -110,7 +109,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             //check if we are in the context of an authorization request
             var context = await idServerInteractService.GetAuthorizationContextAsync(returnUrl);
 
-            var user = Domain.Models.User.CreateManagedWithUsername(Input.Username, email: Input.Email);
+            var user = new UserWeb2(Input.Username, Input.Email);
             var result = await userManager.CreateAsync(user, Input.Password);
 
             if (result.Succeeded)

@@ -50,7 +50,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         private readonly IEventDispatcher eventDispatcher;
         private readonly IIdentityServerInteractionService idServerInteractService;
         private readonly ILogger<LoginWith2faModel> logger;
-        private readonly SignInManager<User> signInManager;
+        private readonly SignInManager<UserBase> signInManager;
 
         // Constructor.
         public LoginWith2faModel(
@@ -58,7 +58,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             IEventDispatcher eventDispatcher,
             IIdentityServerInteractionService idServerInteractService,
             ILogger<LoginWith2faModel> logger,
-            SignInManager<User> signInManager)
+            SignInManager<UserBase> signInManager)
         {
             this.clientStore = clientStore;
             this.eventDispatcher = eventDispatcher;

@@ -39,7 +39,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             public string? Email { get; set; }
 
             [Required]
-            [RegularExpression(Domain.Models.User.UsernameRegex, ErrorMessage = "Allowed characters are a-z, A-Z, 0-9, _. Permitted length is between 5 and 20.")]
+            [RegularExpression(UserBase.UsernameRegex, ErrorMessage = "Allowed characters are a-z, A-Z, 0-9, _. Permitted length is between 5 and 20.")]
             [Display(Name = "Username")]
             public string Username { get; set; } = default!;
         }
@@ -49,9 +49,9 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         private readonly IEventDispatcher eventDispatcher;
         private readonly IIdentityServerInteractionService idServerInteractionService;
         private readonly ILogger<ExternalLoginModel> logger;
-        private readonly SignInManager<User> signInManager;
+        private readonly SignInManager<UserBase> signInManager;
         private readonly ISsoDbContext ssoDbContext;
-        private readonly UserManager<User> userManager;
+        private readonly UserManager<UserBase> userManager;
         private readonly IWeb3AuthnService web3AuthnService;
 
         // Constructor.
@@ -60,9 +60,9 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             IEventDispatcher eventDispatcher,
             IIdentityServerInteractionService idServerInteractionService,
             ILogger<ExternalLoginModel> logger,
-            SignInManager<User> signInManager,
+            SignInManager<UserBase> signInManager,
             ISsoDbContext ssoDbContext,
-            UserManager<User> userManager,
+            UserManager<UserBase> userManager,
             IWeb3AuthnService web3AuthnService)
         {
             this.clientStore = clientStore;
@@ -221,7 +221,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 return Page();
 
             // Create user.
-            var user = Domain.Models.User.CreateManagedWithEtherLoginAddress(etherAddress, Input.Username, Input.Email);
+            var user = new UserWeb3(etherAddress, Input.Username, Input.Email);
 
             var result = await userManager.CreateAsync(user);
             if (result.Succeeded)

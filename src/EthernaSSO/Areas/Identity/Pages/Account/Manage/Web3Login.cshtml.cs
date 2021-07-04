@@ -28,16 +28,16 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
     public class Web3LoginModel : PageModel
     {
         // Fields.
-        private readonly SignInManager<User> signInManager;
+        private readonly SignInManager<UserBase> signInManager;
         private readonly ISsoDbContext ssoDbContext;
-        private readonly UserManager<User> userManager;
+        private readonly UserManager<UserBase> userManager;
         private readonly IWeb3AuthnService web3AuthnService;
 
         // Constructor.
         public Web3LoginModel(
-            SignInManager<User> signInManager,
+            SignInManager<UserBase> signInManager,
             ISsoDbContext ssoDbContext,
-            UserManager<User> userManager,
+            UserManager<UserBase> userManager,
             IWeb3AuthnService web3AuthnService)
         {
             this.signInManager = signInManager;
@@ -58,8 +58,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
         // Methods.
         public async Task<IActionResult> OnGetAsync()
         {
-            var user = await userManager.GetUserAsync(User);
-            if (user == null)
+            if (await userManager.GetUserAsync(User) is not UserWeb2 user)
                 return NotFound($"Unable to load user with ID '{userManager.GetUserId(User)}'.");
 
             ShowRemoveButton = user.CanRemoveEtherLoginAddress;
@@ -95,15 +94,14 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             await ssoDbContext.Web3LoginTokens.DeleteAsync(token);
 
             // Add web3 login to user.
-            var user = await userManager.GetUserAsync(User);
-            if (user == null)
+            if (await userManager.GetUserAsync(User) is not UserWeb2 user)
                 return NotFound($"Unable to load user with ID '{userManager.GetUserId(User)}'.");
 
             if (!user.EtherLoginAddress.IsTheSameAddress(etherAddress))
             {
                 //check for uniqueness
                 if (await ssoDbContext.Users.QueryElementsAsync(elements =>
-                    elements.AnyAsync(u => u.EtherLoginAddress == etherAddress)))
+                    elements.OfType<UserWeb2>().AnyAsync(u => u.EtherLoginAddress == etherAddress)))
                 {
                     StatusMessage = $"Can't assign Web3 login. It has already been used with another account.";
                     return RedirectToPage();
@@ -120,8 +118,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
 
         public async Task<IActionResult> OnPostRemoveAsync()
         {
-            var user = await userManager.GetUserAsync(User);
-            if (user == null)
+            if (await userManager.GetUserAsync(User) is not UserWeb2 user)
                 return NotFound($"Unable to load user with ID '{userManager.GetUserId(User)}'.");
 
             user.RemoveEtherLoginAddress();

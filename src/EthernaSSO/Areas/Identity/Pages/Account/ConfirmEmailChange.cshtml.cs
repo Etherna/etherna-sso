@@ -27,11 +27,11 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
     public class ConfirmEmailChangeModel : PageModel
     {
         // Fields.
-        private readonly UserManager<User> _userManager;
-        private readonly SignInManager<User> _signInManager;
+        private readonly UserManager<UserBase> _userManager;
+        private readonly SignInManager<UserBase> _signInManager;
 
         // Constructor.
-        public ConfirmEmailChangeModel(UserManager<User> userManager, SignInManager<User> signInManager)
+        public ConfirmEmailChangeModel(UserManager<UserBase> userManager, SignInManager<UserBase> signInManager)
         {
             _userManager = userManager;
             _signInManager = signInManager;

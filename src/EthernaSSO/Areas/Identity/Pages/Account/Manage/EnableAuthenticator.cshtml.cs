@@ -31,14 +31,14 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
     {
         private readonly ILogger<EnableAuthenticatorModel> logger;
         private readonly UrlEncoder urlEncoder;
-        private readonly UserManager<User> userManager;
+        private readonly UserManager<UserBase> userManager;
 
         private const string AuthenticatorUriFormat = "otpauth://totp/{0}:{1}?secret={2}&issuer={0}&digits=6";
 
         public EnableAuthenticatorModel(
             ILogger<EnableAuthenticatorModel> logger,
             UrlEncoder urlEncoder,
-            UserManager<User> userManager)
+            UserManager<UserBase> userManager)
         {
             this.logger = logger;
             this.urlEncoder = urlEncoder;
@@ -128,7 +128,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             }
         }
 
-        private async Task LoadSharedKeyAndQrCodeUriAsync(User user)
+        private async Task LoadSharedKeyAndQrCodeUriAsync(UserBase user)
         {
             // Load the authenticator key & QR code URI to display on the form
             var unformattedKey = await userManager.GetAuthenticatorKeyAsync(user);
