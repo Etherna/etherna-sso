@@ -46,6 +46,10 @@
                         <button id="email-verification" type="submit" asp-page-handler="SendVerificationEmail" class="btn btn-link">Send verification email</button>
                     }
                 }
+                @if (!string.IsNullOrEmpty(Model.Email))
+                {
+                    <button id="remove-email-button" type="submit" asp-page-handler="RemoveEmail" class="btn btn-link">Remove email</button>
+                }
             </div>
         </form>
 
