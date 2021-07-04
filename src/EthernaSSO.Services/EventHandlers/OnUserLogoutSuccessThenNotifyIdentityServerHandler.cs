@@ -14,32 +14,29 @@
 
 using Etherna.DomainEvents;
 using Etherna.SSOServer.Domain.Events;
-using Etherna.SSOServer.Domain.Models;
-using Microsoft.AspNetCore.Identity;
-using System;
+using IdentityServer4.Services;
 using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Services.EventHandlers
 {
-    class OnCreatedUserThenLoginHandler : EventHandlerBase<EntityCreatedEvent<User>>
+    class OnUserLogoutSuccessThenNotifyIdentityServerHandler : EventHandlerBase<UserLogoutSuccessEvent>
     {
         // Fields.
-        private readonly SignInManager<User> signInManager;
+        private readonly IEventService identityServerEventService;
 
-        // Constructors.
-        public OnCreatedUserThenLoginHandler(
-            SignInManager<User> signInManager)
+        // Constructor.
+        public OnUserLogoutSuccessThenNotifyIdentityServerHandler(
+            IEventService identityServerEventService)
         {
-            this.signInManager = signInManager;
+            this.identityServerEventService = identityServerEventService;
         }
 
         // Methods.
-        public override Task HandleAsync(EntityCreatedEvent<User> @event)
+        public override async Task HandleAsync(UserLogoutSuccessEvent @event)
         {
-            if (@event is null)
-                throw new ArgumentNullException(nameof(@event));
-
-            return signInManager.SignInAsync(@event.Entity, false);
+            await identityServerEventService.RaiseAsync(new IdentityServer4.Events.UserLogoutSuccessEvent(
+                @event.User?.Id,
+                @event.User?.Username));
         }
     }
 }

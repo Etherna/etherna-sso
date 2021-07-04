@@ -12,18 +12,18 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-using Etherna.MongODM.Core;
-using Etherna.MongODM.Core.Repositories;
-using Etherna.SSOServer.Domain.Models;
-using Etherna.SSOServer.Domain.Models.Logs;
-
-namespace Etherna.SSOServer.Domain
+namespace Etherna.SSOServer.Domain.Models.Logs
 {
-    public interface ISsoDbContext : IDbContext
+    public class UserLoginSuccessLog : LogBase
     {
-        ICollectionRepository<LogBase, string> Logs { get; }
-        ICollectionRepository<Role, string> Roles { get; }
-        ICollectionRepository<User, string> Users { get; }
-        ICollectionRepository<Web3LoginToken, string> Web3LoginTokens { get; }
+        // Constructors.
+        public UserLoginSuccessLog(User user)
+        {
+            User = user;
+        }
+        protected UserLoginSuccessLog() { }
+
+        // Properties.
+        public virtual User User { get; protected set; } = default!;
     }
 }

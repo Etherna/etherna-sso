@@ -12,11 +12,12 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Etherna.DomainEvents;
 using Etherna.SSOServer.Domain;
+using Etherna.SSOServer.Domain.Events;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Extensions;
 using Etherna.SSOServer.Services.Domain;
-using IdentityServer4.Events;
 using IdentityServer4.Services;
 using IdentityServer4.Stores;
 using Microsoft.AspNetCore.Identity;
@@ -45,7 +46,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
         // Fields.
         private readonly IClientStore clientStore;
-        private readonly IEventService eventService;
+        private readonly IEventDispatcher eventDispatcher;
         private readonly IIdentityServerInteractionService idServerInteractionService;
         private readonly ILogger<ExternalLoginModel> logger;
         private readonly SignInManager<User> signInManager;
@@ -56,7 +57,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         // Constructor.
         public Web3LoginModel(
             IClientStore clientStore,
-            IEventService eventService,
+            IEventDispatcher eventDispatcher,
             IIdentityServerInteractionService idServerInteractionService,
             ILogger<ExternalLoginModel> logger,
             SignInManager<User> signInManager,
@@ -65,7 +66,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             IWeb3AuthnService web3AuthnService)
         {
             this.clientStore = clientStore;
-            this.eventService = eventService;
+            this.eventDispatcher = eventDispatcher;
             this.idServerInteractionService = idServerInteractionService;
             this.logger = logger;
             this.signInManager = signInManager;
@@ -133,9 +134,15 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 // Check if external login is in the context of an OIDC request.
                 var context = await idServerInteractionService.GetAuthorizationContextAsync(returnUrl);
 
-                await eventService.RaiseAsync(new UserLoginSuccessEvent("web3", etherAddress, etherAddress, "web3", true, context?.Client?.ClientId));
+                // Rise event and create log.
+                await eventDispatcher.DispatchAsync(new UserLoginSuccessEvent(
+                    user,
+                    clientId: context?.Client?.ClientId,
+                    provider: "web3",
+                    providerUserId: etherAddress));
                 logger.LogInformation($"{etherAddress} logged in with web3.");
 
+                // Identify redirect.
                 if (context?.Client != null)
                 {
                     if (await clientStore.IsPkceClientAsync(context.Client.ClientId))
@@ -219,12 +226,21 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             var result = await userManager.CreateAsync(user);
             if (result.Succeeded)
             {
+                // Login.
+                await signInManager.SignInAsync(user, false);
+
                 // Check if external login is in the context of an OIDC request.
                 var context = await idServerInteractionService.GetAuthorizationContextAsync(returnUrl);
 
-                await eventService.RaiseAsync(new UserLoginSuccessEvent("web3", etherAddress, etherAddress, "web3", true, context?.Client?.ClientId));
+                // Rise event and create log.
+                await eventDispatcher.DispatchAsync(new UserLoginSuccessEvent(
+                    user,
+                    clientId: context?.Client?.ClientId,
+                    provider: "web3",
+                    providerUserId: etherAddress));
                 logger.LogInformation($"User created an account using web3 address.");
 
+                // Identify redirect.
                 if (context?.Client != null)
                 {
                     if (await clientStore.IsPkceClientAsync(context.Client.ClientId))
