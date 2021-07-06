@@ -37,7 +37,7 @@
             <div id="manage-web3-login" style="display:none">
                 <div id="manage-web3-login-alert" class="alert alert-danger" style="display:none"></div>
                 <p>
-                    <button id="change-web3-login" class="btn btn-link" type="button" title="Change Web3 login address">Change web3 login address</button> <br/>
+                    <button id="confirm-web3-login" class="btn btn-link" type="button" title="Change Web3 login address">Change web3 login address</button> <br/>
                     @if (Model.ShowRemoveButton)
                     {
                         <button type="submit" class="btn btn-link" asp-page-handler="Remove" title="Remove Web3 login">Remove web3 login</button>
@@ -55,8 +55,8 @@
 
 <script type="text/javascript">
     window.addEventListener('load', function () {
-        window.EthernaWeb3Singin.constants.retriveAuthMessageUrl = '@Html.Raw(retriveAuthMessageUrl)';
-        window.EthernaWeb3Singin.constants.confirmSignatureUrl = '@Html.Raw(confirmSignatureUrl)';
+        window.EthernaWeb3Signin.constants.retriveAuthMessageUrl = '@Html.Raw(retriveAuthMessageUrl)';
+        window.EthernaWeb3Signin.constants.confirmSignatureUrl = '@Html.Raw(confirmSignatureUrl)';
     });
 </script>
 <script src="~/js/etherna-web3-signin.js" asp-append-version="true"></script>

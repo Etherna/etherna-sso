@@ -1,5 +1,5 @@
 ﻿using Etherna.MongODM.Core.Attributes;
-using Etherna.SSOServer.Domain.Models.UserAgg;
+using Microsoft.AspNetCore.Identity;
 using Nethereum.Hex.HexConvertors.Extensions;
 using Nethereum.Util;
 using Nethereum.Web3.Accounts;
@@ -13,11 +13,11 @@ namespace Etherna.SSOServer.Domain.Models
     {
         // Fields.
         private Account? _etherManagedAccount;
-        private List<UserLoginInfo> _logins = new();
+        private List<UserAgg.UserLoginInfo> _logins = new();
         private List<string> _twoFactorRecoveryCode = new();
 
         // Constructors.
-        public UserWeb2(string username, string? email = default, UserLoginInfo? loginInfo = default)
+        public UserWeb2(string username, string? email = default, UserAgg.UserLoginInfo? loginInfo = default)
             : base(username, email)
         {
             if (loginInfo is not null)
@@ -61,12 +61,14 @@ namespace Etherna.SSOServer.Domain.Models
             }
         }
         public virtual string? EtherManagedPrivateKey { get; protected set; }
+        [PersonalData]
         public virtual string? EtherLoginAddress { get; protected set; }
         public virtual bool HasPassword => !string.IsNullOrEmpty(PasswordHash);
-        public virtual IEnumerable<UserLoginInfo> Logins
+        [PersonalData]
+        public virtual IEnumerable<UserAgg.UserLoginInfo> Logins
         {
             get => _logins;
-            protected set => _logins = new List<UserLoginInfo>(value ?? Array.Empty<UserLoginInfo>());
+            protected set => _logins = new List<UserAgg.UserLoginInfo>(value ?? Array.Empty<UserAgg.UserLoginInfo>());
         }
         public virtual string? PasswordHash { get; set; }
         public virtual bool TwoFactorEnabled { get; set; }
@@ -78,7 +80,7 @@ namespace Etherna.SSOServer.Domain.Models
 
         // Methods.
         [PropertyAlterer(nameof(Logins))]
-        public virtual bool AddLogin(UserLoginInfo userLoginInfo)
+        public virtual bool AddLogin(UserAgg.UserLoginInfo userLoginInfo)
         {
             //avoid multiaccounting with same provider
             if (Logins.Any(login => login.LoginProvider == userLoginInfo.ProviderKey))

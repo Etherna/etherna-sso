@@ -50,19 +50,11 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             logger.LogInformation($"User with ID '{userManager.GetUserId(User)}' asked for their personal data.");
 
             // Only include personal data for download
-            var personalData = new Dictionary<string, string>();
-            var personalDataProps = typeof(UserBase).GetProperties().Where(
-                            prop => Attribute.IsDefined(prop, typeof(PersonalDataAttribute)));
+            var personalData = new Dictionary<string, object?>();
+            var personalDataProps = user.GetType().GetProperties().Where(
+                prop => Attribute.IsDefined(prop, typeof(PersonalDataAttribute)));
             foreach (var p in personalDataProps)
-            {
-                personalData.Add(p.Name, JsonSerializer.Serialize(p.GetValue(user) ?? "null").Trim('"'));
-            }
-
-            var logins = await userManager.GetLoginsAsync(user);
-            foreach (var l in logins)
-            {
-                personalData.Add($"{l.LoginProvider} external login provider key", l.ProviderKey);
-            }
+                personalData.Add(p.Name, p.GetValue(user));
 
             Response.Headers.Add("Content-Disposition", "attachment; filename=PersonalData.json");
             return new FileContentResult(JsonSerializer.SerializeToUtf8Bytes(personalData), "application/json");

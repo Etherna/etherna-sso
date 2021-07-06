@@ -32,6 +32,10 @@
             </div>
             <div class="form-group">
                 <label asp-for="EtherAddress"></label>
+                @if (!Model.IsWeb3User)
+                {
+                    <label>(server managed)</label>
+                }
                 <input asp-for="EtherAddress" class="form-control" disabled />
             </div>
             <div class="form-group">

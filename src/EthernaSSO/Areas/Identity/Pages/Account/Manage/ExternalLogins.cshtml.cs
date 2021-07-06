@@ -51,9 +51,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
         public async Task<IActionResult> OnGetAsync()
         {
             if (await userManager.GetUserAsync(User) is not UserWeb2 user)
-            {
-                return NotFound($"Unable to load user with ID 'user.Id'.");
-            }
+                return NotFound($"Unable to load user with ID '{userManager.GetUserId(User)}'.");
 
             CurrentLogins.AddRange(await userManager.GetLoginsAsync(user));
             OtherLogins.AddRange((await signInManager.GetExternalAuthenticationSchemesAsync())

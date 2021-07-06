@@ -47,10 +47,11 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
         }
 
         // Properties.
-        [Display(Name = "Ethereum address (server managed)")]
+        [Display(Name = "Ethereum address")]
         public string EtherAddress { get; set; } = default!;
         [Display(Name = "Ethereum previous addresses")]
         public IEnumerable<string> EtherPreviousAddresses { get; set; } = default!;
+        public bool IsWeb3User { get; set; }
         public string Username { get; set; } = default!;
 
         [TempData]
@@ -110,6 +111,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
 
             EtherAddress = user.EtherAddress;
             EtherPreviousAddresses = user.EtherPreviousAddresses;
+            IsWeb3User = user is UserWeb3;
             Username = userName;
 
             Input = new InputModel

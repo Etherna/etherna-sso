@@ -1,7 +1,7 @@
 
-var EthernaWeb3Singin = {
+var EthernaWeb3Signin = {
     constants: {
-        changeWeb3Selector: '#change-web3-login',
+        confirmWeb3Selector: '#confirm-web3-login',
         loginWeb3Selector: '#web3-login-btn',
         errorAlertSelector: '#manage-web3-login-alert',
 
@@ -16,24 +16,24 @@ var EthernaWeb3Singin = {
 
     load: function () {
         if (typeof window.web3 !== "undefined") {
-            $(EthernaWeb3Singin.constants.web3LoginViewSelector).show();
-            $(EthernaWeb3Singin.constants.manageWeb3ViewSelector).show();
+            $(EthernaWeb3Signin.constants.web3LoginViewSelector).show();
+            $(EthernaWeb3Signin.constants.manageWeb3ViewSelector).show();
         } else {
-            $(EthernaWeb3Singin.constants.installMetamaskViewSelector).show();
+            $(EthernaWeb3Signin.constants.installMetamaskViewSelector).show();
         }
 
-        $(EthernaWeb3Singin.constants.loginWeb3Selector).click(EthernaWeb3Singin.web3Signin)
-        $(EthernaWeb3Singin.constants.changeWeb3Selector).click(EthernaWeb3Singin.web3Signin)
+        $(EthernaWeb3Signin.constants.loginWeb3Selector).click(EthernaWeb3Signin.web3Signin)
+        $(EthernaWeb3Signin.constants.confirmWeb3Selector).click(EthernaWeb3Signin.web3Signin)
     },
 
     web3Signin: function () {
-        EthernaWeb3Singin.hideError();
+        EthernaWeb3Signin.hideError();
 
         if (typeof window.ethereum !== 'undefined') {
             window.web3 = new Web3(window.ethereum);
-            window.ethereum.enable().then(EthernaWeb3Singin.getSignMsg).catch(EthernaWeb3Singin.showError);
+            window.ethereum.enable().then(EthernaWeb3Signin.getSignMsg).catch(EthernaWeb3Signin.showError);
         } else {
-            window.web3.eth.getAccounts().then(EthernaWeb3Singin.getSignMsg).catch(EthernaWeb3Singin.showError);
+            window.web3.eth.getAccounts().then(EthernaWeb3Signin.getSignMsg).catch(EthernaWeb3Signin.showError);
         }
     },
 
@@ -41,41 +41,41 @@ var EthernaWeb3Singin = {
         if (accounts && accounts.length) {
             var web3 = window.web3;
             var address = (web3.utils || web3).toChecksumAddress(accounts[0]);
-            var msgUrl = EthernaWeb3Singin.constants.retriveAuthMessageUrl + '&etherAddress=' + address;
+            var msgUrl = EthernaWeb3Signin.constants.retriveAuthMessageUrl + '&etherAddress=' + address;
             $.ajax({
                 url: msgUrl,
                 success: function (msg) {
-                    EthernaWeb3Singin.signAndRedirect(msg, address)
+                    EthernaWeb3Signin.signAndRedirect(msg, address)
                 },
                 beforeSend: function () {
-                    $(EthernaWeb3Singin.constants.changeWeb3Selector).prop('disabled', true);
+                    $(EthernaWeb3Signin.constants.confirmWeb3Selector).prop('disabled', true);
                 },
                 complete: function () {
-                    $(EthernaWeb3Singin.constants.changeWeb3Selector).prop('disabled', false);
+                    $(EthernaWeb3Signin.constants.confirmWeb3Selector).prop('disabled', false);
                 },
-                error: EthernaWeb3Singin.showError
+                error: EthernaWeb3Signin.showError
             });
         } else {
-            EthernaWeb3Singin.showError();
+            EthernaWeb3Signin.showError();
         }
     },
 
     signAndRedirect: function (msg, address) {
-        var confirmSignatureUrl = EthernaWeb3Singin.constants.confirmSignatureUrl;
+        var confirmSignatureUrl = EthernaWeb3Signin.constants.confirmSignatureUrl;
         function signCallback(newSig, oldSig) {
             const sig = oldSig || newSig;
             if (typeof sig === "string") {
                 var redirect = confirmSignatureUrl + '&etherAddress=' + address + '&signature=' + sig;
                 window.location.href = redirect;
             } else {
-                EthernaWeb3Singin.showError();
+                EthernaWeb3Signin.showError();
             }
         }
 
         var web3 = window.web3;
         if (web3.eth.personal) {
             // new web3
-            web3.eth.personal.sign(msg, address).then(signCallback).catch(EthernaWeb3Singin.showError);
+            web3.eth.personal.sign(msg, address).then(signCallback).catch(EthernaWeb3Signin.showError);
         } else {
             // old web3
             web3.personal.sign(msg, address, signCallback);
@@ -84,13 +84,13 @@ var EthernaWeb3Singin = {
 
     showError: function (error) {
         var msg = error && error.message || 'Cannot get the account address. Make sure your wallet is up to date.';
-        $(EthernaWeb3Singin.constants.errorAlertSelector).show();
-        $(EthernaWeb3Singin.constants.errorAlertSelector).text(msg);
+        $(EthernaWeb3Signin.constants.errorAlertSelector).show();
+        $(EthernaWeb3Signin.constants.errorAlertSelector).text(msg);
     },
 
     hideError: function () {
-        $(EthernaWeb3Singin.constants.errorAlertSelector).hide();
+        $(EthernaWeb3Signin.constants.errorAlertSelector).hide();
     }
 }
 
-window.addEventListener('load', EthernaWeb3Singin.load)
+window.addEventListener('load', EthernaWeb3Signin.load)
