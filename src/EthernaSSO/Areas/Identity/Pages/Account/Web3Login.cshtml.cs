@@ -24,6 +24,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
+using MongoDB.Driver;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 
@@ -117,8 +118,13 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 return RedirectToPage("./Login", new { ReturnUrl = returnUrl });
             }
 
-            // Sign in user with web3 if already has an account.
-            var user = await ssoDbContext.Users.TryFindOneAsync(u => u.EtherLoginAddress == etherAddress);
+            // Sign in user with ethereum address if already has an account.
+            // Search for both Web2 accounts with ether login, and for Web3 accounts.
+            var cursor = await ssoDbContext.Users.FindAsync<UserBase>(Builders<UserBase>.Filter.Or(
+                Builders<UserBase>.Filter.Eq(u => u.EtherAddress, etherAddress),    //UserWeb3
+                Builders<UserBase>.Filter.Eq("EtherLoginAddress", etherAddress)));  //UserWeb2
+            var user = await cursor.FirstOrDefaultAsync();
+
             if (user != null)
             {
                 // Check if user is locked out.

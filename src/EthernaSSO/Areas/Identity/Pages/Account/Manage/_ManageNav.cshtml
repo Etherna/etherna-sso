@@ -13,7 +13,7 @@
  *   limitations under the License.
  *@
 
-@inject SignInManager<User> SignInManager
+@inject SignInManager<UserBase> SignInManager
 @{
     var hasExternalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).Any();
 }

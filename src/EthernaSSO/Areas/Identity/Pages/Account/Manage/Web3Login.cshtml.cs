@@ -18,6 +18,7 @@ using Etherna.SSOServer.Services.Domain;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 using Nethereum.Util;
 using System.ComponentModel.DataAnnotations;
@@ -100,8 +101,10 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             if (!user.EtherLoginAddress.IsTheSameAddress(etherAddress))
             {
                 //check for uniqueness
-                if (await ssoDbContext.Users.QueryElementsAsync(elements =>
-                    elements.OfType<UserWeb2>().AnyAsync(u => u.EtherLoginAddress == etherAddress)))
+                var cursor = await ssoDbContext.Users.FindAsync<UserBase>(Builders<UserBase>.Filter.Or(
+                    Builders<UserBase>.Filter.Eq(u => u.EtherAddress, etherAddress),    //UserWeb3
+                    Builders<UserBase>.Filter.Eq("EtherLoginAddress", etherAddress)));  //UserWeb2
+                if (await cursor.AnyAsync())
                 {
                     StatusMessage = $"Can't assign Web3 login. It has already been used with another account.";
                     return RedirectToPage();
