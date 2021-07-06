@@ -31,8 +31,8 @@
                 <input asp-for="Username" class="form-control" disabled />
             </div>
             <div class="form-group">
-                <label asp-for="EthereumAddress"></label>
-                <input asp-for="EthereumAddress" class="form-control" disabled />
+                <label asp-for="EtherAddress"></label>
+                <input asp-for="EtherAddress" class="form-control" disabled />
             </div>
             <div class="form-group">
                 <label asp-for="Input.PhoneNumber"></label>
@@ -41,6 +41,17 @@
             </div>
             <button id="update-profile-button" type="submit" class="btn btn-primary">Save</button>
         </form>
+        @if (Model.EtherPreviousAddresses.Any())
+        {
+            <hr />
+            <label asp-for="EtherPreviousAddresses"></label>
+            <ul>
+                @foreach (var addr in Model.EtherPreviousAddresses)
+                {
+                    <li>@addr</li>
+                }
+            </ul>
+        }
     </div>
 </div>
 

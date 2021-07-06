@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 
@@ -47,7 +48,9 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
 
         // Properties.
         [Display(Name = "Ethereum address (server managed)")]
-        public string EthereumAddress { get; set; } = default!;
+        public string EtherAddress { get; set; } = default!;
+        [Display(Name = "Ethereum previous addresses")]
+        public IEnumerable<string> EtherPreviousAddresses { get; set; } = default!;
         public string Username { get; set; } = default!;
 
         [TempData]
@@ -105,7 +108,8 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             var userName = await _userManager.GetUserNameAsync(user);
             var phoneNumber = await _userManager.GetPhoneNumberAsync(user);
 
-            EthereumAddress = user.EtherAddress;
+            EtherAddress = user.EtherAddress;
+            EtherPreviousAddresses = user.EtherPreviousAddresses;
             Username = userName;
 
             Input = new InputModel
