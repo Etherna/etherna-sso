@@ -142,7 +142,11 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             }
 
             // Sign in the user with this external login provider if the user already has a login.
-            var result = await signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false, bypassTwoFactor: true);
+            var result = await signInManager.ExternalLoginSignInAsync(
+                info.LoginProvider,
+                info.ProviderKey,
+                isPersistent: true,
+                bypassTwoFactor: true);
             if (result.Succeeded)
             {
                 // Check if external login is in the context of an OIDC request.
@@ -248,7 +252,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 if (result.Succeeded)
                 {
                     // Login.
-                    await signInManager.SignInAsync(user, false);
+                    await signInManager.SignInAsync(user, true);
 
                     // Check if external login is in the context of an OIDC request.
                     var context = await idServerInteractionService.GetAuthorizationContextAsync(returnUrl);

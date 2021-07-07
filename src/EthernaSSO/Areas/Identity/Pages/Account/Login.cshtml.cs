@@ -44,9 +44,6 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             [Required]
             [DataType(DataType.Password)]
             public string Password { get; set; } = default!;
-
-            [Display(Name = "Remember me?")]
-            public bool RememberMe { get; set; }
         }
 
         // Fields.
@@ -120,7 +117,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             }
 
             //validate login
-            var result = await signInManager.PasswordSignInAsync(user, Input.Password, Input.RememberMe, lockoutOnFailure: true);
+            var result = await signInManager.PasswordSignInAsync(user, Input.Password, true, lockoutOnFailure: true);
 
             if (result.Succeeded)
             {
@@ -148,7 +145,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
             else if (result.RequiresTwoFactor)
             {
-                return RedirectToPage("./LoginWith2fa", new { ReturnUrl, Input.RememberMe });
+                return RedirectToPage("./LoginWith2fa", new { ReturnUrl });
             }
 
             else if (result.IsLockedOut)
