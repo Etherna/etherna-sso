@@ -71,12 +71,10 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         [BindProperty]
         public InputModel Input { get; set; } = default!;
 
-        public bool RememberMe { get; set; }
-
         public string? ReturnUrl { get; set; }
 
         // Methods.
-        public async Task<IActionResult> OnGetAsync(bool rememberMe, string? returnUrl = null)
+        public async Task<IActionResult> OnGetAsync(string? returnUrl = null)
         {
             // Ensure the user has gone through the username & password screen first
             var user = await signInManager.GetTwoFactorAuthenticationUserAsync();
@@ -87,12 +85,11 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             }
 
             ReturnUrl = returnUrl;
-            RememberMe = rememberMe;
 
             return Page();
         }
 
-        public async Task<IActionResult> OnPostAsync(bool rememberMe, string? returnUrl = null)
+        public async Task<IActionResult> OnPostAsync(string? returnUrl = null)
         {
             // Init page and validate.
             if (!ModelState.IsValid)
@@ -114,7 +111,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             var authenticatorCode = Input.TwoFactorCode.Replace(" ", string.Empty, StringComparison.InvariantCulture)
                                                        .Replace("-", string.Empty, StringComparison.InvariantCulture);
 
-            var result = await signInManager.TwoFactorAuthenticatorSignInAsync(authenticatorCode, rememberMe, Input.RememberMachine);
+            var result = await signInManager.TwoFactorAuthenticatorSignInAsync(authenticatorCode, true, Input.RememberMachine);
 
             if (result.Succeeded)
             {
