@@ -24,6 +24,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
+using MongoDB.Driver;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 
@@ -39,7 +40,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             public string? Email { get; set; }
 
             [Required]
-            [RegularExpression(Domain.Models.User.UsernameRegex, ErrorMessage = "Allowed characters are a-z, A-Z, 0-9, _. Permitted length is between 5 and 20.")]
+            [RegularExpression(UserBase.UsernameRegex, ErrorMessage = "Allowed characters are a-z, A-Z, 0-9, _. Permitted length is between 5 and 20.")]
             [Display(Name = "Username")]
             public string Username { get; set; } = default!;
         }
@@ -49,9 +50,9 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         private readonly IEventDispatcher eventDispatcher;
         private readonly IIdentityServerInteractionService idServerInteractionService;
         private readonly ILogger<ExternalLoginModel> logger;
-        private readonly SignInManager<User> signInManager;
+        private readonly SignInManager<UserBase> signInManager;
         private readonly ISsoDbContext ssoDbContext;
-        private readonly UserManager<User> userManager;
+        private readonly UserManager<UserBase> userManager;
         private readonly IWeb3AuthnService web3AuthnService;
 
         // Constructor.
@@ -60,9 +61,9 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             IEventDispatcher eventDispatcher,
             IIdentityServerInteractionService idServerInteractionService,
             ILogger<ExternalLoginModel> logger,
-            SignInManager<User> signInManager,
+            SignInManager<UserBase> signInManager,
             ISsoDbContext ssoDbContext,
-            UserManager<User> userManager,
+            UserManager<UserBase> userManager,
             IWeb3AuthnService web3AuthnService)
         {
             this.clientStore = clientStore;
@@ -117,8 +118,13 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 return RedirectToPage("./Login", new { ReturnUrl = returnUrl });
             }
 
-            // Sign in user with web3 if already has an account.
-            var user = await ssoDbContext.Users.TryFindOneAsync(u => u.EtherLoginAddress == etherAddress);
+            // Sign in user with ethereum address if already has an account.
+            // Search for both Web2 accounts with ether login, and for Web3 accounts.
+            var cursor = await ssoDbContext.Users.FindAsync<UserBase>(Builders<UserBase>.Filter.Or(
+                Builders<UserBase>.Filter.Eq(u => u.EtherAddress, etherAddress),    //UserWeb3
+                Builders<UserBase>.Filter.Eq("EtherLoginAddress", etherAddress)));  //UserWeb2
+            var user = await cursor.FirstOrDefaultAsync();
+
             if (user != null)
             {
                 // Check if user is locked out.
@@ -221,7 +227,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 return Page();
 
             // Create user.
-            var user = Domain.Models.User.CreateManagedWithEtherLoginAddress(etherAddress, Input.Username, Input.Email);
+            var user = new UserWeb3(etherAddress, Input.Username, Input.Email);
 
             var result = await userManager.CreateAsync(user);
             if (result.Succeeded)

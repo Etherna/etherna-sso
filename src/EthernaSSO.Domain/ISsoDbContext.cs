@@ -23,7 +23,7 @@ namespace Etherna.SSOServer.Domain
     {
         ICollectionRepository<LogBase, string> Logs { get; }
         ICollectionRepository<Role, string> Roles { get; }
-        ICollectionRepository<User, string> Users { get; }
+        ICollectionRepository<UserBase, string> Users { get; }
         ICollectionRepository<Web3LoginToken, string> Web3LoginTokens { get; }
     }
 }

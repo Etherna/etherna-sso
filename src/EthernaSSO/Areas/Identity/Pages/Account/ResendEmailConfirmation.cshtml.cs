@@ -38,11 +38,11 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         }
 
         // Fields.
-        private readonly UserManager<User> _userManager;
+        private readonly UserManager<UserBase> _userManager;
         private readonly IEmailSender _emailSender;
 
         // Constructor.
-        public ResendEmailConfirmationModel(UserManager<User> userManager, IEmailSender emailSender)
+        public ResendEmailConfirmationModel(UserManager<UserBase> userManager, IEmailSender emailSender)
         {
             _userManager = userManager;
             _emailSender = emailSender;

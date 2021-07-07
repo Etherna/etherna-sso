@@ -25,33 +25,36 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
     {
         public void Register(IDbContext dbContext)
         {
-            dbContext.SchemaRegister.AddModelMapsSchema<User>("a492aaa7-196c-4ec0-8fb5-255d099d0b9f",
-                modelMap =>
-                {
-                    modelMap.AutoMap();
+            dbContext.SchemaRegister.AddModelMapsSchema<UserBase>("a492aaa7-196c-4ec0-8fb5-255d099d0b9f", mm =>
+            {
+                mm.AutoMap();
 
-                    // Set members to ignore if null.
-                    modelMap.GetMemberMap(u => u.Email).SetIgnoreIfNull(true);
-                    modelMap.GetMemberMap(u => u.EmailConfirmed).SetIgnoreIfNull(true);
-                    modelMap.GetMemberMap(u => u.EtherLoginAddress).SetIgnoreIfNull(true);
-                    modelMap.GetMemberMap(u => u.EtherManagedPrivateKey).SetIgnoreIfNull(true);
-                    modelMap.GetMemberMap(u => u.LockoutEnabled).SetIgnoreIfNull(true);
-                    modelMap.GetMemberMap(u => u.LockoutEnd).SetIgnoreIfNull(true);
-                    modelMap.GetMemberMap(u => u.Logins).SetIgnoreIfNull(true);
-                    modelMap.GetMemberMap(u => u.NormalizedEmail).SetIgnoreIfNull(true);
-                    modelMap.GetMemberMap(u => u.NormalizedUsername).SetIgnoreIfNull(true);
-                    modelMap.GetMemberMap(u => u.PasswordHash).SetIgnoreIfNull(true);
-                    modelMap.GetMemberMap(u => u.Username).SetIgnoreIfNull(true);
+                // Set members to ignore if null.
+                mm.GetMemberMap(u => u.Email).SetIgnoreIfNull(true);
+                mm.GetMemberMap(u => u.EmailConfirmed).SetIgnoreIfNull(true);
+                mm.GetMemberMap(u => u.LockoutEnabled).SetIgnoreIfNull(true);
+                mm.GetMemberMap(u => u.LockoutEnd).SetIgnoreIfNull(true);
+                mm.GetMemberMap(u => u.NormalizedEmail).SetIgnoreIfNull(true);
+                mm.GetMemberMap(u => u.NormalizedUsername).SetIgnoreIfNull(true);
+                mm.GetMemberMap(u => u.Username).SetIgnoreIfNull(true);
+            });
+            dbContext.SchemaRegister.AddModelMapsSchema<UserWeb2>("2ccb567f-63cc-4fb3-b66e-a51fb4ff1bfe", mm =>
+            {
+                mm.AutoMap();
 
-                    // Force serialization of readonly props.
-                    modelMap.MapProperty(u => u.EtherAddress);
-                });
+                // Set members to ignore if null.
+                mm.GetMemberMap(u => u.EtherLoginAddress).SetIgnoreIfNull(true);
+                mm.GetMemberMap(u => u.EtherManagedPrivateKey).SetIgnoreIfNull(true);
+                mm.GetMemberMap(u => u.Logins).SetIgnoreIfNull(true);
+                mm.GetMemberMap(u => u.PasswordHash).SetIgnoreIfNull(true);
+            });
+            dbContext.SchemaRegister.AddModelMapsSchema<UserWeb3>("7d8804ab-217c-476a-a47f-977fe693fce3");
         }
 
         /// <summary>
         /// A minimal serialized with only id
         /// </summary>
-        public static ReferenceSerializer<User, string> ReferenceSerializer(
+        public static ReferenceSerializer<UserBase, string> ReferenceSerializer(
             IDbContext dbContext,
             bool useCascadeDelete = false) =>
             new(dbContext, config =>
@@ -64,10 +67,12 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
                     mm.MapIdMember(m => m.Id);
                     mm.IdMemberMap.SetSerializer(new StringSerializer(BsonType.ObjectId));
                 });
-                config.AddModelMapsSchema<User>("834af7e2-c858-410a-b7b9-bdaf516fa215", mm =>
+                config.AddModelMapsSchema<UserBase>("834af7e2-c858-410a-b7b9-bdaf516fa215", mm =>
                 {
                     mm.MapMember(m => m.EtherAddress);
                 });
+                config.AddModelMapsSchema<UserWeb2>("a1976133-bb21-40af-b6de-3a0f7f7dc676", mm => { });
+                config.AddModelMapsSchema<UserWeb3>("521125ff-f337-4606-81de-89dc0afb35b0", mm => { });
             });
     }
 }

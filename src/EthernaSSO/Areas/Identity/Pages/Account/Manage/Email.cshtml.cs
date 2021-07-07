@@ -40,13 +40,13 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
         // Fields.
         private readonly IEmailSender emailSender;
         private readonly ISsoDbContext ssoDbContext;
-        private readonly UserManager<User> userManager;
+        private readonly UserManager<UserBase> userManager;
 
         // Constructor.
         public EmailModel(
             IEmailSender emailSender,
             ISsoDbContext ssoDbContext,
-            UserManager<User> userManager)
+            UserManager<UserBase> userManager)
         {
             this.emailSender = emailSender;
             this.ssoDbContext = ssoDbContext;
@@ -154,7 +154,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
         }
 
         // Helpers.
-        private async Task LoadAsync(User user)
+        private async Task LoadAsync(UserBase user)
         {
             Email = await userManager.GetEmailAsync(user);
             IsEmailConfirmed = await userManager.IsEmailConfirmedAsync(user);

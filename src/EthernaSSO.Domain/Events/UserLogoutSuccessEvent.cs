@@ -19,11 +19,11 @@ namespace Etherna.SSOServer.Domain.Events
 {
     public class UserLogoutSuccessEvent : IDomainEvent
     {
-        public UserLogoutSuccessEvent(User? user)
+        public UserLogoutSuccessEvent(UserBase? user)
         {
             User = user;
         }
 
-        public User? User { get; } //nullable because user may have been removed
+        public UserBase? User { get; } //nullable because user may have been removed
     }
 }

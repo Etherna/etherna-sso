@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 
@@ -33,21 +34,24 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
         }
 
         // Fields.
-        private readonly UserManager<User> _userManager;
-        private readonly SignInManager<User> _signInManager;
+        private readonly UserManager<UserBase> _userManager;
+        private readonly SignInManager<UserBase> _signInManager;
 
         // Constructor.
         public IndexModel(
-            UserManager<User> userManager,
-            SignInManager<User> signInManager)
+            UserManager<UserBase> userManager,
+            SignInManager<UserBase> signInManager)
         {
             _userManager = userManager;
             _signInManager = signInManager;
         }
 
         // Properties.
-        [Display(Name = "Ethereum address (server managed)")]
-        public string EthereumAddress { get; set; } = default!;
+        [Display(Name = "Ethereum address")]
+        public string EtherAddress { get; set; } = default!;
+        [Display(Name = "Ethereum previous addresses")]
+        public IEnumerable<string> EtherPreviousAddresses { get; set; } = default!;
+        public bool IsWeb3User { get; set; }
         public string Username { get; set; } = default!;
 
         [TempData]
@@ -100,12 +104,14 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
         }
 
         // Helpers.
-        private async Task LoadAsync(User user)
+        private async Task LoadAsync(UserBase user)
         {
             var userName = await _userManager.GetUserNameAsync(user);
             var phoneNumber = await _userManager.GetPhoneNumberAsync(user);
 
-            EthereumAddress = user.EtherAddress;
+            EtherAddress = user.EtherAddress;
+            EtherPreviousAddresses = user.EtherPreviousAddresses;
+            IsWeb3User = user is UserWeb3;
             Username = userName;
 
             Input = new InputModel

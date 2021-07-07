@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Exceptions;
 using IdentityServer4;
 using IdentityServer4.Models;
@@ -203,8 +204,9 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                     Name = "ether_accounts",
                     UserClaims = new List<string>()
                     {
-                        "ether_address",
-                        "ether_prev_addresses"
+                        UserBase.DefaultClaimTypes.EtherAddress,
+                        UserBase.DefaultClaimTypes.EtherPreviousAddresses,
+                        UserBase.DefaultClaimTypes.IsWeb3Account
                     }
                 }
             };

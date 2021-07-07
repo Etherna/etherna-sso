@@ -21,21 +21,34 @@ namespace Etherna.SSOServer.Areas.Api.DtoModels
     public class PrivateUserDto
     {
         // Constructor.
-        public PrivateUserDto(User user)
+        public PrivateUserDto(UserBase user)
         {
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
 
             Email = user.Email;
             EtherAddress = user.EtherAddress;
-            EtherManagedPrivateKey = user.EtherManagedPrivateKey;
             EtherPreviousAddresses = user.EtherPreviousAddresses;
-            EtherLoginAddress = user.EtherLoginAddress;
             PhoneNumber = user.PhoneNumber;
             Username = user.Username;
+
+            switch (user)
+            {
+                case UserWeb2 userWeb2:
+                    AccountType = "web2";
+                    EtherManagedPrivateKey = userWeb2.EtherManagedPrivateKey;
+                    EtherLoginAddress = userWeb2.EtherLoginAddress;
+                    break;
+                case UserWeb3 _:
+                    AccountType = "web3";
+                    break;
+                default:
+                    throw new InvalidOperationException();
+            }
         }
 
         // Properties.
+        public string AccountType { get; }
         public string? Email { get; }
         public string EtherAddress { get; }
         public string? EtherManagedPrivateKey { get; }

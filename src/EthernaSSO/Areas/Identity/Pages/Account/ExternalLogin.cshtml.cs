@@ -46,7 +46,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             public string? Email { get; set; }
 
             [Required]
-            [RegularExpression(Domain.Models.User.UsernameRegex, ErrorMessage = "Allowed characters are a-z, A-Z, 0-9, _. Permitted length is between 5 and 20.")]
+            [RegularExpression(Domain.Models.UserBase.UsernameRegex, ErrorMessage = "Allowed characters are a-z, A-Z, 0-9, _. Permitted length is between 5 and 20.")]
             [Display(Name = "Username")]
             public string Username { get; set; } = default!;
         }
@@ -56,9 +56,9 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         private readonly IEventDispatcher eventDispatcher;
         private readonly IIdentityServerInteractionService idServerInteractionService;
         private readonly ILogger<ExternalLoginModel> logger;
-        private readonly SignInManager<User> signInManager;
+        private readonly SignInManager<UserBase> signInManager;
         private readonly ISsoDbContext ssoDbContext;
-        private readonly UserManager<User> userManager;
+        private readonly UserManager<UserBase> userManager;
 
         // Constructor.
         public ExternalLoginModel(
@@ -66,9 +66,9 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             IEventDispatcher eventDispatcher,
             IIdentityServerInteractionService idServerInteractionService,
             ILogger<ExternalLoginModel> logger,
-            SignInManager<User> signInManager,
+            SignInManager<UserBase> signInManager,
             ISsoDbContext ssoDbContext,
-            UserManager<User> userManager)
+            UserManager<UserBase> userManager)
         {
             this.clientStore = clientStore;
             this.eventDispatcher = eventDispatcher;
@@ -150,8 +150,9 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
                 // Rise event and create log.
                 var user = await ssoDbContext.Users.QueryElementsAsync(elements =>
-                    elements.FirstOrDefaultAsync(u => u.Logins.Any(
-                        l => l.LoginProvider == info.LoginProvider && l.ProviderKey == info.ProviderKey)));
+                    elements.OfType<UserWeb2>()
+                            .FirstOrDefaultAsync(u => u.Logins.Any(
+                                l => l.LoginProvider == info.LoginProvider && l.ProviderKey == info.ProviderKey)));
                 await eventDispatcher.DispatchAsync(new UserLoginSuccessEvent(
                     user,
                     clientId: context?.Client?.ClientId,
@@ -238,10 +239,10 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 }
 
                 // Create user.
-                var user = Domain.Models.User.CreateManagedWithExternalLogin(
-                    new Domain.Models.UserAgg.UserLoginInfo(info.LoginProvider, info.ProviderKey, info.ProviderDisplayName),
+                var user = new UserWeb2(
                     Input.Username,
-                    Input.Email);
+                    Input.Email,
+                    new Domain.Models.UserAgg.UserLoginInfo(info.LoginProvider, info.ProviderKey, info.ProviderDisplayName));
 
                 var result = await userManager.CreateAsync(user);
                 if (result.Succeeded)

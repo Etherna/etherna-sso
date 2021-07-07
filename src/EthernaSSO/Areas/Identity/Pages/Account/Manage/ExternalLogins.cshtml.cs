@@ -27,13 +27,13 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
     public class ExternalLoginsModel : PageModel
     {
         // Fields.
-        private readonly SignInManager<User> signInManager;
-        private readonly UserManager<User> userManager;
+        private readonly SignInManager<UserBase> signInManager;
+        private readonly UserManager<UserBase> userManager;
 
         // Constructor.
         public ExternalLoginsModel(
-            SignInManager<User> signInManager,
-            UserManager<User> userManager)
+            SignInManager<UserBase> signInManager,
+            UserManager<UserBase> userManager)
         {
             this.signInManager = signInManager;
             this.userManager = userManager;
@@ -50,11 +50,8 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
         // Methods.
         public async Task<IActionResult> OnGetAsync()
         {
-            var user = await userManager.GetUserAsync(User);
-            if (user == null)
-            {
-                return NotFound($"Unable to load user with ID 'user.Id'.");
-            }
+            if (await userManager.GetUserAsync(User) is not UserWeb2 user)
+                return NotFound($"Unable to load user with ID '{userManager.GetUserId(User)}'.");
 
             CurrentLogins.AddRange(await userManager.GetLoginsAsync(user));
             OtherLogins.AddRange((await signInManager.GetExternalAuthenticationSchemesAsync())

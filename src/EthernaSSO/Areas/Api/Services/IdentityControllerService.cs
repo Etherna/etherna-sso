@@ -29,12 +29,12 @@ namespace Etherna.SSOServer.Areas.Api.Services
     {
         // Fields.
         private readonly ISsoDbContext context;
-        private readonly UserManager<User> userManager;
+        private readonly UserManager<UserBase> userManager;
 
         // Constructors.
         public IdentityControllerService(
             ISsoDbContext context,
-            UserManager<User> userManager)
+            UserManager<UserBase> userManager)
         {
             this.context = context;
             this.userManager = userManager;
@@ -62,13 +62,13 @@ namespace Etherna.SSOServer.Areas.Api.Services
 
         public async Task<UserDto> GetUserByUsernameAsync(string username)
         {
-            username = User.NormalizeUsername(username);
+            username = UserBase.NormalizeUsername(username);
 
             var user = await context.Users.FindOneAsync(u => u.NormalizedUsername == username);
             return new UserDto(user);
         }
 
         public Task<bool> IsEmailRegisteredAsync(string email) =>
-            context.Users.QueryElementsAsync(users => users.AnyAsync(u => u.NormalizedEmail == User.NormalizeEmail(email)));
+            context.Users.QueryElementsAsync(users => users.AnyAsync(u => u.NormalizedEmail == UserBase.NormalizeEmail(email)));
     }
 }

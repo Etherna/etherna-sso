@@ -54,8 +54,8 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         private readonly IEventDispatcher eventDispatcher;
         private readonly IIdentityServerInteractionService idServerInteractService;
         private readonly ILogger<LoginModel> logger;
-        private readonly SignInManager<User> signInManager;
-        private readonly UserManager<User> userManager;
+        private readonly SignInManager<UserBase> signInManager;
+        private readonly UserManager<UserBase> userManager;
 
         // Constructor.
         public LoginModel(
@@ -63,8 +63,8 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             IEventDispatcher eventDispatcher,
             IIdentityServerInteractionService idServerInteractService,
             ILogger<LoginModel> logger,
-            SignInManager<User> signInManager,
-            UserManager<User> userManager)
+            SignInManager<UserBase> signInManager,
+            UserManager<UserBase> userManager)
         {
             this.clientStore = clientStore;
             this.eventDispatcher = eventDispatcher;

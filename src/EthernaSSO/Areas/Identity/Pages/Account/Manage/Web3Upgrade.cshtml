@@ -1,0 +1,59 @@
+﻿@page
+@model Etherna.SSOServer.Areas.Identity.Pages.Account.Manage.Web3UpgradeModel
+@{
+    ViewData["Title"] = "Upgrade to Web3 account";
+    ViewData["ActivePage"] = ManageNavPages.Web3Login;
+
+    var retriveAuthMessageUrl = Url.Page("Web3Upgrade", "RetriveAuthMessage");
+    var confirmSignatureUrl = Url.Page("Web3Upgrade", "UpgradeWeb3");
+}
+
+<h4>@ViewData["Title"]</h4>
+<partial name="_StatusMessage" model="Model.StatusMessage" />
+
+<div class="alert alert-warning" role="alert">
+        <p>
+            <strong>Upgrading to Web3 you will start to use a new generation of accounts.</strong> With this new kind of account
+            you will be the only owner of your keys, and this mean that you will be the only responsible for keep them safe.
+        </p>
+        <p>
+            <strong>If you lose your keys, we will not be able to recover your account.</strong>
+        </p>
+        <p>
+            Upgrading your account to Web3 <strong>you will lose ability to login with any other method than you Ethereum address</strong>,
+            but you will gain a big step into your personal web independency.
+        </p>
+        <p>
+            <strong>Attention, the operation is not reversible.</strong>
+        </p>
+</div>
+
+<div>
+    <form id="web3-upgrade" method="post" class="form-group">
+        <div id="manage-web3-login" style="display:none">
+            <div id="manage-web3-login-alert" class="alert alert-danger" style="display:none"></div>
+            <p>
+                <button id="confirm-web3-login" class="btn btn-secondary" type="button">
+                    Yes, I know what I'm doing. Upgrade to Web3 account!
+                </button>
+            </p>
+        </div>
+
+        <div id="install-metamask" style="display:none">
+            <a href="https://metamask.io/"><img src="/images/metamask-logo.svg" /></a>
+            <p>Do you need a new web3 wallet? Try to install <a href="https://metamask.io/">Metamask</a></p>
+        </div>
+    </form>
+</div>
+
+<script type="text/javascript">
+    window.addEventListener('load', function () {
+        window.EthernaWeb3Signin.constants.retriveAuthMessageUrl = '@Html.Raw(retriveAuthMessageUrl)';
+        window.EthernaWeb3Signin.constants.confirmSignatureUrl = '@Html.Raw(confirmSignatureUrl)';
+    });
+</script>
+<script src="~/js/etherna-web3-signin.js" asp-append-version="true"></script>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

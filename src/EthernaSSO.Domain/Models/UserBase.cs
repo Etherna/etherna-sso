@@ -15,20 +15,16 @@
 using Etherna.MongODM.Core.Attributes;
 using Etherna.SSOServer.Domain.Models.UserAgg;
 using Microsoft.AspNetCore.Identity;
-using Nethereum.Hex.HexConvertors.Extensions;
-using Nethereum.Util;
-using Nethereum.Web3.Accounts;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using UserLoginInfo = Etherna.SSOServer.Domain.Models.UserAgg.UserLoginInfo;
 
 namespace Etherna.SSOServer.Domain.Models
 {
-    public class User : EntityModelBase<string>
+    public abstract class UserBase : EntityModelBase<string>
     {
         // Consts.
         public const string AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._";
@@ -37,82 +33,25 @@ namespace Etherna.SSOServer.Domain.Models
         public static class DefaultClaimTypes
         {
             public const string EtherAddress = "ether_address";
-            public const string EtherPreviousAddress = "ether_prev_addresses";
+            public const string EtherPreviousAddresses = "ether_prev_addresses";
+            public const string IsWeb3Account = "isWeb3Account";
         }
 
         // Fields.
         private readonly List<UserClaim> _customClaims = new();
-        private Account? _etherManagedAccount;
         private List<string> _etherPreviousAddresses = new();
-        private List<UserLoginInfo> _logins = new();
         private List<Role> _roles = new();
-        private List<string> _twoFactorRecoveryCode = new();
 
-        // Constructors and dispose.
-        ///// <summary>
-        ///// Web3 unmanaged user registration
-        ///// </summary>
-        ///// <param name="address">The user public address</param>
-        //public User(string address)
-        //{
-        //    Address = address;
-        //}
-        protected User() { }
-
-        // Static builders.
-        public static User CreateManagedWithEtherLoginAddress(string loginAddress, string username, string? email = default)
+        // Constructors.
+        protected UserBase(string username, string? email = default)
         {
-            var privateKey = GenerateEtherPrivateKey();
-
-            var user = new User { EtherManagedPrivateKey = privateKey };
-            user.SetEtherLoginAddress(loginAddress);
-            user.SetUsername(username);
-            if (email != null) user.SetEmail(email);
-
-            return user;
+            SetUsername(username);
+            if (email != null)
+                SetEmail(email);
         }
-
-        public static User CreateManagedWithExternalLogin(UserLoginInfo loginInfo, string username, string? email = default)
-        {
-            var privateKey = GenerateEtherPrivateKey();
-
-            var user = new User { EtherManagedPrivateKey = privateKey };
-            user.AddLogin(loginInfo);
-            user.SetUsername(username);
-            if (email != null) user.SetEmail(email);
-
-            return user;
-        }
-
-        public static User CreateManagedWithUsername(string username, string? email = default)
-        {
-            var privateKey = GenerateEtherPrivateKey();
-
-            var user = new User { EtherManagedPrivateKey = privateKey };
-            user.SetUsername(username);
-            if (email != null) user.SetEmail(email);
-
-            return user;
-        }
+        protected UserBase() { }
 
         // Properties.
-        public virtual int AccessFailedCount { get; protected set; }
-        public virtual string? AuthenticatorKey { get; set; }
-        public virtual bool CanLoginWithEmail => NormalizedEmail != null && PasswordHash != null;
-        public virtual bool CanLoginWithEtherAddress => EtherLoginAddress != null;
-        public virtual bool CanLoginWithExternalProvider => Logins.Any();
-        public virtual bool CanLoginWithUsername => NormalizedUsername != null && PasswordHash != null;
-        public virtual bool CanRemoveEtherLoginAddress =>
-            CanLoginWithEtherAddress &&
-                (CanLoginWithEmail ||
-                 CanLoginWithExternalProvider ||
-                 CanLoginWithUsername);
-        public virtual bool CanRemoveExternalLogin =>
-            CanLoginWithExternalProvider &&
-                (CanLoginWithEmail ||
-                 CanLoginWithEtherAddress ||
-                 CanLoginWithUsername ||
-                 Logins.Count() >= 2);
         public virtual IEnumerable<UserClaim> Claims
         {
             get => DefaultClaims.Union(_customClaims);
@@ -126,28 +65,14 @@ namespace Etherna.SSOServer.Domain.Models
             new []
             {
                 new UserClaim(DefaultClaimTypes.EtherAddress, EtherAddress),
-                new UserClaim(DefaultClaimTypes.EtherPreviousAddress, JsonSerializer.Serialize(_etherPreviousAddresses))
+                new UserClaim(DefaultClaimTypes.EtherPreviousAddresses, JsonSerializer.Serialize(_etherPreviousAddresses)),
+                new UserClaim(DefaultClaimTypes.IsWeb3Account, (this is UserWeb3).ToString())
             };
         [PersonalData]
         public virtual string? Email { get; protected set; }
         public virtual bool EmailConfirmed { get; protected set; }
         [PersonalData]
-        public virtual string EtherAddress => EtherManagedAccount?.Address ??
-            throw new InvalidOperationException("Can't find a valid ethereum address");
-        public virtual Account? EtherManagedAccount
-        {
-            get
-            {
-                if (EtherManagedPrivateKey is null)
-                    return null;
-
-                if (_etherManagedAccount is null)
-                    _etherManagedAccount = new Account(EtherManagedPrivateKey);
-
-                return _etherManagedAccount;
-            }
-        }
-        public virtual string? EtherManagedPrivateKey { get; protected set; }
+        public virtual string EtherAddress { get; protected set; } = default!;
         [PersonalData]
         public virtual IEnumerable<string> EtherPreviousAddresses
         {
@@ -155,19 +80,11 @@ namespace Etherna.SSOServer.Domain.Models
             protected set => _etherPreviousAddresses = new List<string>(value ?? Array.Empty<string>());
         }
         [PersonalData]
-        public virtual string? EtherLoginAddress { get; protected set; }
-        public virtual bool HasPassword => !string.IsNullOrEmpty(PasswordHash);
         public virtual DateTime LastLoginDateTime { get; protected set; }
         public virtual bool LockoutEnabled { get; set; }
         public virtual DateTimeOffset? LockoutEnd { get; set; }
-        public virtual IEnumerable<UserLoginInfo> Logins
-        {
-            get => _logins;
-            protected set => _logins = new List<UserLoginInfo>(value ?? Array.Empty<UserLoginInfo>());
-        }
         public virtual string? NormalizedEmail { get; protected set; }
         public virtual string NormalizedUsername { get; protected set; } = default!;
-        public virtual string? PasswordHash { get; set; }
         [PersonalData]
         public virtual string? PhoneNumber { get; protected set; }
         public virtual bool PhoneNumberConfirmed { get; protected set; }
@@ -177,12 +94,6 @@ namespace Etherna.SSOServer.Domain.Models
             protected set => _roles = new List<Role>(value ?? Array.Empty<Role>());
         }
         public virtual string SecurityStamp { get; set; } = default!;
-        public virtual bool TwoFactorEnabled { get; set; }
-        public virtual IEnumerable<string> TwoFactorRecoveryCodes
-        {
-            get => _twoFactorRecoveryCode;
-            set => _twoFactorRecoveryCode = new List<string>(value ?? Array.Empty<string>());
-        }
         [PersonalData]
         public virtual string Username { get; protected set; } = default!;
 
@@ -199,7 +110,8 @@ namespace Etherna.SSOServer.Domain.Models
                 switch (claim.Type)
                 {
                     case DefaultClaimTypes.EtherAddress:
-                    case DefaultClaimTypes.EtherPreviousAddress:
+                    case DefaultClaimTypes.EtherPreviousAddresses:
+                    case DefaultClaimTypes.IsWeb3Account:
                         continue;
                 }
 
@@ -210,17 +122,6 @@ namespace Etherna.SSOServer.Domain.Models
 
                 _customClaims.Add(claim);
             }
-        }
-
-        [PropertyAlterer(nameof(Logins))]
-        public virtual bool AddLogin(UserLoginInfo userLoginInfo)
-        {
-            //avoid multiaccounting with same provider
-            if (Logins.Any(login => login.LoginProvider == userLoginInfo.ProviderKey))
-                return false;
-
-            _logins.Add(userLoginInfo);
-            return true;
         }
 
         [PropertyAlterer(nameof(Roles))]
@@ -246,20 +147,6 @@ namespace Etherna.SSOServer.Domain.Models
                 throw new InvalidOperationException();
 
             PhoneNumberConfirmed = true;
-        }
-
-        [PropertyAlterer(nameof(AccessFailedCount))]
-        public virtual void IncrementAccessFailedCount() => AccessFailedCount++;
-
-        [PropertyAlterer(nameof(TwoFactorRecoveryCodes))]
-        public virtual bool RedeemTwoFactorRecoveryCode(string code)
-        {
-            if (_twoFactorRecoveryCode.Contains(code))
-            {
-                _twoFactorRecoveryCode.Remove(code);
-                return true;
-            }
-            return false;
         }
 
         [PropertyAlterer(nameof(Claims))]
@@ -288,39 +175,9 @@ namespace Etherna.SSOServer.Domain.Models
             return true;
         }
 
-        [PropertyAlterer(nameof(EtherLoginAddress))]
-        public virtual void RemoveEtherLoginAddress()
-        {
-            if (!CanRemoveEtherLoginAddress)
-                throw new InvalidOperationException();
-
-            EtherLoginAddress = null;
-        }
-
-        [PropertyAlterer(nameof(Logins))]
-        public virtual bool RemoveExternalLogin(string loginProvider, string providerKey)
-        {
-            if (!CanRemoveExternalLogin)
-                throw new InvalidOperationException();
-
-            return _logins.RemoveAll(l => l.LoginProvider == loginProvider && l.ProviderKey == providerKey) > 0;
-        }
-
         [PropertyAlterer(nameof(Roles))]
         public virtual bool RemoveRole(string roleName) =>
             _roles.RemoveAll(r => r.Name == roleName) > 0;
-
-        [PropertyAlterer(nameof(AccessFailedCount))]
-        public virtual void ResetAccessFailedCount() => AccessFailedCount = 0;
-
-        [PropertyAlterer(nameof(EtherLoginAddress))]
-        public virtual void SetEtherLoginAddress(string address)
-        {
-            if (!address.IsValidEthereumAddressHexFormat())
-                throw new ArgumentException("The value is not a valid address", nameof(address));
-
-            EtherLoginAddress = address.ConvertToEthereumChecksumAddress();
-        }
 
         [PropertyAlterer(nameof(Email))]
         [PropertyAlterer(nameof(EmailConfirmed))]
@@ -394,14 +251,6 @@ namespace Etherna.SSOServer.Domain.Models
             username = username.ToUpper(CultureInfo.InvariantCulture); //to upper case
 
             return username;
-        }
-
-        // Private helpers.
-        private static string GenerateEtherPrivateKey()
-        {
-            var ecKey = Nethereum.Signer.EthECKey.GenerateKey();
-            var privateKey = ecKey.GetPrivateKeyAsBytes().ToHex();
-            return privateKey;
         }
     }
 }

@@ -15,8 +15,8 @@
 
 @using Microsoft.AspNetCore.Identity
 @using Etherna.SSOServer.Domain.Models
-@inject SignInManager<User> SignInManager
-@inject UserManager<User> UserManager
+@inject SignInManager<UserBase> SignInManager
+@inject UserManager<UserBase> UserManager
 
 <ul class="navbar-nav">
 @if (SignInManager.IsSignedIn(User))

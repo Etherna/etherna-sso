@@ -17,13 +17,13 @@ namespace Etherna.SSOServer.Domain.Models.Logs
     public class UserLoginSuccessLog : LogBase
     {
         // Constructors.
-        public UserLoginSuccessLog(User user)
+        public UserLoginSuccessLog(UserBase user)
         {
             User = user;
         }
         protected UserLoginSuccessLog() { }
 
         // Properties.
-        public virtual User User { get; protected set; } = default!;
+        public virtual UserBase User { get; protected set; } = default!;
     }
 }
