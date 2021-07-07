@@ -33,7 +33,8 @@ namespace Etherna.SSOServer.Domain.Models
         public static class DefaultClaimTypes
         {
             public const string EtherAddress = "ether_address";
-            public const string EtherPreviousAddress = "ether_prev_addresses";
+            public const string EtherPreviousAddresses = "ether_prev_addresses";
+            public const string IsWeb3Account = "isWeb3Account";
         }
 
         // Fields.
@@ -64,7 +65,8 @@ namespace Etherna.SSOServer.Domain.Models
             new []
             {
                 new UserClaim(DefaultClaimTypes.EtherAddress, EtherAddress),
-                new UserClaim(DefaultClaimTypes.EtherPreviousAddress, JsonSerializer.Serialize(_etherPreviousAddresses))
+                new UserClaim(DefaultClaimTypes.EtherPreviousAddresses, JsonSerializer.Serialize(_etherPreviousAddresses)),
+                new UserClaim(DefaultClaimTypes.IsWeb3Account, (this is UserWeb3).ToString())
             };
         [PersonalData]
         public virtual string? Email { get; protected set; }
@@ -108,7 +110,8 @@ namespace Etherna.SSOServer.Domain.Models
                 switch (claim.Type)
                 {
                     case DefaultClaimTypes.EtherAddress:
-                    case DefaultClaimTypes.EtherPreviousAddress:
+                    case DefaultClaimTypes.EtherPreviousAddresses:
+                    case DefaultClaimTypes.IsWeb3Account:
                         continue;
                 }
 
