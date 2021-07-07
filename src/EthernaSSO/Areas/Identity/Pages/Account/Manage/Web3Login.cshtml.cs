@@ -48,13 +48,13 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
         }
 
         // Properties.
+        [Display(Name = "Ethereum login address")]
+        public string? EtherLoginAddress { get; private set; }
+
         public bool ShowRemoveButton { get; set; }
 
         [TempData]
         public string? StatusMessage { get; set; }
-
-        [Display(Name = "Web3 login address")]
-        public string? Web3Login { get; private set; }
 
         // Methods.
         public async Task<IActionResult> OnGetAsync()
@@ -62,8 +62,8 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             if (await userManager.GetUserAsync(User) is not UserWeb2 user)
                 return NotFound($"Unable to load user with ID '{userManager.GetUserId(User)}'.");
 
+            EtherLoginAddress = user.EtherLoginAddress;
             ShowRemoveButton = user.CanRemoveEtherLoginAddress;
-            Web3Login = user.EtherLoginAddress;
 
             return Page();
         }
