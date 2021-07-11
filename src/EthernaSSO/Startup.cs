@@ -47,6 +47,11 @@ namespace Etherna.SSOServer
 {
     public class Startup
     {
+        // Consts.
+        public const string DatabaseAdminPath = "/admin/db";
+        public const string HangfireAdminPath = "/admin/hangfire";
+
+        // Constructor.
         public Startup(
             IConfiguration configuration,
             IWebHostEnvironment environment)
@@ -55,9 +60,11 @@ namespace Etherna.SSOServer
             Environment = environment;
         }
 
+        // Properties.
         public IConfiguration Configuration { get; }
         public IWebHostEnvironment Environment { get; }
 
+        // Methods.
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
@@ -214,7 +221,7 @@ namespace Etherna.SSOServer
             services.AddMongODMAdminDashboard(new MongODM.AspNetCore.UI.DashboardOptions
             {
                 AuthFilters = new[] { new Configs.MongODM.AdminAuthFilter() },
-                BasePath = "/admin/db"
+                BasePath = DatabaseAdminPath
             });
 
             // Configure domain services.
@@ -264,7 +271,7 @@ namespace Etherna.SSOServer
             app.UseAuthorization();
 
             // Add Hangfire.
-            app.UseHangfireDashboard("/admin/hangfire",
+            app.UseHangfireDashboard(HangfireAdminPath,
                 new DashboardOptions
                 {
                     Authorization = new[] { new AdminAuthFilter() }

@@ -12,7 +12,10 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Etherna.SSOServer.Domain.Models;
 using Hangfire.Dashboard;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Etherna.SSOServer.Configs.Hangfire
 {
@@ -21,7 +24,17 @@ namespace Etherna.SSOServer.Configs.Hangfire
         public bool Authorize(DashboardContext context)
         {
             var httpContext = context.GetHttpContext();
-            return httpContext.User.Identity?.IsAuthenticated ?? false;
+            if (httpContext?.User is null)
+                return false;
+            var userManager = httpContext.RequestServices.GetService<UserManager<UserBase>>()!;
+
+            var getUserTask = userManager.GetUserAsync(httpContext?.User);
+            getUserTask.Wait();
+            var user = getUserTask.Result;
+
+            var isInRoleTask = userManager.IsInRoleAsync(user, Role.AdministratorName);
+            isInRoleTask.Wait();
+            return isInRoleTask.Result;
         }
     }
 }

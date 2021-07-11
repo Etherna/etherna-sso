@@ -20,10 +20,13 @@ namespace Etherna.SSOServer.Domain.Models
 {
     public class Role : EntityModelBase<string>
     {
+        // Consts.
+        public const string AdministratorName = "Administrator";
+
         // Constructors and dispose.
         public Role(string name)
         {
-            Name = name ?? throw new ArgumentNullException(nameof(name));
+            SetName(name);
         }
         protected Role() { }
 
