@@ -13,16 +13,25 @@
 //   limitations under the License.
 
 using Etherna.MongODM.AspNetCore.UI.Auth.Filters;
+using Etherna.SSOServer.Domain.Models;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.DependencyInjection;
 using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Configs.MongODM
 {
     public class AdminAuthFilter : IDashboardAuthFilter
     {
-        public Task<bool> AuthorizeAsync(HttpContext? context)
+        public async Task<bool> AuthorizeAsync(HttpContext? context)
         {
-            return Task.FromResult(context?.User?.Identity?.IsAuthenticated ?? false);
+            if (context?.User is null)
+                return false;
+            var userManager = context.RequestServices.GetService<UserManager<UserBase>>()!;
+
+            var user = await userManager.GetUserAsync(context?.User);
+
+            return await userManager.IsInRoleAsync(user, Role.AdministratorName);
         }
     }
 }

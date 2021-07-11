@@ -177,7 +177,7 @@ namespace Etherna.SSOServer.Domain.Models
 
         [PropertyAlterer(nameof(Roles))]
         public virtual bool RemoveRole(string roleName) =>
-            _roles.RemoveAll(r => r.Name == roleName) > 0;
+            _roles.RemoveAll(r => r.NormalizedName == roleName || r.Name == roleName) > 0;
 
         [PropertyAlterer(nameof(Email))]
         [PropertyAlterer(nameof(EmailConfirmed))]

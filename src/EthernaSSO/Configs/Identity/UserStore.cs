@@ -87,7 +87,7 @@ namespace Etherna.SSOServer.Configs.Identity
                 throw new ArgumentNullException(nameof(roleName));
 
             var role = await context.Roles.QueryElementsAsync(elements =>
-                elements.Where(r => r.Name == roleName)
+                elements.Where(r => r.NormalizedName == roleName)
                         .FirstAsync());
 
             user.AddRole(role);
@@ -294,7 +294,7 @@ namespace Etherna.SSOServer.Configs.Identity
         public async Task<IList<UserBase>> GetUsersInRoleAsync(string roleName, CancellationToken cancellationToken)
         {
             return await context.Users.QueryElementsAsync(
-                users => users.Where(u => u.Roles.Any(r => r.Name == roleName))
+                users => users.Where(u => u.Roles.Any(r => r.NormalizedName == roleName))
                               .ToListAsync());
         }
 
@@ -320,7 +320,7 @@ namespace Etherna.SSOServer.Configs.Identity
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
 
-            return Task.FromResult(user.Roles.Any(r => r.Name == roleName));
+            return Task.FromResult(user.Roles.Any(r => r.NormalizedName == roleName));
         }
 
         public Task<bool> RedeemCodeAsync(UserBase user, string code, CancellationToken cancellationToken)

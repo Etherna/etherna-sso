@@ -16,8 +16,10 @@
 @inject SignInManager<UserBase> SignInManager
 @inject UserManager<UserBase> UserManager
 @{
+    var user = await UserManager.GetUserAsync(User);
     var hasExternalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).Any();
-    var isWeb3User = (await UserManager.GetUserAsync(User)) is UserWeb3;
+    var isAdmin = (await UserManager.IsInRoleAsync(user, Role.AdministratorName));
+    var isWeb3User = user is UserWeb3;
 }
 <ul class="nav nav-pills flex-column">
     <li class="nav-item"><a class="nav-link @ManageNavPages.IndexNavClass(ViewContext)" id="profile" asp-page="./Index">Profile</a></li>
@@ -36,4 +38,8 @@
         <li class="nav-item"><a class="nav-link @ManageNavPages.TwoFactorAuthenticationNavClass(ViewContext)" id="two-factor" asp-page="./TwoFactorAuthentication">Two-factor authentication</a></li>
     }
     <li class="nav-item"><a class="nav-link @ManageNavPages.PersonalDataNavClass(ViewContext)" id="personal-data" asp-page="./PersonalData">Personal data</a></li>
+    @if (isAdmin)
+    {
+        <li class="nav-item"><a class="nav-link @ManageNavPages.AdminNavClass(ViewContext)" id="admin" asp-page="./Admin">Admin</a></li>
+    }
 </ul>
