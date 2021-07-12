@@ -43,11 +43,12 @@ namespace Etherna.SSOServer.Domain.Models
         private List<Role> _roles = new();
 
         // Constructors.
-        protected UserBase(string username, string? email = default)
+        protected UserBase(string username, string? email, UserBase? invitedBy)
         {
             SetUsername(username);
             if (email != null)
                 SetEmail(email);
+            InvitedBy = invitedBy;
         }
         protected UserBase() { }
 
@@ -79,6 +80,7 @@ namespace Etherna.SSOServer.Domain.Models
             get => _etherPreviousAddresses;
             protected set => _etherPreviousAddresses = new List<string>(value ?? Array.Empty<string>());
         }
+        public virtual UserBase? InvitedBy { get; protected set; }
         [PersonalData]
         public virtual DateTime LastLoginDateTime { get; protected set; }
         public virtual bool LockoutEnabled { get; set; }

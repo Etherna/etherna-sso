@@ -17,8 +17,8 @@ namespace Etherna.SSOServer.Domain.Models
         private List<string> _twoFactorRecoveryCode = new();
 
         // Constructors.
-        public UserWeb2(string username, string? email = default, UserAgg.UserLoginInfo? loginInfo = default)
-            : base(username, email)
+        public UserWeb2(string username, string? email, UserBase? invitedBy, UserAgg.UserLoginInfo? loginInfo = default)
+            : base(username, email, invitedBy)
         {
             if (loginInfo is not null)
                 AddLogin(loginInfo);

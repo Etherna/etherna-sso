@@ -17,6 +17,7 @@ using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Events;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Extensions;
+using Etherna.SSOServer.Services.Settings;
 using IdentityServer4.Services;
 using IdentityServer4.Stores;
 using Microsoft.AspNetCore.Authentication;
@@ -26,8 +27,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using MongoDB.Driver.Linq;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Security.Claims;
@@ -39,19 +42,37 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
     public class ExternalLoginModel : PageModel
     {
         // Models.
-        public class InputModel
+        public class InputModel : IValidatableObject
         {
+            // Properties.
             [EmailAddress]
             [Display(Name = "Email (optional)")]
             public string? Email { get; set; }
+
+            [Display(Name = "Invitation code")]
+            public string? InvitationCode { get; set; }
+
+            public bool IsInvitationRequired { get; set; }
 
             [Required]
             [RegularExpression(Domain.Models.UserBase.UsernameRegex, ErrorMessage = "Allowed characters are a-z, A-Z, 0-9, _. Permitted length is between 5 and 20.")]
             [Display(Name = "Username")]
             public string Username { get; set; } = default!;
+
+            // Methods.
+            public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+            {
+                if (IsInvitationRequired && string.IsNullOrWhiteSpace(InvitationCode))
+                {
+                    yield return new ValidationResult(
+                        "Invitation code is required",
+                        new[] { nameof(InvitationCode) });
+                }
+            }
         }
 
         // Fields.
+        private readonly IOptions<ApplicationSettings> applicationSettings;
         private readonly IClientStore clientStore;
         private readonly IEventDispatcher eventDispatcher;
         private readonly IIdentityServerInteractionService idServerInteractionService;
@@ -62,6 +83,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
         // Constructor.
         public ExternalLoginModel(
+            IOptions<ApplicationSettings> applicationSettings,
             IClientStore clientStore,
             IEventDispatcher eventDispatcher,
             IIdentityServerInteractionService idServerInteractionService,
@@ -70,6 +92,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             ISsoDbContext ssoDbContext,
             UserManager<UserBase> userManager)
         {
+            this.applicationSettings = applicationSettings;
             this.clientStore = clientStore;
             this.eventDispatcher = eventDispatcher;
             this.idServerInteractionService = idServerInteractionService;
@@ -193,6 +216,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 {
                     Email = info.Principal.HasClaim(c => c.Type == ClaimTypes.Email) ?
                         info.Principal.FindFirstValue(ClaimTypes.Email) : null,
+                    IsInvitationRequired = applicationSettings.Value.RequireInvitation,
                     Username = info.Principal.HasClaim(c => c.Type == ClaimTypes.Name) ?
                         info.Principal.FindFirstValue(ClaimTypes.Name) : ""
                 };
@@ -241,6 +265,9 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                     ProviderDisplayName = info.ProviderDisplayName;
                     return Page();
                 }
+
+                // Verify invitation code.
+
 
                 // Create user.
                 var user = new UserWeb2(
