@@ -13,14 +13,14 @@
  *   limitations under the License.
  *@
 
-@using Microsoft.CSharp.RuntimeBinder
+@model Etherna.SSOServer.Areas.Identity.Pages.Account.Web3LoginPartialModel
 @{
-    string? returnUrl = null;
-    try { returnUrl = Model.ReturnUrl; }
-    catch (RuntimeBinderException) { }
-
     var retriveAuthMessageUrl = Url.Page("Web3Login", "RetriveAuthMessage");
-    var confirmSignatureUrl = Url.Page("Web3Login", "ConfirmSignature", new { returnUrl });
+    var confirmSignatureUrl = Url.Page("Web3Login", "ConfirmSignature", new
+    {
+        invitationCode = Model.InvitationCode,
+        returnUrl = Model.ReturnUrl
+    });
 }
 
 <div id="web3-login" style="display:none">

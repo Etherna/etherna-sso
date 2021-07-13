@@ -72,7 +72,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         }
 
         // Fields.
-        private readonly IOptions<ApplicationSettings> applicationSettings;
+        private readonly ApplicationSettings applicationSettings;
         private readonly IClientStore clientStore;
         private readonly IEventDispatcher eventDispatcher;
         private readonly IIdentityServerInteractionService idServerInteractionService;
@@ -92,7 +92,10 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             ISsoDbContext ssoDbContext,
             UserManager<UserBase> userManager)
         {
-            this.applicationSettings = applicationSettings;
+            if (applicationSettings is null)
+                throw new ArgumentNullException(nameof(applicationSettings));
+
+            this.applicationSettings = applicationSettings.Value;
             this.clientStore = clientStore;
             this.eventDispatcher = eventDispatcher;
             this.idServerInteractionService = idServerInteractionService;
@@ -115,12 +118,10 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         public string? ReturnUrl { get; set; }
 
         // Methods.
-        public IActionResult OnGetAsync()
-        {
-            return RedirectToPage("./Login");
-        }
+        public IActionResult OnGetAsync() =>
+            RedirectToPage("./Login");
 
-        public IActionResult OnPost(string provider, string? returnUrl = null)
+        public IActionResult OnPost(string provider, string? invitationCode, string? returnUrl)
         {
             returnUrl ??= Url.Content("~/");
 
@@ -132,15 +133,13 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             }
 
             // Request a redirect to the external login provider.
-            var redirectUrl = Url.Page("./ExternalLogin", pageHandler: "Callback", values: new { returnUrl });
+            var redirectUrl = Url.Page("./ExternalLogin", pageHandler: "Callback", values: new { invitationCode, returnUrl });
             var properties = signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
             return new ChallengeResult(provider, properties);
         }
 
-        public async Task<IActionResult> OnGetCallbackAsync(string? returnUrl = null)
+        public async Task<IActionResult> OnGetCallbackAsync(string? invitationCode, string? returnUrl)
         {
-            returnUrl ??= Url.Content("~/");
-
             // Read external identity from the temporary cookie.
             var authResult = await HttpContext.AuthenticateAsync(IdentityConstants.ExternalScheme);
             if (authResult?.Succeeded != true)
@@ -163,6 +162,9 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 ErrorMessage = "Error loading external login information.";
                 return RedirectToPage("./Login", new { ReturnUrl = returnUrl });
             }
+
+            // Initialize page.
+            Initialize(info.ProviderDisplayName, returnUrl);
 
             // Sign in the user with this external login provider if the user already has a login.
             var result = await signInManager.ExternalLoginSignInAsync(
@@ -208,26 +210,20 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             }
 
             // If the user does not have an account, then ask him to create an account.
-            else
+            Input = new InputModel
             {
-                ReturnUrl = returnUrl;
-                ProviderDisplayName = info.ProviderDisplayName;
-                Input = new InputModel
-                {
-                    Email = info.Principal.HasClaim(c => c.Type == ClaimTypes.Email) ?
-                        info.Principal.FindFirstValue(ClaimTypes.Email) : null,
-                    IsInvitationRequired = applicationSettings.Value.RequireInvitation,
-                    Username = info.Principal.HasClaim(c => c.Type == ClaimTypes.Name) ?
-                        info.Principal.FindFirstValue(ClaimTypes.Name) : ""
-                };
-                return Page();
-            }
+                Email = info.Principal.HasClaim(c => c.Type == ClaimTypes.Email) ?
+                    info.Principal.FindFirstValue(ClaimTypes.Email) : null,
+                InvitationCode = invitationCode,
+                IsInvitationRequired = applicationSettings.RequireInvitation,
+                Username = info.Principal.HasClaim(c => c.Type == ClaimTypes.Name) ?
+                    info.Principal.FindFirstValue(ClaimTypes.Name) : ""
+            };
+            return Page();
         }
 
-        public async Task<IActionResult> OnPostConfirmationAsync(string? returnUrl = null)
+        public async Task<IActionResult> OnPostConfirmationAsync(string? returnUrl)
         {
-            returnUrl ??= Url.Content("~/");
-
             // Get the information about the user from the external login provider
             var info = await signInManager.GetExternalLoginInfoAsync();
             if (info is null || info.Principal.Identity is null)
@@ -235,6 +231,9 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 ErrorMessage = "Error loading external login information during confirmation.";
                 return RedirectToPage("./Login", new { ReturnUrl = returnUrl });
             }
+
+            // Initialize page.
+            Initialize(info.ProviderDisplayName, returnUrl);
 
             // Skip registration if invalid.
             if (ModelState.IsValid)
@@ -260,19 +259,31 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
                 // Duplicate elements error.
                 if (DuplicateUsername || DuplicateEmail)
-                {
-                    ReturnUrl = returnUrl;
-                    ProviderDisplayName = info.ProviderDisplayName;
                     return Page();
-                }
 
                 // Verify invitation code.
+                UserBase? invitedByUser = null;
+                if (Input.InvitationCode is not null)
+                {
+                    var invitation = await ssoDbContext.Invitations.TryFindOneAsync(i => i.Code == Input.InvitationCode);
+                    if (invitation is null)
+                    {
+                        ModelState.AddModelError(string.Empty, "Invitation is not valid.");
+                        return Page();
+                    }
 
+                    // Delete used invitation.
+                    await ssoDbContext.Invitations.DeleteAsync(invitation);
+
+                    // Get inviting user.
+                    invitedByUser = invitation.Owner;
+                }
 
                 // Create user.
                 var user = new UserWeb2(
                     Input.Username,
                     Input.Email,
+                    invitedByUser,
                     new Domain.Models.UserAgg.UserLoginInfo(info.LoginProvider, info.ProviderKey, info.ProviderDisplayName));
 
                 var result = await userManager.CreateAsync(user);
@@ -308,15 +319,18 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
                 // Report errors.
                 foreach (var error in result.Errors)
-                {
                     ModelState.AddModelError(string.Empty, error.Description);
-                }
             }
 
             // Show page again if there was errors.
-            ProviderDisplayName = info.ProviderDisplayName;
-            ReturnUrl = returnUrl;
             return Page();
+        }
+
+        // Helpers.
+        private void Initialize(string providerDisplayName, string? returnUrl)
+        {
+            ReturnUrl = returnUrl ?? Url.Content("~/");
+            ProviderDisplayName = providerDisplayName;
         }
     }
 }

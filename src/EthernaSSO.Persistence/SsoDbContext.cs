@@ -49,6 +49,15 @@ namespace Etherna.SSOServer.Persistence
 
         // Properties.
         //repositories
+        public ICollectionRepository<Invitation, string> Invitations { get; } = new DomainCollectionRepository<Invitation, string>(
+            new CollectionRepositoryOptions<Invitation>("Invitations")
+            {
+                IndexBuilders = new[]
+                {
+                    (Builders<Invitation>.IndexKeys.Ascending(i => i.Code),
+                     new CreateIndexOptions<Invitation> { Unique = true })
+                }
+            });
         public ICollectionRepository<LogBase, string> Logs { get; } = new DomainCollectionRepository<LogBase, string>("logs");
         public ICollectionRepository<Role, string> Roles { get; } = new DomainCollectionRepository<Role, string>(
             new CollectionRepositoryOptions<Role>("roles")

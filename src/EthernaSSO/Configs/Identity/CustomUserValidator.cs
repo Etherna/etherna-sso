@@ -76,7 +76,11 @@ namespace Etherna.SSOServer.Configs.Identity
 
             // Validate invitation.
             if (applicationSettings.RequireInvitation && user.InvitedBy is null)
-                errors.Add(new IdentityError { Code = "RequiredInvitation" });
+                errors.Add(new IdentityError
+                {
+                    Code = "RequiredInvitation",
+                    Description = "An invitation code is required"
+                });
 
             return errors.Count > 0 ? IdentityResult.Failed(errors.ToArray()) : IdentityResult.Success;
         }

@@ -26,7 +26,7 @@
     <div class="col-md-10">
         <h3>Web3</h3>
         <p>Use an Ethereum wallet for login in a new full privacy oriented way!</p>
-        <partial name="_Web3LoginPartial" />
+        <partial name="_Web3LoginPartial" for="Web3LoginPartialModel" />
         <hr />
     </div>
 </div>
@@ -39,6 +39,8 @@
     <hr />
     <div class="col-md-4">
         <form asp-route-returnUrl="@Model.ReturnUrl" method="post">
+            <input type="hidden" asp-for="Input.IsInvitationRequired" />
+
             <h4>Create a new account...</h4>
             <hr />
             <div asp-validation-summary="All" class="text-danger"></div>
@@ -63,11 +65,22 @@
                 <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
             </div>
             <div class="form-group">
+                <label asp-for="Input.InvitationCode"></label>
+                @if (!Model.Input.IsInvitationRequired)
+                {
+                    <label>(optional)</label>
+                }
+                <input asp-for="Input.InvitationCode" class="form-control" />
+                <span asp-validation-for="Input.InvitationCode" class="text-danger"></span>
+            </div>
+            <div class="form-group">
                 <button type="submit" class="btn btn-primary">Register</button>
             </div>
             <div class="form-group">
                 <p>
-                    <a asp-page="./Login" asp-route-returnUrl="@Model.ReturnUrl">Login as an existing user</a>
+                    <a asp-page="./Login"
+                       asp-route-invitationCode="@Model.Input.InvitationCode"
+                       asp-route-returnUrl="@Model.ReturnUrl">Login as an existing user</a>
                 </p>
             </div>
         </form>
@@ -88,7 +101,12 @@
                 }
                 else
                 {
-                    <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="form-horizontal">
+                    <form id="external-account"
+                          method="post"
+                          class="form-horizontal"
+                          asp-page="./ExternalLogin"
+                          asp-route-invitationCode="@Model.Input.InvitationCode"
+                          asp-route-returnUrl="@Model.ReturnUrl">
                         <div>
                             <p>
                                 @foreach (var provider in Model.ExternalLogins!)

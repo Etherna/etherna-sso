@@ -185,7 +185,8 @@ namespace Etherna.SSOServer
 
             // Configure setting.
             var assemblyVersion = new AssemblyVersion(GetType().GetTypeInfo().Assembly);
-            services.Configure<ApplicationSettings>(options =>
+            services.Configure<ApplicationSettings>(Configuration.GetSection("Application"));
+            services.PostConfigure<ApplicationSettings>(options =>
             {
                 options.AssemblyVersion = assemblyVersion.Version;
             });

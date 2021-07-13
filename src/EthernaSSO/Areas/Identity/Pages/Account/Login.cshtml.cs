@@ -79,28 +79,27 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         public InputModel Input { get; set; } = default!;
 
         public List<AuthenticationScheme> ExternalLogins { get; } = new List<AuthenticationScheme>();
+        public string? InvitationCode { get; set; }
         public string? ReturnUrl { get; set; }
+        public Web3LoginPartialModel Web3LoginPartialModel { get; set; } = default!;
 
         // Methods.
-        public async Task OnGetAsync(string? returnUrl = null)
+        public async Task OnGetAsync(string? invitationCode = null, string? returnUrl = null)
         {
             if (!string.IsNullOrEmpty(ErrorMessage))
             {
                 ModelState.AddModelError(string.Empty, ErrorMessage);
             }
 
-            await Initialize();
-
-            ReturnUrl = returnUrl ?? Url.Content("~/");
+            await InitializeAsync(invitationCode, returnUrl);
         }
 
-        public async Task<IActionResult> OnPostAsync(string? returnUrl = null)
+        public async Task<IActionResult> OnPostAsync(string? invitationCode = null, string? returnUrl = null)
         {
             // Init page and validate.
-            ReturnUrl = returnUrl ?? Url.Content("~/");
-
+            await InitializeAsync(invitationCode, returnUrl);
             if (!ModelState.IsValid)
-                return await InitializedPage();
+                return Page();
 
             // Login.
             //check if we are in the context of an authorization request
@@ -113,7 +112,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             if (user is null)
             {
                 ModelState.AddModelError(string.Empty, "Invalid login attempt.");
-                return await InitializedPage();
+                return Page();
             }
 
             //validate login
@@ -158,24 +157,27 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             {
                 await eventDispatcher.DispatchAsync(new UserLoginFailureEvent(Input.UsernameOrEmail, "invalid credentials", clientId: context?.Client?.ClientId));
                 ModelState.AddModelError(string.Empty, "Invalid login attempt.");
-                return await InitializedPage();
+                return Page();
             }
         }
 
         // Helpers.
-        private async Task Initialize()
+        private async Task InitializeAsync(string? invitationCode, string? returnUrl)
         {
             //clear the existing external cookie to ensure a clean login process
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
 
             //load data
             ExternalLogins.AddRange(await signInManager.GetExternalAuthenticationSchemesAsync());
-        }
+            InvitationCode = invitationCode;
+            ReturnUrl = returnUrl ?? Url.Content("~/");
 
-        private async Task<IActionResult> InitializedPage()
-        {
-            await Initialize();
-            return Page();
+            //init partial view models
+            Web3LoginPartialModel = new Web3LoginPartialModel()
+            {
+                InvitationCode = InvitationCode,
+                ReturnUrl = ReturnUrl
+            };
         }
     }
 }

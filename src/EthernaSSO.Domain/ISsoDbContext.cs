@@ -21,6 +21,7 @@ namespace Etherna.SSOServer.Domain
 {
     public interface ISsoDbContext : IDbContext
     {
+        ICollectionRepository<Invitation, string> Invitations { get; }
         ICollectionRepository<LogBase, string> Logs { get; }
         ICollectionRepository<Role, string> Roles { get; }
         ICollectionRepository<UserBase, string> Users { get; }
