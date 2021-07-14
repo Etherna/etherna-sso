@@ -266,17 +266,18 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 if (Input.InvitationCode is not null)
                 {
                     var invitation = await ssoDbContext.Invitations.TryFindOneAsync(i => i.Code == Input.InvitationCode);
-                    if (invitation is null)
+                    if (invitation is null || !invitation.IsAlive)
                     {
                         ModelState.AddModelError(string.Empty, "Invitation is not valid.");
                         return Page();
                     }
 
                     // Delete used invitation.
-                    await ssoDbContext.Invitations.DeleteAsync(invitation);
+                    if (invitation.IsSingleUse)
+                        await ssoDbContext.Invitations.DeleteAsync(invitation);
 
                     // Get inviting user.
-                    invitedByUser = invitation.Owner;
+                    invitedByUser = invitation.Emitter;
                 }
 
                 // Create user.

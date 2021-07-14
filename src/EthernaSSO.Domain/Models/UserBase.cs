@@ -13,6 +13,7 @@
 //   limitations under the License.
 
 using Etherna.MongODM.Core.Attributes;
+using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models.UserAgg;
 using Microsoft.AspNetCore.Identity;
 using System;
@@ -28,7 +29,6 @@ namespace Etherna.SSOServer.Domain.Models
     {
         // Consts.
         public const string AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._";
-        public const string EmailRegex = @"\A(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)\Z";
         public const string UsernameRegex = "^[a-zA-Z0-9_]{5,20}$";
         public static class DefaultClaimTypes
         {
@@ -186,8 +186,8 @@ namespace Etherna.SSOServer.Domain.Models
         [PropertyAlterer(nameof(NormalizedEmail))]
         public virtual void SetEmail(string email)
         {
-            if (!Regex.IsMatch(email, EmailRegex, RegexOptions.IgnoreCase))
-                throw new ArgumentOutOfRangeException(nameof(email));
+            if (!EmailHelper.IsValidEmail(email))
+                throw new ArgumentException("Email is not valid", nameof(email));
 
             if (Email != email)
             {

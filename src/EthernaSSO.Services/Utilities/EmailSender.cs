@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Services.Settings;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.Extensions.Options;
@@ -33,14 +34,19 @@ namespace Etherna.SSOServer.Services.Utilities
             settings = opts.Value;
         }
 
-        public Task SendEmailAsync(string email, string subject, string message) =>
-            settings.CurrentService switch
+        public Task SendEmailAsync(string email, string subject, string message)
+        {
+            if (!EmailHelper.IsValidEmail(email))
+                throw new ArgumentException("Email is not valid", nameof(email));
+
+            return settings.CurrentService switch
             {
                 EmailSettings.EmailService.Mailtrap => MailtrapSendEmailAsync(email, subject, message),
                 EmailSettings.EmailService.Sendgrid => SendgridSendEmailAsync(email, subject, message),
                 EmailSettings.EmailService.FakeSender => Task.CompletedTask,
                 _ => throw new InvalidOperationException()
             };
+        }
 
         // Helpers.
         private async Task MailtrapSendEmailAsync(string email, string subject, string message)
