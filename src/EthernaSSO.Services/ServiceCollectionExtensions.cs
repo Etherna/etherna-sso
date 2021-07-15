@@ -14,6 +14,7 @@
 
 using Etherna.DomainEvents;
 using Etherna.SSOServer.Services.Domain;
+using Etherna.SSOServer.Services.Tasks;
 using Etherna.SSOServer.Services.Utilities;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using System;
@@ -54,6 +55,9 @@ namespace Microsoft.Extensions.DependencyInjection
 
             //utilities
             services.AddScoped<IEmailSender, EmailSender>();
+
+            // Tasks.
+            services.AddTransient<IDeleteOldInvitationsTask, DeleteOldInvitationsTask>();
         }
     }
 }
