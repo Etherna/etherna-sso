@@ -75,6 +75,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         private readonly SignInManager<UserBase> signInManager;
         private readonly ISsoDbContext ssoDbContext;
         private readonly UserManager<UserBase> userManager;
+        private readonly IUserService userService;
         private readonly IWeb3AuthnService web3AuthnService;
 
         // Constructor.
@@ -87,6 +88,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             SignInManager<UserBase> signInManager,
             ISsoDbContext ssoDbContext,
             UserManager<UserBase> userManager,
+            IUserService userService,
             IWeb3AuthnService web3AuthnService)
         {
             if (applicationSettings is null)
@@ -100,6 +102,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             this.signInManager = signInManager;
             this.ssoDbContext = ssoDbContext;
             this.userManager = userManager;
+            this.userService = userService;
             this.web3AuthnService = web3AuthnService;
         }
 
@@ -201,9 +204,6 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
         public async Task<IActionResult> OnPostConfirmationAsync(string etherAddress, string signature, string? returnUrl)
         {
-            // Initialize page.
-            Initialize(etherAddress, signature, returnUrl);
-
             // Verify signature.
             //get token
             var token = await ssoDbContext.Web3LoginTokens.TryFindOneAsync(t => t.EtherAddress == etherAddress);
@@ -215,68 +215,26 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
             //check signature
             var verifiedSignature = web3AuthnService.VerifySignature(token.Code, etherAddress, signature);
-
             if (!verifiedSignature)
             {
                 ErrorMessage = $"Invalid signature for web3 authentication";
                 return RedirectToPage("./Login", new { ReturnUrl = returnUrl });
             }
 
-            // Skip registration if invalid.
+            // Init page and validate.
+            Initialize(etherAddress, signature, returnUrl);
             if (!ModelState.IsValid)
                 return Page();
 
-            // Check for duplicate username.
-            var userByUsername = await userManager.FindByNameAsync(Input.Username);
-            if (userByUsername != null) //if duplicate username
-            {
-                ModelState.AddModelError(string.Empty, "Username already registered.");
-                DuplicateUsername = true;
-            }
-
-            // Check for duplicate email.
-            if (Input.Email != null)
-            {
-                var userByEmail = await userManager.FindByEmailAsync(Input.Email);
-                if (userByEmail != null) //if duplicate email
-                {
-                    ModelState.AddModelError(string.Empty, "Email already registered.");
-                    DuplicateEmail = true;
-                }
-            }
-
-            // Duplicate elements error.
-            if (DuplicateUsername || DuplicateEmail)
-                return Page();
-
-            // Verify invitation code.
-            UserBase? invitedByUser = null;
-            if (Input.InvitationCode is not null)
-            {
-                var invitation = await ssoDbContext.Invitations.TryFindOneAsync(i => i.Code == Input.InvitationCode);
-                if (invitation is null || !invitation.IsAlive)
-                {
-                    ModelState.AddModelError(string.Empty, "Invitation is not valid.");
-                    return Page();
-                }
-
-                // Delete used invitation.
-                if (invitation.IsSingleUse)
-                    await ssoDbContext.Invitations.DeleteAsync(invitation);
-
-                // Get inviting user.
-                invitedByUser = invitation.Emitter;
-            }
-
-            // Create user.
-            var user = new UserWeb3(
-                etherAddress,
+            // Register user.
+            var (errors, user) = await userService.RegisterWeb3UserAsync(
                 Input.Username,
+                etherAddress,
                 Input.Email,
-                invitedByUser);
+                Input.InvitationCode);
 
-            var result = await userManager.CreateAsync(user);
-            if (result.Succeeded)
+            // Post-registration actions.
+            if (user is not null)
             {
                 // Login.
                 await signInManager.SignInAsync(user, true);
@@ -307,9 +265,20 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             }
 
             // Report errors and show page again.
-            foreach (var error in result.Errors)
-                ModelState.AddModelError(string.Empty, error.Description);
-
+            foreach (var (errorKey, errorMessage) in errors)
+            {
+                ModelState.AddModelError(errorKey, errorMessage);
+                switch (errorKey)
+                {
+                    case UserService.DuplicateEmailErrorKey:
+                        DuplicateEmail = true;
+                        break;
+                    case UserService.DuplicateUsernameErrorKey:
+                        DuplicateUsername = true;
+                        break;
+                    default: break;
+                }
+            }
             return Page();
         }
 

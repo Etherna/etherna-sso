@@ -51,6 +51,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             // Register services.
             //domain
+            services.AddScoped<IUserService, UserService>();
             services.AddScoped<IWeb3AuthnService, Web3AuthnService>();
 
             //utilities

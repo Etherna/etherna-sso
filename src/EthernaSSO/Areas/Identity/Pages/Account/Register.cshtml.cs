@@ -13,10 +13,10 @@
 //   limitations under the License.
 
 using Etherna.DomainEvents;
-using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Events;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Extensions;
+using Etherna.SSOServer.Services.Domain;
 using Etherna.SSOServer.Services.Settings;
 using IdentityServer4.Services;
 using IdentityServer4.Stores;
@@ -85,8 +85,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         private readonly IIdentityServerInteractionService idServerInteractService;
         private readonly ILogger<RegisterModel> logger;
         private readonly SignInManager<UserBase> signInManager;
-        private readonly ISsoDbContext ssoDbContext;
-        private readonly UserManager<UserBase> userManager;
+        private readonly IUserService userService;
 
         // Constructor.
         public RegisterModel(
@@ -96,8 +95,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             IIdentityServerInteractionService idServerInteractService,
             ILogger<RegisterModel> logger,
             SignInManager<UserBase> signInManager,
-            ISsoDbContext ssoDbContext,
-            UserManager<UserBase> userManager)
+            IUserService userService)
         {
             if (applicationSettings is null)
                 throw new ArgumentNullException(nameof(applicationSettings));
@@ -108,8 +106,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             this.idServerInteractService = idServerInteractService;
             this.logger = logger;
             this.signInManager = signInManager;
-            this.ssoDbContext = ssoDbContext;
-            this.userManager = userManager;
+            this.userService = userService;
         }
 
         // Properties.
@@ -128,38 +125,22 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         {
             // Init page and validate.
             await InitializeAsync(invitationCode, returnUrl);
-
             if (!ModelState.IsValid)
                 return Page();
 
-            // Verify invitation code.
-            UserBase? invitedByUser = null;
-            if (Input.InvitationCode is not null)
+            // Register user.
+            var (errors, user) = await userService.RegisterWeb2UserAsync(
+                Input.Username,
+                Input.Password,
+                Input.Email,
+                Input.InvitationCode);
+
+            // Post-registration actions.
+            if (user is not null)
             {
-                var invitation = await ssoDbContext.Invitations.TryFindOneAsync(i => i.Code == Input.InvitationCode);
-                if (invitation is null || !invitation.IsAlive)
-                {
-                    ModelState.AddModelError(string.Empty, "Invitation is not valid.");
-                    return Page();
-                }
+                // Check if we are in the context of an authorization request.
+                var context = await idServerInteractService.GetAuthorizationContextAsync(returnUrl);
 
-                // Delete used invitation.
-                if (invitation.IsSingleUse)
-                    await ssoDbContext.Invitations.DeleteAsync(invitation);
-
-                // Get inviting user.
-                invitedByUser = invitation.Emitter;
-            }
-
-            // Register new user.
-            //check if we are in the context of an authorization request
-            var context = await idServerInteractService.GetAuthorizationContextAsync(returnUrl);
-
-            var user = new UserWeb2(Input.Username, Input.Email, invitedByUser);
-            var result = await userManager.CreateAsync(user, Input.Password);
-
-            if (result.Succeeded)
-            {
                 // Login.
                 await signInManager.SignInAsync(user, true);
 
@@ -186,8 +167,8 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             }
 
             // If we got this far, something failed, redisplay form printing errors.
-            foreach (var error in result.Errors)
-                ModelState.AddModelError(error.Code, error.Description);
+            foreach (var (errorKey, errorMessage) in errors)
+                ModelState.AddModelError(errorKey, errorMessage);
 
             return Page();
         }

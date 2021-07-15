@@ -17,6 +17,7 @@ using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Events;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Extensions;
+using Etherna.SSOServer.Services.Domain;
 using Etherna.SSOServer.Services.Settings;
 using IdentityServer4.Services;
 using IdentityServer4.Stores;
@@ -79,7 +80,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         private readonly ILogger<ExternalLoginModel> logger;
         private readonly SignInManager<UserBase> signInManager;
         private readonly ISsoDbContext ssoDbContext;
-        private readonly UserManager<UserBase> userManager;
+        private readonly IUserService userService;
 
         // Constructor.
         public ExternalLoginModel(
@@ -90,7 +91,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             ILogger<ExternalLoginModel> logger,
             SignInManager<UserBase> signInManager,
             ISsoDbContext ssoDbContext,
-            UserManager<UserBase> userManager)
+            IUserService userService)
         {
             if (applicationSettings is null)
                 throw new ArgumentNullException(nameof(applicationSettings));
@@ -102,7 +103,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             this.logger = logger;
             this.signInManager = signInManager;
             this.ssoDbContext = ssoDbContext;
-            this.userManager = userManager;
+            this.userService = userService;
         }
 
         // Properties.
@@ -232,98 +233,64 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 return RedirectToPage("./Login", new { ReturnUrl = returnUrl });
             }
 
-            // Initialize page.
+            // Init page and validate.
             Initialize(info.ProviderDisplayName, returnUrl);
+            if (!ModelState.IsValid)
+                return Page();
 
-            // Skip registration if invalid.
-            if (ModelState.IsValid)
+            // Register user.
+            var (errors, user) = await userService.RegisterWeb2UserAsync(
+                Input.Username,
+                new Domain.Models.UserAgg.UserLoginInfo(info.LoginProvider, info.ProviderKey, info.ProviderDisplayName),
+                Input.Email,
+                Input.InvitationCode);
+
+            // Post-registration actions.
+            if (user is not null)
             {
-                // Check for duplicate username.
-                var userByUsername = await userManager.FindByNameAsync(Input.Username);
-                if (userByUsername != null) //if duplicate username
-                {
-                    ModelState.AddModelError(string.Empty, "Username already registered.");
-                    DuplicateUsername = true;
-                }
+                // Login.
+                await signInManager.SignInAsync(user, true);
 
-                // Check for duplicate email.
-                if (Input.Email != null)
+                // Check if external login is in the context of an OIDC request.
+                var context = await idServerInteractionService.GetAuthorizationContextAsync(returnUrl);
+
+                // Rise event and create log.
+                await eventDispatcher.DispatchAsync(new UserLoginSuccessEvent(
+                    user,
+                    clientId: context?.Client?.ClientId,
+                    provider: info.LoginProvider,
+                    providerUserId: info.ProviderKey));
+                logger.LogInformation($"User created an account using {info.LoginProvider} provider.");
+
+                // Identify redirect.
+                if (context?.Client != null)
                 {
-                    var userByEmail = await userManager.FindByEmailAsync(Input.Email);
-                    if (userByEmail != null) //if duplicate email
+                    if (await clientStore.IsPkceClientAsync(context.Client.ClientId))
                     {
-                        ModelState.AddModelError(string.Empty, "Email already registered.");
-                        DuplicateEmail = true;
+                        // If the client is PKCE then we assume it's native, so this change in how to
+                        // return the response is for better UX for the end user.
+                        return this.LoadingPage("/Redirect", returnUrl!);
                     }
                 }
 
-                // Duplicate elements error.
-                if (DuplicateUsername || DuplicateEmail)
-                    return Page();
-
-                // Verify invitation code.
-                UserBase? invitedByUser = null;
-                if (Input.InvitationCode is not null)
-                {
-                    var invitation = await ssoDbContext.Invitations.TryFindOneAsync(i => i.Code == Input.InvitationCode);
-                    if (invitation is null || !invitation.IsAlive)
-                    {
-                        ModelState.AddModelError(string.Empty, "Invitation is not valid.");
-                        return Page();
-                    }
-
-                    // Delete used invitation.
-                    if (invitation.IsSingleUse)
-                        await ssoDbContext.Invitations.DeleteAsync(invitation);
-
-                    // Get inviting user.
-                    invitedByUser = invitation.Emitter;
-                }
-
-                // Create user.
-                var user = new UserWeb2(
-                    Input.Username,
-                    Input.Email,
-                    invitedByUser,
-                    new Domain.Models.UserAgg.UserLoginInfo(info.LoginProvider, info.ProviderKey, info.ProviderDisplayName));
-
-                var result = await userManager.CreateAsync(user);
-                if (result.Succeeded)
-                {
-                    // Login.
-                    await signInManager.SignInAsync(user, true);
-
-                    // Check if external login is in the context of an OIDC request.
-                    var context = await idServerInteractionService.GetAuthorizationContextAsync(returnUrl);
-
-                    // Rise event and create log.
-                    await eventDispatcher.DispatchAsync(new UserLoginSuccessEvent(
-                        user,
-                        clientId: context?.Client?.ClientId,
-                        provider: info.LoginProvider,
-                        providerUserId: info.ProviderKey));
-                    logger.LogInformation($"User created an account using {info.LoginProvider} provider.");
-
-                    // Identify redirect.
-                    if (context?.Client != null)
-                    {
-                        if (await clientStore.IsPkceClientAsync(context.Client.ClientId))
-                        {
-                            // If the client is PKCE then we assume it's native, so this change in how to
-                            // return the response is for better UX for the end user.
-                            return this.LoadingPage("/Redirect", returnUrl!);
-                        }
-                    }
-
-                    return Redirect(returnUrl);
-                }
-
-                // Report errors.
-                foreach (var error in result.Errors)
-                    ModelState.AddModelError(string.Empty, error.Description);
+                return Redirect(returnUrl);
             }
 
-            // Show page again if there was errors.
+            // Report errors and show page again.
+            foreach (var (errorKey, errorMessage) in errors)
+            {
+                ModelState.AddModelError(errorKey, errorMessage);
+                switch (errorKey)
+                {
+                    case UserService.DuplicateEmailErrorKey:
+                        DuplicateEmail = true;
+                        break;
+                    case UserService.DuplicateUsernameErrorKey:
+                        DuplicateUsername = true;
+                        break;
+                    default: break;
+                }
+            }
             return Page();
         }
 
