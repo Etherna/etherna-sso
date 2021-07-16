@@ -18,7 +18,7 @@
 
   <ItemGroup>
     <PackageReference Include="IdentityServer4.AspNetIdentity" Version="4.1.2" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="5.0.7" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="5.0.8" />
     <PackageReference Include="MongODM.Hangfire" Version="0.22.1" />
     <PackageReference Include="SendGrid" Version="9.24.0" />
     <PackageReference Include="Tavis.UriTemplates" Version="1.1.1" />
