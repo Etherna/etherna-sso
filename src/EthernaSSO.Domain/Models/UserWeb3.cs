@@ -29,6 +29,7 @@ namespace Etherna.SSOServer.Domain.Models
             EmailConfirmed = web2User.EmailConfirmed;
             EtherAddress = web2User.EtherLoginAddress;
             EtherPreviousAddresses = web2User.EtherPreviousAddresses.Append(web2User.EtherAddress);
+            InvitedBy = web2User.InvitedBy;
             LastLoginDateTime = web2User.LastLoginDateTime;
             LockoutEnabled = web2User.LockoutEnabled;
             LockoutEnd = web2User.LockoutEnd;

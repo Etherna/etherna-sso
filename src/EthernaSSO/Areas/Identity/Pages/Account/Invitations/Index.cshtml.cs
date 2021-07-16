@@ -76,7 +76,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Invitations
             // Generate invitations.
             GeneratedInvitations = await GenerateInvitationsAsync(Input.Quantity);
 
-            StatusMessage = $"{Input.Quantity} invites generated";
+            StatusMessage = $"{Input.Quantity} invitations generated";
             await InitializeAsync();
             return Page();
         }
@@ -114,7 +114,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Invitations
                     $"Your registration link: {link}");
             }
 
-            StatusMessage = $"{invitations.Length} invites generated and sent";
+            StatusMessage = $"{invitations.Length} invitations generated and sent";
             await InitializeAsync();
             return Page();
         }

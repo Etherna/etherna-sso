@@ -279,7 +279,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             // Report errors and show page again.
             foreach (var (errorKey, errorMessage) in errors)
             {
-                ModelState.AddModelError(errorKey, errorMessage);
+                ModelState.AddModelError(string.Empty, errorMessage);
                 switch (errorKey)
                 {
                     case UserService.DuplicateEmailErrorKey:
