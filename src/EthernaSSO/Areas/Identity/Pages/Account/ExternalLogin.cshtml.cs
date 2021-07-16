@@ -17,6 +17,8 @@ using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Events;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Extensions;
+using Etherna.SSOServer.Services.Domain;
+using Etherna.SSOServer.Services.Settings;
 using IdentityServer4.Services;
 using IdentityServer4.Stores;
 using Microsoft.AspNetCore.Authentication;
@@ -26,8 +28,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using MongoDB.Driver.Linq;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Security.Claims;
@@ -39,44 +43,67 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
     public class ExternalLoginModel : PageModel
     {
         // Models.
-        public class InputModel
+        public class InputModel : IValidatableObject
         {
+            // Properties.
             [EmailAddress]
             [Display(Name = "Email (optional)")]
             public string? Email { get; set; }
+
+            [Display(Name = "Invitation code")]
+            public string? InvitationCode { get; set; }
+
+            public bool IsInvitationRequired { get; set; }
 
             [Required]
             [RegularExpression(Domain.Models.UserBase.UsernameRegex, ErrorMessage = "Allowed characters are a-z, A-Z, 0-9, _. Permitted length is between 5 and 20.")]
             [Display(Name = "Username")]
             public string Username { get; set; } = default!;
+
+            // Methods.
+            public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+            {
+                if (IsInvitationRequired && string.IsNullOrWhiteSpace(InvitationCode))
+                {
+                    yield return new ValidationResult(
+                        "Invitation code is required",
+                        new[] { nameof(InvitationCode) });
+                }
+            }
         }
 
         // Fields.
+        private readonly ApplicationSettings applicationSettings;
         private readonly IClientStore clientStore;
         private readonly IEventDispatcher eventDispatcher;
         private readonly IIdentityServerInteractionService idServerInteractionService;
         private readonly ILogger<ExternalLoginModel> logger;
         private readonly SignInManager<UserBase> signInManager;
         private readonly ISsoDbContext ssoDbContext;
-        private readonly UserManager<UserBase> userManager;
+        private readonly IUserService userService;
 
         // Constructor.
         public ExternalLoginModel(
+            IOptions<ApplicationSettings> applicationSettings,
             IClientStore clientStore,
             IEventDispatcher eventDispatcher,
             IIdentityServerInteractionService idServerInteractionService,
             ILogger<ExternalLoginModel> logger,
             SignInManager<UserBase> signInManager,
             ISsoDbContext ssoDbContext,
-            UserManager<UserBase> userManager)
+            IUserService userService)
         {
+            if (applicationSettings is null)
+                throw new ArgumentNullException(nameof(applicationSettings));
+
+            this.applicationSettings = applicationSettings.Value;
             this.clientStore = clientStore;
             this.eventDispatcher = eventDispatcher;
             this.idServerInteractionService = idServerInteractionService;
             this.logger = logger;
             this.signInManager = signInManager;
             this.ssoDbContext = ssoDbContext;
-            this.userManager = userManager;
+            this.userService = userService;
         }
 
         // Properties.
@@ -92,12 +119,10 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         public string? ReturnUrl { get; set; }
 
         // Methods.
-        public IActionResult OnGetAsync()
-        {
-            return RedirectToPage("./Login");
-        }
+        public IActionResult OnGetAsync() =>
+            RedirectToPage("./Login");
 
-        public IActionResult OnPost(string provider, string? returnUrl = null)
+        public IActionResult OnPost(string provider, string? invitationCode, string? returnUrl)
         {
             returnUrl ??= Url.Content("~/");
 
@@ -109,15 +134,13 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             }
 
             // Request a redirect to the external login provider.
-            var redirectUrl = Url.Page("./ExternalLogin", pageHandler: "Callback", values: new { returnUrl });
+            var redirectUrl = Url.Page("./ExternalLogin", pageHandler: "Callback", values: new { invitationCode, returnUrl });
             var properties = signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
             return new ChallengeResult(provider, properties);
         }
 
-        public async Task<IActionResult> OnGetCallbackAsync(string? returnUrl = null)
+        public async Task<IActionResult> OnGetCallbackAsync(string? invitationCode, string? returnUrl)
         {
-            returnUrl ??= Url.Content("~/");
-
             // Read external identity from the temporary cookie.
             var authResult = await HttpContext.AuthenticateAsync(IdentityConstants.ExternalScheme);
             if (authResult?.Succeeded != true)
@@ -140,6 +163,9 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 ErrorMessage = "Error loading external login information.";
                 return RedirectToPage("./Login", new { ReturnUrl = returnUrl });
             }
+
+            // Initialize page.
+            Initialize(info.ProviderDisplayName, returnUrl);
 
             // Sign in the user with this external login provider if the user already has a login.
             var result = await signInManager.ExternalLoginSignInAsync(
@@ -185,25 +211,20 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             }
 
             // If the user does not have an account, then ask him to create an account.
-            else
+            Input = new InputModel
             {
-                ReturnUrl = returnUrl;
-                ProviderDisplayName = info.ProviderDisplayName;
-                Input = new InputModel
-                {
-                    Email = info.Principal.HasClaim(c => c.Type == ClaimTypes.Email) ?
-                        info.Principal.FindFirstValue(ClaimTypes.Email) : null,
-                    Username = info.Principal.HasClaim(c => c.Type == ClaimTypes.Name) ?
-                        info.Principal.FindFirstValue(ClaimTypes.Name) : ""
-                };
-                return Page();
-            }
+                Email = info.Principal.HasClaim(c => c.Type == ClaimTypes.Email) ?
+                    info.Principal.FindFirstValue(ClaimTypes.Email) : null,
+                InvitationCode = invitationCode,
+                IsInvitationRequired = applicationSettings.RequireInvitation,
+                Username = info.Principal.HasClaim(c => c.Type == ClaimTypes.Name) ?
+                    info.Principal.FindFirstValue(ClaimTypes.Name) : ""
+            };
+            return Page();
         }
 
-        public async Task<IActionResult> OnPostConfirmationAsync(string? returnUrl = null)
+        public async Task<IActionResult> OnPostConfirmationAsync(string? returnUrl)
         {
-            returnUrl ??= Url.Content("~/");
-
             // Get the information about the user from the external login provider
             var info = await signInManager.GetExternalLoginInfoAsync();
             if (info is null || info.Principal.Identity is null)
@@ -212,84 +233,72 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 return RedirectToPage("./Login", new { ReturnUrl = returnUrl });
             }
 
-            // Skip registration if invalid.
-            if (ModelState.IsValid)
+            // Init page and validate.
+            Initialize(info.ProviderDisplayName, returnUrl);
+            if (!ModelState.IsValid)
+                return Page();
+
+            // Register user.
+            var (errors, user) = await userService.RegisterWeb2UserAsync(
+                Input.Username,
+                new Domain.Models.UserAgg.UserLoginInfo(info.LoginProvider, info.ProviderKey, info.ProviderDisplayName),
+                Input.Email,
+                Input.InvitationCode);
+
+            // Post-registration actions.
+            if (user is not null)
             {
-                // Check for duplicate username.
-                var userByUsername = await userManager.FindByNameAsync(Input.Username);
-                if (userByUsername != null) //if duplicate username
-                {
-                    ModelState.AddModelError(string.Empty, "Username already registered.");
-                    DuplicateUsername = true;
-                }
+                // Login.
+                await signInManager.SignInAsync(user, true);
 
-                // Check for duplicate email.
-                if (Input.Email != null)
+                // Check if external login is in the context of an OIDC request.
+                var context = await idServerInteractionService.GetAuthorizationContextAsync(returnUrl);
+
+                // Rise event and create log.
+                await eventDispatcher.DispatchAsync(new UserLoginSuccessEvent(
+                    user,
+                    clientId: context?.Client?.ClientId,
+                    provider: info.LoginProvider,
+                    providerUserId: info.ProviderKey));
+                logger.LogInformation($"User created an account using {info.LoginProvider} provider.");
+
+                // Identify redirect.
+                if (context?.Client != null)
                 {
-                    var userByEmail = await userManager.FindByEmailAsync(Input.Email);
-                    if (userByEmail != null) //if duplicate email
+                    if (await clientStore.IsPkceClientAsync(context.Client.ClientId))
                     {
-                        ModelState.AddModelError(string.Empty, "Email already registered.");
-                        DuplicateEmail = true;
+                        // If the client is PKCE then we assume it's native, so this change in how to
+                        // return the response is for better UX for the end user.
+                        return this.LoadingPage("/Redirect", returnUrl!);
                     }
                 }
 
-                // Duplicate elements error.
-                if (DuplicateUsername || DuplicateEmail)
-                {
-                    ReturnUrl = returnUrl;
-                    ProviderDisplayName = info.ProviderDisplayName;
-                    return Page();
-                }
-
-                // Create user.
-                var user = new UserWeb2(
-                    Input.Username,
-                    Input.Email,
-                    new Domain.Models.UserAgg.UserLoginInfo(info.LoginProvider, info.ProviderKey, info.ProviderDisplayName));
-
-                var result = await userManager.CreateAsync(user);
-                if (result.Succeeded)
-                {
-                    // Login.
-                    await signInManager.SignInAsync(user, true);
-
-                    // Check if external login is in the context of an OIDC request.
-                    var context = await idServerInteractionService.GetAuthorizationContextAsync(returnUrl);
-
-                    // Rise event and create log.
-                    await eventDispatcher.DispatchAsync(new UserLoginSuccessEvent(
-                        user,
-                        clientId: context?.Client?.ClientId,
-                        provider: info.LoginProvider,
-                        providerUserId: info.ProviderKey));
-                    logger.LogInformation($"User created an account using {info.LoginProvider} provider.");
-
-                    // Identify redirect.
-                    if (context?.Client != null)
-                    {
-                        if (await clientStore.IsPkceClientAsync(context.Client.ClientId))
-                        {
-                            // If the client is PKCE then we assume it's native, so this change in how to
-                            // return the response is for better UX for the end user.
-                            return this.LoadingPage("/Redirect", returnUrl!);
-                        }
-                    }
-
-                    return Redirect(returnUrl);
-                }
-
-                // Report errors.
-                foreach (var error in result.Errors)
-                {
-                    ModelState.AddModelError(string.Empty, error.Description);
-                }
+                return Redirect(returnUrl);
             }
 
-            // Show page again if there was errors.
-            ProviderDisplayName = info.ProviderDisplayName;
-            ReturnUrl = returnUrl;
+            // Report errors and show page again.
+            foreach (var (errorKey, errorMessage) in errors)
+            {
+                ModelState.AddModelError(string.Empty, errorMessage);
+                switch (errorKey)
+                {
+                    case UserService.DuplicateEmailErrorKey:
+                        DuplicateEmail = true;
+                        break;
+                    case UserService.DuplicateUsernameErrorKey:
+                        DuplicateUsername = true;
+                        break;
+                    default: break;
+                }
+            }
             return Page();
+        }
+
+        // Helpers.
+        private void Initialize(string providerDisplayName, string? returnUrl)
+        {
+            ReturnUrl = returnUrl ?? Url.Content("~/");
+            ProviderDisplayName = providerDisplayName;
         }
     }
 }

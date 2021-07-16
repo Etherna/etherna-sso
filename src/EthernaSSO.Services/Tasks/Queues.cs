@@ -12,14 +12,11 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-namespace Etherna.SSOServer.Configs
+namespace Etherna.SSOServer.Services.Tasks
 {
-    public class ApplicationSettings
+    public static class Queues
     {
-        // Fields.
-        string? _assemblyVersion;
-
-        // Properties.
-        public string AssemblyVersion { get => _assemblyVersion ?? "1.0.0"; set => _assemblyVersion = value; }
+        public const string DB_MAINTENANCE = "db_maintenance";
+        public const string DOMAIN_MAINTENANCE = "domain_maintenance";
     }
 }

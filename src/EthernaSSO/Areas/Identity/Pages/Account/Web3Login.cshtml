@@ -37,6 +37,8 @@
               asp-route-returnUrl="@Model.ReturnUrl"
               asp-route-signature="@Model.Signature"
               method="post">
+            <input type="hidden" asp-for="Input.IsInvitationRequired" />
+
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
                 <label asp-for="Input.Username"></label>
@@ -47,6 +49,15 @@
                 <label asp-for="Input.Email"></label>
                 <input asp-for="Input.Email" class="form-control" />
                 <span asp-validation-for="Input.Email" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Input.InvitationCode"></label>
+                @if (!Model.Input.IsInvitationRequired)
+                {
+                    <label>(optional)</label>
+                }
+                <input asp-for="Input.InvitationCode" class="form-control" />
+                <span asp-validation-for="Input.InvitationCode" class="text-danger"></span>
             </div>
             <button type="submit" class="btn btn-primary">Register</button>
         </form>

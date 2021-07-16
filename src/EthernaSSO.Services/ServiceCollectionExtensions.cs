@@ -14,6 +14,7 @@
 
 using Etherna.DomainEvents;
 using Etherna.SSOServer.Services.Domain;
+using Etherna.SSOServer.Services.Tasks;
 using Etherna.SSOServer.Services.Utilities;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using System;
@@ -50,10 +51,14 @@ namespace Microsoft.Extensions.DependencyInjection
 
             // Register services.
             //domain
+            services.AddScoped<IUserService, UserService>();
             services.AddScoped<IWeb3AuthnService, Web3AuthnService>();
 
             //utilities
             services.AddScoped<IEmailSender, EmailSender>();
+
+            // Tasks.
+            services.AddTransient<IDeleteOldInvitationsTask, DeleteOldInvitationsTask>();
         }
     }
 }

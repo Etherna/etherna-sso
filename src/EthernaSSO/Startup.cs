@@ -23,6 +23,7 @@ using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Extensions;
 using Etherna.SSOServer.Persistence;
 using Etherna.SSOServer.Services.Settings;
+using Etherna.SSOServer.Services.Tasks;
 using Hangfire;
 using Hangfire.Mongo;
 using Hangfire.Mongo.Migration.Strategies;
@@ -185,7 +186,8 @@ namespace Etherna.SSOServer
 
             // Configure setting.
             var assemblyVersion = new AssemblyVersion(GetType().GetTypeInfo().Assembly);
-            services.Configure<ApplicationSettings>(options =>
+            services.Configure<ApplicationSettings>(Configuration.GetSection("Application"));
+            services.PostConfigure<ApplicationSettings>(options =>
             {
                 options.AssemblyVersion = assemblyVersion.Version;
             });
@@ -210,7 +212,7 @@ namespace Etherna.SSOServer
                 };
             }, configureMongODMOptions: options =>
             {
-                options.DbMaintenanceQueueName = TaskQueues.DB_MAINTENANCE;
+                options.DbMaintenanceQueueName = Queues.DB_MAINTENANCE;
             })
                 .AddDbContext<ISsoDbContext, SsoDbContext>(options =>
                 {
@@ -277,15 +279,25 @@ namespace Etherna.SSOServer
                     Authorization = new[] { new AdminAuthFilter() }
                 });
             if (!Environment.IsStaging()) //don't start server in staging
+            {
+                //register hangfire server
                 app.UseHangfireServer(new BackgroundJobServerOptions
                 {
                     Queues = new[]
                     {
-                        TaskQueues.DB_MAINTENANCE,
+                        Queues.DB_MAINTENANCE,
+                        Queues.DOMAIN_MAINTENANCE,
                         "default"
                     },
                     WorkerCount = System.Environment.ProcessorCount * 2
                 });
+
+                //register cron tasks
+                RecurringJob.AddOrUpdate<IDeleteOldInvitationsTask>(
+                    DeleteOldInvitationsTask.TaskId,
+                    task => task.RunAsync(),
+                    "0 5 * * *"); //at 05:00 every day
+            }
 
             // Add Swagger.
             app.UseSwagger();

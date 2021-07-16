@@ -13,6 +13,7 @@
 //   limitations under the License.
 
 using Etherna.MongODM.Core;
+using Etherna.MongODM.Core.Extensions;
 using Etherna.MongODM.Core.Serialization;
 using Etherna.MongODM.Core.Serialization.Serializers;
 using Etherna.SSOServer.Domain.Models;
@@ -32,11 +33,16 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
                 // Set members to ignore if null.
                 mm.GetMemberMap(u => u.Email).SetIgnoreIfNull(true);
                 mm.GetMemberMap(u => u.EmailConfirmed).SetIgnoreIfNull(true);
+                mm.GetMemberMap(u => u.InvitedBy).SetIgnoreIfNull(true);
                 mm.GetMemberMap(u => u.LockoutEnabled).SetIgnoreIfNull(true);
                 mm.GetMemberMap(u => u.LockoutEnd).SetIgnoreIfNull(true);
                 mm.GetMemberMap(u => u.NormalizedEmail).SetIgnoreIfNull(true);
                 mm.GetMemberMap(u => u.NormalizedUsername).SetIgnoreIfNull(true);
                 mm.GetMemberMap(u => u.Username).SetIgnoreIfNull(true);
+
+                // Set members with custom serializers.
+                mm.SetMemberSerializer(u => u.InvitedBy!, ReferenceSerializer(dbContext));
+                mm.SetMemberSerializer(u => u.Roles, new EnumerableSerializer<Role>(RoleMap.ReferenceSerializer(dbContext)));
             });
             dbContext.SchemaRegister.AddModelMapsSchema<UserWeb2>("2ccb567f-63cc-4fb3-b66e-a51fb4ff1bfe", mm =>
             {
@@ -52,7 +58,7 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
         }
 
         /// <summary>
-        /// A minimal serialized with only id
+        /// A minimal serialized with only id and Ether address
         /// </summary>
         public static ReferenceSerializer<UserBase, string> ReferenceSerializer(
             IDbContext dbContext,

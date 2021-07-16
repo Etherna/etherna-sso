@@ -13,7 +13,9 @@
 //   limitations under the License.
 
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Services.Settings;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -24,13 +26,20 @@ namespace Etherna.SSOServer.Configs.Identity
 {
     public class CustomUserValidator : IUserValidator<UserBase>
     {
+        // Fields.
+        private readonly ApplicationSettings applicationSettings;
+
         // Constructor.
         /// <summary>
         /// Creates a new instance of <see cref="UserValidator{User}"/>/
         /// </summary>
-        /// <param name="errors">The <see cref="IdentityErrorDescriber"/> used to provider error messages.</param>
-        public CustomUserValidator(IdentityErrorDescriber? errors = null)
+        /// <param name="applicationSettings">Application settings</param>
+        /// <param name="errors">The <see cref="IdentityErrorDescriber"/>Used to provider error messages</param>
+        public CustomUserValidator(
+            IOptions<ApplicationSettings> applicationSettings,
+            IdentityErrorDescriber? errors = null)
         {
+            this.applicationSettings = applicationSettings?.Value ?? throw new ArgumentNullException(nameof(applicationSettings));
             Describer = errors ?? new IdentityErrorDescriber();
         }
 
@@ -64,6 +73,14 @@ namespace Etherna.SSOServer.Configs.Identity
             // Validate logins.
             if (user is UserWeb2 userWeb2)
                 ValidateWeb2Logins(userWeb2, errors);
+
+            // Validate invitation.
+            if (applicationSettings.RequireInvitation && user.InvitedBy is null)
+                errors.Add(new IdentityError
+                {
+                    Code = "RequiredInvitation",
+                    Description = "An invitation code is required"
+                });
 
             return errors.Count > 0 ? IdentityResult.Failed(errors.ToArray()) : IdentityResult.Success;
         }
