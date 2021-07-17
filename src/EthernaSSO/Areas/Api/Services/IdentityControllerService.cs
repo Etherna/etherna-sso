@@ -52,11 +52,7 @@ namespace Etherna.SSOServer.Areas.Api.Services
             if (!etherAddress.IsValidEthereumAddressHexFormat())
                 throw new ArgumentException("Invalid address", nameof(etherAddress));
 
-            etherAddress = etherAddress.ConvertToEthereumChecksumAddress();
-
-            var user = await context.Users.FindOneAsync(
-                u => u.EtherAddress == etherAddress ||
-                u.EtherPreviousAddresses.Contains(etherAddress));
+            var user = await FindUserByAddressAsync(etherAddress);
             return new UserDto(user);
         }
 
@@ -68,7 +64,25 @@ namespace Etherna.SSOServer.Areas.Api.Services
             return new UserDto(user);
         }
 
+        public async Task<UserContactInfoDto> GetUserContactInfoAsync(string etherAddress)
+        {
+            if (!etherAddress.IsValidEthereumAddressHexFormat())
+                throw new ArgumentException("Invalid address", nameof(etherAddress));
+
+            var user = await FindUserByAddressAsync(etherAddress);
+            return new UserContactInfoDto(user);
+        }
+
         public Task<bool> IsEmailRegisteredAsync(string email) =>
             context.Users.QueryElementsAsync(users => users.AnyAsync(u => u.NormalizedEmail == UserBase.NormalizeEmail(email)));
+
+        // Helpers.
+        private Task<UserBase> FindUserByAddressAsync(string etherAddress)
+        {
+            etherAddress = etherAddress.ConvertToEthereumChecksumAddress();
+            return context.Users.FindOneAsync(
+                u => u.EtherAddress == etherAddress ||
+                u.EtherPreviousAddresses.Contains(etherAddress));
+        }
     }
 }

@@ -63,6 +63,19 @@ namespace Etherna.SSOServer.Areas.Api.Controllers
             identityControllerService.GetUserByEtherAddressAsync(etherAddress);
 
         /// <summary>
+        /// Get contact information about an user.
+        /// </summary>
+        /// <param name="etherAddress">User's ethereum address</param>
+        /// <response code="200">User contact information</response>
+        [HttpGet("address/{etherAddress}/contact")]
+        [SimpleExceptionFilter]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public Task<UserContactInfoDto> GetUserContactInfoAsync(string etherAddress) =>
+            identityControllerService.GetUserContactInfoAsync(etherAddress);
+
+        /// <summary>
         /// Verify if an email is registered.
         /// </summary>
         /// <param name="email">User's email</param>
