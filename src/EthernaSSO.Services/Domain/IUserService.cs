@@ -7,6 +7,8 @@ namespace Etherna.SSOServer.Services.Domain
 {
     public interface IUserService
     {
+        public Task<UserBase> FindUserByAddressAsync(string etherAddress);
+
         public Task<(IEnumerable<(string key, string msg)> errors, UserWeb2? user)> RegisterWeb2UserAsync(
             string username,
             string password,

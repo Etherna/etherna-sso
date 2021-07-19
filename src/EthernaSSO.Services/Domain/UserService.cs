@@ -1,6 +1,7 @@
 ﻿using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
 using Microsoft.AspNetCore.Identity;
+using Nethereum.Util;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,6 +30,14 @@ namespace Etherna.SSOServer.Services.Domain
         }
 
         // Methods.
+        public Task<UserBase> FindUserByAddressAsync(string etherAddress)
+        {
+            etherAddress = etherAddress.ConvertToEthereumChecksumAddress();
+            return ssoDbContext.Users.FindOneAsync(
+                u => u.EtherAddress == etherAddress ||
+                u.EtherPreviousAddresses.Contains(etherAddress));
+        }
+
         public Task<(IEnumerable<(string key, string msg)> errors, UserWeb2? user)> RegisterWeb2UserAsync(
             string username,
             string password,

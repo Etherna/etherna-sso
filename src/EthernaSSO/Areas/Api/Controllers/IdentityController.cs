@@ -28,13 +28,13 @@ namespace Etherna.SSOServer.Areas.Api.Controllers
     public class IdentityController : Controller
     {
         // Fields.
-        private readonly IIdentityControllerService identityControllerService;
+        private readonly IIdentityControllerService controllerService;
 
         // Constructors.
         public IdentityController(
-            IIdentityControllerService identityControllerService)
+            IIdentityControllerService controllerService)
         {
-            this.identityControllerService = identityControllerService;
+            this.controllerService = controllerService;
         }
 
         // Methods.
@@ -47,7 +47,7 @@ namespace Etherna.SSOServer.Areas.Api.Controllers
         [SimpleExceptionFilter]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public Task<PrivateUserDto> GetCurrentUserAsync() =>
-            identityControllerService.GetPrivateUserInfoByClaimsAsync(User);
+            controllerService.GetPrivateUserInfoByClaimsAsync(User);
 
         /// <summary>
         /// Get information about user by its ethereum address.
@@ -60,20 +60,7 @@ namespace Etherna.SSOServer.Areas.Api.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public Task<UserDto> GetUserByEtherAddressAsync(string etherAddress) =>
-            identityControllerService.GetUserByEtherAddressAsync(etherAddress);
-
-        /// <summary>
-        /// Get contact information about an user.
-        /// </summary>
-        /// <param name="etherAddress">User's ethereum address</param>
-        /// <response code="200">User contact information</response>
-        [HttpGet("address/{etherAddress}/contact")]
-        [SimpleExceptionFilter]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public Task<UserContactInfoDto> GetUserContactInfoAsync(string etherAddress) =>
-            identityControllerService.GetUserContactInfoAsync(etherAddress);
+            controllerService.GetUserByEtherAddressAsync(etherAddress);
 
         /// <summary>
         /// Verify if an email is registered.
@@ -85,7 +72,7 @@ namespace Etherna.SSOServer.Areas.Api.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public Task<bool> IsEmailRegistered(string email) =>
-            identityControllerService.IsEmailRegisteredAsync(email);
+            controllerService.IsEmailRegisteredAsync(email);
 
         /// <summary>
         /// Get information about user by its username.
@@ -97,6 +84,6 @@ namespace Etherna.SSOServer.Areas.Api.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public Task<UserDto> GetUserByUsernameAsync(string username) =>
-            identityControllerService.GetUserByUsernameAsync(username);
+            controllerService.GetUserByUsernameAsync(username);
     }
 }
