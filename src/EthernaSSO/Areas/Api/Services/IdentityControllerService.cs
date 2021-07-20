@@ -15,11 +15,11 @@
 using Etherna.SSOServer.Areas.Api.DtoModels;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Services.Domain;
 using Microsoft.AspNetCore.Identity;
 using MongoDB.Driver.Linq;
 using Nethereum.Util;
 using System;
-using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
@@ -30,14 +30,17 @@ namespace Etherna.SSOServer.Areas.Api.Services
         // Fields.
         private readonly ISsoDbContext context;
         private readonly UserManager<UserBase> userManager;
+        private readonly IUserService userService;
 
         // Constructors.
         public IdentityControllerService(
             ISsoDbContext context,
-            UserManager<UserBase> userManager)
+            UserManager<UserBase> userManager,
+            IUserService userService)
         {
             this.context = context;
             this.userManager = userManager;
+            this.userService = userService;
         }
 
         // Methods.
@@ -52,11 +55,7 @@ namespace Etherna.SSOServer.Areas.Api.Services
             if (!etherAddress.IsValidEthereumAddressHexFormat())
                 throw new ArgumentException("Invalid address", nameof(etherAddress));
 
-            etherAddress = etherAddress.ConvertToEthereumChecksumAddress();
-
-            var user = await context.Users.FindOneAsync(
-                u => u.EtherAddress == etherAddress ||
-                u.EtherPreviousAddresses.Contains(etherAddress));
+            var user = await userService.FindUserByAddressAsync(etherAddress);
             return new UserDto(user);
         }
 

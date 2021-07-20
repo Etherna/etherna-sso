@@ -28,6 +28,7 @@ using Hangfire;
 using Hangfire.Mongo;
 using Hangfire.Mongo.Migration.Strategies;
 using Hangfire.Mongo.Migration.Strategies.Backup;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
@@ -37,8 +38,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Reflection;
@@ -148,7 +151,25 @@ namespace Etherna.SSOServer
                 {
                     options.ConsumerKey = Configuration["Authentication:Twitter:ClientId"];
                     options.ConsumerSecret = Configuration["Authentication:Twitter:ClientSecret"];
+                })
+                .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
+                {
+                    options.Authority = Configuration["IdServer:SsoServer:BaseUrl"];
+
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateAudience = false
+                    };
                 });
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("ServiceInteractApiScope", policy =>
+                {
+                    policy.AuthenticationSchemes = new List<string> { JwtBearerDefaults.AuthenticationScheme };
+                    policy.RequireAuthenticatedUser();
+                    policy.RequireClaim("scope", "ethernaSso_userContactInfo_api");
+                });
+            });
 
             // Configure IdentityServer.
             var idServerConfig = new IdServerConfig(Configuration);
