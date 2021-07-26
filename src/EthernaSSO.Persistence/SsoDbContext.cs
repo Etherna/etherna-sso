@@ -15,13 +15,13 @@
 using Etherna.DomainEvents;
 using Etherna.MongODM.Core;
 using Etherna.MongODM.Core.Migration;
-using Etherna.MongODM.Core.Options;
 using Etherna.MongODM.Core.Repositories;
 using Etherna.MongODM.Core.Serialization;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Domain.Models.Logs;
 using Etherna.SSOServer.Persistence.Repositories;
+using Microsoft.AspNetCore.Identity;
 using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
@@ -37,14 +37,16 @@ namespace Etherna.SSOServer.Persistence
         // Consts.
         private const string SerializersNamespace = "Etherna.SSOServer.Persistence.ModelMaps";
 
+        // Fields.
+        private readonly IPasswordHasher<UserBase> passwordHasher;
+
         // Constructor.
         public SsoDbContext(
-            IDbDependencies dbDependencies,
             IEventDispatcher eventDispatcher,
-            DbContextOptions<SsoDbContext> options)
-            : base(dbDependencies, options)
+            IPasswordHasher<UserBase> passwordHasher)
         {
             EventDispatcher = eventDispatcher;
+            this.passwordHasher = passwordHasher;
         }
 
         // Properties.
@@ -130,6 +132,25 @@ namespace Etherna.SSOServer.Persistence
             }
 
             return base.SaveChangesAsync(cancellationToken);
+        }
+
+        // Protected methods.
+        protected override async Task SeedAsync()
+        {
+            using (EventDispatcher.DisableEventDispatch())
+            {
+                // Create admin role.
+                var adminRole = new Role(Role.AdministratorName);
+                await Roles.CreateAsync(adminRole);
+
+                // Create admin user.
+                var adminUser = new UserWeb2("admin", null, null);
+                var pswHash = passwordHasher.HashPassword(adminUser, "Pass123$");
+                adminUser.PasswordHash = pswHash;
+                adminUser.SecurityStamp = "JC6W6WKRWFN5WHOTFUX5TIKZG2KDFXQQ";
+                adminUser.AddRole(adminRole);
+                await Users.CreateAsync(adminUser);
+            }
         }
     }
 }
