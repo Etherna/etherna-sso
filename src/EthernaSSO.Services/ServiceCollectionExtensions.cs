@@ -13,6 +13,7 @@
 //   limitations under the License.
 
 using Etherna.DomainEvents;
+using Etherna.DomainEvents.AspNetCore;
 using Etherna.SSOServer.Services.Domain;
 using Etherna.SSOServer.Services.Tasks;
 using Etherna.SSOServer.Services.Utilities;
@@ -35,19 +36,8 @@ namespace Microsoft.Extensions.DependencyInjection
                                     where t.IsClass && t.Namespace == EventHandlersNamespace
                                     where t.GetInterfaces().Contains(typeof(IEventHandler))
                                     select t;
-            foreach (var handlerType in eventHandlerTypes)
-                services.AddScoped(handlerType);
 
-            services.AddSingleton<IEventDispatcher>(sp =>
-            {
-                var dispatcher = new EventDispatcher(sp);
-
-                //subscrive handlers to dispatcher
-                foreach (var handlerType in eventHandlerTypes)
-                    dispatcher.AddHandler(handlerType);
-
-                return dispatcher;
-            });
+            services.AddDomainEvents(eventHandlerTypes);
 
             // Register services.
             //domain

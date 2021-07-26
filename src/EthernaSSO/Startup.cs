@@ -12,6 +12,9 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Etherna.DomainEvents;
+using Etherna.MongODM;
+using Etherna.MongODM.AspNetCore.UI;
 using Etherna.MongODM.Core.Options;
 using Etherna.SSOServer.Configs;
 using Etherna.SSOServer.Configs.Hangfire;
@@ -234,12 +237,17 @@ namespace Etherna.SSOServer
             }, configureMongODMOptions: options =>
             {
                 options.DbMaintenanceQueueName = Queues.DB_MAINTENANCE;
-            })
-                .AddDbContext<ISsoDbContext, SsoDbContext>(options =>
-                {
-                    options.DocumentSemVer.CurrentVersion = assemblyVersion.SimpleVersion;
-                    options.ConnectionString = Configuration["ConnectionStrings:SSOServerDb"];
-                });
+            }).AddDbContext<ISsoDbContext, SsoDbContext>(sp =>
+            {
+                var eventDispatcher = sp.GetRequiredService<IEventDispatcher>();
+                var passwordHasher = sp.CreateScope().ServiceProvider.GetRequiredService<IPasswordHasher<UserBase>>();
+                return new SsoDbContext(eventDispatcher, passwordHasher);
+            },
+            options =>
+            {
+                options.DocumentSemVer.CurrentVersion = assemblyVersion.SimpleVersion;
+                options.ConnectionString = Configuration["ConnectionStrings:SSOServerDb"];
+            });
 
             services.AddMongODMAdminDashboard(new MongODM.AspNetCore.UI.DashboardOptions
             {
@@ -295,7 +303,7 @@ namespace Etherna.SSOServer
 
             // Add Hangfire.
             app.UseHangfireDashboard(HangfireAdminPath,
-                new DashboardOptions
+                new Hangfire.DashboardOptions
                 {
                     Authorization = new[] { new AdminAuthFilter() }
                 });
