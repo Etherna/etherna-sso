@@ -51,6 +51,7 @@ namespace Etherna.SSOServer.Persistence
 
         // Properties.
         //repositories
+        public ICollectionRepository<DailyStats, string> DailyStats { get; } = new DomainCollectionRepository<DailyStats, string>("dailyStats");
         public ICollectionRepository<Invitation, string> Invitations { get; } = new DomainCollectionRepository<Invitation, string>(
             new CollectionRepositoryOptions<Invitation>("Invitations")
             {
@@ -78,6 +79,9 @@ namespace Etherna.SSOServer.Persistence
                     //UserBase
                     (Builders<UserBase>.IndexKeys.Ascending(u => u.EtherAddress),
                      new CreateIndexOptions<UserBase> { Unique = true }),
+
+                    (Builders<UserBase>.IndexKeys.Descending(u => u.LastLoginDateTime),
+                     new CreateIndexOptions<UserBase> { Sparse = true }),
 
                     (Builders<UserBase>.IndexKeys.Ascending(u => u.NormalizedEmail),
                      new CreateIndexOptions<UserBase> { Unique = true, Sparse = true }),

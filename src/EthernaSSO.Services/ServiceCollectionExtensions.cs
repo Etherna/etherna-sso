@@ -48,6 +48,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddScoped<IEmailSender, EmailSender>();
 
             // Tasks.
+            services.AddTransient<ICompileDailyStatsTask, CompileDailyStatsTask>();
             services.AddTransient<IDeleteOldInvitationsTask, DeleteOldInvitationsTask>();
         }
     }

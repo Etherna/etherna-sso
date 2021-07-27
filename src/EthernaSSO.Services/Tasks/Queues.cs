@@ -18,5 +18,6 @@ namespace Etherna.SSOServer.Services.Tasks
     {
         public const string DB_MAINTENANCE = "db_maintenance";
         public const string DOMAIN_MAINTENANCE = "domain_maintenance";
+        public const string STATS = "stats";
     }
 }
