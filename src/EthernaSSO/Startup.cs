@@ -36,6 +36,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -138,6 +139,8 @@ namespace Etherna.SSOServer
                 options.SubstituteApiVersionInUrl = true;
             });
 
+            services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
+
             // Configure authentication.
             services.AddAuthentication()
                 .AddGoogle(options =>
@@ -216,11 +219,6 @@ namespace Etherna.SSOServer
                 options.AssemblyVersion = assemblyVersion.Version;
             });
             services.Configure<EmailSettings>(Configuration.GetSection("Email"));
-            services.Configure<PageSettings>(options =>
-            {
-                options.ConfirmEmailPageArea = "Identity";
-                options.ConfirmEmailPageUrl = "/Account/ConfirmEmail";
-            });
 
             // Configure persistence.
             services.AddMongODMWithHangfire<ModelBase>(configureHangfireOptions: options =>

@@ -15,38 +15,39 @@
 using Etherna.DomainEvents;
 using Etherna.SSOServer.Domain.Events;
 using Etherna.SSOServer.Domain.Models;
-using Etherna.SSOServer.Services.Settings;
-using Microsoft.AspNetCore.Http;
+using Etherna.SSOServer.RCL.Views.Emails;
+using Etherna.SSOServer.Services.Utilities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.Extensions.Options;
 using System;
 using System.Text;
-using System.Text.Encodings.Web;
 using System.Threading.Tasks;
-using Tavis.UriTemplates;
 
 namespace Etherna.SSOServer.Services.EventHandlers
 {
     class OnCreatedUserThenSendConfirmationEmailHandler : EventHandlerBase<EntityCreatedEvent<UserBase>>
     {
         // Fields.
-        private readonly IHttpContextAccessor contextAccessor;
-        private readonly IEmailSender emailSender;
-        private readonly PageSettings options;
+        private readonly IEmailSender emailService;
+        private readonly IRazorViewRenderer razorViewRenderer;
+        private readonly IUrlHelper urlHelper;
         private readonly UserManager<UserBase> userManager;
 
         // Constructors.
         public OnCreatedUserThenSendConfirmationEmailHandler(
-            IHttpContextAccessor contextAccessor,
+            IActionContextAccessor actionContextAccessor,
             IEmailSender emailService,
-            IOptions<PageSettings> options,
+            IRazorViewRenderer razorViewRenderer,
+            IUrlHelperFactory urlHelperFactory,
             UserManager<UserBase> userManager)
         {
-            this.contextAccessor = contextAccessor;
-            this.emailSender = emailService;
-            this.options = options.Value;
+            this.emailService = emailService;
+            this.razorViewRenderer = razorViewRenderer;
+            urlHelper = urlHelperFactory.GetUrlHelper(actionContextAccessor.ActionContext);
             this.userManager = userManager;
         }
 
@@ -57,8 +58,6 @@ namespace Etherna.SSOServer.Services.EventHandlers
                 throw new ArgumentNullException(nameof(@event));
             if (@event.Entity.Email is null)
                 return;
-            if (contextAccessor.HttpContext is null)
-                throw new InvalidOperationException();
 
             var user = @event.Entity;
 
@@ -66,17 +65,23 @@ namespace Etherna.SSOServer.Services.EventHandlers
             var code = await userManager.GenerateEmailConfirmationTokenAsync(user);
             code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
 
-            var callbackUrl = new UriTemplate(
-                $"{contextAccessor.HttpContext.Request.Scheme}://{contextAccessor.HttpContext.Request.Host}" + "{/area}" + options.ConfirmEmailPageUrl + "{?userId,code}")
-                .AddParameters(new
+            var callbackUrl = urlHelper.PageLink(
+                "/Account/ConfirmEmail",
+                values: new
                 {
-                    area = options.ConfirmEmailPageArea,
+                    area = "Identity",
                     userId = @event.Entity.Id,
                     code
-                }).Resolve();
+                });
 
-            await emailSender.SendEmailAsync(user.Email, "Confirm your email",
-                $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
+            var emailBody = await razorViewRenderer.RenderViewToStringAsync(
+                "Views/Emails/ConfirmEmail.cshtml",
+                new ConfirmEmailModel(callbackUrl));
+
+            await emailService.SendEmailAsync(
+                user.Email,
+                ConfirmEmailModel.Title,
+                emailBody);
         }
     }
 }

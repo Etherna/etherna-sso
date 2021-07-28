@@ -46,6 +46,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             //utilities
             services.AddScoped<IEmailSender, EmailSender>();
+            services.AddScoped<IRazorViewRenderer, RazorViewRenderer>();
 
             // Tasks.
             services.AddTransient<ICompileDailyStatsTask, CompileDailyStatsTask>();

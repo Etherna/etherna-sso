@@ -14,6 +14,8 @@
 
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.RCL.Views.Emails;
+using Etherna.SSOServer.Services.Utilities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -21,7 +23,6 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
-using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
@@ -39,16 +40,19 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
 
         // Fields.
         private readonly IEmailSender emailSender;
+        private readonly IRazorViewRenderer razorViewRenderer;
         private readonly ISsoDbContext ssoDbContext;
         private readonly UserManager<UserBase> userManager;
 
         // Constructor.
         public EmailModel(
             IEmailSender emailSender,
+            IRazorViewRenderer razorViewRenderer,
             ISsoDbContext ssoDbContext,
             UserManager<UserBase> userManager)
         {
             this.emailSender = emailSender;
+            this.razorViewRenderer = razorViewRenderer;
             this.ssoDbContext = ssoDbContext;
             this.userManager = userManager;
         }
@@ -92,15 +96,23 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
                 var userId = await userManager.GetUserIdAsync(user);
                 var code = await userManager.GenerateChangeEmailTokenAsync(user, Input.NewEmail);
                 code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-                var callbackUrl = Url.Page(
+                var callbackUrl = Url.PageLink(
                     "/Account/ConfirmEmailChange",
-                    pageHandler: null,
-                    values: new { userId, email = Input.NewEmail, code },
-                    protocol: Request.Scheme);
+                    values: new
+                    {
+                        userId,
+                        email = Input.NewEmail,
+                        code
+                    });
+
+                var emailBody = await razorViewRenderer.RenderViewToStringAsync(
+                    "Views/Emails/ConfirmEmailChange.cshtml",
+                    new RCL.Views.Emails.ConfirmEmailChangeModel(callbackUrl));
+
                 await emailSender.SendEmailAsync(
                     Input.NewEmail,
-                    "Confirm your email",
-                    $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
+                    RCL.Views.Emails.ConfirmEmailChangeModel.Title,
+                    emailBody);
 
                 StatusMessage = "Confirmation link to change email sent. Please check your email.";
                 return RedirectToPage();
@@ -139,15 +151,23 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             var email = await userManager.GetEmailAsync(user);
             var code = await userManager.GenerateEmailConfirmationTokenAsync(user);
             code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-            var callbackUrl = Url.Page(
+            var callbackUrl = Url.PageLink(
                 "/Account/ConfirmEmail",
-                pageHandler: null,
-                values: new { area = "Identity", userId, code },
-                protocol: Request.Scheme);
+                values: new
+                {
+                    area = "Identity",
+                    userId,
+                    code
+                });
+
+            var emailBody = await razorViewRenderer.RenderViewToStringAsync(
+                "Views/Emails/ConfirmEmail.cshtml",
+                new ConfirmEmailModel(callbackUrl));
+
             await emailSender.SendEmailAsync(
                 email,
-                "Confirm your email",
-                $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
+                ConfirmEmailModel.Title,
+                emailBody);
 
             StatusMessage = "Verification email sent. Please check your email.";
             return RedirectToPage();
