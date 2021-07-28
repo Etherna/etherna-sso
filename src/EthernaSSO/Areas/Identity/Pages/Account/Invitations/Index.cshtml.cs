@@ -1,6 +1,8 @@
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.RCL.Views.Emails;
+using Etherna.SSOServer.Services.Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
@@ -33,16 +35,19 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Invitations
 
         // Fields.
         private readonly IEmailSender emailSender;
+        private readonly IRazorViewRenderer razorViewRenderer;
         private readonly ISsoDbContext ssoDbContext;
         private readonly UserManager<UserBase> userManager;
 
         // Constructor.
         public IndexModel(
             IEmailSender emailSender,
+            IRazorViewRenderer razorViewRenderer,
             ISsoDbContext ssoDbContext,
             UserManager<UserBase> userManager)
         {
             this.emailSender = emailSender;
+            this.razorViewRenderer = razorViewRenderer;
             this.ssoDbContext = ssoDbContext;
             this.userManager = userManager;
         }
@@ -107,11 +112,16 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Invitations
             {
                 var link = Url.PageLink(
                     pageName: "../Register",
-                    values: new { invitationCode = invitations[i].Code});
+                    values: new { invitationCode = invitations[i].Code });
+
+                var emailBody = await razorViewRenderer.RenderViewToStringAsync(
+                    "Views/Emails/InvitationLetter.cshtml",
+                    new InvitationLetterModel(link));
+
                 await emailSender.SendEmailAsync(
                     emails[i],
-                    "Etherna invitation",
-                    $"Your registration link: {link}");
+                    InvitationLetterModel.Title,
+                    emailBody);
             }
 
             StatusMessage = $"{invitations.Length} invitations generated and sent";

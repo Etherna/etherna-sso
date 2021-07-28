@@ -12,11 +12,6 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-namespace Etherna.SSOServer.Services.Settings
-{
-    public class PageSettings
-    {
-        public string? ConfirmEmailPageArea { get; set; }
-        public string ConfirmEmailPageUrl { get; set; } = default!;
-    }
-}
+using System;
+
+[assembly: CLSCompliant(false)]

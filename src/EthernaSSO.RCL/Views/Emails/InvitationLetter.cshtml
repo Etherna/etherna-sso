@@ -1,0 +1,9 @@
+﻿@model InvitationLetterModel
+
+@{
+    ViewData["EmailTitle"] = InvitationLetterModel.Title;
+}
+
+<p>
+    Your registration link: @Model.InvitationUrl
+</p>
