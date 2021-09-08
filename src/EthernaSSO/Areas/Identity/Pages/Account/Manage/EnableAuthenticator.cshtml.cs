@@ -158,9 +158,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
                 result.Append(unformattedKey[currentPosition..]);
             }
 
-#pragma warning disable CA1308 // Normalize strings to uppercase
             return result.ToString().ToLowerInvariant();
-#pragma warning restore CA1308 // Normalize strings to uppercase
         }
 
         private string GenerateQrCodeUri(string email, string unformattedKey)
