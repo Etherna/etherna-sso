@@ -53,7 +53,7 @@ namespace Etherna.SSOServer.Persistence
         //repositories
         public ICollectionRepository<DailyStats, string> DailyStats { get; } = new DomainCollectionRepository<DailyStats, string>("dailyStats");
         public ICollectionRepository<Invitation, string> Invitations { get; } = new DomainCollectionRepository<Invitation, string>(
-            new CollectionRepositoryOptions<Invitation>("Invitations")
+            new CollectionRepositoryOptions<Invitation>("invitations")
             {
                 IndexBuilders = new[]
                 {
