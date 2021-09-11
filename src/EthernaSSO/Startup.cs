@@ -213,17 +213,6 @@ namespace Etherna.SSOServer
                     };
                     options.WorkerCount = System.Environment.ProcessorCount * 2;
                 });
-
-                //register cron tasks
-                RecurringJob.AddOrUpdate<ICompileDailyStatsTask>(
-                    CompileDailyStatsTask.TaskId,
-                    task => task.RunAsync(),
-                    "0 2 * * *"); //at 02:00 every day
-
-                RecurringJob.AddOrUpdate<IDeleteOldInvitationsTask>(
-                    DeleteOldInvitationsTask.TaskId,
-                    task => task.RunAsync(),
-                    "0 5 * * *"); //at 05:00 every day
             }
 
             // Configure Swagger services.
@@ -351,6 +340,17 @@ namespace Etherna.SSOServer
                 endpoints.MapControllers();
                 endpoints.MapRazorPages();
             });
+
+            // Register cron tasks.
+            RecurringJob.AddOrUpdate<ICompileDailyStatsTask>(
+                CompileDailyStatsTask.TaskId,
+                task => task.RunAsync(),
+                "0 2 * * *"); //at 02:00 every day
+
+            RecurringJob.AddOrUpdate<IDeleteOldInvitationsTask>(
+                DeleteOldInvitationsTask.TaskId,
+                task => task.RunAsync(),
+                "0 5 * * *"); //at 05:00 every day
         }
     }
 }
