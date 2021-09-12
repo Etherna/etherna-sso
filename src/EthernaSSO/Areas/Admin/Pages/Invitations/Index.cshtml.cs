@@ -3,7 +3,6 @@ using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.RCL.Views.Emails;
 using Etherna.SSOServer.Services.Utilities;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -15,9 +14,8 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Invitations
+namespace Etherna.SSOServer.Areas.Admin.Pages.Invitations
 {
-    [Authorize(Roles = Role.AdministratorName)]
     public class IndexModel : PageModel
     {
         // Consts.
