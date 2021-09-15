@@ -11,10 +11,10 @@
     <div class="col-md-6">
 
         <ul>
-            <li><a class="btn btn-link" href="@Startup.DatabaseAdminPath">Database</a></li>
-            <li><a class="btn btn-link" href="@Startup.HangfireAdminPath">Hangfire</a></li>
-            <li><a class="btn btn-link">IdentityServer</a></li>
-            <li><a class="btn btn-link" asp-area="Admin" asp-page="/Invitations/Index">Invitations</a></li>
+            <li><a class="btn btn-link" href="@CommonConsts.DatabaseAdminPath">Database</a></li>
+            <li><a class="btn btn-link" href="@CommonConsts.HangfireAdminPath">Hangfire</a></li>
+            <li><a class="btn btn-link" asp-area="@CommonConsts.AdminArea" asp-page="/IdentityServer/Index">IdentityServer</a></li>
+            <li><a class="btn btn-link" asp-area="@CommonConsts.AdminArea" asp-page="/Invitations/Index">Invitations</a></li>
         </ul>
 
     </div>

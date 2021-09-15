@@ -55,10 +55,6 @@ namespace Etherna.SSOServer
 {
     public class Startup
     {
-        // Consts.
-        public const string DatabaseAdminPath = "/admin/db";
-        public const string HangfireAdminPath = "/admin/hangfire";
-
         // Constructor.
         public Startup(
             IConfiguration configuration,
@@ -124,7 +120,7 @@ namespace Etherna.SSOServer
             services.AddCors();
             services.AddRazorPages(options =>
             {
-                options.Conventions.AuthorizeAreaFolder("Admin", "/", "RequireAdministratorRole");
+                options.Conventions.AuthorizeAreaFolder(CommonConsts.AdminArea, "/", "RequireAdministratorRole");
             });
             services.AddControllers(); //used for APIs
             services.AddApiVersioning(options =>
@@ -273,7 +269,7 @@ namespace Etherna.SSOServer
             services.AddMongODMAdminDashboard(new MongODM.AspNetCore.UI.DashboardOptions
             {
                 AuthFilters = new[] { new Configs.MongODM.AdminAuthFilter() },
-                BasePath = DatabaseAdminPath
+                BasePath = CommonConsts.DatabaseAdminPath
             });
 
             // Configure domain services.
@@ -323,7 +319,7 @@ namespace Etherna.SSOServer
             app.UseAuthorization();
 
             // Add Hangfire.
-            app.UseHangfireDashboard(HangfireAdminPath,
+            app.UseHangfireDashboard(CommonConsts.HangfireAdminPath,
                 new Hangfire.DashboardOptions
                 {
                     Authorization = new[] { new AdminAuthFilter() }
