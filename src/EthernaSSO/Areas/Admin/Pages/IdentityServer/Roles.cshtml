@@ -2,11 +2,14 @@
 @model Etherna.SSOServer.Areas.Admin.Pages.IdentityServer.RolesModel
 @{
     ViewData["Title"] = "Roles";
+
+    var pageSelectorModel = new PageSelectorModel(HttpContext.Request.Path.Value!, Model.CurrentPage, Model.MaxPage);
+    var searchModel = new SearchModel(Model.Query);
 }
 
 <div class="row">
     <div class="col-12 mb-3 text-center mt-1">
-        <h2><span class="oi oi-lock-locked" title="Roles" aria-hidden="true"></span> @ViewData["Title"]</h2>
+        <h2><span class="oi oi-lock-locked" title="Roles" aria-hidden="true"></span>@ViewData["Title"]</h2>
     </div>
 </div>
 
@@ -18,7 +21,7 @@
 
 <div class="row">
     <div class="col-12">
-        @await Html.PartialAsync("Common/Search", new Search { Action = "Roles", Controller = "Identity" })
+        <partial name="_Search" model="searchModel" />
     </div>
 </div>
 
@@ -55,6 +58,6 @@
 
 <div class="row">
     <div class="col-12">
-        @await Html.PartialAsync("Common/Pager", new Pager { Action = "Roles", PageSize = Model.PageSize, TotalCount = Model.TotalCount })
+        <partial name="_PageSelector" model="pageSelectorModel" />
     </div>
 </div>

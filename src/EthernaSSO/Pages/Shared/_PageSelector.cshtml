@@ -1,0 +1,55 @@
+﻿@model PageSelectorModel
+@{
+    string? firstPageUrl = Model.CurrentPage >= 2 ?
+        $"{Model.BaseUrl}?{Model.PageParamName}=0" :
+        null;
+
+    string? prevPageUrl = Model.CurrentPage > 0 ?
+        $"{Model.BaseUrl}?{Model.PageParamName}={Model.CurrentPage - 1}" :
+        null;
+
+    string? nextPageUrl = Model.CurrentPage < Model.MaxPage ?
+        $"{Model.BaseUrl}?{Model.PageParamName}={Model.CurrentPage + 1}" :
+        null;
+
+    string? lastPageUrl = Model.CurrentPage <= Model.MaxPage - 2 ?
+        $"{Model.BaseUrl}?{Model.PageParamName}={Model.MaxPage}" :
+        null;
+}
+
+@if (Model.MaxPage > 0)
+{
+    <div align="center">
+        @if (firstPageUrl != null)
+        {
+            <a href="@firstPageUrl">0</a>
+
+            @if (Model.CurrentPage >= 3)
+            {
+                <span> ... </span>
+            }
+        }
+
+        @if (prevPageUrl != null)
+        {
+            <a href="@prevPageUrl">@(Model.CurrentPage - 1)</a>
+        }
+
+        <b>@Model.CurrentPage</b>
+
+        @if (nextPageUrl != null)
+        {
+            <a href="@nextPageUrl">@(Model.CurrentPage + 1)</a>
+        }
+
+        @if (lastPageUrl != null)
+        {
+            @if (Model.MaxPage - Model.CurrentPage >= 3)
+            {
+                <span> ... </span>
+            }
+
+            <a href="@lastPageUrl">@Model.MaxPage</a>
+        }
+    </div>
+}
