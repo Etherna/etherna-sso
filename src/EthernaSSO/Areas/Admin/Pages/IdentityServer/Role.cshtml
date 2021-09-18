@@ -1,0 +1,12 @@
+﻿@page
+@model Etherna.SSOServer.Areas.Admin.Pages.IdentityServer.RoleModel
+@{
+}
+@if (Model.Id is null)
+{
+    <p>New Role</p>
+}
+else
+{
+    <p>Role @Model.Id</p>
+}
