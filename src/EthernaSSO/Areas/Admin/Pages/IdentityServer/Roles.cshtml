@@ -3,7 +3,7 @@
 @{
     ViewData["Title"] = "Roles";
 
-    var pageSelectorModel = new PageSelectorModel(HttpContext.Request.Path.Value!, Model.CurrentPage, Model.MaxPage);
+    var pageSelectorModel = new PageSelectorModel(Model.CurrentPage, Model.MaxPage, routeData: new () { { "q", Model.Query! } });
     var searchModel = new SearchModel(Model.Query);
 }
 
@@ -41,12 +41,12 @@
                     {
                         <tr>
                             <th>
-                                <a asp-area="@CommonConsts.AdminArea" class="btn btn-primary" asp-action="Role" asp-route-id="@role.Id">Edit</a>
-                                <a asp-area="@CommonConsts.AdminArea" class="btn btn-primary" asp-action="RoleUsers" asp-route-id="@role.Id">Users</a>
+                                <a class="btn btn-primary" asp-action="Role" asp-route-id="@role.Id">Edit</a>
+                                <a class="btn btn-primary" asp-action="RoleUsers" asp-route-id="@role.Id">Users</a>
                             </th>
                             <td>@role.Name</td>
                             <td>
-                                <a asp-area="@CommonConsts.AdminArea" class="btn btn-danger" asp-action="RoleDelete" asp-route-id="@role.Id"><span class="oi oi-x"></span></a>
+                                <a class="btn btn-danger" asp-action="RoleDelete" asp-route-id="@role.Id">X</a>
                             </td>
                         </tr>
                     }

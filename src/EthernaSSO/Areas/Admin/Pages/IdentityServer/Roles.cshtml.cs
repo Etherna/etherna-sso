@@ -1,5 +1,10 @@
+using Etherna.MongODM.Core.Extensions;
+using Etherna.SSOServer.Domain;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using MongoDB.Driver;
+using MongoDB.Driver.Linq;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
@@ -19,6 +24,18 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
             public string Name { get; }
         }
 
+        // Consts.
+        private const int PageSize = 20;
+
+        // Fields.
+        private readonly ISsoDbContext context;
+
+        // Constructor.
+        public RolesModel(ISsoDbContext context)
+        {
+            this.context = context;
+        }
+
         // Properties.
         public int CurrentPage { get; set; }
         public int MaxPage { get; set; }
@@ -29,12 +46,16 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
         public async Task OnGetAsync(int? p, string? q)
         {
             CurrentPage = p ?? 0;
-            Query = q;
+            Query = q ?? "";
+            MaxPage = (await context.Roles.QueryElementsAsync(elements =>
+                elements.Where(r => r.NormalizedName.Contains(Query.ToUpperInvariant()))
+                        .CountAsync()) - 1) / PageSize;
 
-
-            //ViewBag.Search = search;
-            //var roles = await _identityService.GetRolesAsync(search, page ?? 1);
-            await Task.CompletedTask;
+            var roles = await context.Roles.QueryElementsAsync(elements =>
+                elements.Where(r => r.NormalizedName.Contains(Query.ToUpperInvariant()))
+                        .Paginate(r => r.NormalizedName, CurrentPage, PageSize)
+                        .ToListAsync());
+            Roles.AddRange(roles.Select(r => new RoleDto(r.Id, r.Name)));
         }
     }
 }
