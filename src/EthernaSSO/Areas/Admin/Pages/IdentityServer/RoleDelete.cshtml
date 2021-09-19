@@ -1,5 +1,49 @@
 ﻿@page
 @model Etherna.SSOServer.Areas.Admin.Pages.IdentityServer.RoleDeleteModel
 @{
+    ViewData["Title"] = "Delete Role";
 }
-Role delete @Model.Id
+
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-page="Roles">Roles</a></li>
+                <li class="breadcrumb-item"><a asp-page="Role" asp-route-id="@Model.Id">@Model.Name</a></li>
+                <li class="breadcrumb-item active" aria-current="page">@ViewData["Title"]</li>
+            </ol>
+        </nav>
+    </div>
+
+    <div class="col-12">
+        <h2>@ViewData["Title"]</h2>
+    </div>
+</div>
+
+<form id="client-form" asp-page-handler="Delete" Method="post">
+
+    <!--Hidden -->
+    <input type="hidden" asp-for="Id" />
+
+    <div class="card mt-3">
+        <h5 class="card-header">@ViewData["Title"]</h5>
+        <div class="card-body">
+
+            <!--Input - text -->
+            <div class="form-group row">
+                <label asp-for="Name" class="col-sm-3 col-form-label"></label>
+                <div class="col-sm-9">
+                    <input type="text" class="form-control" disabled asp-for="Name">
+                </div>
+            </div>
+
+            <!--Button-->
+            <div class="form-group row">
+                <label class="col-sm-3 col-form-label"></label>
+                <div class="col-sm-9">
+                    <button type="submit" class="btn btn-danger">Delete Role</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
