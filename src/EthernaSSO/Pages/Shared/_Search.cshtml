@@ -14,4 +14,9 @@
             <input type="submit" class="btn btn-primary" value="Search" />
         </div>
     </div>
+
+    @foreach (var data in Model.RouteData)
+    {
+        <input name="@data.Key" value="@data.Value" type="hidden" />
+    }
 </form>

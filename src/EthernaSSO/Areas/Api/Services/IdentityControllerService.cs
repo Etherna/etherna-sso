@@ -14,6 +14,7 @@
 
 using Etherna.SSOServer.Areas.Api.DtoModels;
 using Etherna.SSOServer.Domain;
+using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Services.Domain;
 using Microsoft.AspNetCore.Identity;
@@ -61,13 +62,13 @@ namespace Etherna.SSOServer.Areas.Api.Services
 
         public async Task<UserDto> GetUserByUsernameAsync(string username)
         {
-            username = UserBase.NormalizeUsername(username);
+            username = UsernameHelper.NormalizeUsername(username);
 
             var user = await context.Users.FindOneAsync(u => u.NormalizedUsername == username);
             return new UserDto(user);
         }
 
         public Task<bool> IsEmailRegisteredAsync(string email) =>
-            context.Users.QueryElementsAsync(users => users.AnyAsync(u => u.NormalizedEmail == UserBase.NormalizeEmail(email)));
+            context.Users.QueryElementsAsync(users => users.AnyAsync(u => u.NormalizedEmail == EmailHelper.NormalizeEmail(email)));
     }
 }

@@ -193,7 +193,7 @@ namespace Etherna.SSOServer.Domain.Models
             {
                 Email = email;
                 EmailConfirmed = false;
-                NormalizedEmail = NormalizeEmail(email);
+                NormalizedEmail = EmailHelper.NormalizeEmail(email);
             }
         }
 
@@ -217,7 +217,7 @@ namespace Etherna.SSOServer.Domain.Models
 
             if (Username != username)
             {
-                NormalizedUsername = NormalizeUsername(username);
+                NormalizedUsername = UsernameHelper.NormalizeUsername(username);
                 Username = username;
             }
         }
@@ -226,33 +226,6 @@ namespace Etherna.SSOServer.Domain.Models
         public virtual void UpdateLastLoginDateTime()
         {
             LastLoginDateTime = DateTime.Now;
-        }
-
-        // Public static helpers.
-        public static string NormalizeEmail(string email)
-        {
-            if (email is null)
-                throw new ArgumentNullException(nameof(email));
-
-            email = email.ToUpper(CultureInfo.InvariantCulture); //to upper case
-
-            var components = email.Split('@');
-            var username = components[0];
-            var domain = components[1];
-
-            var cleanedUsername = username.Split('+')[0]; //remove chars after '+' symbol, if present
-
-            return $"{cleanedUsername}@{domain}";
-        }
-
-        public static string NormalizeUsername(string username)
-        {
-            if (username is null)
-                throw new ArgumentNullException(nameof(username));
-
-            username = username.ToUpper(CultureInfo.InvariantCulture); //to upper case
-
-            return username;
         }
     }
 }
