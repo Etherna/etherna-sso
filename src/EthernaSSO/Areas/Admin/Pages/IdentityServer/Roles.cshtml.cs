@@ -1,6 +1,8 @@
 using Etherna.SSOServer.Domain;
+using Etherna.SSOServer.Domain.Models;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using MongoDB.Driver.Linq;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,10 +14,13 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
         // Models.
         public class RoleDto
         {
-            public RoleDto(string id, string name)
+            public RoleDto(Role role)
             {
-                Id = id;
-                Name = name;
+                if (role is null)
+                    throw new ArgumentNullException(nameof(role));
+
+                Id = role.Id;
+                Name = role.Name;
             }
 
             public string Id { get; }
@@ -54,7 +59,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
 
             MaxPage = paginatedRoles.MaxPage;
 
-            Roles.AddRange(paginatedRoles.Elements.Select(r => new RoleDto(r.Id, r.Name)));
+            Roles.AddRange(paginatedRoles.Elements.Select(r => new RoleDto(r)));
         }
     }
 }

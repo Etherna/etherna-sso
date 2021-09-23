@@ -1,10 +1,15 @@
-﻿using Etherna.SSOServer.Domain;
+﻿using Etherna.MongODM.Core.Repositories;
+using Etherna.SSOServer.Domain;
+using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models;
 using Microsoft.AspNetCore.Identity;
+using MongoDB.Bson;
+using MongoDB.Driver.Linq;
 using Nethereum.Util;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Services.Domain
@@ -85,6 +90,40 @@ namespace Etherna.SSOServer.Services.Domain
                     var result = await userManager.CreateAsync(user);
                     return (user, result);
                 });
+
+        public async Task<PaginatedEnumerable<UserBase>> SearchPaginatedUsersByQueryAsync<TOrderKey>(
+            string? query,
+            Expression<Func<UserBase, TOrderKey>> orderKeySelector,
+            int page,
+            int take,
+            Expression<Func<UserBase, bool>>? filterPredicate = null)
+        {
+            filterPredicate ??= _ => true;
+            query ??= "";
+
+            var queryIsObjectId = ObjectId.TryParse(query, out var parsedObjectId);
+            var queryAsObjectId = queryIsObjectId ? parsedObjectId.ToString() : null;
+
+            var queryAsEtherAddress = query.IsValidEthereumAddressHexFormat() ?
+                query.ConvertToEthereumChecksumAddress() : "";
+
+            var queryAsEmail = EmailHelper.IsValidEmail(query) ?
+                EmailHelper.NormalizeEmail(query) : "";
+
+            var queryAsUsername = UsernameHelper.NormalizeUsername(query);
+
+            var paginatedUsers = await ssoDbContext.Users.QueryPaginatedElementsAsync(elements =>
+                elements.Where(filterPredicate)
+                        .Where(u => u.Id == queryAsObjectId ||
+                                    u.EtherAddress == queryAsEtherAddress ||
+                                    u.NormalizedEmail == queryAsEmail ||
+                                    u.NormalizedUsername.Contains(queryAsUsername)),
+                orderKeySelector,
+                page,
+                take);
+
+            return paginatedUsers;
+        }
 
         // Helpers.
         private async Task<IEnumerable<(string key, string msg)>> CheckDuplicateUsernameOrEmailAsync(

@@ -1,6 +1,9 @@
-﻿using Etherna.SSOServer.Domain.Models;
+﻿using Etherna.MongODM.Core.Repositories;
+using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Domain.Models.UserAgg;
+using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Services.Domain
@@ -26,5 +29,12 @@ namespace Etherna.SSOServer.Services.Domain
             string etherAddress,
             string? email,
             string? invitationCode);
+
+        public Task<PaginatedEnumerable<UserBase>> SearchPaginatedUsersByQueryAsync<TOrderKey>(
+            string? query,
+            Expression<Func<UserBase, TOrderKey>> orderKeySelector,
+            int page,
+            int take,
+            Expression<Func<UserBase, bool>>? filterPredicate = null);
     }
 }

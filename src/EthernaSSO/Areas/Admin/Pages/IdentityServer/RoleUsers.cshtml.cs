@@ -1,8 +1,7 @@
 using Etherna.SSOServer.Domain;
-using Etherna.SSOServer.Domain.Helpers;
+using Etherna.SSOServer.Services.Domain;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using MongoDB.Driver.Linq;
-using Nethereum.Util;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -38,11 +37,15 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
 
         // Fields.
         private readonly ISsoDbContext context;
+        private readonly IUserService userService;
 
         // Constructor.
-        public RoleUsersModel(ISsoDbContext context)
+        public RoleUsersModel(
+            ISsoDbContext context,
+            IUserService userService)
         {
             this.context = context;
+            this.userService = userService;
         }
 
         // Properties.
@@ -66,24 +69,8 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
             var role = await context.Roles.FindOneAsync(id);
             RoleName = role.Name;
 
-            var queryIsObjectId = MongoDB.Bson.ObjectId.TryParse(Query, out var parsedObjectId);
-            var queryAsObjectId = queryIsObjectId ? parsedObjectId.ToString() : null;
-
-            var queryAsEtherAddress = Query.IsValidEthereumAddressHexFormat() ?
-                Query.ConvertToEthereumChecksumAddress() : "";
-
-            var queryAsEmail = EmailHelper.IsValidEmail(Query) ?
-                EmailHelper.NormalizeEmail(Query) : "";
-
-            var paginatedUsers = await context.Users.QueryPaginatedElementsAsync(elements =>
-                elements.Where(u => u.Roles.Contains(role))
-                        .Where(u => u.Username.Contains(Query) ||
-                                    u.Id == queryAsObjectId ||
-                                    u.EtherAddress == queryAsEtherAddress ||
-                                    u.NormalizedEmail == queryAsEmail),
-                u => u.Username,
-                CurrentPage,
-                PageSize);
+            var paginatedUsers = await userService.SearchPaginatedUsersByQueryAsync(
+                Query, u => u.Username, CurrentPage, PageSize, u => u.Roles.Contains(role));
 
             MaxPage = paginatedUsers.MaxPage;
 

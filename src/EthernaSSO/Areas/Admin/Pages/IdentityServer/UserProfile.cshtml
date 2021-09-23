@@ -2,4 +2,11 @@
 @model Etherna.SSOServer.Areas.Admin.Pages.IdentityServer.UserProfileModel
 @{
 }
-User profile @Model.Id
+@if (Model.Id is null)
+{
+<p>User profile without Id</p>
+}
+else
+{
+<p>User profile @Model.Id</p>
+}
