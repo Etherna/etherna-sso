@@ -13,6 +13,12 @@
  *   limitations under the License.
  *@
 
+@using Microsoft.AspNetCore.Authorization;
+@inject IAuthorizationService authorizationService
+@{
+    var userIsAdmin = (await authorizationService.AuthorizeAsync(User, "RequireAdministratorRole")).Succeeded;
+}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -36,6 +42,14 @@
                     @if (ViewData["HideLoginLink"] as bool? != true)
                     {
                         <partial name="_LoginPartial" />
+                    }
+                    @if (userIsAdmin)
+                    {
+                        <ul class="navbar-nav">
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="Admin" asp-page="/Index">Administration</a>
+                            </li>
+                        </ul>
                     }
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">

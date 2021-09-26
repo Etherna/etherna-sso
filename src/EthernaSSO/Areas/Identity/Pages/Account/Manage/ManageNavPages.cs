@@ -21,7 +21,6 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
     {
         // Properties.
         public static string Index => "Index";
-        public static string Admin => "Admin";
         public static string Email => "Email";
         public static string ChangePassword => "ChangePassword";
         public static string DownloadPersonalData => "DownloadPersonalData";
@@ -32,14 +31,6 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
         public static string TwoFactorAuthentication => "TwoFactorAuthentication";
 
         // Methods.
-        public static string? AdminNavClass(ViewContext viewContext)
-        {
-            if (viewContext is null)
-                throw new ArgumentNullException(nameof(viewContext));
-
-            return PageNavClass(viewContext, Admin);
-        }
-
         public static string? IndexNavClass(ViewContext viewContext)
         {
             if (viewContext is null)
