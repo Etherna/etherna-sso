@@ -21,6 +21,7 @@ namespace Etherna.SSOServer.Services.Settings
 
         // Properties.
         public string AssemblyVersion { get => _assemblyVersion ?? "1.0.0"; set => _assemblyVersion = value; }
+        public string DisplayName { get; set; } = default!;
         public bool RequireInvitation { get; set; }
     }
 }

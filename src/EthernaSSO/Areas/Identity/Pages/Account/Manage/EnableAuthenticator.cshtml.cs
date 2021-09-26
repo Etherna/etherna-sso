@@ -13,10 +13,12 @@
 //   limitations under the License.
 
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Services.Settings;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
@@ -29,37 +31,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
 {
     public class EnableAuthenticatorModel : PageModel
     {
-        private readonly ILogger<EnableAuthenticatorModel> logger;
-        private readonly UrlEncoder urlEncoder;
-        private readonly UserManager<UserBase> userManager;
-
-        private const string AuthenticatorUriFormat = "otpauth://totp/{0}:{1}?secret={2}&issuer={0}&digits=6";
-
-        public EnableAuthenticatorModel(
-            ILogger<EnableAuthenticatorModel> logger,
-            UrlEncoder urlEncoder,
-            UserManager<UserBase> userManager)
-        {
-            this.logger = logger;
-            this.urlEncoder = urlEncoder;
-            this.userManager = userManager;
-        }
-
-        public string SharedKey { get; set; } = default!;
-
-        public string AuthenticatorUri { get; set; } = default!;
-
-#pragma warning disable CA1819 // Properties should not return arrays
-        [TempData]
-        public string[] RecoveryCodes { get; set; } = default!;
-#pragma warning restore CA1819 // Properties should not return arrays
-
-        [TempData]
-        public string? StatusMessage { get; set; }
-
-        [BindProperty]
-        public InputModel Input { get; set; } = default!;
-
+        // Models.
         public class InputModel
         {
             [Required]
@@ -69,16 +41,52 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             public string Code { get; set; } = default!;
         }
 
+        // Fields.
+        private readonly ApplicationSettings applicationSettings;
+        private readonly ILogger<EnableAuthenticatorModel> logger;
+        private readonly UrlEncoder urlEncoder;
+        private readonly UserManager<UserBase> userManager;
+
+        private const string AuthenticatorUriFormat = "otpauth://totp/{0}%20({1})?secret={2}&issuer={0}&digits=6";
+
+        public EnableAuthenticatorModel(
+            IOptions<ApplicationSettings> applicationSettings,
+            ILogger<EnableAuthenticatorModel> logger,
+            UrlEncoder urlEncoder,
+            UserManager<UserBase> userManager)
+        {
+            if (applicationSettings is null)
+                throw new ArgumentNullException(nameof(applicationSettings));
+
+            this.applicationSettings = applicationSettings.Value;
+            this.logger = logger;
+            this.urlEncoder = urlEncoder;
+            this.userManager = userManager;
+        }
+
+        public string AuthenticatorUri { get; set; } = default!;
+
+#pragma warning disable CA1819 // Properties should not return arrays
+        [TempData]
+        public string[] RecoveryCodes { get; set; } = default!;
+#pragma warning restore CA1819 // Properties should not return arrays
+
+        public string SharedKey { get; set; } = default!;
+
+        [TempData]
+        public string? StatusMessage { get; set; }
+
+        [BindProperty]
+        public InputModel Input { get; set; } = default!;
+
+        // Methods.
         public async Task<IActionResult> OnGetAsync()
         {
             var user = await userManager.GetUserAsync(User);
             if (user == null)
-            {
                 return NotFound($"Unable to load user with ID '{userManager.GetUserId(User)}'.");
-            }
 
             await LoadSharedKeyAndQrCodeUriAsync(user);
-
             return Page();
         }
 
@@ -86,9 +94,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
         {
             var user = await userManager.GetUserAsync(User);
             if (user == null)
-            {
                 return NotFound($"Unable to load user with ID '{userManager.GetUserId(User)}'.");
-            }
 
             if (!ModelState.IsValid)
             {
@@ -128,6 +134,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             }
         }
 
+        // Helpers.
         private async Task LoadSharedKeyAndQrCodeUriAsync(UserBase user)
         {
             // Load the authenticator key & QR code URI to display on the form
@@ -140,8 +147,8 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
 
             SharedKey = FormatKey(unformattedKey);
 
-            var email = await userManager.GetEmailAsync(user);
-            AuthenticatorUri = GenerateQrCodeUri(email, unformattedKey);
+            var username = await userManager.GetUserNameAsync(user);
+            AuthenticatorUri = GenerateQrCodeUri(applicationSettings.DisplayName, username, unformattedKey);
         }
 
         private string FormatKey(string unformattedKey)
@@ -161,13 +168,13 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             return result.ToString().ToLowerInvariant();
         }
 
-        private string GenerateQrCodeUri(string email, string unformattedKey)
+        private string GenerateQrCodeUri(string serviceName, string username, string unformattedKey)
         {
             return string.Format(
                 CultureInfo.InvariantCulture,
                 AuthenticatorUriFormat,
-                urlEncoder.Encode("WebApplication4"),
-                urlEncoder.Encode(email),
+                urlEncoder.Encode(serviceName),
+                urlEncoder.Encode(username),
                 unformattedKey);
         }
     }
