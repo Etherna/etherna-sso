@@ -91,10 +91,9 @@
                     </div>
 
                     <div class="form-group row">
-                        <label asp-for="Input.EmailConfirmed" class="col-sm-3 col-form-label"></label>
+                        <label asp-for="@Model.EmailConfirmed" class="col-sm-3 col-form-label"></label>
                         <div class="col-sm-9">
-                            <input asp-for="Input.EmailConfirmed" type="checkbox">
-                            <span asp-validation-for="Input.EmailConfirmed" class="text-danger"></span>
+                            <input asp-for="@Model.EmailConfirmed" disabled type="checkbox">
                         </div>
                     </div>
 
@@ -107,10 +106,9 @@
                     </div>
 
                     <div class="form-group row">
-                        <label asp-for="Input.PhoneNumberConfirmed" class="col-sm-3 col-form-label"></label>
+                        <label asp-for="@Model.PhoneNumberConfirmed" class="col-sm-3 col-form-label"></label>
                         <div class="col-sm-9">
-                            <input asp-for="Input.PhoneNumberConfirmed" type="checkbox">
-                            <span asp-validation-for="Input.PhoneNumberConfirmed" class="text-danger"></span>
+                            <input asp-for="@Model.PhoneNumberConfirmed" disabled type="checkbox">
                         </div>
                     </div>
 
@@ -129,6 +127,7 @@
                         </div>
                     </div>
 
+                    @* Use "26/09/2021 19:27:53 +02:00" format, or ISO 8601-1:2019: https://docs.microsoft.com/en-us/dotnet/standard/datetime/system-text-json-support *@
                     <div class="form-group row">
                         <label asp-for="Input.LockoutEnd" class="col-sm-3 col-form-label"></label>
                         <div class="col-sm-9">

@@ -90,7 +90,7 @@ namespace Etherna.SSOServer
                 .AddRoles<Role>()
                 .AddRoleStore<RoleStore>()
                 .AddUserStore<UserStore>();
-            //replace default UserValidator with custom. Default one doesn't allow null usernames
+            //replace default UserValidator with custom
             services.Replace(ServiceDescriptor.Scoped<IUserValidator<UserBase>, CustomUserValidator>());
 
             services.ConfigureApplicationCookie(options =>

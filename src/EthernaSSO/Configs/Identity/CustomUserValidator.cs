@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Services.Settings;
 using Microsoft.AspNetCore.Identity;
@@ -19,7 +20,6 @@ using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Configs.Identity
@@ -117,8 +117,8 @@ namespace Etherna.SSOServer.Configs.Identity
         {
             var username = await manager.GetUserNameAsync(user);
 
-            //check validity with regex
-            if (!Regex.IsMatch(username, UserBase.UsernameRegex))
+            //check validity
+            if (!UsernameHelper.IsValidUsername(username))
             {
                 errors.Add(Describer.InvalidUserName(username));
                 return;

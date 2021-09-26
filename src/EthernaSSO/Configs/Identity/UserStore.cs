@@ -435,7 +435,7 @@ namespace Etherna.SSOServer.Configs.Identity
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
 
-            user.LockoutEnd = lockoutEnd.HasValue ? new DateTime(lockoutEnd.Value.Ticks, DateTimeKind.Utc) : null;
+            user.LockoutEnd = lockoutEnd;
             return Task.CompletedTask;
         }
 

@@ -18,18 +18,14 @@ using Etherna.SSOServer.Domain.Models.UserAgg;
 using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 
 namespace Etherna.SSOServer.Domain.Models
 {
     public abstract class UserBase : EntityModelBase<string>
     {
         // Consts.
-        public const string AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._";
-        public const string UsernameRegex = "^[a-zA-Z0-9_]{5,20}$";
         public static class DefaultClaimTypes
         {
             public const string EtherAddress = "ether_address";
@@ -199,7 +195,7 @@ namespace Etherna.SSOServer.Domain.Models
 
         [PropertyAlterer(nameof(PhoneNumber))]
         [PropertyAlterer(nameof(PhoneNumberConfirmed))]
-        public virtual void SetPhoneNumber(string phoneNumber)
+        public virtual void SetPhoneNumber(string? phoneNumber)
         {
             if (PhoneNumber != phoneNumber)
             {
@@ -212,8 +208,8 @@ namespace Etherna.SSOServer.Domain.Models
         [PropertyAlterer(nameof(Username))]
         public virtual void SetUsername(string username)
         {
-            if (!Regex.IsMatch(username, UsernameRegex))
-                throw new ArgumentOutOfRangeException(nameof(username));
+            if (!UsernameHelper.IsValidUsername(username))
+                throw new ArgumentException("Username is not valid", nameof(username));
 
             if (Username != username)
             {
