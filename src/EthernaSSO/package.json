@@ -11,16 +11,22 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@popperjs/core": "^2.10.1",
     "bootstrap": "^5.1.1",
     "jquery": "^3.6.0",
+    "jquery-datepicker": "^1.12.3",
+    "jquery-ui": "^1.12.1",
     "jquery-validation": "^1.19.3",
     "jquery-validation-unobtrusive": "^3.2.12",
     "popper.js": "^1.16.1"
   },
   "devDependencies": {
-    "laravel-mix": "^6.0.31",
     "autoprefixer": "^10.3.6",
+    "laravel-mix": "^6.0.31",
+    "laravel-mix-purgecss": "^6.0.0",
     "postcss": "^8.3.8",
-    "sass": "^1.42.1"
+    "resolve-url-loader": "^4.0.0",
+    "sass": "^1.42.1",
+    "sass-loader": "^12.1.0"
   }
 }

@@ -17,7 +17,7 @@
             <div class="col-md-6">
                 <form id="generate" method="post">
                     <h3>Bulk generate</h3>
-                    <div class="form-group">
+                    <div class="mb-3">
                         <label asp-for="Input.Quantity"></label>
                         <input asp-for="Input.Quantity" class="form-control" />
                         <span asp-validation-for="Input.Quantity" class="text-danger"></span>
@@ -29,7 +29,7 @@
             <div class="col-md-6">
                 <form id="generate-and-send" method="post">
                     <h3>Bulk generate and send</h3>
-                    <div class="form-group">
+                    <div class="mb-3">
                         <label asp-for="Input.EmailReceivers"></label>
                         <textarea asp-for="Input.EmailReceivers" class="form-control" type="text" placeholder="Email addresses, one per line"></textarea>
                         <span asp-validation-for="Input.EmailReceivers" class="text-danger"></span>

@@ -3,12 +3,12 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <RootNamespace>Etherna.SSOServer</RootNamespace>
-    
+
     <Authors>Etherna Sagl</Authors>
     <Description>Single Sign On server for Etherna services</Description>
-	
+
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- <TreatWarningsAsErrors>true</TreatWarningsAsErrors> -->
     <Nullable>enable</Nullable>
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <AnalysisMode>AllEnabledByDefault</AnalysisMode>
@@ -48,5 +48,22 @@
     <ProjectReference Include="..\EthernaSSO.Persistence\EthernaSSO.Persistence.csproj" />
     <ProjectReference Include="..\EthernaSSO.Services\EthernaSSO.Services.csproj" />
   </ItemGroup>
+
+  <Target Name="DeleteDist" AfterTargets="Clean">
+    <RemoveDir Directories="wwwroot\dist" />
+  </Target>
+
+  <Target Name="DebugRunInstall" BeforeTargets="Build" Condition="'$(Configuration)' == 'Debug' And !Exists('wwwroot\dist')">
+    <Exec Command="npm install" />
+    <Exec Command="npm run build" />
+  </Target>
+
+  <Target Name="DebugRunWebpack" BeforeTargets="Build" Condition="'$(Configuration)' == 'Debug' And Exists('wwwroot\dist')">
+    <Exec Command="npm run build" />
+  </Target>
+
+  <Target Name="DebugRunWebpack" BeforeTargets="Build" Condition="'$(Configuration)' == 'Publish'">
+    <Exec Command="npm run build-production" />
+  </Target>
 
 </Project>
