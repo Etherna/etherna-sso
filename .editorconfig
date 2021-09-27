@@ -9,7 +9,7 @@ root = true
 indent_style = space
 
 # C# Project files
-[*.csproj]
+[*.{csproj,js,ts,css,scss}]
 indent_size = 2
 
 #### Suppress warnings ####

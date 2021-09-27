@@ -8,7 +8,7 @@
     <Description>Single Sign On server for Etherna services</Description>
 
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-    <!-- <TreatWarningsAsErrors>true</TreatWarningsAsErrors> -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <Nullable>enable</Nullable>
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <AnalysisMode>AllEnabledByDefault</AnalysisMode>
