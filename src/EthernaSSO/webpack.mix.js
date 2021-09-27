@@ -7,6 +7,7 @@ mix.js("Static/js/signin-redirect.js", "js")
 mix.js("Static/js/jquery.classyqr.js", "js")
 
 // Standalone TS scripts
+mix.ts("Static/ts/etherna-web3-signin.ts", "js")
 
 // Styles
 mix.sass("Static/scss/site.scss", "css", {}, [
