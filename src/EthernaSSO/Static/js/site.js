@@ -3,8 +3,7 @@ import "bootstrap"
 import $ from "jquery"
 import datepickerFactory from "jquery-datepicker"
 
-window.$ = $
-window.jQuery = $
+window.$ = window.jQuery = $
 
 // Jquery UI - Date Picker
 datepickerFactory($)

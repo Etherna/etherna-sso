@@ -13,13 +13,13 @@ mix.ts("Static/ts/etherna-web3-signin.ts", "js")
 mix.sass("Static/scss/site.scss", "css", {}, [
   require("autoprefixer")
 ])
-  .purgeCss({
-    // enabled: true,
-    content: [
-      "Areas/Admin/**/*.cshtml",
-      "Pages/**/*.cshtml",
-    ]
-  })
+// .purgeCss({
+//   // enabled: true,
+//   content: [
+//     "Areas/Admin/**/*.cshtml",
+//     "Pages/**/*.cshtml",
+//   ]
+// })
 
 // Vendor
 mix.extract([
@@ -31,11 +31,12 @@ mix.extract([
   "jquery-datepicker"
 ])
 
-// Autoload
-mix.autoload({
-  jquery: ["$", "window.jQuery"]
-})
-
 // Options
+mix.options({
+  terser: {
+    extractComments: false
+  }
+})
 mix.setPublicPath("./wwwroot/dist")
+mix.sourceMaps(false)
 mix.disableSuccessNotifications()

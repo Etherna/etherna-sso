@@ -53,16 +53,13 @@
     <RemoveDir Directories="wwwroot\dist" />
   </Target>
 
-  <Target Name="DebugRunInstall" BeforeTargets="Build" Condition="'$(Configuration)' == 'Debug' And !Exists('wwwroot\dist')">
+  <Target Name="DebugRunInstall" BeforeTargets="Build" Condition="'$(Configuration)' == 'Debug' And (!Exists('wwwroot\dist') Or !Exists('node_modules'))">
     <Exec Command="npm install" />
-    <Exec Command="npm run build" />
+    <Exec Command="npm run build-production" />
   </Target>
 
-  <Target Name="DebugRunWebpack" BeforeTargets="Build" Condition="'$(Configuration)' == 'Debug' And Exists('wwwroot\dist')">
-    <Exec Command="npm run build" />
-  </Target>
-
-  <Target Name="DebugRunWebpack" BeforeTargets="Build" Condition="'$(Configuration)' == 'Publish'">
+  <Target Name="DebugRunWebpack" BeforeTargets="Build" Condition="'$(Configuration)' == 'Debug' And Exists('node_modules')">
+    <Message Importance="High" Text="Compiling bundle..." />
     <Exec Command="npm run build-production" />
   </Target>
 
