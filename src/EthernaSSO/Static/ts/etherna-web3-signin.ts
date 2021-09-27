@@ -84,10 +84,12 @@ async function web3Signin() {
       window.ethereum && window.ethereum.enable()
       const accounts = await store.web3Provider.listAccounts()
       const { msg, address } = await getSignMsg(accounts)
-      signinAndRedirect(msg, address)
+      await signinAndRedirect(msg, address)
     } catch (error) {
       console.error(error)
 
+      setBtnDisabled(store.web3LoginButton, false)
+      setBtnDisabled(store.confirmWeb3LoginButton, false)
       showError(error)
     }
   }
@@ -104,7 +106,7 @@ async function getSignMsg(accounts: string[]) {
 
   try {
     const resp = await fetch(msgUrl)
-    const msg = await resp.text()
+    const msg = await resp.json()
 
     return {
       msg,
@@ -119,7 +121,7 @@ async function getSignMsg(accounts: string[]) {
 
 async function signinAndRedirect(msg: string, address: string) {
   const signer = store.web3Provider!.getSigner(address)
-  const signature = (await signer.signMessage(msg)).replace(/^0x/, "")
+  const signature = await signer.signMessage(msg)
 
   const redirect = store.confirmSignatureUrl + '&etherAddress=' + address + '&signature=' + signature
   window.location.href = redirect
