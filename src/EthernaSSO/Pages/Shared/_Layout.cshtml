@@ -26,9 +26,9 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Etherna SSO Server</title>
-    <link rel="stylesheet" href="~/dist/css/site.css" mix-version />
-    <script src="~/dist/js/manifest.js" mix-version></script>
-    <script src="~/dist/js/vendor.js" mix-version></script>
+    <link rel="stylesheet" href="~/dist/css/site.css" asp-append-version="true" />
+    <script src="~/dist/js/manifest.js" asp-append-version="true"></script>
+    <script src="~/dist/js/vendor.js" asp-append-version="true"></script>
 </head>
 
 <body>
@@ -77,7 +77,7 @@
         </div>
     </footer>
 
-    <script src="~/dist/js/site.js" mix-version></script>
+    <script src="~/dist/js/site.js" asp-append-version="true"></script>
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>

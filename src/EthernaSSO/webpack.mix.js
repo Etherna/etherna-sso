@@ -38,5 +38,4 @@ mix.autoload({
 
 // Options
 mix.setPublicPath("./wwwroot/dist")
-mix.version()
 mix.disableSuccessNotifications()
