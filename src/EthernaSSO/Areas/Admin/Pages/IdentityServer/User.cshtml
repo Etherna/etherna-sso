@@ -34,8 +34,11 @@
             <div class="col-md-12 col-m-b-10  col-m-t-10">
                 <a asp-page="UserClaims" asp-route-id="@Model.Id" class="btn btn-outline-primary">Manage User Claims</a>
                 <a asp-page="UserRoles" asp-route-id="@Model.Id" class="btn btn-outline-primary">Manage User Roles</a>
-                <a asp-page="UserProviders" asp-route-id="@Model.Id" class="btn btn-outline-primary">Manage User External Providers</a>
-                <a asp-page="UserChangePassword" asp-route-id="@Model.Id" class="btn btn-dark">Change Password</a>
+                @if (!Model.IsWeb3)
+                {
+                    <a asp-page="UserProviders" asp-route-id="@Model.Id" class="btn btn-outline-primary">Manage User External Providers</a>
+                    <a asp-page="UserChangePassword" asp-route-id="@Model.Id" class="btn btn-dark">Change Password</a>
+                }
                 <a asp-page="UserDelete" asp-route-id="@Model.Id" class="btn btn-danger">Delete User</a>
             </div>
         </div>

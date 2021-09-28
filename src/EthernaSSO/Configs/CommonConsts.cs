@@ -7,5 +7,8 @@
 
         public const string DatabaseAdminPath = "/admin/db";
         public const string HangfireAdminPath = "/admin/hangfire";
+
+        public const string RequireAdministratorRolePolicy = "RequireAdministratorRole";
+        public const string ServiceInteractApiScopePolicy = "ServiceInteractApiScope";
     }
 }

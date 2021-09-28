@@ -44,7 +44,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
         public InputModel Input { get; set; } = default!;
 
         // Methods.
-        public async Task OnGetAsync(string id)
+        public async Task<IActionResult> OnGetAsync(string id)
         {
             if (id is null)
                 throw new ArgumentNullException(nameof(id));
@@ -52,6 +52,11 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
             Id = id;
             var user = await context.Users.FindOneAsync(id);
             Username = user.Username;
+
+            if (user is not UserWeb2)
+                return RedirectToPage("User", new { id });
+
+            return Page();
         }
 
         public async Task<IActionResult> OnPostAsync(string id)
@@ -60,6 +65,8 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
             var user = await context.Users.FindOneAsync(id);
             Username = user.Username;
 
+            if (user is not UserWeb2)
+                return RedirectToPage("User", new { id });
             if (!ModelState.IsValid)
                 return Page();
 

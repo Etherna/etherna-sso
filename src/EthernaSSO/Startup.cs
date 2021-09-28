@@ -120,7 +120,7 @@ namespace Etherna.SSOServer
             services.AddCors();
             services.AddRazorPages(options =>
             {
-                options.Conventions.AuthorizeAreaFolder(CommonConsts.AdminArea, "/", "RequireAdministratorRole");
+                options.Conventions.AuthorizeAreaFolder(CommonConsts.AdminArea, "/", CommonConsts.RequireAdministratorRolePolicy);
             });
             services.AddControllers(); //used for APIs
             services.AddApiVersioning(options =>
@@ -168,10 +168,10 @@ namespace Etherna.SSOServer
                 });
             services.AddAuthorization(options =>
             {
-                options.AddPolicy("RequireAdministratorRole",
+                options.AddPolicy(CommonConsts.RequireAdministratorRolePolicy,
                      policy => policy.RequireRole(Role.AdministratorName));
 
-                options.AddPolicy("ServiceInteractApiScope", policy =>
+                options.AddPolicy(CommonConsts.ServiceInteractApiScopePolicy, policy =>
                 {
                     policy.AuthenticationSchemes = new List<string> { JwtBearerDefaults.AuthenticationScheme };
                     policy.RequireAuthenticatedUser();
