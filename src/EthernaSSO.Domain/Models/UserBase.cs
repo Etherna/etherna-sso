@@ -123,10 +123,14 @@ namespace Etherna.SSOServer.Domain.Models
         }
 
         [PropertyAlterer(nameof(Roles))]
-        public virtual void AddRole(Role role)
+        public virtual bool AddRole(Role role)
         {
             if (!_roles.Contains(role))
+            {
                 _roles.Add(role);
+                return true;
+            }
+            return false;
         }
 
         [PropertyAlterer(nameof(EmailConfirmed))]
