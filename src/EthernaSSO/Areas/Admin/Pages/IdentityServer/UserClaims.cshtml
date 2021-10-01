@@ -1,5 +1,105 @@
 ﻿@page
 @model Etherna.SSOServer.Areas.Admin.Pages.IdentityServer.UserClaimsModel
 @{
+    ViewData["Title"] = "User Claims";
+
+    var pageSelectorModel = new PageSelectorModel(Model.CurrentPage, Model.MaxPage, routeData: new() { { "id", Model.Id } });
 }
-User claims @Model.Id
+
+<form id="user-claims-form" Method="post">
+    <div class="row">
+
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a asp-page="Users">Users</a></li>
+                    <li class="breadcrumb-item"><a asp-page="User" asp-route-id="@Model.Id">@Model.Username</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">@ViewData["Title"]</li>
+                </ol>
+            </nav>
+        </div>
+
+        <div class="col-md-12">
+            <h3>@ViewData["Title"]</h3>
+
+            <div asp-validation-summary="All" class="text-danger"></div>
+
+            <!--Hidden -->
+            <input type="hidden" asp-for="Id" />
+
+            <div class="card mt-3">
+                <h5 class="card-header">User Claim</h5>
+                <div class="card-body">
+
+                    <!--Select with tags-->
+                    <div class="form-group row">
+                        <label asp-for="Input.Type" class="col-sm-3 col-form-label"></label>
+                        <div class="col-sm-9">
+                            <input type="text" required class="form-control" asp-for="Input.Type">
+                            <span asp-validation-for="Input.Type" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <!--Input - text -->
+                    <div class="form-group row">
+                        <label asp-for="Input.Value" class="col-sm-3 col-form-label"></label>
+                        <div class="col-sm-9">
+                            <input type="text" required class="form-control" asp-for="Input.Value">
+                            <span asp-validation-for="Input.Value" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <!--Button-->
+                    <div class="form-group row">
+                        <label class="col-sm-3 col-form-label">
+                        </label>
+                        <div class="col-sm-9">
+                            <button type="submit" id="user-claims-button" class="btn btn-primary">Add User Claim</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card mt-3">
+            <h5 class="card-header">User Claims</h5>
+            <div class="card-body">
+
+                <div class="row table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Value</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var claim in Model.Claims)
+                            {
+                                <tr>
+                                    <td>@claim.Type</td>
+                                    <td>@claim.Value</td>
+                                    <td><a asp-page="UserClaimsDelete"
+                                           asp-route-claimType="@claim.Type"
+                                           asp-route-claimValue="@claim.Value"
+                                           asp-route-userId="@Model.Id"
+                                           class="btn btn-danger">Delete</a></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <div class="row">
+                    <div class="col-12">
+                        <partial name="_PageSelector" model="pageSelectorModel" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

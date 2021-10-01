@@ -55,7 +55,8 @@ namespace Etherna.SSOServer.Domain.Models
             protected set
             {
                 _customClaims.Clear();
-                AddClaims(value ?? Array.Empty<UserClaim>());
+                foreach (var claim in value ?? Array.Empty<UserClaim>())
+                    AddClaim(claim);
             }
         }
         public virtual IEnumerable<UserClaim> DefaultClaims =>
@@ -97,29 +98,27 @@ namespace Etherna.SSOServer.Domain.Models
 
         // Methods.
         [PropertyAlterer(nameof(Claims))]
-        public virtual void AddClaims(IEnumerable<UserClaim> claims)
+        public virtual bool AddClaim(UserClaim claim)
         {
-            if (claims is null)
-                throw new ArgumentNullException(nameof(claims));
+            if (claim is null)
+                throw new ArgumentNullException(nameof(claim));
 
-            foreach (var claim in claims)
+            //keep default claims managed by model
+            switch (claim.Type)
             {
-                //keep default claims managed by model
-                switch (claim.Type)
-                {
-                    case DefaultClaimTypes.EtherAddress:
-                    case DefaultClaimTypes.EtherPreviousAddresses:
-                    case DefaultClaimTypes.IsWeb3Account:
-                        continue;
-                }
-
-                //don't add duplicate claims
-                if (_customClaims.Any(c => c.Type == claim.Type &&
-                                           c.Value == claim.Value))
-                    continue;
-
-                _customClaims.Add(claim);
+                case DefaultClaimTypes.EtherAddress:
+                case DefaultClaimTypes.EtherPreviousAddresses:
+                case DefaultClaimTypes.IsWeb3Account:
+                    return false;
             }
+
+            //don't add duplicate claims
+            if (_customClaims.Any(c => c.Type == claim.Type &&
+                                       c.Value == claim.Value))
+                return false;
+
+            _customClaims.Add(claim);
+            return true;
         }
 
         [PropertyAlterer(nameof(Roles))]
@@ -152,14 +151,14 @@ namespace Etherna.SSOServer.Domain.Models
         }
 
         [PropertyAlterer(nameof(Claims))]
-        public virtual void RemoveClaims(IEnumerable<UserClaim> claims)
+        public virtual bool RemoveClaim(UserClaim claim)
         {
-            if (claims is null)
-                throw new ArgumentNullException(nameof(claims));
+            if (claim is null)
+                throw new ArgumentNullException(nameof(claim));
 
-            foreach (var claim in claims)
-                _customClaims.RemoveAll(c => c.Type == claim.Type &&
-                                             c.Value == claim.Value);
+            var removed = _customClaims.RemoveAll(c => c.Type == claim.Type &&
+                                                       c.Value == claim.Value);
+            return removed > 0;
         }
 
         [PropertyAlterer(nameof(Email))]

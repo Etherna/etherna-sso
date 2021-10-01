@@ -64,7 +64,8 @@ namespace Etherna.SSOServer.Configs.Identity
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
 
-            user.AddClaims(claims.Select(c => new Domain.Models.UserAgg.UserClaim(c.Type, c.Value)));
+            foreach (var claim in claims.Select(c => new Domain.Models.UserAgg.UserClaim(c.Type, c.Value)))
+                user.AddClaim(claim);
             return Task.CompletedTask;
         }
 
@@ -336,7 +337,8 @@ namespace Etherna.SSOServer.Configs.Identity
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
 
-            user.RemoveClaims(claims.Select(c => new Domain.Models.UserAgg.UserClaim(c.Type, c.Value)));
+            foreach (var claim in claims.Select(c => new Domain.Models.UserAgg.UserClaim(c.Type, c.Value)))
+                user.RemoveClaim(claim);
             return Task.CompletedTask;
         }
 
@@ -367,8 +369,8 @@ namespace Etherna.SSOServer.Configs.Identity
             if (newClaim is null)
                 throw new ArgumentNullException(nameof(newClaim));
 
-            user.RemoveClaims(new[] { new Domain.Models.UserAgg.UserClaim(claim.Type, claim.Value) });
-            user.AddClaims(new[] { new Domain.Models.UserAgg.UserClaim(newClaim.Type, newClaim.Value) });
+            user.RemoveClaim(new Domain.Models.UserAgg.UserClaim(claim.Type, claim.Value));
+            user.AddClaim(new Domain.Models.UserAgg.UserClaim(newClaim.Type, newClaim.Value));
 
             return Task.CompletedTask;
         }
