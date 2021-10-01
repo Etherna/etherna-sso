@@ -84,11 +84,16 @@
                                 <tr>
                                     <td>@claim.Type</td>
                                     <td>@claim.Value</td>
-                                    <td><a asp-page="UserClaimsDelete"
-                                           asp-route-claimType="@claim.Type"
-                                           asp-route-claimValue="@claim.Value"
-                                           asp-route-userId="@Model.Id"
-                                           class="btn btn-danger">Delete</a></td>
+                                    <td>
+                                        @if (!UserBase.DefaultClaimTypes.Names.Contains(claim.Type))
+                                        {
+                                            <a asp-page="UserClaimsDelete"
+                                               asp-route-claimType="@claim.Type"
+                                               asp-route-claimValue="@claim.Value"
+                                               asp-route-userId="@Model.Id"
+                                               class="btn btn-danger">Delete</a>
+                                        }
+                                    </td>
                                 </tr>
                             }
                         </tbody>

@@ -31,6 +31,9 @@ namespace Etherna.SSOServer.Domain.Models
             public const string EtherAddress = "ether_address";
             public const string EtherPreviousAddresses = "ether_prev_addresses";
             public const string IsWeb3Account = "isWeb3Account";
+
+            public static readonly IEnumerable<string> Names =
+                new[] { EtherAddress, EtherPreviousAddresses, IsWeb3Account };
         }
 
         // Fields.
@@ -104,13 +107,8 @@ namespace Etherna.SSOServer.Domain.Models
                 throw new ArgumentNullException(nameof(claim));
 
             //keep default claims managed by model
-            switch (claim.Type)
-            {
-                case DefaultClaimTypes.EtherAddress:
-                case DefaultClaimTypes.EtherPreviousAddresses:
-                case DefaultClaimTypes.IsWeb3Account:
-                    return false;
-            }
+            if (DefaultClaimTypes.Names.Contains(claim.Type))
+                return false;
 
             //don't add duplicate claims
             if (_customClaims.Any(c => c.Type == claim.Type &&
@@ -156,8 +154,19 @@ namespace Etherna.SSOServer.Domain.Models
             if (claim is null)
                 throw new ArgumentNullException(nameof(claim));
 
-            var removed = _customClaims.RemoveAll(c => c.Type == claim.Type &&
-                                                       c.Value == claim.Value);
+            return RemoveClaim(claim.Type, claim.Value);
+        }
+
+        [PropertyAlterer(nameof(Claims))]
+        public virtual bool RemoveClaim(string type, string value)
+        {
+            if (type is null)
+                throw new ArgumentNullException(nameof(type));
+            if (value is null)
+                throw new ArgumentNullException(nameof(value));
+
+            var removed = _customClaims.RemoveAll(c => c.Type == type &&
+                                                       c.Value == value);
             return removed > 0;
         }
 
