@@ -1,6 +1,8 @@
 const mix = require("laravel-mix")
 require("laravel-mix-purgecss")
 
+mix.disableNotifications()
+
 // Standalone JS scripts
 mix.js("Static/js/site.js", "js")
 mix.js("Static/js/signin-redirect.js", "js")
@@ -39,4 +41,3 @@ mix.options({
 })
 mix.setPublicPath("./wwwroot/dist")
 mix.sourceMaps(false)
-mix.disableSuccessNotifications()
