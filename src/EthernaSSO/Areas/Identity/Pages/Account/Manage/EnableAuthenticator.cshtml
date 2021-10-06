@@ -56,7 +56,7 @@
             <div class="row">
                 <div class="col-md-6">
                     <form id="send-code" method="post">
-                        <div class="form-group">
+                        <div class="mb-3">
                             <label asp-for="Input.Code" class="control-label">Verification Code</label>
                             <input asp-for="Input.Code" class="form-control" autocomplete="off" />
                             <span asp-validation-for="Input.Code" class="text-danger"></span>
@@ -72,7 +72,7 @@
 
 @section Scripts {
 <partial name="_ValidationScriptsPartial" />
-<script src="~/lib/jquery.classyqr/jquery.classyqr.min.js"></script>
+<script src="~/dist/js/jquery.classyqr.js"></script>
 <script>
     (function ($) {
         $('#qrCode').ClassyQR({
