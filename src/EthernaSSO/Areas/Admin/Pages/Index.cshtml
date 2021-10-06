@@ -1,0 +1,20 @@
+﻿@page
+@using Etherna.SSOServer
+@model Etherna.SSOServer.Areas.Admin.Pages.IndexModel
+@{
+    ViewData["Title"] = "Admin panel";
+}
+
+<h4>@ViewData["Title"]</h4>
+<div class="row">
+    <div class="col-md-6">
+
+        <ul>
+            <li><a class="btn btn-link" href="@CommonConsts.DatabaseAdminPath">Database</a></li>
+            <li><a class="btn btn-link" href="@CommonConsts.HangfireAdminPath">Hangfire</a></li>
+            <li><a class="btn btn-link" asp-area="@CommonConsts.AdminArea" asp-page="/IdentityServer/Index">IdentityServer</a></li>
+            <li><a class="btn btn-link" asp-area="@CommonConsts.AdminArea" asp-page="/Invitations/Index">Invitations</a></li>
+        </ul>
+
+    </div>
+</div>

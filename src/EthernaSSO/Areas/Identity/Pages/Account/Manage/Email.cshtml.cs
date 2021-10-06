@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Etherna.SSOServer.Configs;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.RCL.Views.Emails;
@@ -155,7 +156,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
                 "/Account/ConfirmEmail",
                 values: new
                 {
-                    area = "Identity",
+                    area = CommonConsts.IdentityArea,
                     userId,
                     code
                 });
