@@ -28,6 +28,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Etherna SSO Server</title>
     <link rel="stylesheet" href="~/dist/css/site.css" asp-append-version="true" />
+    @if (userIsAdmin) {
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+    }
     <script src="~/dist/js/manifest.js" asp-append-version="true"></script>
     <script src="~/dist/js/vendor.js" asp-append-version="true"></script>
 </head>
@@ -81,6 +84,9 @@
     </footer>
 
     <script src="~/dist/js/site.js" asp-append-version="true"></script>
+    @if (userIsAdmin) {
+        <script src="~/dist/js/admin.js" asp-append-version="true"></script>
+    }
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>
