@@ -27,7 +27,7 @@
     @if (Model.Id is not null)
     {
         <!--Button-->
-        <div class="form-group row">
+        <div class="mb-3 row">
             <div class="col-sm-12">
                 <a asp-page="RoleUsers" asp-route-id="@Model.Id" class="btn btn-primary">Users</a>
                 <a asp-page="RoleDelete" asp-route-id="@Model.Id" class="btn btn-danger">Delete Role</a>
@@ -42,7 +42,7 @@
         <div class="card-body">
 
             <!--Input - text -->
-            <div class="form-group row">
+            <div class="mb-3 row">
                 <label asp-for="Input.Name" class="col-sm-3 col-form-label"></label>
                 <div class="col-sm-9">
                     <input type="text" required class="form-control" asp-for="Input.Name">
@@ -51,7 +51,7 @@
             </div>
 
             <!--Button-->
-            <div class="form-group row">
+            <div class="mb-3 row">
                 <label class="col-sm-3 col-form-label">
                 </label>
                 <div class="col-sm-9">

@@ -30,7 +30,7 @@
     @if (Model.Id is not null)
     {
         <!--Button-->
-        <div class="form-group row">
+        <div class="mb-3 row">
             <div class="col-md-12 col-m-b-10  col-m-t-10">
                 <a asp-page="UserClaims" asp-route-id="@Model.Id" class="btn btn-outline-primary">Manage User Claims</a>
                 <a asp-page="UserRoles" asp-route-id="@Model.Id" class="btn btn-outline-primary">Manage User Roles</a>
@@ -60,7 +60,7 @@
             <div class="row">
                 <div class="col-sm-10">
 
-                    <div class="form-group row">
+                    <div class="mb-3 row">
                         <label asp-for="Input.Username" class="col-sm-3 col-form-label"></label>
                         <div class="col-sm-9">
                             <input type="text" class="form-control" asp-for="Input.Username">
@@ -68,14 +68,14 @@
                         </div>
                     </div>
 
-                    <div class="form-group row">
+                    <div class="mb-3 row">
                         <label asp-for="@Model.EtherAddress" class="col-sm-3 col-form-label"></label>
                         <div class="col-sm-9">
                             <input type="text" disabled class="form-control" asp-for="@Model.EtherAddress">
                         </div>
                     </div>
 
-                    <div class="form-group row">
+                    <div class="mb-3 row">
                         <label asp-for="@Model.EtherPreviousAddresses" class="col-sm-3 col-form-label"></label>
                         <div class="col-sm-9">
                             <textarea type="text" disabled
@@ -85,7 +85,7 @@
                         </div>
                     </div>
 
-                    <div class="form-group row">
+                    <div class="mb-3 row">
                         <label asp-for="Input.Email" class="col-sm-3 col-form-label"></label>
                         <div class="col-sm-9">
                             <input type="email" class="form-control" asp-for="Input.Email">
@@ -93,14 +93,14 @@
                         </div>
                     </div>
 
-                    <div class="form-group row">
+                    <div class="mb-3 row">
                         <label asp-for="@Model.EmailConfirmed" class="col-sm-3 col-form-label"></label>
                         <div class="col-sm-9">
                             <input asp-for="@Model.EmailConfirmed" disabled type="checkbox">
                         </div>
                     </div>
 
-                    <div class="form-group row">
+                    <div class="mb-3 row">
                         <label asp-for="Input.PhoneNumber" class="col-sm-3 col-form-label"></label>
                         <div class="col-sm-9">
                             <input type="text" class="form-control" asp-for="Input.PhoneNumber">
@@ -108,21 +108,21 @@
                         </div>
                     </div>
 
-                    <div class="form-group row">
+                    <div class="mb-3 row">
                         <label asp-for="@Model.PhoneNumberConfirmed" class="col-sm-3 col-form-label"></label>
                         <div class="col-sm-9">
                             <input asp-for="@Model.PhoneNumberConfirmed" disabled type="checkbox">
                         </div>
                     </div>
 
-                    <div class="form-group row">
+                    <div class="mb-3 row">
                         <label asp-for="@Model.LastLoginDateTime" class="col-sm-3 col-form-label"></label>
                         <div class="col-sm-9">
                             <input asp-for="@Model.LastLoginDateTime" disabled type="text">
                         </div>
                     </div>
 
-                    <div class="form-group row">
+                    <div class="mb-3 row">
                         <label asp-for="Input.LockoutEnabled" class="col-sm-3 col-form-label"></label>
                         <div class="col-sm-9">
                             <input asp-for="Input.LockoutEnabled" type="checkbox">
@@ -131,13 +131,13 @@
                     </div>
 
                     @* Use "26/09/2021 19:27:53 +02:00" format, or ISO 8601-1:2019: https://docs.microsoft.com/en-us/dotnet/standard/datetime/system-text-json-support *@
-                    <div class="form-group row">
+                    <div class="mb-3 row">
                         <label asp-for="Input.LockoutEnd" class="col-sm-3 col-form-label"></label>
                         <div class="col-sm-9">
                             <div class="input-group date" id="logoutend-picker" data-target-input="nearest">
                                 <input asp-for="Input.LockoutEnd" type="text" class="form-control">
-                                <div class="input-group-append" data-target="#logoutend-picker" data-toggle="datetimepicker">
-                                    <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+                                <div class="input-group-text" data-target="#logoutend-picker" data-toggle="datetimepicker">
+                                    <i class="fa fa-calendar"></i>
                                 </div>
                             </div>
                         </div>
@@ -147,7 +147,7 @@
                     {
                         <h6>Web2 fields</h6>
 
-                        <div class="form-group row">
+                        <div class="mb-3 row">
                             <label asp-for="Input.EtherLoginAddress" class="col-sm-3 col-form-label"></label>
                             <div class="col-sm-9">
                                 <input type="text" class="form-control" asp-for="Input.EtherLoginAddress">
@@ -155,14 +155,14 @@
                             </div>
                         </div>
 
-                        <div class="form-group row">
+                        <div class="mb-3 row">
                             <label asp-for="@Model.AccessFailedCount" class="col-sm-3 col-form-label"></label>
                             <div class="col-sm-9">
                                 <input type="text" disabled class="form-control" asp-for="@Model.AccessFailedCount">
                             </div>
                         </div>
 
-                        <div class="form-group row">
+                        <div class="mb-3 row">
                             <label asp-for="Input.TwoFactorEnabled" class="col-sm-3 col-form-label"></label>
                             <div class="col-sm-9">
                                 <input type="checkbox" asp-for="Input.TwoFactorEnabled">
@@ -172,7 +172,7 @@
                     }
 
                     <!--Button-->
-                    <div class="form-group row">
+                    <div class="mb-3 row">
                         <label class="col-sm-3 col-form-label">
                         </label>
                         <div class="col-sm-9">
