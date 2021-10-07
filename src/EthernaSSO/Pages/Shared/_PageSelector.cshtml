@@ -1,0 +1,38 @@
+﻿@model PageSelectorModel
+
+@if (Model.MaxPage > 0)
+{
+    <div align="center">
+        @if (Model.CurrentPage >= 2)
+        {
+            <a asp-all-route-data="@(new Dictionary<string, string>(Model.RouteData) { { Model.PageParamName, "0" } })">0</a>
+
+            @if (Model.CurrentPage >= 3)
+            {
+                <span> ... </span>
+            }
+        }
+
+        @if (Model.CurrentPage > 0)
+        {
+            <a asp-all-route-data="@(new Dictionary<string, string>(Model.RouteData) { { Model.PageParamName, (Model.CurrentPage - 1).ToString() } })">@(Model.CurrentPage - 1)</a>
+        }
+
+        <b>@Model.CurrentPage</b>
+
+        @if (Model.CurrentPage < Model.MaxPage)
+        {
+            <a asp-all-route-data="@(new Dictionary<string, string>(Model.RouteData) { { Model.PageParamName, (Model.CurrentPage + 1).ToString() } })">@(Model.CurrentPage + 1)</a>
+        }
+
+        @if (Model.CurrentPage <= Model.MaxPage - 2)
+        {
+            @if (Model.MaxPage - Model.CurrentPage >= 3)
+            {
+                <span> ... </span>
+            }
+
+            <a asp-all-route-data="@(new Dictionary<string, string>(Model.RouteData) { { Model.PageParamName, Model.MaxPage.ToString() } })">@Model.MaxPage</a>
+        }
+    </div>
+}

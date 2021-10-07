@@ -1,6 +1,7 @@
 ﻿using Etherna.SSOServer.Areas.Api.DtoModels;
 using Etherna.SSOServer.Areas.Api.Services;
 using Etherna.SSOServer.Attributes;
+using Etherna.SSOServer.Configs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -11,7 +12,7 @@ namespace Etherna.SSOServer.Areas.Api.Controllers
     [ApiController]
     [ApiVersion("0.2")]
     [Route("api/v{api-version:apiVersion}/[controller]")]
-    [Authorize("ServiceInteractApiScope")]
+    [Authorize(CommonConsts.ServiceInteractApiScopePolicy)]
     public class ServiceInteractController : ControllerBase
     {
         // Fields.

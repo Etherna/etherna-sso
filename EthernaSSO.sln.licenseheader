@@ -15,7 +15,7 @@ extensions: .cs .cpp .h
 //   limitations under the License.
 
 extensions: .cshtml
-@*  * Copyright 2021-present Etherna Sagl
+@*  *   Copyright 2021-present Etherna Sagl
     *
     *   Licensed under the Apache License, Version 2.0 (the "License");
     *   you may not use this file except in compliance with the License.

@@ -1,0 +1,22 @@
+﻿@model SearchModel
+
+<form asp-page="@Model.RazorPage"
+      asp-page-handler="@Model.RazorPageHandler"
+      method="get">
+    <div class="form-row">
+        <div class="col-12 mb-3">
+            <input name="@Model.SearchParamName" value="@Model.Query" type="text" placeholder="Search query" class="form-control" />
+        </div>
+    </div>
+
+    <div class="form-row">
+        <div class="col-12 mb-3">
+            <input type="submit" class="btn btn-primary" value="Search" />
+        </div>
+    </div>
+
+    @foreach (var data in Model.RouteData)
+    {
+        <input name="@data.Key" value="@data.Value" type="hidden" />
+    }
+</form>

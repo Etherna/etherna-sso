@@ -55,10 +55,6 @@ namespace Etherna.SSOServer
 {
     public class Startup
     {
-        // Consts.
-        public const string DatabaseAdminPath = "/admin/db";
-        public const string HangfireAdminPath = "/admin/hangfire";
-
         // Constructor.
         public Startup(
             IConfiguration configuration,
@@ -94,7 +90,7 @@ namespace Etherna.SSOServer
                 .AddRoles<Role>()
                 .AddRoleStore<RoleStore>()
                 .AddUserStore<UserStore>();
-            //replace default UserValidator with custom. Default one doesn't allow null usernames
+            //replace default UserValidator with custom
             services.Replace(ServiceDescriptor.Scoped<IUserValidator<UserBase>, CustomUserValidator>());
 
             services.ConfigureApplicationCookie(options =>
@@ -124,7 +120,7 @@ namespace Etherna.SSOServer
             services.AddCors();
             services.AddRazorPages(options =>
             {
-                options.Conventions.AuthorizeAreaFolder("Admin", "/", "RequireAdministratorRole");
+                options.Conventions.AuthorizeAreaFolder(CommonConsts.AdminArea, "/", CommonConsts.RequireAdministratorRolePolicy);
             });
             services.AddControllers(); //used for APIs
             services.AddApiVersioning(options =>
@@ -172,10 +168,10 @@ namespace Etherna.SSOServer
                 });
             services.AddAuthorization(options =>
             {
-                options.AddPolicy("RequireAdministratorRole",
+                options.AddPolicy(CommonConsts.RequireAdministratorRolePolicy,
                      policy => policy.RequireRole(Role.AdministratorName));
 
-                options.AddPolicy("ServiceInteractApiScope", policy =>
+                options.AddPolicy(CommonConsts.ServiceInteractApiScopePolicy, policy =>
                 {
                     policy.AuthenticationSchemes = new List<string> { JwtBearerDefaults.AuthenticationScheme };
                     policy.RequireAuthenticatedUser();
@@ -273,7 +269,7 @@ namespace Etherna.SSOServer
             services.AddMongODMAdminDashboard(new MongODM.AspNetCore.UI.DashboardOptions
             {
                 AuthFilters = new[] { new Configs.MongODM.AdminAuthFilter() },
-                BasePath = DatabaseAdminPath
+                BasePath = CommonConsts.DatabaseAdminPath
             });
 
             // Configure domain services.
@@ -323,7 +319,7 @@ namespace Etherna.SSOServer
             app.UseAuthorization();
 
             // Add Hangfire.
-            app.UseHangfireDashboard(HangfireAdminPath,
+            app.UseHangfireDashboard(CommonConsts.HangfireAdminPath,
                 new Hangfire.DashboardOptions
                 {
                     Authorization = new[] { new AdminAuthFilter() }

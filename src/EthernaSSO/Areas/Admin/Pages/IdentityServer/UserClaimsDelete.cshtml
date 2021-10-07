@@ -1,0 +1,57 @@
+﻿@page
+@model Etherna.SSOServer.Areas.Admin.Pages.IdentityServer.UserClaimsDeleteModel
+@{
+    ViewData["Title"] = "Delete User Claim";
+}
+
+<form Method="post">
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a asp-page="Users">Users</a></li>
+                    <li class="breadcrumb-item"><a asp-page="User" asp-route-id="@Model.UserId">@Model.Username</a></li>
+                    <li class="breadcrumb-item"><a asp-page="UserClaims" asp-route-id="@Model.UserId">User Claims</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">@ViewData["Title"]</li>
+                </ol>
+            </nav>
+        </div>
+
+        <div class="col-md-12">
+            <h3>@ViewData["Title"]</h3>
+
+            <!--Hidden -->
+            <input type="hidden" asp-for="UserId" />
+
+            <div class="card mt-3">
+                <h5 class="card-header">Delete User Claim</h5>
+                <div class="card-body">
+                    <!--Input - text -->
+                    <div class="mb-3 row">
+                        <label asp-for="ClaimType" class="col-sm-3 col-form-label"></label>
+                        <div class="col-sm-9">
+                            <input type="text" disabled class="form-control" asp-for="ClaimType">
+                        </div>
+                    </div>
+
+                    <!--Input - text -->
+                    <div class="mb-3 row">
+                        <label asp-for="ClaimValue" class="col-sm-3 col-form-label"></label>
+                        <div class="col-sm-9">
+                            <input type="text" disabled class="form-control" asp-for="ClaimValue">
+                        </div>
+                    </div>
+
+                    <!--Button-->
+                    <div class="mb-3 row">
+                        <label class="col-sm-3 col-form-label">
+                        </label>
+                        <div class="col-sm-9">
+                            <button type="submit" class="btn btn-danger">Delete User Claim</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>

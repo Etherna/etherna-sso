@@ -18,23 +18,22 @@ using Etherna.SSOServer.Domain.Models.UserAgg;
 using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 
 namespace Etherna.SSOServer.Domain.Models
 {
     public abstract class UserBase : EntityModelBase<string>
     {
         // Consts.
-        public const string AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._";
-        public const string UsernameRegex = "^[a-zA-Z0-9_]{5,20}$";
         public static class DefaultClaimTypes
         {
             public const string EtherAddress = "ether_address";
             public const string EtherPreviousAddresses = "ether_prev_addresses";
             public const string IsWeb3Account = "isWeb3Account";
+
+            public static readonly IEnumerable<string> Names =
+                new[] { EtherAddress, EtherPreviousAddresses, IsWeb3Account };
         }
 
         // Fields.
@@ -59,7 +58,8 @@ namespace Etherna.SSOServer.Domain.Models
             protected set
             {
                 _customClaims.Clear();
-                AddClaims(value ?? Array.Empty<UserClaim>());
+                foreach (var claim in value ?? Array.Empty<UserClaim>())
+                    AddClaim(claim);
             }
         }
         public virtual IEnumerable<UserClaim> DefaultClaims =>
@@ -101,36 +101,33 @@ namespace Etherna.SSOServer.Domain.Models
 
         // Methods.
         [PropertyAlterer(nameof(Claims))]
-        public virtual void AddClaims(IEnumerable<UserClaim> claims)
+        public virtual bool AddClaim(UserClaim claim)
         {
-            if (claims is null)
-                throw new ArgumentNullException(nameof(claims));
+            if (claim is null)
+                throw new ArgumentNullException(nameof(claim));
 
-            foreach (var claim in claims)
-            {
-                //keep default claims managed by model
-                switch (claim.Type)
-                {
-                    case DefaultClaimTypes.EtherAddress:
-                    case DefaultClaimTypes.EtherPreviousAddresses:
-                    case DefaultClaimTypes.IsWeb3Account:
-                        continue;
-                }
+            //keep default claims managed by model
+            if (DefaultClaimTypes.Names.Contains(claim.Type))
+                return false;
 
-                //don't add duplicate claims
-                if (_customClaims.Any(c => c.Type == claim.Type &&
-                                           c.Value == claim.Value))
-                    continue;
+            //don't add duplicate claims
+            if (_customClaims.Any(c => c.Type == claim.Type &&
+                                       c.Value == claim.Value))
+                return false;
 
-                _customClaims.Add(claim);
-            }
+            _customClaims.Add(claim);
+            return true;
         }
 
         [PropertyAlterer(nameof(Roles))]
-        public virtual void AddRole(Role role)
+        public virtual bool AddRole(Role role)
         {
             if (!_roles.Contains(role))
+            {
                 _roles.Add(role);
+                return true;
+            }
+            return false;
         }
 
         [PropertyAlterer(nameof(EmailConfirmed))]
@@ -152,14 +149,25 @@ namespace Etherna.SSOServer.Domain.Models
         }
 
         [PropertyAlterer(nameof(Claims))]
-        public virtual void RemoveClaims(IEnumerable<UserClaim> claims)
+        public virtual bool RemoveClaim(UserClaim claim)
         {
-            if (claims is null)
-                throw new ArgumentNullException(nameof(claims));
+            if (claim is null)
+                throw new ArgumentNullException(nameof(claim));
 
-            foreach (var claim in claims)
-                _customClaims.RemoveAll(c => c.Type == claim.Type &&
-                                             c.Value == claim.Value);
+            return RemoveClaim(claim.Type, claim.Value);
+        }
+
+        [PropertyAlterer(nameof(Claims))]
+        public virtual bool RemoveClaim(string type, string value)
+        {
+            if (type is null)
+                throw new ArgumentNullException(nameof(type));
+            if (value is null)
+                throw new ArgumentNullException(nameof(value));
+
+            var removed = _customClaims.RemoveAll(c => c.Type == type &&
+                                                       c.Value == value);
+            return removed > 0;
         }
 
         [PropertyAlterer(nameof(Email))]
@@ -193,13 +201,13 @@ namespace Etherna.SSOServer.Domain.Models
             {
                 Email = email;
                 EmailConfirmed = false;
-                NormalizedEmail = NormalizeEmail(email);
+                NormalizedEmail = EmailHelper.NormalizeEmail(email);
             }
         }
 
         [PropertyAlterer(nameof(PhoneNumber))]
         [PropertyAlterer(nameof(PhoneNumberConfirmed))]
-        public virtual void SetPhoneNumber(string phoneNumber)
+        public virtual void SetPhoneNumber(string? phoneNumber)
         {
             if (PhoneNumber != phoneNumber)
             {
@@ -212,12 +220,12 @@ namespace Etherna.SSOServer.Domain.Models
         [PropertyAlterer(nameof(Username))]
         public virtual void SetUsername(string username)
         {
-            if (!Regex.IsMatch(username, UsernameRegex))
-                throw new ArgumentOutOfRangeException(nameof(username));
+            if (!UsernameHelper.IsValidUsername(username))
+                throw new ArgumentException("Username is not valid", nameof(username));
 
             if (Username != username)
             {
-                NormalizedUsername = NormalizeUsername(username);
+                NormalizedUsername = UsernameHelper.NormalizeUsername(username);
                 Username = username;
             }
         }
@@ -226,33 +234,6 @@ namespace Etherna.SSOServer.Domain.Models
         public virtual void UpdateLastLoginDateTime()
         {
             LastLoginDateTime = DateTime.Now;
-        }
-
-        // Public static helpers.
-        public static string NormalizeEmail(string email)
-        {
-            if (email is null)
-                throw new ArgumentNullException(nameof(email));
-
-            email = email.ToUpper(CultureInfo.InvariantCulture); //to upper case
-
-            var components = email.Split('@');
-            var username = components[0];
-            var domain = components[1];
-
-            var cleanedUsername = username.Split('+')[0]; //remove chars after '+' symbol, if present
-
-            return $"{cleanedUsername}@{domain}";
-        }
-
-        public static string NormalizeUsername(string username)
-        {
-            if (username is null)
-                throw new ArgumentNullException(nameof(username));
-
-            username = username.ToUpper(CultureInfo.InvariantCulture); //to upper case
-
-            return username;
         }
     }
 }

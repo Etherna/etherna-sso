@@ -15,6 +15,7 @@
 using Etherna.DomainEvents;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Events;
+using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Extensions;
 using Etherna.SSOServer.Services.Domain;
@@ -50,7 +51,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             public bool IsInvitationRequired { get; set; }
 
             [Required]
-            [RegularExpression(UserBase.UsernameRegex, ErrorMessage = "Allowed characters are a-z, A-Z, 0-9, _. Permitted length is between 5 and 20.")]
+            [RegularExpression(UsernameHelper.UsernameRegex, ErrorMessage = "Allowed characters are a-z, A-Z, 0-9, _. Permitted length is between 5 and 20.")]
             [Display(Name = "Username")]
             public string Username { get; set; } = default!;
 
