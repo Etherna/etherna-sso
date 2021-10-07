@@ -134,9 +134,9 @@
                     <div class="mb-3 row">
                         <label asp-for="Input.LockoutEnd" class="col-sm-3 col-form-label"></label>
                         <div class="col-sm-9">
-                            <div class="input-group date" id="logoutend-picker" data-target-input="nearest">
-                                <input asp-for="Input.LockoutEnd" type="text" class="form-control">
-                                <div class="input-group-text" data-target="#logoutend-picker" data-toggle="datetimepicker">
+                            <div class="input-group date">
+                                <input asp-for="Input.LockoutEnd" type="text" class="form-control" id="lockoutend-picker">
+                                <div class="input-group-text" data-target="#lockoutend-picker" data-toggle="datetimepicker">
                                     <i class="fa fa-calendar"></i>
                                 </div>
                             </div>
@@ -189,7 +189,7 @@
 {
     <script type="text/javascript">
         $(function () {
-            $('#logoutend-picker').datetimepicker();
+            $('#lockoutend-picker').datetimepicker();
         });
     </script>
 }
