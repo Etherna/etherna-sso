@@ -18,7 +18,6 @@ using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.RCL.Views.Emails;
 using Etherna.SSOServer.Services.Utilities;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Routing;
