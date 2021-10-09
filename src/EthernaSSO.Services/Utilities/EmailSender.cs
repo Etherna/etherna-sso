@@ -14,7 +14,6 @@
 
 using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Services.Settings;
-using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.Extensions.Options;
 using SendGrid;
 using SendGrid.Helpers.Mail;
@@ -27,13 +26,16 @@ namespace Etherna.SSOServer.Services.Utilities
 {
     class EmailSender : IEmailSender
     {
+        // Fields.
         private readonly EmailSettings settings;
 
+        // Constructor.
         public EmailSender(IOptions<EmailSettings> opts)
         {
             settings = opts.Value;
         }
 
+        // Methods.
         public Task SendEmailAsync(string email, string subject, string message)
         {
             if (!EmailHelper.IsValidEmail(email))

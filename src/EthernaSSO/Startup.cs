@@ -76,7 +76,7 @@ namespace Etherna.SSOServer
             services.AddDataProtection()
                 .PersistKeysToDbContext(new DbContextOptions { ConnectionString = Configuration["ConnectionStrings:SystemDb"] });
 
-            services.AddDefaultIdentity<UserBase>(options =>
+            services.AddIdentity<UserBase, Role>(options =>
             {
                 options.Password.RequireDigit = true;
                 options.Password.RequiredLength = 6;
@@ -87,6 +87,7 @@ namespace Etherna.SSOServer
                 //options.User.AllowedUserNameCharacters = ""; //overrided by regex validation with User.UsernameRegex
                 options.User.RequireUniqueEmail = true;
             })
+                .AddDefaultTokenProviders()
                 .AddRoles<Role>()
                 .AddRoleStore<RoleStore>()
                 .AddUserStore<UserStore>();
@@ -102,7 +103,7 @@ namespace Etherna.SSOServer
 
                 options.LoginPath = "/Identity/Account/Login";
                 options.LogoutPath = "/Identity/Account/Logout";
-                options.AccessDeniedPath = "/Identity/Account/AccessDenied";
+                options.AccessDeniedPath = "/AccessDenied";
 
                 options.SlidingExpiration = true;
 
@@ -121,6 +122,9 @@ namespace Etherna.SSOServer
             services.AddRazorPages(options =>
             {
                 options.Conventions.AuthorizeAreaFolder(CommonConsts.AdminArea, "/", CommonConsts.RequireAdministratorRolePolicy);
+                options.Conventions.AuthorizeAreaFolder(CommonConsts.IdentityArea, "/Account/Manage");
+
+                options.Conventions.AuthorizeAreaPage(CommonConsts.IdentityArea, "/Account/Logout");
             });
             services.AddControllers(); //used for APIs
             services.AddApiVersioning(options =>

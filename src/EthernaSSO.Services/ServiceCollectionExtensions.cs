@@ -17,7 +17,6 @@ using Etherna.DomainEvents.AspNetCore;
 using Etherna.SSOServer.Services.Domain;
 using Etherna.SSOServer.Services.Tasks;
 using Etherna.SSOServer.Services.Utilities;
-using Microsoft.AspNetCore.Identity.UI.Services;
 using System;
 using System.Linq;
 using System.Reflection;

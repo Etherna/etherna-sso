@@ -15,10 +15,8 @@
 using Etherna.SSOServer.Configs;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
-using Etherna.SSOServer.RCL.Views.Emails;
 using Etherna.SSOServer.Services.Utilities;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
@@ -163,11 +161,11 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
 
             var emailBody = await razorViewRenderer.RenderViewToStringAsync(
                 "Views/Emails/ConfirmEmail.cshtml",
-                new ConfirmEmailModel(callbackUrl));
+                new RCL.Views.Emails.ConfirmEmailModel(callbackUrl));
 
             await emailSender.SendEmailAsync(
                 email,
-                ConfirmEmailModel.Title,
+                RCL.Views.Emails.ConfirmEmailModel.Title,
                 emailBody);
 
             StatusMessage = "Verification email sent. Please check your email.";
