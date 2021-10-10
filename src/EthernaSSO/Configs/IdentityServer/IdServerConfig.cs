@@ -82,10 +82,10 @@ namespace Etherna.SSOServer.Configs.IdentityServer
 
                 AllowedGrantTypes = GrantTypes.CodeAndClientCredentials,
 
-                // where to redirect to after login
+                //where to redirect to after login
                 RedirectUris = { $"{ethernaCreditBaseUrl}/signin-oidc" },
 
-                // where to redirect to after logout
+                //where to redirect to after logout
                 PostLogoutRedirectUris = { $"{ethernaCreditBaseUrl}/signout-callback-oidc" },
 
                 AlwaysIncludeUserClaimsInIdToken = true,
@@ -98,7 +98,10 @@ namespace Etherna.SSOServer.Configs.IdentityServer
 
                     //for client credential flow
                     EthernaSsoUserContactInfoApiScope.Name
-                }
+                },
+
+                // Allow token refresh.
+                AllowOfflineAccess = true
             },
 
             //dapp
@@ -112,10 +115,10 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                 RequireConsent = false,
                 RequireClientSecret = false,
                     
-                // where to redirect to after login
+                //where to redirect to after login
                 RedirectUris = { $"{ethernaDappBaseUrl}/callback.html" },
 
-                // where to redirect to after logout
+                //where to redirect to after logout
                 PostLogoutRedirectUris = { ethernaDappBaseUrl },
 
                 AllowedCorsOrigins = { ethernaDappBaseUrl },
@@ -125,7 +128,11 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                     IdentityServerConstants.StandardScopes.OpenId,
                     IdentityServerConstants.StandardScopes.Profile,
                     "ether_accounts"
-                }
+                },
+
+                // Allow token refresh.
+                AllowOfflineAccess = true,
+                RefreshTokenUsage = TokenUsage.OneTimeOnly //because client have not secret
             },
 
             //gateway validator (credit client)
@@ -135,10 +142,10 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                 ClientName = "Etherna Gateway Validator",
                 ClientSecrets = { new Secret(ethernaGatewayCreditSecret.Sha256()) },
 
-                // no interactive user, use the clientid/secret for authentication
+                //no interactive user, use the clientid/secret for authentication
                 AllowedGrantTypes = GrantTypes.ClientCredentials,
 
-                // scopes that client has access to
+                //scopes that client has access to
                 AllowedScopes =
                 {
                     EthernaCreditServiceInteractApiScope.Name
@@ -156,10 +163,10 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                 RequireConsent = false,
                 RequirePkce = true,
 
-                // where to redirect to after login
+                //where to redirect to after login
                 RedirectUris = ethernaGatewayWebappBaseUrls.Select(url => $"{url}/signin-oidc").ToList(),
 
-                // where to redirect to after logout
+                //where to redirect to after logout
                 PostLogoutRedirectUris = ethernaGatewayWebappBaseUrls.Select(url => $"{url}/signout-callback-oidc").ToList(),
 
                 AlwaysIncludeUserClaimsInIdToken = true,
@@ -168,7 +175,10 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                     IdentityServerConstants.StandardScopes.OpenId,
                     IdentityServerConstants.StandardScopes.Profile,
                     "ether_accounts"
-                }
+                },
+
+                // Allow token refresh.
+                AllowOfflineAccess = true
             },
 
             //index
@@ -182,10 +192,10 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                 RequireConsent = false,
                 RequirePkce = true,
 
-                // where to redirect to after login
+                //where to redirect to after login
                 RedirectUris = { $"{ethernaIndexBaseUrl}/signin-oidc" },
 
-                // where to redirect to after logout
+                //where to redirect to after logout
                 PostLogoutRedirectUris = { $"{ethernaIndexBaseUrl}/signout-callback-oidc" },
 
                 AlwaysIncludeUserClaimsInIdToken = true,
@@ -198,7 +208,10 @@ namespace Etherna.SSOServer.Configs.IdentityServer
 
                     //for client credential flow
                     EthernaSsoUserContactInfoApiScope.Name
-                }
+                },
+
+                // Allow token refresh.
+                AllowOfflineAccess = true
             },
         };
 
