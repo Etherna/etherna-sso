@@ -49,6 +49,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Reflection;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 
 namespace Etherna.SSOServer
@@ -200,7 +201,9 @@ namespace Etherna.SSOServer
             else
             {
 #pragma warning disable CA2000 // Dispose objects before losing scope
-                builder.AddSigningCredential(AzureKeyVaultAccessor.GetIdentityServerCertificate(Configuration));
+                builder.AddSigningCredential(new X509Certificate2(
+                    Configuration["Certificate:Name"],
+                    Configuration["Certificate:Password"]));
 #pragma warning restore CA2000 // Dispose objects before losing scope
             }
 
