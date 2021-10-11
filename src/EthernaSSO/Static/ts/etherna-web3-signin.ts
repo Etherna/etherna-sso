@@ -92,6 +92,8 @@ async function web3Signin() {
       setBtnDisabled(store.confirmWeb3LoginButton, false)
       showError(error)
     }
+  } else {
+    alert("No ethereum provider found!")
   }
 }
 

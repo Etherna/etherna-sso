@@ -58,12 +58,10 @@
 </div>
 
 <script type="text/javascript">
-    window.addEventListener('load', function () {
-        window.EthernaWeb3Signin.constants.retriveAuthMessageUrl = '@Html.Raw(retriveAuthMessageUrl)';
-        window.EthernaWeb3Signin.constants.confirmSignatureUrl = '@Html.Raw(confirmSignatureUrl)';
-    });
+    window.retriveAuthMessageUrl = '@Html.Raw(retriveAuthMessageUrl)';
+    window.confirmSignatureUrl = '@Html.Raw(confirmSignatureUrl)';
 </script>
-<script src="~/js/etherna-web3-signin.js" asp-append-version="true"></script>
+<script src="~/dist/js/etherna-web3-signin.js" asp-append-version="true"></script>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
