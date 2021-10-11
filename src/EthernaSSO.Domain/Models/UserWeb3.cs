@@ -26,7 +26,6 @@ namespace Etherna.SSOServer.Domain.Models
             Claims = web2User.Claims;
             CreationDateTime = web2User.CreationDateTime;
             Email = web2User.Email;
-            EmailConfirmed = web2User.EmailConfirmed;
             EtherAddress = web2User.EtherLoginAddress;
             EtherPreviousAddresses = web2User.EtherPreviousAddresses.Append(web2User.EtherAddress);
             InvitedBy = web2User.InvitedBy;

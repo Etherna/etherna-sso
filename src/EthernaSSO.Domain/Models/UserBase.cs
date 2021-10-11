@@ -71,7 +71,6 @@ namespace Etherna.SSOServer.Domain.Models
             };
         [PersonalData]
         public virtual string? Email { get; protected set; }
-        public virtual bool EmailConfirmed { get; protected set; }
         [PersonalData]
         public virtual string EtherAddress { get; protected set; } = default!;
         [PersonalData]
@@ -130,15 +129,6 @@ namespace Etherna.SSOServer.Domain.Models
             return false;
         }
 
-        [PropertyAlterer(nameof(EmailConfirmed))]
-        public virtual void ConfirmEmail()
-        {
-            if (Email is null)
-                throw new InvalidOperationException();
-
-            EmailConfirmed = true;
-        }
-
         [PropertyAlterer(nameof(PhoneNumberConfirmed))]
         public virtual void ConfirmPhoneNumber()
         {
@@ -171,7 +161,6 @@ namespace Etherna.SSOServer.Domain.Models
         }
 
         [PropertyAlterer(nameof(Email))]
-        [PropertyAlterer(nameof(EmailConfirmed))]
         [PropertyAlterer(nameof(NormalizedEmail))]
         public virtual bool RemoveEmail()
         {
@@ -180,7 +169,6 @@ namespace Etherna.SSOServer.Domain.Models
 
             Email = null;
             NormalizedEmail = null;
-            EmailConfirmed = false;
 
             return true;
         }
@@ -190,7 +178,6 @@ namespace Etherna.SSOServer.Domain.Models
             _roles.RemoveAll(r => r.NormalizedName == roleName || r.Name == roleName) > 0;
 
         [PropertyAlterer(nameof(Email))]
-        [PropertyAlterer(nameof(EmailConfirmed))]
         [PropertyAlterer(nameof(NormalizedEmail))]
         public virtual void SetEmail(string email)
         {
@@ -200,7 +187,6 @@ namespace Etherna.SSOServer.Domain.Models
             if (Email != email)
             {
                 Email = email;
-                EmailConfirmed = false;
                 NormalizedEmail = EmailHelper.NormalizeEmail(email);
             }
         }
