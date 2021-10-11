@@ -58,7 +58,6 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
 
         // Properties.
         public string? Email { get; set; }
-        public bool IsEmailConfirmed { get; set; }
 
         [TempData]
         public string? StatusMessage { get; set; }
@@ -140,43 +139,10 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             return RedirectToPage();
         }
 
-        public async Task<IActionResult> OnPostSendVerificationEmailAsync()
-        {
-            var user = await userManager.GetUserAsync(User);
-            if (user == null)
-                return NotFound($"Unable to load user with ID '{userManager.GetUserId(User)}'.");
-
-            var userId = await userManager.GetUserIdAsync(user);
-            var email = await userManager.GetEmailAsync(user);
-            var code = await userManager.GenerateEmailConfirmationTokenAsync(user);
-            code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-            var callbackUrl = Url.PageLink(
-                "/Account/ConfirmEmail",
-                values: new
-                {
-                    area = CommonConsts.IdentityArea,
-                    userId,
-                    code
-                });
-
-            var emailBody = await razorViewRenderer.RenderViewToStringAsync(
-                "Views/Emails/ConfirmEmail.cshtml",
-                new RCL.Views.Emails.ConfirmEmailModel(callbackUrl));
-
-            await emailSender.SendEmailAsync(
-                email,
-                RCL.Views.Emails.ConfirmEmailModel.Title,
-                emailBody);
-
-            StatusMessage = "Verification email sent. Please check your email.";
-            return RedirectToPage();
-        }
-
         // Helpers.
         private async Task LoadAsync(UserBase user)
         {
             Email = await userManager.GetEmailAsync(user);
-            IsEmailConfirmed = await userManager.IsEmailConfirmedAsync(user);
         }
     }
 }
