@@ -41,14 +41,8 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         public class InputModel : IValidatableObject
         {
             // Properties.
-            [EmailAddress]
-            [Display(Name = "Email (optional)")]
-            public string? Email { get; set; }
-
             [Display(Name = "Invitation code")]
             public string? InvitationCode { get; set; }
-
-            public bool IsInvitationRequired { get; set; }
 
             [Required]
             [RegularExpression(UsernameHelper.UsernameRegex, ErrorMessage = "Allowed characters are a-z, A-Z, 0-9, _. Permitted length is between 5 and 20.")]
@@ -58,7 +52,11 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             // Methods.
             public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
             {
-                if (IsInvitationRequired && string.IsNullOrWhiteSpace(InvitationCode))
+                if (validationContext is null)
+                    throw new ArgumentNullException(nameof(validationContext));
+
+                var appSettings = (IOptions<ApplicationSettings>)validationContext.GetService(typeof(IOptions<ApplicationSettings>))!;
+                if (appSettings.Value.RequireInvitation && string.IsNullOrWhiteSpace(InvitationCode))
                 {
                     yield return new ValidationResult(
                         "Invitation code is required",
@@ -114,10 +112,11 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         [BindProperty]
         public InputModel Input { get; set; } = default!;
 
-        public bool DuplicateEmail { get; set; }
-        public bool DuplicateUsername { get; set; }
+        public bool DuplicateEmail { get; private set; }
+        public bool DuplicateUsername { get; private set; }
         public string? EtherAddress { get; private set; }
-        public string? ReturnUrl { get; set; }
+        public bool IsInvitationRequired { get; private set; }
+        public string? ReturnUrl { get; private set; }
         public string? Signature { get; private set; }
 
         // Methods.
@@ -198,8 +197,8 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             Input = new InputModel
             {
                 InvitationCode = invitationCode,
-                IsInvitationRequired = applicationSettings.RequireInvitation,
             };
+            IsInvitationRequired = applicationSettings.RequireInvitation;
             return Page();
         }
 
@@ -231,7 +230,6 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             var (errors, user) = await userService.RegisterWeb3UserAsync(
                 Input.Username,
                 etherAddress,
-                Input.Email,
                 Input.InvitationCode);
 
             // Post-registration actions.

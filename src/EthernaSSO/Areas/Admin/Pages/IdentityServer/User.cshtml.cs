@@ -141,8 +141,10 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
             UserBase user;
             if (id is null) //create
             {
-                var userWeb2 = new UserWeb2(Input.Username, Input.Email, null, null);
+                var userWeb2 = new UserWeb2(Input.Username, null, null);
 
+                if (Input.Email is not null)
+                    userWeb2.SetEmail(Input.Email);
                 userWeb2.SetPhoneNumber(Input.PhoneNumber);
                 userWeb2.LockoutEnabled = Input.LockoutEnabled;
                 userWeb2.LockoutEnd = Input.LockoutEnd;

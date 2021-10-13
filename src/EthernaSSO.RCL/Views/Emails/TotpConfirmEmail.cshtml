@@ -1,0 +1,13 @@
+﻿@model ConfirmEmailModel
+
+@{
+    ViewData["EmailTitle"] = ConfirmEmailModel.Title;
+}
+
+<p>
+    Please confirm your email by entering this code:
+</p>
+<h1>@Model.Code</h1>
+<p>
+    You have 5 minutes for use it, or you have to ask for another.
+</p>

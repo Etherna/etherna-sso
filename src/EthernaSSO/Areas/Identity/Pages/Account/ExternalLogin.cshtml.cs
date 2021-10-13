@@ -47,14 +47,8 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         public class InputModel : IValidatableObject
         {
             // Properties.
-            [EmailAddress]
-            [Display(Name = "Email (optional)")]
-            public string? Email { get; set; }
-
             [Display(Name = "Invitation code")]
             public string? InvitationCode { get; set; }
-
-            public bool IsInvitationRequired { get; set; }
 
             [Required]
             [RegularExpression(UsernameHelper.UsernameRegex, ErrorMessage = "Allowed characters are a-z, A-Z, 0-9, _. Permitted length is between 5 and 20.")]
@@ -64,7 +58,11 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             // Methods.
             public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
             {
-                if (IsInvitationRequired && string.IsNullOrWhiteSpace(InvitationCode))
+                if (validationContext is null)
+                    throw new ArgumentNullException(nameof(validationContext));
+
+                var appSettings = (IOptions<ApplicationSettings>)validationContext.GetService(typeof(IOptions<ApplicationSettings>))!;
+                if (appSettings.Value.RequireInvitation && string.IsNullOrWhiteSpace(InvitationCode))
                 {
                     yield return new ValidationResult(
                         "Invitation code is required",
@@ -114,10 +112,12 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         [BindProperty]
         public InputModel Input { get; set; } = default!;
 
-        public bool DuplicateEmail { get; set; }
-        public bool DuplicateUsername { get; set; }
-        public string? ProviderDisplayName { get; set; }
-        public string? ReturnUrl { get; set; }
+        public bool DuplicateEmail { get; private set; }
+        public bool DuplicateUsername { get; private set; }
+        public string? Email { get; private set; }
+        public bool IsInvitationRequired { get; private set; }
+        public string? ProviderDisplayName { get; private set; }
+        public string? ReturnUrl { get; private set; }
 
         // Methods.
         public IActionResult OnGetAsync() =>
@@ -214,13 +214,13 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             // If the user does not have an account, then ask him to create an account.
             Input = new InputModel
             {
-                Email = info.Principal.HasClaim(c => c.Type == ClaimTypes.Email) ?
-                    info.Principal.FindFirstValue(ClaimTypes.Email) : null,
                 InvitationCode = invitationCode,
-                IsInvitationRequired = applicationSettings.RequireInvitation,
                 Username = info.Principal.HasClaim(c => c.Type == ClaimTypes.Name) ?
                     info.Principal.FindFirstValue(ClaimTypes.Name) : ""
             };
+            Email = info.Principal.HasClaim(c => c.Type == ClaimTypes.Email) ?
+                info.Principal.FindFirstValue(ClaimTypes.Email) : null;
+            IsInvitationRequired = applicationSettings.RequireInvitation;
             return Page();
         }
 
@@ -243,7 +243,6 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             var (errors, user) = await userService.RegisterWeb2UserAsync(
                 Input.Username,
                 new Domain.Models.UserAgg.UserLoginInfo(info.LoginProvider, info.ProviderKey, info.ProviderDisplayName),
-                Input.Email,
                 Input.InvitationCode);
 
             // Post-registration actions.

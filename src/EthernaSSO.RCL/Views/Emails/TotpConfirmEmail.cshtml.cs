@@ -4,11 +4,11 @@
     {
         public const string Title = "Confirm your email";
 
-        public ConfirmEmailModel(string callbackUrl)
+        public ConfirmEmailModel(string code)
         {
-            CallbackUrl = callbackUrl;
+            Code = code;
         }
 
-        public string CallbackUrl { get; }
+        public string Code { get; }
     }
 }

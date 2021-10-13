@@ -42,11 +42,9 @@ namespace Etherna.SSOServer.Domain.Models
         private List<Role> _roles = new();
 
         // Constructors.
-        protected UserBase(string username, string? email, UserBase? invitedBy)
+        protected UserBase(string username, UserBase? invitedBy)
         {
             SetUsername(username);
-            if (email != null)
-                SetEmail(email);
             InvitedBy = invitedBy;
         }
         protected UserBase() { }

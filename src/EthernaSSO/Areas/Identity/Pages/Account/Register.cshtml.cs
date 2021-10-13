@@ -47,14 +47,8 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             [Display(Name = "Username")]
             public string Username { get; set; } = default!;
 
-            [EmailAddress]
-            [Display(Name = "Email (optional, needed for password recovery)")]
-            public string? Email { get; set; } = default!;
-
             [Display(Name = "Invitation code")]
             public string? InvitationCode { get; set; }
-
-            public bool IsInvitationRequired { get; set; }
 
             [Required]
             [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
@@ -70,7 +64,11 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             // Methods.
             public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
             {
-                if (IsInvitationRequired && string.IsNullOrWhiteSpace(InvitationCode))
+                if (validationContext is null)
+                    throw new ArgumentNullException(nameof(validationContext));
+
+                var appSettings = (IOptions<ApplicationSettings>)validationContext.GetService(typeof(IOptions<ApplicationSettings>))!;
+                if (appSettings.Value.RequireInvitation && string.IsNullOrWhiteSpace(InvitationCode))
                 {
                     yield return new ValidationResult(
                         "Invitation code is required",
@@ -115,8 +113,9 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         public InputModel Input { get; set; } = default!;
 
         public List<AuthenticationScheme> ExternalLogins { get; } = new List<AuthenticationScheme>();
-        public string? ReturnUrl { get; set; }
-        public Web3LoginPartialModel Web3LoginPartialModel { get; set; } = default!;
+        public bool IsInvitationRequired { get; private set; }
+        public string? ReturnUrl { get; private set; }
+        public Web3LoginPartialModel Web3LoginPartialModel { get; private set; } = default!;
 
         // Methods.
         public async Task OnGetAsync(string? invitationCode, string? returnUrl = null) =>
@@ -133,7 +132,6 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             var (errors, user) = await userService.RegisterWeb2UserAsync(
                 Input.Username,
                 Input.Password,
-                Input.Email,
                 Input.InvitationCode);
 
             // Post-registration actions.
@@ -184,7 +182,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             ExternalLogins.AddRange(await signInManager.GetExternalAuthenticationSchemesAsync());
             if (Input is null) Input = new InputModel();
             Input.InvitationCode ??= invitationCode;
-            Input.IsInvitationRequired = applicationSettings.RequireInvitation;
+            IsInvitationRequired = applicationSettings.RequireInvitation;
             ReturnUrl = returnUrl ?? Url.Content("~/");
 
             //init partial view models
