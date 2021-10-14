@@ -17,7 +17,6 @@ using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Events;
 using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models;
-using Etherna.SSOServer.Extensions;
 using Etherna.SSOServer.Services.Domain;
 using Etherna.SSOServer.Services.Settings;
 using IdentityServer4.Services;
@@ -27,7 +26,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver.Linq;
@@ -41,7 +39,7 @@ using System.Threading.Tasks;
 namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 {
     [AllowAnonymous]
-    public class ExternalLoginModel : PageModel
+    public class ExternalLoginModel : SsoExitPageModelBase
     {
         // Models.
         public class InputModel : IValidatableObject
@@ -73,7 +71,6 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
         // Fields.
         private readonly ApplicationSettings applicationSettings;
-        private readonly IClientStore clientStore;
         private readonly IEventDispatcher eventDispatcher;
         private readonly IIdentityServerInteractionService idServerInteractionService;
         private readonly ILogger<ExternalLoginModel> logger;
@@ -91,12 +88,12 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             SignInManager<UserBase> signInManager,
             ISsoDbContext ssoDbContext,
             IUserService userService)
+            : base(clientStore)
         {
             if (applicationSettings is null)
                 throw new ArgumentNullException(nameof(applicationSettings));
 
             this.applicationSettings = applicationSettings.Value;
-            this.clientStore = clientStore;
             this.eventDispatcher = eventDispatcher;
             this.idServerInteractionService = idServerInteractionService;
             this.logger = logger;
@@ -192,17 +189,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 logger.LogInformation($"{info.Principal.Identity.Name} logged in with {info.LoginProvider} provider.");
 
                 // Identify redirect.
-                if (context?.Client != null)
-                {
-                    if (await clientStore.IsPkceClientAsync(context.Client.ClientId))
-                    {
-                        // If the client is PKCE then we assume it's native, so this change in how to
-                        // return the response is for better UX for the end user.
-                        return this.LoadingPage("/Redirect", returnUrl!);
-                    }
-                }
-
-                return Redirect(returnUrl);
+                return await ContextedRedirectAsync(context, returnUrl);
             }
 
             // Check if user is locked out.
@@ -263,17 +250,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 logger.LogInformation($"User created an account using {info.LoginProvider} provider.");
 
                 // Identify redirect.
-                if (context?.Client != null)
-                {
-                    if (await clientStore.IsPkceClientAsync(context.Client.ClientId))
-                    {
-                        // If the client is PKCE then we assume it's native, so this change in how to
-                        // return the response is for better UX for the end user.
-                        return this.LoadingPage("/Redirect", returnUrl!);
-                    }
-                }
-
-                return Redirect(returnUrl);
+                return await ContextedRedirectAsync(context, returnUrl);
             }
 
             // Report errors and show page again.

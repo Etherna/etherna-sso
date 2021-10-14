@@ -15,14 +15,12 @@
 using Etherna.DomainEvents;
 using Etherna.SSOServer.Domain.Events;
 using Etherna.SSOServer.Domain.Models;
-using Etherna.SSOServer.Extensions;
 using IdentityServer4.Services;
 using IdentityServer4.Stores;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -32,7 +30,7 @@ using System.Threading.Tasks;
 namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 {
     [AllowAnonymous]
-    public class LoginModel : PageModel
+    public class LoginModel : SsoExitPageModelBase
     {
         // Models.
         public class InputModel
@@ -47,7 +45,6 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         }
 
         // Fields.
-        private readonly IClientStore clientStore;
         private readonly IEventDispatcher eventDispatcher;
         private readonly IIdentityServerInteractionService idServerInteractService;
         private readonly ILogger<LoginModel> logger;
@@ -62,8 +59,8 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             ILogger<LoginModel> logger,
             SignInManager<UserBase> signInManager,
             UserManager<UserBase> userManager)
+            : base(clientStore)
         {
-            this.clientStore = clientStore;
             this.eventDispatcher = eventDispatcher;
             this.idServerInteractService = idServerInteractService;
             this.logger = logger;
@@ -125,21 +122,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 logger.LogInformation("User logged in.");
 
                 // Identify redirect.
-                if (context?.Client != null)
-                {
-                    if (await clientStore.IsPkceClientAsync(context.Client.ClientId))
-                    {
-                        //if the client is PKCE then we assume it's native, so this change in how to
-                        //return the response is for better UX for the end user.
-                        return this.LoadingPage("/Redirect", ReturnUrl!);
-                    }
-
-                    //we can trust returnUrl since GetAuthorizationContextAsync returned non-null
-                    return Redirect(ReturnUrl);
-                }
-
-                //request for a local page, otherwise user might have clicked on a malicious link - should be logged
-                return LocalRedirect(ReturnUrl);
+                return await ContextedRedirectAsync(context, returnUrl);
             }
 
             else if (result.RequiresTwoFactor)

@@ -17,14 +17,12 @@ using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Events;
 using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models;
-using Etherna.SSOServer.Extensions;
 using Etherna.SSOServer.Services.Domain;
 using Etherna.SSOServer.Services.Settings;
 using IdentityServer4.Services;
 using IdentityServer4.Stores;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
@@ -35,7 +33,7 @@ using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 {
-    public class Web3LoginModel : PageModel
+    public class Web3LoginModel : SsoExitPageModelBase
     {
         // Models.
         public class InputModel : IValidatableObject
@@ -67,7 +65,6 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
         // Fields.
         private readonly ApplicationSettings applicationSettings;
-        private readonly IClientStore clientStore;
         private readonly IEventDispatcher eventDispatcher;
         private readonly IIdentityServerInteractionService idServerInteractionService;
         private readonly ILogger<ExternalLoginModel> logger;
@@ -89,12 +86,12 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             UserManager<UserBase> userManager,
             IUserService userService,
             IWeb3AuthnService web3AuthnService)
+            : base(clientStore)
         {
             if (applicationSettings is null)
                 throw new ArgumentNullException(nameof(applicationSettings));
 
             this.applicationSettings = applicationSettings.Value;
-            this.clientStore = clientStore;
             this.eventDispatcher = eventDispatcher;
             this.idServerInteractionService = idServerInteractionService;
             this.logger = logger;
@@ -162,13 +159,13 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 if (await userManager.IsLockedOutAsync(user))
                     return RedirectToPage("./Lockout");
 
-                // Sign in.
+                // Login.
                 await signInManager.SignInAsync(user, true);
 
                 // Delete used token.
                 await ssoDbContext.Web3LoginTokens.DeleteAsync(token);
 
-                // Check if external login is in the context of an OIDC request.
+                // Check if we are in the context of an authorization request.
                 var context = await idServerInteractionService.GetAuthorizationContextAsync(returnUrl);
 
                 // Rise event and create log.
@@ -180,17 +177,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 logger.LogInformation($"{etherAddress} logged in with web3.");
 
                 // Identify redirect.
-                if (context?.Client != null)
-                {
-                    if (await clientStore.IsPkceClientAsync(context.Client.ClientId))
-                    {
-                        // If the client is PKCE then we assume it's native, so this change in how to
-                        // return the response is for better UX for the end user.
-                        return this.LoadingPage("/Redirect", returnUrl!);
-                    }
-                }
-
-                return Redirect(returnUrl);
+                return await ContextedRedirectAsync(context, returnUrl);
             }
 
             // If user does not have an account, then ask him to create one.
@@ -238,7 +225,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 // Login.
                 await signInManager.SignInAsync(user, true);
 
-                // Check if external login is in the context of an OIDC request.
+                // Check if we are in the context of an authorization request.
                 var context = await idServerInteractionService.GetAuthorizationContextAsync(returnUrl);
 
                 // Rise event and create log.
@@ -247,20 +234,10 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                     clientId: context?.Client?.ClientId,
                     provider: "web3",
                     providerUserId: etherAddress));
-                logger.LogInformation($"User created an account using web3 address.");
+                logger.LogInformation($"{etherAddress} created a web3 account and logged in.");
 
                 // Identify redirect.
-                if (context?.Client != null)
-                {
-                    if (await clientStore.IsPkceClientAsync(context.Client.ClientId))
-                    {
-                        // If the client is PKCE then we assume it's native, so this change in how to
-                        // return the response is for better UX for the end user.
-                        return this.LoadingPage("/Redirect", returnUrl!);
-                    }
-                }
-
-                return Redirect(returnUrl);
+                return await ContextedRedirectAsync(context, returnUrl);
             }
 
             // Report errors and show page again.
