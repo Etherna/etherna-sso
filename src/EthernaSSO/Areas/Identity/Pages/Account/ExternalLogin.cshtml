@@ -30,9 +30,10 @@
 
 <div class="row">
     <div class="col-md-4">
-        <form asp-page-handler="Confirmation" asp-route-returnUrl="@Model.ReturnUrl" method="post">
-            <input type="hidden" asp-for="Email" />
-
+        <form asp-page-handler="Confirmation"
+              asp-route-returnUrl="@Model.ReturnUrl"
+              asp-route-email="@Model.Email"
+              method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="mb-3">
                 <label asp-for="Input.Username"></label>
@@ -53,14 +54,15 @@
     </div>
 </div>
 
-@if (Model.DuplicateEmail || Model.DuplicateUsername)
+@if (Model.DuplicateUsername)
 {
     <div class="row">
         <div class="col-md-6">
             <hr />
             <p class="text-break">
+                Your username has been already registered.<br />
                 Please <a asp-page="./Login" asp-route-returnUrl="@Model.ReturnUrl">Login</a>
-                with your previous account, or change info for create a new one.
+                with your previous account if it's your, or change info for create a new one.
             </p>
         </div>
     </div>

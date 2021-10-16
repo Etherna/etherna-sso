@@ -109,7 +109,6 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         [BindProperty]
         public InputModel Input { get; set; } = default!;
 
-        public bool DuplicateEmail { get; private set; }
         public bool DuplicateUsername { get; private set; }
         public string? Email { get; private set; }
         public bool IsInvitationRequired { get; private set; }
@@ -211,7 +210,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             return Page();
         }
 
-        public async Task<IActionResult> OnPostConfirmationAsync(string? returnUrl)
+        public async Task<IActionResult> OnPostConfirmationAsync(string? email, string? returnUrl)
         {
             // Get the information about the user from the external login provider
             var info = await signInManager.GetExternalLoginInfoAsync();
@@ -249,24 +248,16 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                     providerUserId: info.ProviderKey));
                 logger.LogInformation($"User created an account using {info.LoginProvider} provider.");
 
-                // Identify redirect.
-                return await ContextedRedirectAsync(context, returnUrl);
+                // Redirect to add verified email page.
+                return RedirectToPage("SetVerifiedEmail", new { email, returnUrl });
             }
 
             // Report errors and show page again.
             foreach (var (errorKey, errorMessage) in errors)
             {
                 ModelState.AddModelError(string.Empty, errorMessage);
-                switch (errorKey)
-                {
-                    case UserService.DuplicateEmailErrorKey:
-                        DuplicateEmail = true;
-                        break;
-                    case UserService.DuplicateUsernameErrorKey:
-                        DuplicateUsername = true;
-                        break;
-                    default: break;
-                }
+                if (errorKey == UserService.DuplicateUsernameErrorKey)
+                    DuplicateUsername = true;
             }
             return Page();
         }

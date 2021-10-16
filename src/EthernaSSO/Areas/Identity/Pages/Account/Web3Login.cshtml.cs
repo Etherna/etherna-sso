@@ -109,7 +109,6 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         [BindProperty]
         public InputModel Input { get; set; } = default!;
 
-        public bool DuplicateEmail { get; private set; }
         public bool DuplicateUsername { get; private set; }
         public string? EtherAddress { get; private set; }
         public bool IsInvitationRequired { get; private set; }
@@ -236,24 +235,16 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                     providerUserId: etherAddress));
                 logger.LogInformation($"{etherAddress} created a web3 account and logged in.");
 
-                // Identify redirect.
-                return await ContextedRedirectAsync(context, returnUrl);
+                // Redirect to add verified email page.
+                return RedirectToPage("SetVerifiedEmail", new { returnUrl });
             }
 
             // Report errors and show page again.
             foreach (var (errorKey, errorMessage) in errors)
             {
                 ModelState.AddModelError(string.Empty, errorMessage);
-                switch (errorKey)
-                {
-                    case UserService.DuplicateEmailErrorKey:
-                        DuplicateEmail = true;
-                        break;
-                    case UserService.DuplicateUsernameErrorKey:
-                        DuplicateUsername = true;
-                        break;
-                    default: break;
-                }
+                if (errorKey == UserService.DuplicateUsernameErrorKey)
+                    DuplicateUsername = true;
             }
             return Page();
         }

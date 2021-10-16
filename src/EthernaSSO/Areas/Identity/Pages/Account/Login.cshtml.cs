@@ -46,7 +46,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
         // Fields.
         private readonly IEventDispatcher eventDispatcher;
-        private readonly IIdentityServerInteractionService idServerInteractService;
+        private readonly IIdentityServerInteractionService idServerInteractionService;
         private readonly ILogger<LoginModel> logger;
         private readonly SignInManager<UserBase> signInManager;
         private readonly UserManager<UserBase> userManager;
@@ -55,14 +55,14 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         public LoginModel(
             IClientStore clientStore,
             IEventDispatcher eventDispatcher,
-            IIdentityServerInteractionService idServerInteractService,
+            IIdentityServerInteractionService idServerInteractionService,
             ILogger<LoginModel> logger,
             SignInManager<UserBase> signInManager,
             UserManager<UserBase> userManager)
             : base(clientStore)
         {
             this.eventDispatcher = eventDispatcher;
-            this.idServerInteractService = idServerInteractService;
+            this.idServerInteractionService = idServerInteractionService;
             this.logger = logger;
             this.signInManager = signInManager;
             this.userManager = userManager;
@@ -100,7 +100,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
             // Login.
             //check if we are in the context of an authorization request
-            var context = await idServerInteractService.GetAuthorizationContextAsync(ReturnUrl);
+            var context = await idServerInteractionService.GetAuthorizationContextAsync(ReturnUrl);
 
             //find user
             var user = Input.UsernameOrEmail.Contains('@', StringComparison.InvariantCulture) ? //if is email

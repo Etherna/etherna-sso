@@ -19,11 +19,11 @@ using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Services.Domain;
 using Etherna.SSOServer.Services.Settings;
 using IdentityServer4.Services;
-using IdentityServer4.Stores;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
@@ -34,7 +34,7 @@ using System.Threading.Tasks;
 namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 {
     [AllowAnonymous]
-    public class RegisterModel : SsoExitPageModelBase
+    public class RegisterModel : PageModel
     {
         // Models.
         public class InputModel : IValidatableObject
@@ -86,13 +86,11 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         // Constructor.
         public RegisterModel(
             IOptions<ApplicationSettings> applicationSettings,
-            IClientStore clientStore,
             IEventDispatcher eventDispatcher,
             IIdentityServerInteractionService idServerInteractService,
             ILogger<RegisterModel> logger,
             SignInManager<UserBase> signInManager,
             IUserService userService)
-            : base(clientStore)
         {
             if (applicationSettings is null)
                 throw new ArgumentNullException(nameof(applicationSettings));
@@ -144,8 +142,8 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 await eventDispatcher.DispatchAsync(new UserLoginSuccessEvent(user, clientId: context?.Client?.ClientId));
                 logger.LogInformation("User created a new account with password.");
 
-                // Identify redirect.
-                return await ContextedRedirectAsync(context, returnUrl);
+                // Redirect to add verified email page.
+                return RedirectToPage("SetVerifiedEmail", new { returnUrl });
             }
 
             // If we got this far, something failed, redisplay form printing errors.

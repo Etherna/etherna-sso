@@ -85,6 +85,8 @@ namespace Etherna.SSOServer
                 options.Password.RequireNonAlphanumeric = true;
                 options.Password.RequireUppercase = true;
 
+                options.Tokens.EmailConfirmationTokenProvider = TokenOptions.DefaultEmailProvider; //totp code
+
                 options.User.RequireUniqueEmail = true;
             })
                 .AddDefaultTokenProviders()

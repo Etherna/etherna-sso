@@ -1,10 +1,10 @@
 ﻿namespace Etherna.SSOServer.RCL.Views.Emails
 {
-    public class ConfirmEmailModel
+    public class TotpConfirmEmailModel
     {
         public const string Title = "Confirm your email";
 
-        public ConfirmEmailModel(string code)
+        public TotpConfirmEmailModel(string code)
         {
             Code = code;
         }

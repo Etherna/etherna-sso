@@ -1,0 +1,69 @@
+﻿@page
+@model SetVerifiedEmailModel
+@{
+    ViewData["Title"] = "Add your email";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+@if (Model.IsWeb3)
+{
+    <p class="text-info">
+        You can add an email address, but it is optional. It can be useful for receive notifications from us.
+    </p>
+}
+else
+{
+    <p class="text-info">
+        You can add an email address, but it is optional. It can be useful for receive notifications from us, or recover your password if you lose it.
+    </p>
+}
+
+<p>
+    Add an email, click on "Send email" and report the code that you will receive. Or if you prefer you can simply skip it.
+</p>
+
+<div class="row">
+    <div class="col-md-4">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        <form asp-page-handler="SendEmail"
+              asp-route-returnUrl="@Model.ReturnUrl"
+              method="post">
+
+            <div class="mb-3">
+                <label asp-for="EmailInput.Email"></label>
+                <input asp-for="EmailInput.Email" class="form-control" />
+            </div>
+
+            <button type="submit" class="btn btn-link">Send email</button>
+        </form>
+
+        <form asp-page-handler="ConfirmCode"
+              asp-route-returnUrl="@Model.ReturnUrl"
+              asp-route-email="@Model.EmailInput?.Email"
+              method="post">
+
+            <div class="mb-3">
+                <label asp-for="CodeInput.Code"></label>
+                <input asp-for="CodeInput.Code" class="form-control" />
+            </div>
+
+            @if (Model.IsCodeSent)
+            {
+                <button type="submit" class="btn btn-link">Verify code</button>
+            }
+            else
+            {
+                <button type="submit" disabled class="btn btn-link">Verify code</button>
+            }
+
+            <a asp-page-handler="Skip"
+               asp-route-returnUrl="@Model.ReturnUrl">Skip it</a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
