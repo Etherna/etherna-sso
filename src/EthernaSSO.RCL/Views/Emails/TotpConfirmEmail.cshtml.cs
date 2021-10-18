@@ -2,7 +2,7 @@
 {
     public class TotpConfirmEmailModel
     {
-        public const string Title = "Confirm your email";
+        public const string Title = "Etherna: Confirm your email";
 
         public TotpConfirmEmailModel(string code)
         {

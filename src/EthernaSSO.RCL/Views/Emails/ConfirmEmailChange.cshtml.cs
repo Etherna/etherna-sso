@@ -2,7 +2,7 @@
 {
     public class ConfirmEmailChangeModel
     {
-        public const string Title = "Confirm your email";
+        public const string Title = "Etherna: Confirm your new email";
 
         public ConfirmEmailChangeModel(string callbackUrl)
         {

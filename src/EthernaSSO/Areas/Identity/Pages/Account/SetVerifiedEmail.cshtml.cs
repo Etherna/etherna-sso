@@ -1,7 +1,7 @@
+using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.RCL.Views.Emails;
-using Etherna.SSOServer.Services.Domain;
 using Etherna.SSOServer.Services.Utilities;
 using IdentityServer4.Services;
 using IdentityServer4.Stores;
@@ -30,6 +30,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
         // Fields.
         private readonly IEmailSender emailSender;
+        private readonly ISsoDbContext context;
         private readonly IIdentityServerInteractionService idServerInteractionService;
         private readonly IRazorViewRenderer razorViewRenderer;
         private readonly UserManager<UserBase> userManager;
@@ -38,12 +39,14 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         public SetVerifiedEmailModel(
             IEmailSender emailSender,
             IClientStore clientStore,
+            ISsoDbContext context,
             IIdentityServerInteractionService idServerInteractionService,
             IRazorViewRenderer razorViewRenderer,
             UserManager<UserBase> userManager)
             : base(clientStore)
         {
             this.emailSender = emailSender;
+            this.context = context;
             this.idServerInteractionService = idServerInteractionService;
             this.razorViewRenderer = razorViewRenderer;
             this.userManager = userManager;
@@ -61,17 +64,8 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         public string? ReturnUrl { get; private set; }
 
         // Methods.
-        public async Task OnGetAsync(string? email, bool isCodeSent, string? returnUrl)
-        {
-            if (email is not null)
-                EmailInput = new EmailInputModel { Email = email };
-
-            var user = await userManager.GetUserAsync(User);
-            IsWeb3 = user is UserWeb3;
-
-            IsCodeSent = isCodeSent;
-            ReturnUrl = returnUrl;
-        }
+        public async Task OnGetAsync(string? email, bool isCodeSent, string? returnUrl) =>
+            await InitializeAsync(email, isCodeSent, returnUrl);
 
         public async Task<IActionResult> OnGetSkipAsync(string? returnUrl) =>
             await ProceedAsync(returnUrl);
@@ -79,16 +73,21 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         public async Task<IActionResult> OnPostSendEmailAsync(string? returnUrl)
         {
             // Validate model.
-            if (!EmailHelper.IsValidEmail(EmailInput.Email))
-                RedirectToPage(new
-                {
-                    EmailInput.Email,
-                    returnUrl
-                });
+            ModelState.Clear();
 
-            // Check for duplicate email.
+            //email validity
+            if (!EmailHelper.IsValidEmail(EmailInput.Email))
+                ModelState.AddModelError(string.Empty, "Inserted email is not valid.");
+
+            //check for duplicate email
             if (await userManager.FindByEmailAsync(EmailInput.Email) is not null)
-                ModelState.AddModelError(UserService.DuplicateEmailErrorKey, "Email already registered.");
+                ModelState.AddModelError(string.Empty, "Email already registered.");
+
+            if (ModelState.ErrorCount > 0)
+            {
+                await InitializeAsync(EmailInput.Email, false, returnUrl);
+                return Page();
+            }
 
             // Generate Totp code.
             var user = await userManager.GetUserAsync(User);
@@ -104,35 +103,50 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 TotpConfirmEmailModel.Title,
                 emailBody);
 
-            // Reload page.
-            return RedirectToPage(new
-            {
-                EmailInput.Email,
-                returnUrl,
-                isCodeSent = true
-            });
+            // Return page.
+            await InitializeAsync(EmailInput.Email, true, returnUrl);
+            return Page();
         }
 
         public async Task<IActionResult> OnPostConfirmCodeAsync(string email, string? returnUrl)
         {
             // Validate model.
+            ModelState.Clear();
             if (string.IsNullOrEmpty(CodeInput.Code))
-                RedirectToPage(new
-                {
-                    EmailInput.Email,
-                    ReturnUrl
-                });
+                ModelState.AddModelError(string.Empty, "Code can't be empty.");
 
             // Validate code.
+            var user = await userManager.GetUserAsync(User);
+            var result = await userManager.ConfirmEmailAsync(user, CodeInput.Code);
+            if (!result.Succeeded)
+                ModelState.AddModelError(string.Empty, "Code is not valid.");
+
+            if (ModelState.ErrorCount > 0)
+            {
+                await InitializeAsync(email, true, returnUrl);
+                return Page();
+            }
 
             // Add email.
-            var user = await userManager.GetUserAsync(User);
             user.SetEmail(email);
+            await context.SaveChangesAsync();
 
             return await ProceedAsync(returnUrl);
         }
 
         // Helpers.
+        private async Task InitializeAsync(string? email, bool isCodeSent, string? returnUrl)
+        {
+            if (email is not null)
+                EmailInput = new EmailInputModel { Email = email };
+
+            var user = await userManager.GetUserAsync(User);
+            IsWeb3 = user is UserWeb3;
+
+            IsCodeSent = isCodeSent;
+            ReturnUrl = returnUrl;
+        }
+
         private async Task<IActionResult> ProceedAsync(string? returnUrl)
         {
             var context = await idServerInteractionService.GetAuthorizationContextAsync(returnUrl);
