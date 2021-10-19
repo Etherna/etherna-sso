@@ -176,7 +176,7 @@ namespace Etherna.SSOServer.Configs.Identity
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
 
-            return Task.FromResult(user.EmailConfirmed);
+            return Task.FromResult(user.NormalizedEmail is not null);
         }
 
         public Task<bool> GetLockoutEnabledAsync(UserBase user, CancellationToken cancellationToken)
@@ -416,10 +416,7 @@ namespace Etherna.SSOServer.Configs.Identity
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
 
-            //if confirmed == false don't perform any action, because is already managed by domain
-            if (confirmed)
-                user.ConfirmEmail();
-
+            //we accept only confirmed emails
             return Task.CompletedTask;
         }
 

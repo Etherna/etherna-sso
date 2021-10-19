@@ -17,7 +17,6 @@ using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Events;
 using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models;
-using Etherna.SSOServer.Extensions;
 using Etherna.SSOServer.Services.Domain;
 using Etherna.SSOServer.Services.Settings;
 using IdentityServer4.Services;
@@ -27,7 +26,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver.Linq;
@@ -41,20 +39,14 @@ using System.Threading.Tasks;
 namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 {
     [AllowAnonymous]
-    public class ExternalLoginModel : PageModel
+    public class ExternalLoginModel : SsoExitPageModelBase
     {
         // Models.
         public class InputModel : IValidatableObject
         {
             // Properties.
-            [EmailAddress]
-            [Display(Name = "Email (optional)")]
-            public string? Email { get; set; }
-
             [Display(Name = "Invitation code")]
             public string? InvitationCode { get; set; }
-
-            public bool IsInvitationRequired { get; set; }
 
             [Required]
             [RegularExpression(UsernameHelper.UsernameRegex, ErrorMessage = "Allowed characters are a-z, A-Z, 0-9, _. Permitted length is between 5 and 20.")]
@@ -64,7 +56,11 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             // Methods.
             public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
             {
-                if (IsInvitationRequired && string.IsNullOrWhiteSpace(InvitationCode))
+                if (validationContext is null)
+                    throw new ArgumentNullException(nameof(validationContext));
+
+                var appSettings = (IOptions<ApplicationSettings>)validationContext.GetService(typeof(IOptions<ApplicationSettings>))!;
+                if (appSettings.Value.RequireInvitation && string.IsNullOrWhiteSpace(InvitationCode))
                 {
                     yield return new ValidationResult(
                         "Invitation code is required",
@@ -75,7 +71,6 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
         // Fields.
         private readonly ApplicationSettings applicationSettings;
-        private readonly IClientStore clientStore;
         private readonly IEventDispatcher eventDispatcher;
         private readonly IIdentityServerInteractionService idServerInteractionService;
         private readonly ILogger<ExternalLoginModel> logger;
@@ -93,12 +88,12 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             SignInManager<UserBase> signInManager,
             ISsoDbContext ssoDbContext,
             IUserService userService)
+            : base(clientStore)
         {
             if (applicationSettings is null)
                 throw new ArgumentNullException(nameof(applicationSettings));
 
             this.applicationSettings = applicationSettings.Value;
-            this.clientStore = clientStore;
             this.eventDispatcher = eventDispatcher;
             this.idServerInteractionService = idServerInteractionService;
             this.logger = logger;
@@ -114,10 +109,11 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         [BindProperty]
         public InputModel Input { get; set; } = default!;
 
-        public bool DuplicateEmail { get; set; }
-        public bool DuplicateUsername { get; set; }
-        public string? ProviderDisplayName { get; set; }
-        public string? ReturnUrl { get; set; }
+        public bool DuplicateUsername { get; private set; }
+        public string? Email { get; private set; }
+        public bool IsInvitationRequired { get; private set; }
+        public string? ProviderDisplayName { get; private set; }
+        public string? ReturnUrl { get; private set; }
 
         // Methods.
         public IActionResult OnGetAsync() =>
@@ -192,17 +188,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 logger.LogInformation($"{info.Principal.Identity.Name} logged in with {info.LoginProvider} provider.");
 
                 // Identify redirect.
-                if (context?.Client != null)
-                {
-                    if (await clientStore.IsPkceClientAsync(context.Client.ClientId))
-                    {
-                        // If the client is PKCE then we assume it's native, so this change in how to
-                        // return the response is for better UX for the end user.
-                        return this.LoadingPage("/Redirect", returnUrl!);
-                    }
-                }
-
-                return Redirect(returnUrl);
+                return await ContextedRedirectAsync(context, returnUrl);
             }
 
             // Check if user is locked out.
@@ -214,17 +200,17 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             // If the user does not have an account, then ask him to create an account.
             Input = new InputModel
             {
-                Email = info.Principal.HasClaim(c => c.Type == ClaimTypes.Email) ?
-                    info.Principal.FindFirstValue(ClaimTypes.Email) : null,
                 InvitationCode = invitationCode,
-                IsInvitationRequired = applicationSettings.RequireInvitation,
                 Username = info.Principal.HasClaim(c => c.Type == ClaimTypes.Name) ?
                     info.Principal.FindFirstValue(ClaimTypes.Name) : ""
             };
+            Email = info.Principal.HasClaim(c => c.Type == ClaimTypes.Email) ?
+                info.Principal.FindFirstValue(ClaimTypes.Email) : null;
+            IsInvitationRequired = applicationSettings.RequireInvitation;
             return Page();
         }
 
-        public async Task<IActionResult> OnPostConfirmationAsync(string? returnUrl)
+        public async Task<IActionResult> OnPostConfirmationAsync(string? email, string? returnUrl)
         {
             // Get the information about the user from the external login provider
             var info = await signInManager.GetExternalLoginInfoAsync();
@@ -243,7 +229,6 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             var (errors, user) = await userService.RegisterWeb2UserAsync(
                 Input.Username,
                 new Domain.Models.UserAgg.UserLoginInfo(info.LoginProvider, info.ProviderKey, info.ProviderDisplayName),
-                Input.Email,
                 Input.InvitationCode);
 
             // Post-registration actions.
@@ -263,34 +248,16 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                     providerUserId: info.ProviderKey));
                 logger.LogInformation($"User created an account using {info.LoginProvider} provider.");
 
-                // Identify redirect.
-                if (context?.Client != null)
-                {
-                    if (await clientStore.IsPkceClientAsync(context.Client.ClientId))
-                    {
-                        // If the client is PKCE then we assume it's native, so this change in how to
-                        // return the response is for better UX for the end user.
-                        return this.LoadingPage("/Redirect", returnUrl!);
-                    }
-                }
-
-                return Redirect(returnUrl);
+                // Redirect to add verified email page.
+                return RedirectToPage("SetVerifiedEmail", new { email, returnUrl });
             }
 
             // Report errors and show page again.
             foreach (var (errorKey, errorMessage) in errors)
             {
                 ModelState.AddModelError(string.Empty, errorMessage);
-                switch (errorKey)
-                {
-                    case UserService.DuplicateEmailErrorKey:
-                        DuplicateEmail = true;
-                        break;
-                    case UserService.DuplicateUsernameErrorKey:
-                        DuplicateUsername = true;
-                        break;
-                    default: break;
-                }
+                if (errorKey == UserService.DuplicateUsernameErrorKey)
+                    DuplicateUsername = true;
             }
             return Page();
         }

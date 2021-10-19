@@ -7,8 +7,8 @@ namespace Etherna.SSOServer.Domain.Models
     public class UserWeb3 : UserBase
     {
         // Constructors.
-        public UserWeb3(string address, string username, string? email, UserBase? invitedBy)
-            : base(username, email, invitedBy)
+        public UserWeb3(string address, string username, UserBase? invitedBy)
+            : base(username, invitedBy)
         {
             if (!address.IsValidEthereumAddressHexFormat())
                 throw new ArgumentException("The value is not a valid address", nameof(address));
@@ -26,7 +26,6 @@ namespace Etherna.SSOServer.Domain.Models
             Claims = web2User.Claims;
             CreationDateTime = web2User.CreationDateTime;
             Email = web2User.Email;
-            EmailConfirmed = web2User.EmailConfirmed;
             EtherAddress = web2User.EtherLoginAddress;
             EtherPreviousAddresses = web2User.EtherPreviousAddresses.Append(web2User.EtherAddress);
             InvitedBy = web2User.InvitedBy;

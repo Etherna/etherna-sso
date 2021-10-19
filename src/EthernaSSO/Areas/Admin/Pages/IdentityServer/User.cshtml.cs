@@ -83,9 +83,6 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
         [Display(Name = "Access failed count")]
         public int AccessFailedCount { get; private set; }
 
-        [Display(Name = "Email confirmed")]
-        public bool EmailConfirmed { get; private set; }
-
         [Display(Name = "Ethereum address")]
         public string? EtherAddress { get; private set; }
 
@@ -112,7 +109,6 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
             {
                 var user = await context.Users.FindOneAsync(id);
 
-                EmailConfirmed = user.EmailConfirmed;
                 EtherAddress = user.EtherAddress;
                 EtherPreviousAddresses = user.EtherPreviousAddresses;
                 Input = new InputModel(user);
@@ -145,8 +141,10 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
             UserBase user;
             if (id is null) //create
             {
-                var userWeb2 = new UserWeb2(Input.Username, Input.Email, null, null);
+                var userWeb2 = new UserWeb2(Input.Username, null, null);
 
+                if (Input.Email is not null)
+                    userWeb2.SetEmail(Input.Email);
                 userWeb2.SetPhoneNumber(Input.PhoneNumber);
                 userWeb2.LockoutEnabled = Input.LockoutEnabled;
                 userWeb2.LockoutEnd = Input.LockoutEnd;

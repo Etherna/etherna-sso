@@ -46,15 +46,13 @@ namespace Etherna.SSOServer.Services.Domain
         public Task<(IEnumerable<(string key, string msg)> errors, UserWeb2? user)> RegisterWeb2UserAsync(
             string username,
             string password,
-            string? email,
             string? invitationCode) =>
             RegisterUserHelperAsync(
                 username,
-                email,
                 invitationCode,
                 async invitedByUser =>
                 {
-                    var user = new UserWeb2(username, email, invitedByUser);
+                    var user = new UserWeb2(username, invitedByUser);
                     var result = await userManager.CreateAsync(user, password);
                     return (user, result);
                 });
@@ -62,15 +60,13 @@ namespace Etherna.SSOServer.Services.Domain
         public Task<(IEnumerable<(string key, string msg)> errors, UserWeb2? user)> RegisterWeb2UserAsync(
             string username,
             SSOServer.Domain.Models.UserAgg.UserLoginInfo loginInfo,
-            string? email,
             string? invitationCode) =>
             RegisterUserHelperAsync(
                 username,
-                email,
                 invitationCode,
                 async invitedByUser =>
                 {
-                    var user = new UserWeb2(username, email, invitedByUser, loginInfo);
+                    var user = new UserWeb2(username, invitedByUser, loginInfo);
                     var result = await userManager.CreateAsync(user);
                     return (user, result);
                 });
@@ -78,15 +74,13 @@ namespace Etherna.SSOServer.Services.Domain
         public Task<(IEnumerable<(string key, string msg)> errors, UserWeb3? user)> RegisterWeb3UserAsync(
             string username,
             string etherAddress,
-            string? email,
             string? invitationCode) =>
             RegisterUserHelperAsync(
                 username,
-                email,
                 invitationCode,
                 async invitedByUser =>
                 {
-                    var user = new UserWeb3(etherAddress, username, email, invitedByUser);
+                    var user = new UserWeb3(etherAddress, username, invitedByUser);
                     var result = await userManager.CreateAsync(user);
                     return (user, result);
                 });
@@ -126,27 +120,6 @@ namespace Etherna.SSOServer.Services.Domain
         }
 
         // Helpers.
-        private async Task<IEnumerable<(string key, string msg)>> CheckDuplicateUsernameOrEmailAsync(
-            string username,
-            string? email)
-        {
-            var errors = new List<(string key, string msg)>();
-
-            // Check for duplicate username.
-            if (await userManager.FindByNameAsync(username) is not null) //if duplicate username
-                errors.Add((DuplicateUsernameErrorKey, "Username already registered."));
-
-            // Check for duplicate email.
-            if (email != null)
-            {
-                var userByEmail = await userManager.FindByEmailAsync(email);
-                if (userByEmail != null) //if duplicate email
-                    errors.Add((DuplicateEmailErrorKey, "Email already registered."));
-            }
-
-            return errors;
-        }
-
         private async Task<(IEnumerable<(string key, string msg)> errors, UserBase? invitedByUser)> ConsumeInvitationCodeAsync(
             string? invitationCode)
         {
@@ -172,15 +145,13 @@ namespace Etherna.SSOServer.Services.Domain
 
         private async Task<(IEnumerable<(string key, string msg)> errors, TUser? user)> RegisterUserHelperAsync<TUser>(
             string username,
-            string? email,
             string? invitationCode,
             Func<UserBase?, Task<(TUser, IdentityResult)>> registerUserAsync)
             where TUser : UserBase
         {
-            // Verify for unique username and email.
-            var duplicateErrors = await CheckDuplicateUsernameOrEmailAsync(username, email);
-            if (duplicateErrors.Any())
-                return (duplicateErrors, null);
+            // Verify for unique username.
+            if (await userManager.FindByNameAsync(username) is not null) //if duplicate username
+                return (new[] { (DuplicateUsernameErrorKey, "Username already registered.") }, null);
 
             // Consume invitation code.
             var (invitationErrors, invitedByUser) = await ConsumeInvitationCodeAsync(invitationCode);

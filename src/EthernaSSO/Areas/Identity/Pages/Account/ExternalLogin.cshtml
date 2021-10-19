@@ -25,14 +25,15 @@
 
 <p id="external-login-description" class="text-info">
     You've successfully authenticated with <strong>@Model.ProviderDisplayName</strong>.
-    Please enter an username and an optional email address for this site below, and click the Register button to finish logging in.
+    Please enter an username for this site below, and click the Register button to finish logging in.
 </p>
 
 <div class="row">
     <div class="col-md-4">
-        <form asp-page-handler="Confirmation" asp-route-returnUrl="@Model.ReturnUrl" method="post">
-            <input type="hidden" asp-for="Input.IsInvitationRequired" />
-
+        <form asp-page-handler="Confirmation"
+              asp-route-returnUrl="@Model.ReturnUrl"
+              asp-route-email="@Model.Email"
+              method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="mb-3">
                 <label asp-for="Input.Username"></label>
@@ -40,13 +41,8 @@
                 <span asp-validation-for="Input.Username" class="text-danger"></span>
             </div>
             <div class="mb-3">
-                <label asp-for="Input.Email"></label>
-                <input asp-for="Input.Email" class="form-control" />
-                <span asp-validation-for="Input.Email" class="text-danger"></span>
-            </div>
-            <div class="mb-3">
                 <label asp-for="Input.InvitationCode"></label>
-                @if (!Model.Input.IsInvitationRequired)
+                @if (!Model.IsInvitationRequired)
                 {
                     <label>(optional)</label>
                 }
@@ -58,14 +54,15 @@
     </div>
 </div>
 
-@if (Model.DuplicateEmail || Model.DuplicateUsername)
+@if (Model.DuplicateUsername)
 {
     <div class="row">
         <div class="col-md-6">
             <hr />
             <p class="text-break">
+                Your username has been already registered.<br />
                 Please <a asp-page="./Login" asp-route-returnUrl="@Model.ReturnUrl">Login</a>
-                with your previous account, or change info for create a new one.
+                with your previous account if it's your, or change info for create a new one.
             </p>
         </div>
     </div>

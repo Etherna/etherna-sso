@@ -1,3 +1,4 @@
+using Etherna.SSOServer.Configs;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Services.Utilities;
 using Microsoft.AspNetCore.Authorization;
@@ -7,7 +8,6 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
-using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Areas.Identity.Pages.Account
@@ -24,14 +24,19 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         }
 
         // Fields.
-        private readonly UserManager<UserBase> _userManager;
-        private readonly IEmailSender _emailSender;
+        private readonly IEmailSender emailSender;
+        private readonly IRazorViewRenderer razorViewRenderer;
+        private readonly UserManager<UserBase> userManager;
 
         // Constructor.
-        public ForgotPasswordModel(UserManager<UserBase> userManager, IEmailSender emailSender)
+        public ForgotPasswordModel(
+            IEmailSender emailSender,
+            IRazorViewRenderer razorViewRenderer,
+            UserManager<UserBase> userManager)
         {
-            _userManager = userManager;
-            _emailSender = emailSender;
+            this.emailSender = emailSender;
+            this.razorViewRenderer = razorViewRenderer;
+            this.userManager = userManager;
         }
 
         // Properties.
@@ -41,32 +46,36 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         // Methods.
         public async Task<IActionResult> OnPostAsync()
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
+                return Page();
+
+            var user = await userManager.FindByEmailAsync(Input.Email);
+            if (user == null)
             {
-                var user = await _userManager.FindByEmailAsync(Input.Email);
-                if (user == null || !(await _userManager.IsEmailConfirmedAsync(user)))
-                {
-                    // Don't reveal that the user does not exist or is not confirmed
-                    return RedirectToPage("./ForgotPasswordConfirmation");
-                }
-
-                var code = await _userManager.GeneratePasswordResetTokenAsync(user);
-                code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-                var callbackUrl = Url.Page(
-                    "/Account/ResetPassword",
-                    pageHandler: null,
-                    values: new { area = "Identity", code },
-                    protocol: Request.Scheme);
-
-                await _emailSender.SendEmailAsync(
-                    Input.Email,
-                    "Reset Password",
-                    $"Please reset your password by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
-
+                // Don't reveal that the user does not exist or is not confirmed
                 return RedirectToPage("./ForgotPasswordConfirmation");
             }
 
-            return Page();
+            // Generate url.
+            var code = await userManager.GeneratePasswordResetTokenAsync(user);
+            code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+            var callbackUrl = Url.Page(
+                "/Account/ResetPassword",
+                pageHandler: null,
+                values: new { area = CommonConsts.IdentityArea, code },
+                protocol: Request.Scheme);
+
+            // Send email.
+            var emailBody = await razorViewRenderer.RenderViewToStringAsync(
+                "Views/Emails/ResetPassword.cshtml",
+                new RCL.Views.Emails.ResetPasswordModel(callbackUrl));
+
+            await emailSender.SendEmailAsync(
+                Input.Email,
+                RCL.Views.Emails.ResetPasswordModel.Title,
+                emailBody);
+
+            return RedirectToPage("./ForgotPasswordConfirmation");
         }
     }
 }

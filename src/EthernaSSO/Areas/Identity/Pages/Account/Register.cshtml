@@ -39,8 +39,6 @@
     <hr />
     <div class="col-md-4">
         <form asp-route-returnUrl="@Model.ReturnUrl" method="post">
-            <input type="hidden" asp-for="Input.IsInvitationRequired" />
-
             <h4>Create a new account...</h4>
             <hr />
             <div asp-validation-summary="All" class="text-danger"></div>
@@ -48,11 +46,6 @@
                 <label asp-for="Input.Username"></label>
                 <input asp-for="Input.Username" class="form-control" />
                 <span asp-validation-for="Input.Username" class="text-danger"></span>
-            </div>
-            <div class="mb-3">
-                <label asp-for="Input.Email"></label>
-                <input asp-for="Input.Email" class="form-control" />
-                <span asp-validation-for="Input.Email" class="text-danger"></span>
             </div>
             <div class="mb-3">
                 <label asp-for="Input.Password"></label>
@@ -66,7 +59,7 @@
             </div>
             <div class="mb-3">
                 <label asp-for="Input.InvitationCode"></label>
-                @if (!Model.Input.IsInvitationRequired)
+                @if (!Model.IsInvitationRequired)
                 {
                     <label>(optional)</label>
                 }

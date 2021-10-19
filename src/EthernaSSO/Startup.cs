@@ -85,7 +85,8 @@ namespace Etherna.SSOServer
                 options.Password.RequireNonAlphanumeric = true;
                 options.Password.RequireUppercase = true;
 
-                //options.User.AllowedUserNameCharacters = ""; //overrided by regex validation with User.UsernameRegex
+                options.Tokens.EmailConfirmationTokenProvider = TokenOptions.DefaultEmailProvider; //totp code
+
                 options.User.RequireUniqueEmail = true;
             })
                 .AddDefaultTokenProviders()

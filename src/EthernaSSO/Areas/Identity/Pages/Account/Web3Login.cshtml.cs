@@ -17,14 +17,12 @@ using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Events;
 using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models;
-using Etherna.SSOServer.Extensions;
 using Etherna.SSOServer.Services.Domain;
 using Etherna.SSOServer.Services.Settings;
 using IdentityServer4.Services;
 using IdentityServer4.Stores;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
@@ -35,20 +33,14 @@ using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 {
-    public class Web3LoginModel : PageModel
+    public class Web3LoginModel : SsoExitPageModelBase
     {
         // Models.
         public class InputModel : IValidatableObject
         {
             // Properties.
-            [EmailAddress]
-            [Display(Name = "Email (optional)")]
-            public string? Email { get; set; }
-
             [Display(Name = "Invitation code")]
             public string? InvitationCode { get; set; }
-
-            public bool IsInvitationRequired { get; set; }
 
             [Required]
             [RegularExpression(UsernameHelper.UsernameRegex, ErrorMessage = "Allowed characters are a-z, A-Z, 0-9, _. Permitted length is between 5 and 20.")]
@@ -58,7 +50,11 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             // Methods.
             public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
             {
-                if (IsInvitationRequired && string.IsNullOrWhiteSpace(InvitationCode))
+                if (validationContext is null)
+                    throw new ArgumentNullException(nameof(validationContext));
+
+                var appSettings = (IOptions<ApplicationSettings>)validationContext.GetService(typeof(IOptions<ApplicationSettings>))!;
+                if (appSettings.Value.RequireInvitation && string.IsNullOrWhiteSpace(InvitationCode))
                 {
                     yield return new ValidationResult(
                         "Invitation code is required",
@@ -69,7 +65,6 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
         // Fields.
         private readonly ApplicationSettings applicationSettings;
-        private readonly IClientStore clientStore;
         private readonly IEventDispatcher eventDispatcher;
         private readonly IIdentityServerInteractionService idServerInteractionService;
         private readonly ILogger<ExternalLoginModel> logger;
@@ -91,12 +86,12 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             UserManager<UserBase> userManager,
             IUserService userService,
             IWeb3AuthnService web3AuthnService)
+            : base(clientStore)
         {
             if (applicationSettings is null)
                 throw new ArgumentNullException(nameof(applicationSettings));
 
             this.applicationSettings = applicationSettings.Value;
-            this.clientStore = clientStore;
             this.eventDispatcher = eventDispatcher;
             this.idServerInteractionService = idServerInteractionService;
             this.logger = logger;
@@ -114,10 +109,10 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         [BindProperty]
         public InputModel Input { get; set; } = default!;
 
-        public bool DuplicateEmail { get; set; }
-        public bool DuplicateUsername { get; set; }
+        public bool DuplicateUsername { get; private set; }
         public string? EtherAddress { get; private set; }
-        public string? ReturnUrl { get; set; }
+        public bool IsInvitationRequired { get; private set; }
+        public string? ReturnUrl { get; private set; }
         public string? Signature { get; private set; }
 
         // Methods.
@@ -163,13 +158,13 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 if (await userManager.IsLockedOutAsync(user))
                     return RedirectToPage("./Lockout");
 
-                // Sign in.
+                // Login.
                 await signInManager.SignInAsync(user, true);
 
                 // Delete used token.
                 await ssoDbContext.Web3LoginTokens.DeleteAsync(token);
 
-                // Check if external login is in the context of an OIDC request.
+                // Check if we are in the context of an authorization request.
                 var context = await idServerInteractionService.GetAuthorizationContextAsync(returnUrl);
 
                 // Rise event and create log.
@@ -181,25 +176,15 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 logger.LogInformation($"{etherAddress} logged in with web3.");
 
                 // Identify redirect.
-                if (context?.Client != null)
-                {
-                    if (await clientStore.IsPkceClientAsync(context.Client.ClientId))
-                    {
-                        // If the client is PKCE then we assume it's native, so this change in how to
-                        // return the response is for better UX for the end user.
-                        return this.LoadingPage("/Redirect", returnUrl!);
-                    }
-                }
-
-                return Redirect(returnUrl);
+                return await ContextedRedirectAsync(context, returnUrl);
             }
 
             // If user does not have an account, then ask him to create one.
             Input = new InputModel
             {
                 InvitationCode = invitationCode,
-                IsInvitationRequired = applicationSettings.RequireInvitation,
             };
+            IsInvitationRequired = applicationSettings.RequireInvitation;
             return Page();
         }
 
@@ -231,7 +216,6 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             var (errors, user) = await userService.RegisterWeb3UserAsync(
                 Input.Username,
                 etherAddress,
-                Input.Email,
                 Input.InvitationCode);
 
             // Post-registration actions.
@@ -240,7 +224,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 // Login.
                 await signInManager.SignInAsync(user, true);
 
-                // Check if external login is in the context of an OIDC request.
+                // Check if we are in the context of an authorization request.
                 var context = await idServerInteractionService.GetAuthorizationContextAsync(returnUrl);
 
                 // Rise event and create log.
@@ -249,36 +233,18 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                     clientId: context?.Client?.ClientId,
                     provider: "web3",
                     providerUserId: etherAddress));
-                logger.LogInformation($"User created an account using web3 address.");
+                logger.LogInformation($"{etherAddress} created a web3 account and logged in.");
 
-                // Identify redirect.
-                if (context?.Client != null)
-                {
-                    if (await clientStore.IsPkceClientAsync(context.Client.ClientId))
-                    {
-                        // If the client is PKCE then we assume it's native, so this change in how to
-                        // return the response is for better UX for the end user.
-                        return this.LoadingPage("/Redirect", returnUrl!);
-                    }
-                }
-
-                return Redirect(returnUrl);
+                // Redirect to add verified email page.
+                return RedirectToPage("SetVerifiedEmail", new { returnUrl });
             }
 
             // Report errors and show page again.
             foreach (var (errorKey, errorMessage) in errors)
             {
                 ModelState.AddModelError(string.Empty, errorMessage);
-                switch (errorKey)
-                {
-                    case UserService.DuplicateEmailErrorKey:
-                        DuplicateEmail = true;
-                        break;
-                    case UserService.DuplicateUsernameErrorKey:
-                        DuplicateUsername = true;
-                        break;
-                    default: break;
-                }
+                if (errorKey == UserService.DuplicateUsernameErrorKey)
+                    DuplicateUsername = true;
             }
             return Page();
         }

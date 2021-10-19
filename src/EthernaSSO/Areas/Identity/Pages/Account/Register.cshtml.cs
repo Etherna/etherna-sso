@@ -16,11 +16,9 @@ using Etherna.DomainEvents;
 using Etherna.SSOServer.Domain.Events;
 using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models;
-using Etherna.SSOServer.Extensions;
 using Etherna.SSOServer.Services.Domain;
 using Etherna.SSOServer.Services.Settings;
 using IdentityServer4.Services;
-using IdentityServer4.Stores;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -47,14 +45,8 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             [Display(Name = "Username")]
             public string Username { get; set; } = default!;
 
-            [EmailAddress]
-            [Display(Name = "Email (optional, needed for password recovery)")]
-            public string? Email { get; set; } = default!;
-
             [Display(Name = "Invitation code")]
             public string? InvitationCode { get; set; }
-
-            public bool IsInvitationRequired { get; set; }
 
             [Required]
             [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
@@ -70,7 +62,11 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             // Methods.
             public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
             {
-                if (IsInvitationRequired && string.IsNullOrWhiteSpace(InvitationCode))
+                if (validationContext is null)
+                    throw new ArgumentNullException(nameof(validationContext));
+
+                var appSettings = (IOptions<ApplicationSettings>)validationContext.GetService(typeof(IOptions<ApplicationSettings>))!;
+                if (appSettings.Value.RequireInvitation && string.IsNullOrWhiteSpace(InvitationCode))
                 {
                     yield return new ValidationResult(
                         "Invitation code is required",
@@ -81,7 +77,6 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
         // Fields.
         private readonly ApplicationSettings applicationSettings;
-        private readonly IClientStore clientStore;
         private readonly IEventDispatcher eventDispatcher;
         private readonly IIdentityServerInteractionService idServerInteractService;
         private readonly ILogger<RegisterModel> logger;
@@ -91,7 +86,6 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         // Constructor.
         public RegisterModel(
             IOptions<ApplicationSettings> applicationSettings,
-            IClientStore clientStore,
             IEventDispatcher eventDispatcher,
             IIdentityServerInteractionService idServerInteractService,
             ILogger<RegisterModel> logger,
@@ -102,7 +96,6 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 throw new ArgumentNullException(nameof(applicationSettings));
 
             this.applicationSettings = applicationSettings.Value;
-            this.clientStore = clientStore;
             this.eventDispatcher = eventDispatcher;
             this.idServerInteractService = idServerInteractService;
             this.logger = logger;
@@ -115,8 +108,9 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         public InputModel Input { get; set; } = default!;
 
         public List<AuthenticationScheme> ExternalLogins { get; } = new List<AuthenticationScheme>();
-        public string? ReturnUrl { get; set; }
-        public Web3LoginPartialModel Web3LoginPartialModel { get; set; } = default!;
+        public bool IsInvitationRequired { get; private set; }
+        public string? ReturnUrl { get; private set; }
+        public Web3LoginPartialModel Web3LoginPartialModel { get; private set; } = default!;
 
         // Methods.
         public async Task OnGetAsync(string? invitationCode, string? returnUrl = null) =>
@@ -133,7 +127,6 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             var (errors, user) = await userService.RegisterWeb2UserAsync(
                 Input.Username,
                 Input.Password,
-                Input.Email,
                 Input.InvitationCode);
 
             // Post-registration actions.
@@ -149,22 +142,8 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 await eventDispatcher.DispatchAsync(new UserLoginSuccessEvent(user, clientId: context?.Client?.ClientId));
                 logger.LogInformation("User created a new account with password.");
 
-                // Identify redirect.
-                if (context?.Client != null)
-                {
-                    if (await clientStore.IsPkceClientAsync(context.Client.ClientId))
-                    {
-                        // if the client is PKCE then we assume it's native, so this change in how to
-                        // return the response is for better UX for the end user.
-                        return this.LoadingPage("/Redirect", returnUrl!);
-                    }
-
-                    //we can trust returnUrl since GetAuthorizationContextAsync returned non-null
-                    return Redirect(returnUrl);
-                }
-
-                //request for a local page, otherwise user might have clicked on a malicious link - should be logged
-                return LocalRedirect(returnUrl);
+                // Redirect to add verified email page.
+                return RedirectToPage("SetVerifiedEmail", new { returnUrl });
             }
 
             // If we got this far, something failed, redisplay form printing errors.
@@ -184,7 +163,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             ExternalLogins.AddRange(await signInManager.GetExternalAuthenticationSchemesAsync());
             if (Input is null) Input = new InputModel();
             Input.InvitationCode ??= invitationCode;
-            Input.IsInvitationRequired = applicationSettings.RequireInvitation;
+            IsInvitationRequired = applicationSettings.RequireInvitation;
             ReturnUrl = returnUrl ?? Url.Content("~/");
 
             //init partial view models
