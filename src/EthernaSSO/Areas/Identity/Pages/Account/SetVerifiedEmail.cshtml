@@ -45,15 +45,15 @@ else
 
             <div class="mb-3">
                 <label asp-for="CodeInput.Code"></label>
-                <input asp-for="CodeInput.Code" class="form-control" />
-
 
                 @if (Model.IsCodeSent)
                 {
+                    <input asp-for="CodeInput.Code" class="form-control" />
                     <button type="submit" class="btn btn-secondary mt-2">Verify code</button>
                 }
                 else
                 {
+                    <input asp-for="CodeInput.Code" disabled class="form-control" />
                     <button type="submit" disabled class="btn btn-secondary mt-2">Verify code</button>
                 }
             </div>
