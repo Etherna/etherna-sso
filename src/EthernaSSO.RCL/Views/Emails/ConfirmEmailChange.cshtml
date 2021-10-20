@@ -4,6 +4,9 @@
     ViewData["EmailTitle"] = ConfirmEmailChangeModel.Title;
 }
 
-<p>
-    Please confirm your email change by <a href='@Model.CallbackUrl'>clicking here</a>.
-</p>
+<h1>@ConfirmEmailChangeModel.Title</h1>
+
+<p>Please confirm your email change by clicking here:</p>
+<a class="button" href='@Model.CallbackUrl'>Confirm email</a>
+
+<p style="margin-top: 2rem">or by clicking this link: <a href='@Model.CallbackUrl'>@Model.CallbackUrl</a>.</p>

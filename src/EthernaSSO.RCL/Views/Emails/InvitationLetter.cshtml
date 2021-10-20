@@ -4,6 +4,7 @@
     ViewData["EmailTitle"] = InvitationLetterModel.Title;
 }
 
-<p>
-    Your registration link: @Model.InvitationUrl
-</p>
+<h1>@InvitationLetterModel.Title</h1>
+<a class="button" href='@Model.InvitationUrl'>Register now</a>
+
+<p style="margin-top: 2rem">Invitation link: <a href='@Model.InvitationUrl'>@Model.InvitationUrl</a>.</p>
