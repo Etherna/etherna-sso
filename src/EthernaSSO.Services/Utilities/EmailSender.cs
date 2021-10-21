@@ -55,7 +55,7 @@ namespace Etherna.SSOServer.Services.Utilities
         {
             using var client = new SmtpClient
             {
-                Host = "mailtrap.io",
+                Host = "smtp.mailtrap.io",
                 Port = 2525,
                 Credentials = new NetworkCredential(settings.ServiceUser, settings.ServiceKey),
                 EnableSsl = true,

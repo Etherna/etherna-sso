@@ -4,10 +4,9 @@
     ViewData["EmailTitle"] = TotpConfirmEmailModel.Title;
 }
 
-<p>
-    Please confirm your email by entering this code:
-</p>
-<h1>@Model.Code</h1>
-<p>
-    You have 5 minutes for use it, or you have to ask for another.
-</p>
+<h1>@TotpConfirmEmailModel.Title</h1>
+
+<p>Please confirm your email by entering this code:</p>
+<span class="kbd">@Model.Code</span>
+
+<p style="margin-top: 1.5rem;">You have 5 minutes for use it, or you have to ask for another.</p>
