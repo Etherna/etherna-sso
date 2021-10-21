@@ -20,10 +20,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="GitVersion.MsBuild" Version="5.7.0">
+    <!--Removed for https://github.com/GitTools/GitVersion/issues/1671 -->
+    <!--<PackageReference Include="GitVersion.MsBuild" Version="5.7.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
+    </PackageReference>-->
     <PackageReference Include="Hangfire.AspNetCore" Version="1.7.25" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Facebook" Version="5.0.11" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="5.0.11" />
