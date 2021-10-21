@@ -1,17 +1,17 @@
-﻿@*   Copyright 2021-present Etherna Sagl
- *
- *   Licensed under the Apache License, Version 2.0 (the "License");
- *   you may not use this file except in compliance with the License.
- *   You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
- *@
+﻿@*  *   Copyright 2021-present Etherna Sagl
+    *
+    *   Licensed under the Apache License, Version 2.0 (the "License");
+    *   you may not use this file except in compliance with the License.
+    *   You may obtain a copy of the License at
+    *
+    *       http://www.apache.org/licenses/LICENSE-2.0
+    *
+    *   Unless required by applicable law or agreed to in writing, software
+    *   distributed under the License is distributed on an "AS IS" BASIS,
+    *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    *   See the License for the specific language governing permissions and
+    *   limitations under the License.
+*@
 
 @page
 @model Etherna.SSOServer.Areas.Identity.Pages.Account.Manage.Web3LoginModel
@@ -29,20 +29,24 @@
     <div class="col-md-6">
         <form id="web3-login-form" method="post">
             <div asp-validation-summary="All" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Web3Login"></label>
-                <input asp-for="Web3Login" class="form-control" disabled />
+            <div class="mb-3">
+                <label asp-for="EtherLoginAddress"></label>
+                <input asp-for="EtherLoginAddress" class="form-control" disabled />
             </div>
 
             <div id="manage-web3-login" style="display:none">
                 <div id="manage-web3-login-alert" class="alert alert-danger" style="display:none"></div>
                 <p>
-                    <button id="change-web3-login" class="btn btn-link" type="button" title="Change Web3 login address">Change web3 login address</button> <br/>
+                    <button id="confirm-web3-login" class="btn btn-link" type="button" title="Change Web3 login address">Change web3 login address</button> <br />
                     @if (Model.ShowRemoveButton)
                     {
                         <button type="submit" class="btn btn-link" asp-page-handler="Remove" title="Remove Web3 login">Remove web3 login</button>
                     }
                 </p>
+                @if (Model.EtherLoginAddress is not null)
+                {
+                    <a asp-page="Web3Upgrade" class="btn btn-secondary">Upgrade to Web3 account</a>
+                }
             </div>
 
             <div id="install-metamask" style="display:none">
@@ -54,12 +58,10 @@
 </div>
 
 <script type="text/javascript">
-    window.addEventListener('load', function () {
-        window.EthernaWeb3Singin.constants.retriveAuthMessageUrl = '@Html.Raw(retriveAuthMessageUrl)';
-        window.EthernaWeb3Singin.constants.confirmSignatureUrl = '@Html.Raw(confirmSignatureUrl)';
-    });
+    window.retriveAuthMessageUrl = '@Html.Raw(retriveAuthMessageUrl)';
+    window.confirmSignatureUrl = '@Html.Raw(confirmSignatureUrl)';
 </script>
-<script src="~/js/etherna-web3-signin.js" asp-append-version="true"></script>
+<script src="~/dist/js/etherna-web3-signin.js" asp-append-version="true"></script>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

@@ -1,0 +1,67 @@
+﻿@*  *   Copyright 2021-present Etherna Sagl
+    *
+    *   Licensed under the Apache License, Version 2.0 (the "License");
+    *   you may not use this file except in compliance with the License.
+    *   You may obtain a copy of the License at
+    *
+    *       http://www.apache.org/licenses/LICENSE-2.0
+    *
+    *   Unless required by applicable law or agreed to in writing, software
+    *   distributed under the License is distributed on an "AS IS" BASIS,
+    *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    *   See the License for the specific language governing permissions and
+    *   limitations under the License.
+*@
+
+@page
+@model Etherna.SSOServer.Areas.Admin.Pages.Invitations.IndexModel
+@{
+    ViewData["Title"] = "Invites manager";
+}
+
+<h2>@ViewData["Title"]</h2>
+<partial name="_StatusMessage" model="Model.StatusMessage" />
+
+<div class="row">
+    <div class="col-md-12">
+        <label asp-for="TotalAlive"></label>
+        <input asp-for="TotalAlive" disabled />
+
+        <hr />
+        <div class="row">
+            <div class="col-md-6">
+                <form id="generate" method="post">
+                    <h3>Bulk generate</h3>
+                    <div class="mb-3">
+                        <label asp-for="Input.Quantity"></label>
+                        <input asp-for="Input.Quantity" class="form-control" />
+                        <span asp-validation-for="Input.Quantity" class="text-danger"></span>
+                    </div>
+                    <button type="submit" asp-page-handler="Generate" class="btn btn-primary">Generate and show</button>
+                </form>
+            </div>
+
+            <div class="col-md-6">
+                <form id="generate-and-send" method="post">
+                    <h3>Bulk generate and send</h3>
+                    <div class="mb-3">
+                        <label asp-for="Input.EmailReceivers"></label>
+                        <textarea asp-for="Input.EmailReceivers" class="form-control" type="text" placeholder="Email addresses, one per line"></textarea>
+                        <span asp-validation-for="Input.EmailReceivers" class="text-danger"></span>
+                    </div>
+                    <button type="submit" asp-page-handler="GenerateAndSend" class="btn btn-primary">Generate and send</button>
+                </form>
+            </div>
+        </div>
+
+        @if (Model.GeneratedInvitations is not null)
+        {
+            <hr />
+            <label asp-for="GeneratedInvitations"></label><br />
+            foreach (var invitation in Model.GeneratedInvitations)
+            {
+                <span>@invitation.Code</span><br />
+            }
+        }
+    </div>
+</div>

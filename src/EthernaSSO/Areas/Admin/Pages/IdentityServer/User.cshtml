@@ -1,0 +1,203 @@
+﻿@*  *   Copyright 2021-present Etherna Sagl
+    *
+    *   Licensed under the Apache License, Version 2.0 (the "License");
+    *   you may not use this file except in compliance with the License.
+    *   You may obtain a copy of the License at
+    *
+    *       http://www.apache.org/licenses/LICENSE-2.0
+    *
+    *   Unless required by applicable law or agreed to in writing, software
+    *   distributed under the License is distributed on an "AS IS" BASIS,
+    *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    *   See the License for the specific language governing permissions and
+    *   limitations under the License.
+*@
+
+@page
+@model Etherna.SSOServer.Areas.Admin.Pages.IdentityServer.UserModel
+@{
+    ViewData["Title"] = "User";
+
+    var etherPrevAddressesToString = Model.EtherPreviousAddresses.Any() ?
+        Model.EtherPreviousAddresses.Aggregate((a, b) => a + '\n' + b) :
+        "";
+}
+
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-page="Users">Users</a></li>
+                <li class="breadcrumb-item active" aria-current="page">@Model.Input.Username</li>
+            </ol>
+        </nav>
+    </div>
+
+    <div class="col-12">
+        <h2>@ViewData["Title"]</h2>
+    </div>
+</div>
+
+<form id="client-form" asp-page-handler="Save" Method="post">
+
+    <div asp-validation-summary="All" class="text-danger"></div>
+
+    @if (Model.Id is not null)
+    {
+        <!--Button-->
+        <div class="mb-3 row">
+            <div class="col-md-12 col-m-b-10  col-m-t-10">
+                <a asp-page="UserClaims" asp-route-id="@Model.Id" class="btn btn-outline-primary">Manage User Claims</a>
+                <a asp-page="UserRoles" asp-route-id="@Model.Id" class="btn btn-outline-primary">Manage User Roles</a>
+                @if (!Model.IsWeb3)
+                {
+                    <a asp-page="UserProviders" asp-route-id="@Model.Id" class="btn btn-outline-primary">Manage User External Providers</a>
+                    <a asp-page="UserChangePassword" asp-route-id="@Model.Id" class="btn btn-dark">Change Password</a>
+                }
+                <a asp-page="UserDelete" asp-route-id="@Model.Id" class="btn btn-danger">Delete User</a>
+            </div>
+        </div>
+    }
+
+    <!--Hidden -->
+    <input type="hidden" asp-for="Id" />
+
+    <div class="card mt-3">
+        @if (Model.IsWeb3)
+        {
+            <h5 class="card-header">User Web3</h5>
+        }
+        else
+        {
+            <h5 class="card-header">User Web2</h5>
+        }
+        <div class="card-body">
+            <div class="row">
+                <div class="col-sm-10">
+
+                    <div class="mb-3 row">
+                        <label asp-for="Input.Username" class="col-sm-3 col-form-label"></label>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control" asp-for="Input.Username">
+                            <span asp-validation-for="Input.Username" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <label asp-for="@Model.EtherAddress" class="col-sm-3 col-form-label"></label>
+                        <div class="col-sm-9">
+                            <input type="text" disabled class="form-control" asp-for="@Model.EtherAddress">
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <label asp-for="@Model.EtherPreviousAddresses" class="col-sm-3 col-form-label"></label>
+                        <div class="col-sm-9">
+                            <textarea type="text" disabled
+                                      asp-for="@etherPrevAddressesToString"
+                                      rows="@Math.Max(1, Model.EtherPreviousAddresses.Count())"
+                                      class="form-control"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <label asp-for="Input.Email" class="col-sm-3 col-form-label"></label>
+                        <div class="col-sm-9">
+                            <input type="email" class="form-control" asp-for="Input.Email">
+                            <span asp-validation-for="Input.Email" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <label asp-for="Input.PhoneNumber" class="col-sm-3 col-form-label"></label>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control" asp-for="Input.PhoneNumber">
+                            <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <label asp-for="@Model.PhoneNumberConfirmed" class="col-sm-3 col-form-label"></label>
+                        <div class="col-sm-9">
+                            <input asp-for="@Model.PhoneNumberConfirmed" disabled type="checkbox">
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <label asp-for="@Model.LastLoginDateTime" class="col-sm-3 col-form-label"></label>
+                        <div class="col-sm-9">
+                            <input asp-for="@Model.LastLoginDateTime" disabled type="text">
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <label asp-for="Input.LockoutEnabled" class="col-sm-3 col-form-label"></label>
+                        <div class="col-sm-9">
+                            <input asp-for="Input.LockoutEnabled" type="checkbox">
+                            <span asp-validation-for="Input.LockoutEnabled" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    @* Use "26/09/2021 19:27:53 +02:00" format, or ISO 8601-1:2019: https://docs.microsoft.com/en-us/dotnet/standard/datetime/system-text-json-support *@
+                    <div class="mb-3 row">
+                        <label asp-for="Input.LockoutEnd" class="col-sm-3 col-form-label"></label>
+                        <div class="col-sm-9">
+                            <div class="input-group date">
+                                <input asp-for="Input.LockoutEnd" type="text" class="form-control" id="lockoutend-picker" autocomplete="off">
+                                <div class="input-group-text" data-target="#lockoutend-picker" data-toggle="datetimepicker">
+                                    <i class="fa fa-calendar"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (!Model.IsWeb3) // Web2 only account
+                    {
+                        <h6>Web2 fields</h6>
+
+                        <div class="mb-3 row">
+                            <label asp-for="Input.EtherLoginAddress" class="col-sm-3 col-form-label"></label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" asp-for="Input.EtherLoginAddress">
+                                <span asp-validation-for="Input.EtherLoginAddress" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3 row">
+                            <label asp-for="@Model.AccessFailedCount" class="col-sm-3 col-form-label"></label>
+                            <div class="col-sm-9">
+                                <input type="text" disabled class="form-control" asp-for="@Model.AccessFailedCount">
+                            </div>
+                        </div>
+
+                        <div class="mb-3 row">
+                            <label asp-for="Input.TwoFactorEnabled" class="col-sm-3 col-form-label"></label>
+                            <div class="col-sm-9">
+                                <input type="checkbox" asp-for="Input.TwoFactorEnabled">
+                                <span asp-validation-for="Input.TwoFactorEnabled" class="text-danger"></span>
+                            </div>
+                        </div>
+                    }
+
+                    <!--Button-->
+                    <div class="mb-3 row">
+                        <label class="col-sm-3 col-form-label">
+                        </label>
+                        <div class="col-sm-9">
+                            <button type="submit" class="btn btn-primary">Save User</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section scripts
+{
+    <script type="text/javascript">
+        $(function () {
+            $('#lockoutend-picker').datetimepicker();
+        });
+    </script>
+}

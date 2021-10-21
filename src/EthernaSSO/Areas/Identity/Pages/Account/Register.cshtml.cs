@@ -12,17 +12,20 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Etherna.DomainEvents;
+using Etherna.SSOServer.Domain.Events;
+using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models;
-using Etherna.SSOServer.Extensions;
-using IdentityServer4.Events;
+using Etherna.SSOServer.Services.Domain;
+using Etherna.SSOServer.Services.Settings;
 using IdentityServer4.Services;
-using IdentityServer4.Stores;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -34,16 +37,16 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
     public class RegisterModel : PageModel
     {
         // Models.
-        public class InputModel
+        public class InputModel : IValidatableObject
         {
+            // Properties.
             [Required]
-            [RegularExpression(Domain.Models.User.UsernameRegex, ErrorMessage = "Allowed characters are a-z, A-Z, 0-9, _. Permitted length is between 5 and 20.")]
+            [RegularExpression(UsernameHelper.UsernameRegex, ErrorMessage = "Allowed characters are a-z, A-Z, 0-9, _. Permitted length is between 5 and 20.")]
             [Display(Name = "Username")]
             public string Username { get; set; } = default!;
 
-            [EmailAddress]
-            [Display(Name = "Email (optional, needed for password recovery)")]
-            public string? Email { get; set; } = default!;
+            [Display(Name = "Invitation code")]
+            public string? InvitationCode { get; set; }
 
             [Required]
             [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
@@ -55,31 +58,49 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             [Display(Name = "Confirm password")]
             [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
             public string ConfirmPassword { get; set; } = default!;
+
+            // Methods.
+            public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+            {
+                if (validationContext is null)
+                    throw new ArgumentNullException(nameof(validationContext));
+
+                var appSettings = (IOptions<ApplicationSettings>)validationContext.GetService(typeof(IOptions<ApplicationSettings>))!;
+                if (appSettings.Value.RequireInvitation && string.IsNullOrWhiteSpace(InvitationCode))
+                {
+                    yield return new ValidationResult(
+                        "Invitation code is required",
+                        new[] { nameof(InvitationCode) });
+                }
+            }
         }
 
         // Fields.
-        private readonly IClientStore clientStore;
-        private readonly IEventService eventService;
+        private readonly ApplicationSettings applicationSettings;
+        private readonly IEventDispatcher eventDispatcher;
         private readonly IIdentityServerInteractionService idServerInteractService;
         private readonly ILogger<RegisterModel> logger;
-        private readonly SignInManager<User> signInManager;
-        private readonly UserManager<User> userManager;
+        private readonly SignInManager<UserBase> signInManager;
+        private readonly IUserService userService;
 
         // Constructor.
         public RegisterModel(
-            IClientStore clientStore,
-            IEventService eventService,
+            IOptions<ApplicationSettings> applicationSettings,
+            IEventDispatcher eventDispatcher,
             IIdentityServerInteractionService idServerInteractService,
             ILogger<RegisterModel> logger,
-            SignInManager<User> signInManager,
-            UserManager<User> userManager)
+            SignInManager<UserBase> signInManager,
+            IUserService userService)
         {
-            this.clientStore = clientStore;
-            this.eventService = eventService;
+            if (applicationSettings is null)
+                throw new ArgumentNullException(nameof(applicationSettings));
+
+            this.applicationSettings = applicationSettings.Value;
+            this.eventDispatcher = eventDispatcher;
             this.idServerInteractService = idServerInteractService;
             this.logger = logger;
             this.signInManager = signInManager;
-            this.userManager = userManager;
+            this.userService = userService;
         }
 
         // Properties.
@@ -87,74 +108,70 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         public InputModel Input { get; set; } = default!;
 
         public List<AuthenticationScheme> ExternalLogins { get; } = new List<AuthenticationScheme>();
-        public string? ReturnUrl { get; set; }
+        public bool IsInvitationRequired { get; private set; }
+        public string? ReturnUrl { get; private set; }
+        public Web3LoginPartialModel Web3LoginPartialModel { get; private set; } = default!;
 
         // Methods.
-        public async Task OnGetAsync(string? returnUrl = null)
-        {
-            await Initialize();
-            ReturnUrl = returnUrl;
-        }
+        public async Task OnGetAsync(string? invitationCode, string? returnUrl = null) =>
+            await InitializeAsync(invitationCode, returnUrl);
 
-        public async Task<IActionResult> OnPostAsync(string? returnUrl = null)
+        public async Task<IActionResult> OnPostAsync(string? invitationCode, string? returnUrl = null)
         {
             // Init page and validate.
-            returnUrl ??= Url.Content("~/");
-            ExternalLogins.AddRange(await signInManager.GetExternalAuthenticationSchemesAsync());
-
+            await InitializeAsync(invitationCode, returnUrl);
             if (!ModelState.IsValid)
-                return await InitializedPage();
+                return Page();
 
-            // Register new user.
-            //check if we are in the context of an authorization request
-            var context = await idServerInteractService.GetAuthorizationContextAsync(returnUrl);
+            // Register user.
+            var (errors, user) = await userService.RegisterWeb2UserAsync(
+                Input.Username,
+                Input.Password,
+                Input.InvitationCode);
 
-            var user = Domain.Models.User.CreateManagedWithUsername(Input.Username, email: Input.Email);
-            var result = await userManager.CreateAsync(user, Input.Password);
-
-            if (result.Succeeded)
+            // Post-registration actions.
+            if (user is not null)
             {
-                await eventService.RaiseAsync(new UserLoginSuccessEvent(user.Username, user.Id, user.Username, clientId: context?.Client?.ClientId));
+                // Check if we are in the context of an authorization request.
+                var context = await idServerInteractService.GetAuthorizationContextAsync(returnUrl);
+
+                // Login.
+                await signInManager.SignInAsync(user, true);
+
+                // Rise event and create log.
+                await eventDispatcher.DispatchAsync(new UserLoginSuccessEvent(user, clientId: context?.Client?.ClientId));
                 logger.LogInformation("User created a new account with password.");
 
-                if (context?.Client != null)
-                {
-                    if (await clientStore.IsPkceClientAsync(context.Client.ClientId))
-                    {
-                        // if the client is PKCE then we assume it's native, so this change in how to
-                        // return the response is for better UX for the end user.
-                        return this.LoadingPage("/Redirect", returnUrl!);
-                    }
-
-                    //we can trust returnUrl since GetAuthorizationContextAsync returned non-null
-                    return Redirect(returnUrl);
-                }
-
-                //request for a local page, otherwise user might have clicked on a malicious link - should be logged
-                return LocalRedirect(returnUrl);
+                // Redirect to add verified email page.
+                return RedirectToPage("SetVerifiedEmail", new { returnUrl });
             }
 
             // If we got this far, something failed, redisplay form printing errors.
-            foreach (var error in result.Errors)
-                ModelState.AddModelError(string.Empty, error.Description);
+            foreach (var (_, errorMessage) in errors)
+                ModelState.AddModelError(string.Empty, errorMessage);
 
-            return await InitializedPage();
+            return Page();
         }
 
         // Helpers.
-        private async Task Initialize()
+        private async Task InitializeAsync(string? invitationCode, string? returnUrl)
         {
             //clear the existing external cookie to ensure a clean login process
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
 
             //load data
             ExternalLogins.AddRange(await signInManager.GetExternalAuthenticationSchemesAsync());
-        }
+            if (Input is null) Input = new InputModel();
+            Input.InvitationCode ??= invitationCode;
+            IsInvitationRequired = applicationSettings.RequireInvitation;
+            ReturnUrl = returnUrl ?? Url.Content("~/");
 
-        private async Task<IActionResult> InitializedPage()
-        {
-            await Initialize();
-            return Page();
+            //init partial view models
+            Web3LoginPartialModel = new Web3LoginPartialModel()
+            {
+                InvitationCode = Input.InvitationCode,
+                ReturnUrl = ReturnUrl
+            };
         }
     }
 }

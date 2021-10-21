@@ -1,17 +1,17 @@
-﻿@*   Copyright 2021-present Etherna Sagl
- *
- *   Licensed under the Apache License, Version 2.0 (the "License");
- *   you may not use this file except in compliance with the License.
- *   You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
- *@
+﻿@*  *   Copyright 2021-present Etherna Sagl
+    *
+    *   Licensed under the Apache License, Version 2.0 (the "License");
+    *   you may not use this file except in compliance with the License.
+    *   You may obtain a copy of the License at
+    *
+    *       http://www.apache.org/licenses/LICENSE-2.0
+    *
+    *   Unless required by applicable law or agreed to in writing, software
+    *   distributed under the License is distributed on an "AS IS" BASIS,
+    *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    *   See the License for the specific language governing permissions and
+    *   limitations under the License.
+*@
 
 @page
 @model EmailModel
@@ -27,30 +27,20 @@
         <div asp-validation-summary="All" class="text-danger"></div>
 
         <form id="verification-form" method="post">
-            <div class="form-group">
+            <div class="mb-3">
                 <label asp-for="Email"></label>
-                @if (Model.IsEmailConfirmed)
-                {
-                    <div class="input-group">
-                        <input asp-for="Email" class="form-control" disabled />
-                        <div class="input-group-append">
-                            <span class="input-group-text text-success font-weight-bold">✓</span>
-                        </div>
-                    </div>
-                }
-                else
-                {
+                <div class="input-group">
                     <input asp-for="Email" class="form-control" disabled />
-                    @if (!string.IsNullOrEmpty(Model.Email))
-                    {
-                        <button id="email-verification" type="submit" asp-page-handler="SendVerificationEmail" class="btn btn-link">Send verification email</button>
-                    }
+                </div>
+                @if (!string.IsNullOrEmpty(Model.Email))
+                {
+                    <button id="remove-email-button" type="submit" asp-page-handler="RemoveEmail" class="btn btn-link">Remove email</button>
                 }
             </div>
         </form>
 
         <form id="email-form" method="post">
-            <div class="form-group">
+            <div class="mb-3">
                 <label asp-for="Input.NewEmail"></label>
                 <input asp-for="Input.NewEmail" class="form-control" />
                 <span asp-validation-for="Input.NewEmail" class="text-danger"></span>

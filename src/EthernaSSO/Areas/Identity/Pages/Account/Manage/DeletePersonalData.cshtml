@@ -1,0 +1,78 @@
+﻿@*  *   Copyright 2021-present Etherna Sagl
+    *
+    *   Licensed under the Apache License, Version 2.0 (the "License");
+    *   you may not use this file except in compliance with the License.
+    *   You may obtain a copy of the License at
+    *
+    *       http://www.apache.org/licenses/LICENSE-2.0
+    *
+    *   Unless required by applicable law or agreed to in writing, software
+    *   distributed under the License is distributed on an "AS IS" BASIS,
+    *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    *   See the License for the specific language governing permissions and
+    *   limitations under the License.
+*@
+
+@page
+@model DeletePersonalDataModel
+@{
+    ViewData["Title"] = "Delete Personal Data";
+    ViewData["ActivePage"] = ManageNavPages.PersonalData;
+
+    var retriveAuthMessageUrl = Url.Page("DeletePersonalData", "RetriveAuthMessage");
+    var confirmSignatureUrl = Url.Page("DeletePersonalData", "DeleteWeb3");
+}
+
+<h4>@ViewData["Title"]</h4>
+<partial name="_StatusMessage" model="Model.StatusMessage" />
+
+<div class="alert alert-warning" role="alert">
+    <p>
+        <strong>Deleting this data will permanently remove your account, and this cannot be recovered.</strong>
+    </p>
+</div>
+
+<div>
+    <form id="delete-user" method="post" class="mb-3">
+        <div asp-validation-summary="All" class="text-danger"></div>
+        @if (Model.IsWeb3User)
+        {
+            <div id="manage-web3-login" style="display:none">
+                <div id="manage-web3-login-alert" class="alert alert-danger" style="display:none"></div>
+                <p>
+                    <button id="confirm-web3-login" class="btn btn-danger" type="button">Delete data and close my account</button>
+                </p>
+            </div>
+
+            <div id="install-metamask" style="display:none">
+                <a href="https://metamask.io/"><img src="/images/metamask-logo.svg" /></a>
+                <p>Do you need a new web3 wallet? Try to install <a href="https://metamask.io/">Metamask</a></p>
+            </div>
+        }
+        else
+        {
+            @if (Model.RequirePassword)
+            {
+                <div class="mb-3">
+                    <label asp-for="Input.Password"></label>
+                    <input asp-for="Input.Password" class="form-control" />
+                    <span asp-validation-for="Input.Password" class="text-danger"></span>
+                </div>
+            }
+            <button class="btn btn-danger" asp-page-handler="DeleteWeb2" type="submit">Delete data and close my account</button>
+        }
+    </form>
+</div>
+
+@if (Model.IsWeb3User)
+{
+    <script type="text/javascript">
+        window.retriveAuthMessageUrl = '@Html.Raw(retriveAuthMessageUrl)';
+        window.confirmSignatureUrl = '@Html.Raw(confirmSignatureUrl)';
+    </script>
+    <script src="~/dist/js/etherna-web3-signin.js" asp-append-version="true"></script>
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

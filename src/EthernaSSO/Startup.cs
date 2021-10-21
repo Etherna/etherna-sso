@@ -12,6 +12,9 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Etherna.DomainEvents;
+using Etherna.MongODM;
+using Etherna.MongODM.AspNetCore.UI;
 using Etherna.MongODM.Core.Options;
 using Etherna.SSOServer.Configs;
 using Etherna.SSOServer.Configs.Hangfire;
@@ -23,30 +26,37 @@ using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Extensions;
 using Etherna.SSOServer.Persistence;
 using Etherna.SSOServer.Services.Settings;
+using Etherna.SSOServer.Services.Tasks;
 using Hangfire;
 using Hangfire.Mongo;
 using Hangfire.Mongo.Migration.Strategies;
 using Hangfire.Mongo.Migration.Strategies.Backup;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Reflection;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 
 namespace Etherna.SSOServer
 {
     public class Startup
     {
+        // Constructor.
         public Startup(
             IConfiguration configuration,
             IWebHostEnvironment environment)
@@ -55,9 +65,11 @@ namespace Etherna.SSOServer
             Environment = environment;
         }
 
+        // Properties.
         public IConfiguration Configuration { get; }
         public IWebHostEnvironment Environment { get; }
 
+        // Methods.
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
@@ -65,7 +77,7 @@ namespace Etherna.SSOServer
             services.AddDataProtection()
                 .PersistKeysToDbContext(new DbContextOptions { ConnectionString = Configuration["ConnectionStrings:SystemDb"] });
 
-            services.AddDefaultIdentity<User>(options =>
+            services.AddIdentity<UserBase, Role>(options =>
             {
                 options.Password.RequireDigit = true;
                 options.Password.RequiredLength = 6;
@@ -73,14 +85,16 @@ namespace Etherna.SSOServer
                 options.Password.RequireNonAlphanumeric = true;
                 options.Password.RequireUppercase = true;
 
-                //options.User.AllowedUserNameCharacters = ""; //overrided by regex validation with User.UsernameRegex
+                options.Tokens.EmailConfirmationTokenProvider = TokenOptions.DefaultEmailProvider; //totp code
+
                 options.User.RequireUniqueEmail = true;
             })
+                .AddDefaultTokenProviders()
                 .AddRoles<Role>()
                 .AddRoleStore<RoleStore>()
                 .AddUserStore<UserStore>();
-            //replace default UserValidator with custom. Default one doesn't allow null usernames
-            services.Replace(ServiceDescriptor.Scoped<IUserValidator<User>, CustomUserValidator>());
+            //replace default UserValidator with custom
+            services.Replace(ServiceDescriptor.Scoped<IUserValidator<UserBase>, CustomUserValidator>());
 
             services.ConfigureApplicationCookie(options =>
             {
@@ -91,7 +105,7 @@ namespace Etherna.SSOServer
 
                 options.LoginPath = "/Identity/Account/Login";
                 options.LogoutPath = "/Identity/Account/Logout";
-                options.AccessDeniedPath = "/Identity/Account/AccessDenied";
+                options.AccessDeniedPath = "/AccessDenied";
 
                 options.SlidingExpiration = true;
 
@@ -107,7 +121,13 @@ namespace Etherna.SSOServer
             });
 
             services.AddCors();
-            services.AddRazorPages();
+            services.AddRazorPages(options =>
+            {
+                options.Conventions.AuthorizeAreaFolder(CommonConsts.AdminArea, "/", CommonConsts.RequireAdministratorRolePolicy);
+                options.Conventions.AuthorizeAreaFolder(CommonConsts.IdentityArea, "/Account/Manage");
+
+                options.Conventions.AuthorizeAreaPage(CommonConsts.IdentityArea, "/Account/Logout");
+            });
             services.AddControllers(); //used for APIs
             services.AddApiVersioning(options =>
             {
@@ -123,6 +143,8 @@ namespace Etherna.SSOServer
                 // can also be used to control the format of the API version in route templates
                 options.SubstituteApiVersionInUrl = true;
             });
+
+            services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
 
             // Configure authentication.
             services.AddAuthentication()
@@ -140,7 +162,28 @@ namespace Etherna.SSOServer
                 {
                     options.ConsumerKey = Configuration["Authentication:Twitter:ClientId"];
                     options.ConsumerSecret = Configuration["Authentication:Twitter:ClientSecret"];
+                })
+                .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
+                {
+                    options.Authority = Configuration["IdServer:SsoServer:BaseUrl"];
+
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateAudience = false
+                    };
                 });
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy(CommonConsts.RequireAdministratorRolePolicy,
+                     policy => policy.RequireRole(Role.AdministratorName));
+
+                options.AddPolicy(CommonConsts.ServiceInteractApiScopePolicy, policy =>
+                {
+                    policy.AuthenticationSchemes = new List<string> { JwtBearerDefaults.AuthenticationScheme };
+                    policy.RequireAuthenticatedUser();
+                    policy.RequireClaim("scope", "ethernaSso_userContactInfo_api");
+                });
+            });
 
             // Configure IdentityServer.
             var idServerConfig = new IdServerConfig(Configuration);
@@ -151,7 +194,7 @@ namespace Etherna.SSOServer
                 .AddInMemoryApiScopes(idServerConfig.ApiScopes)
                 .AddInMemoryClients(idServerConfig.Clients)
                 .AddInMemoryIdentityResources(idServerConfig.IdResources)
-                .AddAspNetIdentity<User>();
+                .AddAspNetIdentity<UserBase>();
             if (Environment.IsDevelopment())
             {
                 builder.AddDeveloperSigningCredential();
@@ -159,8 +202,27 @@ namespace Etherna.SSOServer
             else
             {
 #pragma warning disable CA2000 // Dispose objects before losing scope
-                builder.AddSigningCredential(AzureKeyVaultAccessor.GetIdentityServerCertificate(Configuration));
+                builder.AddSigningCredential(new X509Certificate2(
+                    Configuration["Certificate:Name"],
+                    Configuration["Certificate:Password"]));
 #pragma warning restore CA2000 // Dispose objects before losing scope
+            }
+
+            // Configure Hangfire server.
+            if (!Environment.IsStaging()) //don't start server in staging
+            {
+                //register hangfire server
+                services.AddHangfireServer(options =>
+                {
+                    options.Queues = new[]
+                    {
+                        Queues.DB_MAINTENANCE,
+                        Queues.DOMAIN_MAINTENANCE,
+                        Queues.STATS,
+                        "default"
+                    };
+                    options.WorkerCount = System.Environment.ProcessorCount * 2;
+                });
             }
 
             // Configure Swagger services.
@@ -178,16 +240,12 @@ namespace Etherna.SSOServer
 
             // Configure setting.
             var assemblyVersion = new AssemblyVersion(GetType().GetTypeInfo().Assembly);
-            services.Configure<ApplicationSettings>(options =>
+            services.Configure<ApplicationSettings>(Configuration.GetSection("Application"));
+            services.PostConfigure<ApplicationSettings>(options =>
             {
                 options.AssemblyVersion = assemblyVersion.Version;
             });
             services.Configure<EmailSettings>(Configuration.GetSection("Email"));
-            services.Configure<PageSettings>(options =>
-            {
-                options.ConfirmEmailPageArea = "Identity";
-                options.ConfirmEmailPageUrl = "/Account/ConfirmEmail";
-            });
 
             // Configure persistence.
             services.AddMongODMWithHangfire<ModelBase>(configureHangfireOptions: options =>
@@ -203,18 +261,23 @@ namespace Etherna.SSOServer
                 };
             }, configureMongODMOptions: options =>
             {
-                options.DbMaintenanceQueueName = TaskQueues.DB_MAINTENANCE;
-            })
-                .AddDbContext<ISsoDbContext, SsoDbContext>(options =>
-                {
-                    options.DocumentSemVer.CurrentVersion = assemblyVersion.SimpleVersion;
-                    options.ConnectionString = Configuration["ConnectionStrings:SSOServerDb"];
-                });
+                options.DbMaintenanceQueueName = Queues.DB_MAINTENANCE;
+            }).AddDbContext<ISsoDbContext, SsoDbContext>(sp =>
+            {
+                var eventDispatcher = sp.GetRequiredService<IEventDispatcher>();
+                var passwordHasher = sp.CreateScope().ServiceProvider.GetRequiredService<IPasswordHasher<UserBase>>();
+                return new SsoDbContext(eventDispatcher, passwordHasher);
+            },
+            options =>
+            {
+                options.DocumentSemVer.CurrentVersion = assemblyVersion.SimpleVersion;
+                options.ConnectionString = Configuration["ConnectionStrings:SSOServerDb"];
+            });
 
             services.AddMongODMAdminDashboard(new MongODM.AspNetCore.UI.DashboardOptions
             {
                 AuthFilters = new[] { new Configs.MongODM.AdminAuthFilter() },
-                BasePath = "/admin/db"
+                BasePath = CommonConsts.DatabaseAdminPath
             });
 
             // Configure domain services.
@@ -264,20 +327,10 @@ namespace Etherna.SSOServer
             app.UseAuthorization();
 
             // Add Hangfire.
-            app.UseHangfireDashboard("/admin/hangfire",
-                new DashboardOptions
+            app.UseHangfireDashboard(CommonConsts.HangfireAdminPath,
+                new Hangfire.DashboardOptions
                 {
                     Authorization = new[] { new AdminAuthFilter() }
-                });
-            if (!Environment.IsStaging()) //don't start server in staging
-                app.UseHangfireServer(new BackgroundJobServerOptions
-                {
-                    Queues = new[]
-                    {
-                        TaskQueues.DB_MAINTENANCE,
-                        "default"
-                    },
-                    WorkerCount = System.Environment.ProcessorCount * 2
                 });
 
             // Add Swagger.
@@ -297,6 +350,17 @@ namespace Etherna.SSOServer
                 endpoints.MapControllers();
                 endpoints.MapRazorPages();
             });
+
+            // Register cron tasks.
+            RecurringJob.AddOrUpdate<ICompileDailyStatsTask>(
+                CompileDailyStatsTask.TaskId,
+                task => task.RunAsync(),
+                "0 2 * * *"); //at 02:00 every day
+
+            RecurringJob.AddOrUpdate<IDeleteOldInvitationsTask>(
+                DeleteOldInvitationsTask.TaskId,
+                task => task.RunAsync(),
+                "0 5 * * *"); //at 05:00 every day
         }
     }
 }

@@ -1,0 +1,86 @@
+﻿@*  *   Copyright 2021-present Etherna Sagl
+    *
+    *   Licensed under the Apache License, Version 2.0 (the "License");
+    *   you may not use this file except in compliance with the License.
+    *   You may obtain a copy of the License at
+    *
+    *       http://www.apache.org/licenses/LICENSE-2.0
+    *
+    *   Unless required by applicable law or agreed to in writing, software
+    *   distributed under the License is distributed on an "AS IS" BASIS,
+    *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    *   See the License for the specific language governing permissions and
+    *   limitations under the License.
+*@
+
+@page
+@model SetVerifiedEmailModel
+@{
+    ViewData["Title"] = "Add your email";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+@if (Model.IsWeb3)
+{
+    <p class="text-info">
+        You can add an email address, but it is optional. It can be useful for receive notifications from us.
+    </p>
+}
+else
+{
+    <p class="text-info">
+        You can add an email address, but it is optional. It can be useful for receive notifications from us, or recover your password if you lose it.
+    </p>
+}
+
+<p>
+    Add an email, click on "Send email" and report the code that you will receive. Or if you prefer you can simply skip it.
+</p>
+
+<div class="row">
+    <div class="col-md-4">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        <form asp-page-handler="SendEmail"
+              asp-route-returnUrl="@Model.ReturnUrl"
+              method="post">
+
+            <div class="mb-3">
+                <label asp-for="EmailInput.Email"></label>
+                <input asp-for="EmailInput.Email" class="form-control" />
+                <button type="submit" class="btn btn-secondary mt-2">Send email</button>
+            </div>
+        </form>
+
+        <form asp-page-handler="ConfirmCode"
+              asp-route-returnUrl="@Model.ReturnUrl"
+              asp-route-email="@Model.EmailInput?.Email"
+              method="post">
+
+            <div class="mb-3">
+                <label asp-for="CodeInput.Code"></label>
+
+                @if (Model.IsCodeSent)
+                {
+                    <input asp-for="CodeInput.Code" class="form-control" />
+                    <button type="submit" class="btn btn-secondary mt-2">Verify code</button>
+                }
+                else
+                {
+                    <input asp-for="CodeInput.Code" disabled class="form-control" />
+                    <button type="submit" disabled class="btn btn-secondary mt-2">Verify code</button>
+                }
+            </div>
+
+            <div class="mt-4">
+                <a asp-page-handler="Skip"
+                   asp-route-returnUrl="@Model.ReturnUrl">Skip it</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

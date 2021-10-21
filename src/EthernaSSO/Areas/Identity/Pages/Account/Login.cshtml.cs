@@ -12,16 +12,15 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Etherna.DomainEvents;
+using Etherna.SSOServer.Domain.Events;
 using Etherna.SSOServer.Domain.Models;
-using Etherna.SSOServer.Extensions;
-using IdentityServer4.Events;
 using IdentityServer4.Services;
 using IdentityServer4.Stores;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -31,7 +30,7 @@ using System.Threading.Tasks;
 namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 {
     [AllowAnonymous]
-    public class LoginModel : PageModel
+    public class LoginModel : SsoExitPageModelBase
     {
         // Models.
         public class InputModel
@@ -43,31 +42,27 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             [Required]
             [DataType(DataType.Password)]
             public string Password { get; set; } = default!;
-
-            [Display(Name = "Remember me?")]
-            public bool RememberMe { get; set; }
         }
 
         // Fields.
-        private readonly IClientStore clientStore;
-        private readonly IEventService eventService;
-        private readonly IIdentityServerInteractionService idServerInteractService;
+        private readonly IEventDispatcher eventDispatcher;
+        private readonly IIdentityServerInteractionService idServerInteractionService;
         private readonly ILogger<LoginModel> logger;
-        private readonly SignInManager<User> signInManager;
-        private readonly UserManager<User> userManager;
+        private readonly SignInManager<UserBase> signInManager;
+        private readonly UserManager<UserBase> userManager;
 
         // Constructor.
         public LoginModel(
             IClientStore clientStore,
-            IEventService eventService,
-            IIdentityServerInteractionService idServerInteractService,
+            IEventDispatcher eventDispatcher,
+            IIdentityServerInteractionService idServerInteractionService,
             ILogger<LoginModel> logger,
-            SignInManager<User> signInManager,
-            UserManager<User> userManager)
+            SignInManager<UserBase> signInManager,
+            UserManager<UserBase> userManager)
+            : base(clientStore)
         {
-            this.clientStore = clientStore;
-            this.eventService = eventService;
-            this.idServerInteractService = idServerInteractService;
+            this.eventDispatcher = eventDispatcher;
+            this.idServerInteractionService = idServerInteractionService;
             this.logger = logger;
             this.signInManager = signInManager;
             this.userManager = userManager;
@@ -81,32 +76,31 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         public InputModel Input { get; set; } = default!;
 
         public List<AuthenticationScheme> ExternalLogins { get; } = new List<AuthenticationScheme>();
+        public string? InvitationCode { get; set; }
         public string? ReturnUrl { get; set; }
+        public Web3LoginPartialModel Web3LoginPartialModel { get; set; } = default!;
 
         // Methods.
-        public async Task OnGetAsync(string? returnUrl = null)
+        public async Task OnGetAsync(string? invitationCode = null, string? returnUrl = null)
         {
             if (!string.IsNullOrEmpty(ErrorMessage))
             {
                 ModelState.AddModelError(string.Empty, ErrorMessage);
             }
 
-            await Initialize();
-
-            ReturnUrl = returnUrl ?? Url.Content("~/");
+            await InitializeAsync(invitationCode, returnUrl);
         }
 
-        public async Task<IActionResult> OnPostAsync(string? returnUrl = null)
+        public async Task<IActionResult> OnPostAsync(string? invitationCode = null, string? returnUrl = null)
         {
             // Init page and validate.
-            ReturnUrl = returnUrl ?? Url.Content("~/");
-
+            await InitializeAsync(invitationCode, returnUrl);
             if (!ModelState.IsValid)
-                return await InitializedPage();
+                return Page();
 
             // Login.
             //check if we are in the context of an authorization request
-            var context = await idServerInteractService.GetAuthorizationContextAsync(ReturnUrl);
+            var context = await idServerInteractionService.GetAuthorizationContextAsync(ReturnUrl);
 
             //find user
             var user = Input.UsernameOrEmail.Contains('@', StringComparison.InvariantCulture) ? //if is email
@@ -115,37 +109,25 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             if (user is null)
             {
                 ModelState.AddModelError(string.Empty, "Invalid login attempt.");
-                return await InitializedPage();
+                return Page();
             }
 
             //validate login
-            var result = await signInManager.PasswordSignInAsync(user, Input.Password, Input.RememberMe, lockoutOnFailure: true);
+            var result = await signInManager.PasswordSignInAsync(user, Input.Password, true, lockoutOnFailure: true);
 
             if (result.Succeeded)
             {
-                await eventService.RaiseAsync(new UserLoginSuccessEvent(user.Username, user.Id, user.Username, clientId: context?.Client?.ClientId));
+                // Rise event and create log.
+                await eventDispatcher.DispatchAsync(new UserLoginSuccessEvent(user, clientId: context?.Client?.ClientId));
                 logger.LogInformation("User logged in.");
 
-                if (context?.Client != null)
-                {
-                    if (await clientStore.IsPkceClientAsync(context.Client.ClientId))
-                    {
-                        // if the client is PKCE then we assume it's native, so this change in how to
-                        // return the response is for better UX for the end user.
-                        return this.LoadingPage("/Redirect", ReturnUrl!);
-                    }
-
-                    //we can trust returnUrl since GetAuthorizationContextAsync returned non-null
-                    return Redirect(ReturnUrl);
-                }
-
-                //request for a local page, otherwise user might have clicked on a malicious link - should be logged
-                return LocalRedirect(ReturnUrl);
+                // Identify redirect.
+                return await ContextedRedirectAsync(context, returnUrl);
             }
 
             else if (result.RequiresTwoFactor)
             {
-                return RedirectToPage("./LoginWith2fa", new { ReturnUrl, Input.RememberMe });
+                return RedirectToPage("./LoginWith2fa", new { ReturnUrl });
             }
 
             else if (result.IsLockedOut)
@@ -156,26 +138,29 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
             else
             {
-                await eventService.RaiseAsync(new UserLoginFailureEvent(Input.UsernameOrEmail, "invalid credentials", clientId: context?.Client?.ClientId));
+                await eventDispatcher.DispatchAsync(new UserLoginFailureEvent(Input.UsernameOrEmail, "invalid credentials", clientId: context?.Client?.ClientId));
                 ModelState.AddModelError(string.Empty, "Invalid login attempt.");
-                return await InitializedPage();
+                return Page();
             }
         }
 
         // Helpers.
-        private async Task Initialize()
+        private async Task InitializeAsync(string? invitationCode, string? returnUrl)
         {
             //clear the existing external cookie to ensure a clean login process
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
 
             //load data
             ExternalLogins.AddRange(await signInManager.GetExternalAuthenticationSchemesAsync());
-        }
+            InvitationCode = invitationCode;
+            ReturnUrl = returnUrl ?? Url.Content("~/");
 
-        private async Task<IActionResult> InitializedPage()
-        {
-            await Initialize();
-            return Page();
+            //init partial view models
+            Web3LoginPartialModel = new Web3LoginPartialModel()
+            {
+                InvitationCode = InvitationCode,
+                ReturnUrl = ReturnUrl
+            };
         }
     }
 }

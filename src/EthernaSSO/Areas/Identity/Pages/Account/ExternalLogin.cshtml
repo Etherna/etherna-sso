@@ -1,17 +1,17 @@
-﻿@*   Copyright 2021-present Etherna Sagl
- *
- *   Licensed under the Apache License, Version 2.0 (the "License");
- *   you may not use this file except in compliance with the License.
- *   You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
- *@
+﻿@*  *   Copyright 2021-present Etherna Sagl
+    *
+    *   Licensed under the Apache License, Version 2.0 (the "License");
+    *   you may not use this file except in compliance with the License.
+    *   You may obtain a copy of the License at
+    *
+    *       http://www.apache.org/licenses/LICENSE-2.0
+    *
+    *   Unless required by applicable law or agreed to in writing, software
+    *   distributed under the License is distributed on an "AS IS" BASIS,
+    *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    *   See the License for the specific language governing permissions and
+    *   limitations under the License.
+*@
 
 @page
 @model ExternalLoginModel
@@ -25,36 +25,44 @@
 
 <p id="external-login-description" class="text-info">
     You've successfully authenticated with <strong>@Model.ProviderDisplayName</strong>.
-    Please enter an username and an optional email address for this site below, and click the Register button to finish logging in.
+    Please enter an username for this site below, and click the Register button to finish logging in.
 </p>
 
 <div class="row">
     <div class="col-md-4">
-        <form asp-page-handler="Confirmation" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+        <form asp-page-handler="Confirmation"
+              asp-route-returnUrl="@Model.ReturnUrl"
+              asp-route-email="@Model.Email"
+              method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
+            <div class="mb-3">
                 <label asp-for="Input.Username"></label>
                 <input asp-for="Input.Username" class="form-control" />
                 <span asp-validation-for="Input.Username" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="Input.Email"></label>
-                <input asp-for="Input.Email" class="form-control" />
-                <span asp-validation-for="Input.Email" class="text-danger"></span>
+            <div class="mb-3">
+                <label asp-for="Input.InvitationCode"></label>
+                @if (!Model.IsInvitationRequired)
+                {
+                    <label>(optional)</label>
+                }
+                <input asp-for="Input.InvitationCode" class="form-control" />
+                <span asp-validation-for="Input.InvitationCode" class="text-danger"></span>
             </div>
             <button type="submit" class="btn btn-primary">Register</button>
         </form>
     </div>
 </div>
 
-@if (Model.DuplicateEmail || Model.DuplicateUsername)
+@if (Model.DuplicateUsername)
 {
     <div class="row">
         <div class="col-md-6">
             <hr />
             <p class="text-break">
+                Your username has been already registered.<br />
                 Please <a asp-page="./Login" asp-route-returnUrl="@Model.ReturnUrl">Login</a>
-                with your previous account, or change info for create a new one.
+                with your previous account if it's your, or change info for create a new one.
             </p>
         </div>
     </div>

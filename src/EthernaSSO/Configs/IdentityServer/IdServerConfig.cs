@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Exceptions;
 using IdentityServer4;
 using IdentityServer4.Models;
@@ -25,6 +26,10 @@ namespace Etherna.SSOServer.Configs.IdentityServer
 {
     public class IdServerConfig
     {
+        // Consts.
+        private readonly ApiScope EthernaCreditServiceInteractApiScope = new("ethernaCredit_serviceInteract_api", "Etherna Credit service interact API");
+        private readonly ApiScope EthernaSsoUserContactInfoApiScope = new("ethernaSso_userContactInfo_api", "Etherna SSO user contatct info API");
+
         // Fields.
         private readonly string ethernaCreditBaseUrl;
         private readonly string ethernaCreditSecret;
@@ -60,153 +65,171 @@ namespace Etherna.SSOServer.Configs.IdentityServer
         }
 
         // Properties.
-        public IEnumerable<ApiScope> ApiScopes =>
-            new List<ApiScope>
-            {
-                new ApiScope("ethernaCredit_serviceInteract_api", "Etherna Credit service interact API")
-            };
+        public IEnumerable<ApiScope> ApiScopes => new ApiScope[]
+        {
+            EthernaCreditServiceInteractApiScope,
+            EthernaSsoUserContactInfoApiScope
+        };
 
-        public IEnumerable<Client> Clients =>
-            new List<Client>
+        public IEnumerable<Client> Clients => new Client[]
+        {
+            //credit
+            new Client
             {
-                //credit
-                new Client
+                ClientId = "ethernaCreditClientId",
+                ClientName = "Etherna Credit",
+                ClientSecrets = { new Secret(ethernaCreditSecret.Sha256()) },
+
+                AllowedGrantTypes = GrantTypes.CodeAndClientCredentials,
+
+                //where to redirect to after login
+                RedirectUris = { $"{ethernaCreditBaseUrl}/signin-oidc" },
+
+                //where to redirect to after logout
+                PostLogoutRedirectUris = { $"{ethernaCreditBaseUrl}/signout-callback-oidc" },
+
+                AlwaysIncludeUserClaimsInIdToken = true,
+                AllowedScopes = new List<string>
                 {
-                    ClientId = "ethernaCreditClientId",
-                    ClientName = "Etherna Credit",
-                    ClientSecrets = { new Secret(ethernaCreditSecret.Sha256()) },
+                    //for code flow
+                    IdentityServerConstants.StandardScopes.OpenId,
+                    IdentityServerConstants.StandardScopes.Profile,
+                    "ether_accounts",
 
-                    AllowedGrantTypes = GrantTypes.Code,
-                    RequireConsent = false,
-                    RequirePkce = true,
-
-                    // where to redirect to after login
-                    RedirectUris = { $"{ethernaCreditBaseUrl}/signin-oidc" },
-
-                    // where to redirect to after logout
-                    PostLogoutRedirectUris = { $"{ethernaCreditBaseUrl}/signout-callback-oidc" },
-
-                    AlwaysIncludeUserClaimsInIdToken = true,
-                    AllowedScopes = new List<string>
-                    {
-                        IdentityServerConstants.StandardScopes.OpenId,
-                        IdentityServerConstants.StandardScopes.Profile,
-                        "ether_accounts"
-                    }
+                    //for client credential flow
+                    EthernaSsoUserContactInfoApiScope.Name
                 },
 
-                //dapp
-                new Client
-                {
-                    ClientId = "ethernaDappClientId",
-                    ClientName = "Etherna Dapp",
+                // Allow token refresh.
+                AllowOfflineAccess = true
+            },
 
-                    AllowedGrantTypes = GrantTypes.Code,
-                    RequirePkce = true,
-                    RequireConsent = false,
-                    RequireClientSecret = false,
+            //dapp
+            new Client
+            {
+                ClientId = "ethernaDappClientId",
+                ClientName = "Etherna Dapp",
+
+                AllowedGrantTypes = GrantTypes.Code,
+                RequirePkce = true,
+                RequireConsent = false,
+                RequireClientSecret = false,
                     
-                    // where to redirect to after login
-                    RedirectUris = { $"{ethernaDappBaseUrl}/callback.html" },
+                //where to redirect to after login
+                RedirectUris = { $"{ethernaDappBaseUrl}/callback.html" },
 
-                    // where to redirect to after logout
-                    PostLogoutRedirectUris = { ethernaDappBaseUrl },
+                //where to redirect to after logout
+                PostLogoutRedirectUris = { ethernaDappBaseUrl },
 
-                    AllowedCorsOrigins = { ethernaDappBaseUrl },
+                AllowedCorsOrigins = { ethernaDappBaseUrl },
 
-                    AllowedScopes = new List<string>
-                    {
-                        IdentityServerConstants.StandardScopes.OpenId,
-                        IdentityServerConstants.StandardScopes.Profile,
-                        "ether_accounts"
-                    }
-                },
-
-                //gateway validator (credit client)
-                new Client
+                AllowedScopes = new List<string>
                 {
-                    ClientId = "ethernaGatevalCreditClientId",
-                    ClientName = "Etherna Gateway Validator",
-                    ClientSecrets = { new Secret(ethernaGatewayCreditSecret.Sha256()) },
-
-                    // no interactive user, use the clientid/secret for authentication
-                    AllowedGrantTypes = GrantTypes.ClientCredentials,
-
-                    // scopes that client has access to
-                    AllowedScopes =
-                    {
-                        "ethernaCredit_serviceInteract_api"
-                    }
-                },
-                
-                //gateway validator (user login)
-                new Client
-                {
-                    ClientId = "ethernaGatevalUserClientId",
-                    ClientName = "Etherna Gateway",
-                    ClientSecrets = { new Secret(ethernaGatewayWebappSecret.Sha256()) },
-
-                    AllowedGrantTypes = GrantTypes.Code,
-                    RequireConsent = false,
-                    RequirePkce = true,
-
-                    // where to redirect to after login
-                    RedirectUris = ethernaGatewayWebappBaseUrls.Select(url => $"{url}/signin-oidc").ToList(),
-
-                    // where to redirect to after logout
-                    PostLogoutRedirectUris = ethernaGatewayWebappBaseUrls.Select(url => $"{url}/signout-callback-oidc").ToList(),
-
-                    AlwaysIncludeUserClaimsInIdToken = true,
-                    AllowedScopes = new List<string>
-                    {
-                        IdentityServerConstants.StandardScopes.OpenId,
-                        IdentityServerConstants.StandardScopes.Profile,
-                        "ether_accounts"
-                    }
+                    IdentityServerConstants.StandardScopes.OpenId,
+                    IdentityServerConstants.StandardScopes.Profile,
+                    "ether_accounts"
                 },
 
-                //index
-                new Client
-                {
-                    ClientId = "ethernaIndexClientId",
-                    ClientName = "Etherna Index",
-                    ClientSecrets = { new Secret(ethernaIndexSecret.Sha256()) },
+                // Allow token refresh.
+                AllowOfflineAccess = true,
+                RefreshTokenUsage = TokenUsage.OneTimeOnly //because client have not secret
+            },
 
-                    AllowedGrantTypes = GrantTypes.Code,
-                    RequireConsent = false,
-                    RequirePkce = true,
-
-                    // where to redirect to after login
-                    RedirectUris = { $"{ethernaIndexBaseUrl}/signin-oidc" },
-
-                    // where to redirect to after logout
-                    PostLogoutRedirectUris = { $"{ethernaIndexBaseUrl}/signout-callback-oidc" },
-
-                    AlwaysIncludeUserClaimsInIdToken = true,
-                    AllowedScopes = new List<string>
-                    {
-                        IdentityServerConstants.StandardScopes.OpenId,
-                        IdentityServerConstants.StandardScopes.Profile,
-                        "ether_accounts"
-                    }
-                },
-            };
-
-        public IEnumerable<IdentityResource> IdResources =>
-            new IdentityResource[]
+            //gateway validator (credit client)
+            new Client
             {
-                new IdentityResources.OpenId(),
-                new IdentityResources.Profile(),
-                new IdentityResource()
+                ClientId = "ethernaGatevalCreditClientId",
+                ClientName = "Etherna Gateway Validator",
+                ClientSecrets = { new Secret(ethernaGatewayCreditSecret.Sha256()) },
+
+                //no interactive user, use the clientid/secret for authentication
+                AllowedGrantTypes = GrantTypes.ClientCredentials,
+
+                //scopes that client has access to
+                AllowedScopes =
                 {
-                    DisplayName = "Ether accounts",
-                    Name = "ether_accounts",
-                    UserClaims = new List<string>()
-                    {
-                        "ether_address",
-                        "ether_prev_addresses"
-                    }
+                    EthernaCreditServiceInteractApiScope.Name
                 }
-            };
+            },
+                
+            //gateway validator (user login)
+            new Client
+            {
+                ClientId = "ethernaGatevalUserClientId",
+                ClientName = "Etherna Gateway",
+                ClientSecrets = { new Secret(ethernaGatewayWebappSecret.Sha256()) },
+
+                AllowedGrantTypes = GrantTypes.Code,
+                RequireConsent = false,
+                RequirePkce = true,
+
+                //where to redirect to after login
+                RedirectUris = ethernaGatewayWebappBaseUrls.Select(url => $"{url}/signin-oidc").ToList(),
+
+                //where to redirect to after logout
+                PostLogoutRedirectUris = ethernaGatewayWebappBaseUrls.Select(url => $"{url}/signout-callback-oidc").ToList(),
+
+                AlwaysIncludeUserClaimsInIdToken = true,
+                AllowedScopes = new List<string>
+                {
+                    IdentityServerConstants.StandardScopes.OpenId,
+                    IdentityServerConstants.StandardScopes.Profile,
+                    "ether_accounts"
+                },
+
+                // Allow token refresh.
+                AllowOfflineAccess = true
+            },
+
+            //index
+            new Client
+            {
+                ClientId = "ethernaIndexClientId",
+                ClientName = "Etherna Index",
+                ClientSecrets = { new Secret(ethernaIndexSecret.Sha256()) },
+
+                AllowedGrantTypes = GrantTypes.CodeAndClientCredentials,
+                RequireConsent = false,
+                RequirePkce = true,
+
+                //where to redirect to after login
+                RedirectUris = { $"{ethernaIndexBaseUrl}/signin-oidc" },
+
+                //where to redirect to after logout
+                PostLogoutRedirectUris = { $"{ethernaIndexBaseUrl}/signout-callback-oidc" },
+
+                AlwaysIncludeUserClaimsInIdToken = true,
+                AllowedScopes = new List<string>
+                {
+                    //for code flow
+                    IdentityServerConstants.StandardScopes.OpenId,
+                    IdentityServerConstants.StandardScopes.Profile,
+                    "ether_accounts",
+
+                    //for client credential flow
+                    EthernaSsoUserContactInfoApiScope.Name
+                },
+
+                // Allow token refresh.
+                AllowOfflineAccess = true
+            },
+        };
+
+        public IEnumerable<IdentityResource> IdResources => new IdentityResource[]
+        {
+            new IdentityResources.OpenId(),
+            new IdentityResources.Profile(),
+            new IdentityResource()
+            {
+                DisplayName = "Ether accounts",
+                Name = "ether_accounts",
+                UserClaims = new List<string>()
+                {
+                    UserBase.DefaultClaimTypes.EtherAddress,
+                    UserBase.DefaultClaimTypes.EtherPreviousAddresses,
+                    UserBase.DefaultClaimTypes.IsWeb3Account
+                }
+            }
+        };
     }
 }

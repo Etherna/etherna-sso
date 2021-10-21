@@ -12,65 +12,93 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Etherna.DomainEvents;
 using Etherna.SSOServer.Domain;
+using Etherna.SSOServer.Domain.Events;
+using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models;
-using Etherna.SSOServer.Extensions;
 using Etherna.SSOServer.Services.Domain;
-using IdentityServer4.Events;
+using Etherna.SSOServer.Services.Settings;
 using IdentityServer4.Services;
 using IdentityServer4.Stores;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using MongoDB.Driver;
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 {
-    public class Web3LoginModel : PageModel
+    public class Web3LoginModel : SsoExitPageModelBase
     {
         // Models.
-        public class InputModel
+        public class InputModel : IValidatableObject
         {
-            [EmailAddress]
-            [Display(Name = "Email (optional)")]
-            public string? Email { get; set; }
+            // Properties.
+            [Display(Name = "Invitation code")]
+            public string? InvitationCode { get; set; }
 
             [Required]
-            [RegularExpression(Domain.Models.User.UsernameRegex, ErrorMessage = "Allowed characters are a-z, A-Z, 0-9, _. Permitted length is between 5 and 20.")]
+            [RegularExpression(UsernameHelper.UsernameRegex, ErrorMessage = "Allowed characters are a-z, A-Z, 0-9, _. Permitted length is between 5 and 20.")]
             [Display(Name = "Username")]
             public string Username { get; set; } = default!;
+
+            // Methods.
+            public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+            {
+                if (validationContext is null)
+                    throw new ArgumentNullException(nameof(validationContext));
+
+                var appSettings = (IOptions<ApplicationSettings>)validationContext.GetService(typeof(IOptions<ApplicationSettings>))!;
+                if (appSettings.Value.RequireInvitation && string.IsNullOrWhiteSpace(InvitationCode))
+                {
+                    yield return new ValidationResult(
+                        "Invitation code is required",
+                        new[] { nameof(InvitationCode) });
+                }
+            }
         }
 
         // Fields.
-        private readonly IClientStore clientStore;
-        private readonly IEventService eventService;
+        private readonly ApplicationSettings applicationSettings;
+        private readonly IEventDispatcher eventDispatcher;
         private readonly IIdentityServerInteractionService idServerInteractionService;
         private readonly ILogger<ExternalLoginModel> logger;
-        private readonly SignInManager<User> signInManager;
+        private readonly SignInManager<UserBase> signInManager;
         private readonly ISsoDbContext ssoDbContext;
-        private readonly UserManager<User> userManager;
+        private readonly UserManager<UserBase> userManager;
+        private readonly IUserService userService;
         private readonly IWeb3AuthnService web3AuthnService;
 
         // Constructor.
         public Web3LoginModel(
+            IOptions<ApplicationSettings> applicationSettings,
             IClientStore clientStore,
-            IEventService eventService,
+            IEventDispatcher eventDispatcher,
             IIdentityServerInteractionService idServerInteractionService,
             ILogger<ExternalLoginModel> logger,
-            SignInManager<User> signInManager,
+            SignInManager<UserBase> signInManager,
             ISsoDbContext ssoDbContext,
-            UserManager<User> userManager,
+            UserManager<UserBase> userManager,
+            IUserService userService,
             IWeb3AuthnService web3AuthnService)
+            : base(clientStore)
         {
-            this.clientStore = clientStore;
-            this.eventService = eventService;
+            if (applicationSettings is null)
+                throw new ArgumentNullException(nameof(applicationSettings));
+
+            this.applicationSettings = applicationSettings.Value;
+            this.eventDispatcher = eventDispatcher;
             this.idServerInteractionService = idServerInteractionService;
             this.logger = logger;
             this.signInManager = signInManager;
             this.ssoDbContext = ssoDbContext;
             this.userManager = userManager;
+            this.userService = userService;
             this.web3AuthnService = web3AuthnService;
         }
 
@@ -81,23 +109,21 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         [BindProperty]
         public InputModel Input { get; set; } = default!;
 
-        public bool DuplicateEmail { get; set; }
-        public bool DuplicateUsername { get; set; }
+        public bool DuplicateUsername { get; private set; }
         public string? EtherAddress { get; private set; }
-        public string? ReturnUrl { get; set; }
+        public bool IsInvitationRequired { get; private set; }
+        public string? ReturnUrl { get; private set; }
         public string? Signature { get; private set; }
 
         // Methods.
-        public IActionResult OnGet()
-            => RedirectToPage("./Login");
+        public IActionResult OnGet() =>
+            RedirectToPage("./Login");
 
         public async Task<IActionResult> OnGetRetriveAuthMessageAsync(string etherAddress) =>
             new JsonResult(await web3AuthnService.RetriveAuthnMessageAsync(etherAddress));
 
-        public async Task<IActionResult> OnGetConfirmSignature(string etherAddress, string signature, string? returnUrl = null)
+        public async Task<IActionResult> OnGetConfirmSignature(string etherAddress, string signature, string? invitationCode, string? returnUrl)
         {
-            returnUrl ??= Url.Content("~/");
-
             // Verify signature.
             //get token
             var token = await ssoDbContext.Web3LoginTokens.TryFindOneAsync(t => t.EtherAddress == etherAddress);
@@ -116,58 +142,54 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 return RedirectToPage("./Login", new { ReturnUrl = returnUrl });
             }
 
-            // Sign in user with web3 if already has an account.
-            var user = await ssoDbContext.Users.TryFindOneAsync(u => u.EtherLoginAddress == etherAddress);
+            // Initialize page.
+            Initialize(etherAddress, signature, returnUrl);
+
+            // Sign in user with ethereum address if already has an account.
+            // Search for both Web2 accounts with ether login, and for Web3 accounts.
+            var cursor = await ssoDbContext.Users.FindAsync<UserBase>(Builders<UserBase>.Filter.Or(
+                Builders<UserBase>.Filter.Eq(u => u.EtherAddress, etherAddress),    //UserWeb3
+                Builders<UserBase>.Filter.Eq("EtherLoginAddress", etherAddress)));  //UserWeb2
+            var user = await cursor.FirstOrDefaultAsync();
+
             if (user != null)
             {
                 // Check if user is locked out.
                 if (await userManager.IsLockedOutAsync(user))
                     return RedirectToPage("./Lockout");
 
-                // Sign in.
+                // Login.
                 await signInManager.SignInAsync(user, true);
 
                 // Delete used token.
                 await ssoDbContext.Web3LoginTokens.DeleteAsync(token);
 
-                // Check if external login is in the context of an OIDC request.
+                // Check if we are in the context of an authorization request.
                 var context = await idServerInteractionService.GetAuthorizationContextAsync(returnUrl);
 
-                await eventService.RaiseAsync(new UserLoginSuccessEvent("web3", etherAddress, etherAddress, "web3", true, context?.Client?.ClientId));
+                // Rise event and create log.
+                await eventDispatcher.DispatchAsync(new UserLoginSuccessEvent(
+                    user,
+                    clientId: context?.Client?.ClientId,
+                    provider: "web3",
+                    providerUserId: etherAddress));
                 logger.LogInformation($"{etherAddress} logged in with web3.");
 
-                if (context?.Client != null)
-                {
-                    if (await clientStore.IsPkceClientAsync(context.Client.ClientId))
-                    {
-                        // If the client is PKCE then we assume it's native, so this change in how to
-                        // return the response is for better UX for the end user.
-                        return this.LoadingPage("/Redirect", returnUrl!);
-                    }
-                }
-
-                return Redirect(returnUrl);
+                // Identify redirect.
+                return await ContextedRedirectAsync(context, returnUrl);
             }
 
             // If user does not have an account, then ask him to create one.
-            else
+            Input = new InputModel
             {
-                ReturnUrl = returnUrl;
-                EtherAddress = etherAddress;
-                Signature = signature;
-
-                return Page();
-            }
+                InvitationCode = invitationCode,
+            };
+            IsInvitationRequired = applicationSettings.RequireInvitation;
+            return Page();
         }
 
-        public async Task<IActionResult> OnPostConfirmationAsync(string etherAddress, string signature, string? returnUrl = null)
+        public async Task<IActionResult> OnPostConfirmationAsync(string etherAddress, string signature, string? returnUrl)
         {
-            returnUrl ??= Url.Content("~/");
-
-            ReturnUrl = returnUrl;
-            EtherAddress = etherAddress;
-            Signature = signature;
-
             // Verify signature.
             //get token
             var token = await ssoDbContext.Web3LoginTokens.TryFindOneAsync(t => t.EtherAddress == etherAddress);
@@ -179,70 +201,60 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
             //check signature
             var verifiedSignature = web3AuthnService.VerifySignature(token.Code, etherAddress, signature);
-
             if (!verifiedSignature)
             {
                 ErrorMessage = $"Invalid signature for web3 authentication";
                 return RedirectToPage("./Login", new { ReturnUrl = returnUrl });
             }
 
-            // Skip registration if invalid.
+            // Init page and validate.
+            Initialize(etherAddress, signature, returnUrl);
             if (!ModelState.IsValid)
                 return Page();
 
-            // Check for duplicate username.
-            var userByUsername = await userManager.FindByNameAsync(Input.Username);
-            if (userByUsername != null) //if duplicate username
+            // Register user.
+            var (errors, user) = await userService.RegisterWeb3UserAsync(
+                Input.Username,
+                etherAddress,
+                Input.InvitationCode);
+
+            // Post-registration actions.
+            if (user is not null)
             {
-                ModelState.AddModelError(string.Empty, "Username already registered.");
-                DuplicateUsername = true;
-            }
+                // Login.
+                await signInManager.SignInAsync(user, true);
 
-            // Check for duplicate email.
-            if (Input.Email != null)
-            {
-                var userByEmail = await userManager.FindByEmailAsync(Input.Email);
-                if (userByEmail != null) //if duplicate email
-                {
-                    ModelState.AddModelError(string.Empty, "Email already registered.");
-                    DuplicateEmail = true;
-                }
-            }
-
-            // Duplicate elements error.
-            if (DuplicateUsername || DuplicateEmail)
-                return Page();
-
-            // Create user.
-            var user = Domain.Models.User.CreateManagedWithEtherLoginAddress(etherAddress, Input.Username, Input.Email);
-
-            var result = await userManager.CreateAsync(user);
-            if (result.Succeeded)
-            {
-                // Check if external login is in the context of an OIDC request.
+                // Check if we are in the context of an authorization request.
                 var context = await idServerInteractionService.GetAuthorizationContextAsync(returnUrl);
 
-                await eventService.RaiseAsync(new UserLoginSuccessEvent("web3", etherAddress, etherAddress, "web3", true, context?.Client?.ClientId));
-                logger.LogInformation($"User created an account using web3 address.");
+                // Rise event and create log.
+                await eventDispatcher.DispatchAsync(new UserLoginSuccessEvent(
+                    user,
+                    clientId: context?.Client?.ClientId,
+                    provider: "web3",
+                    providerUserId: etherAddress));
+                logger.LogInformation($"{etherAddress} created a web3 account and logged in.");
 
-                if (context?.Client != null)
-                {
-                    if (await clientStore.IsPkceClientAsync(context.Client.ClientId))
-                    {
-                        // If the client is PKCE then we assume it's native, so this change in how to
-                        // return the response is for better UX for the end user.
-                        return this.LoadingPage("/Redirect", returnUrl!);
-                    }
-                }
-
-                return Redirect(returnUrl);
+                // Redirect to add verified email page.
+                return RedirectToPage("SetVerifiedEmail", new { returnUrl });
             }
 
             // Report errors and show page again.
-            foreach (var error in result.Errors)
-                ModelState.AddModelError(string.Empty, error.Description);
-
+            foreach (var (errorKey, errorMessage) in errors)
+            {
+                ModelState.AddModelError(string.Empty, errorMessage);
+                if (errorKey == UserService.DuplicateUsernameErrorKey)
+                    DuplicateUsername = true;
+            }
             return Page();
+        }
+
+        // Helpers.
+        private void Initialize(string etherAddress, string signature, string? returnUrl)
+        {
+            ReturnUrl = returnUrl ?? Url.Content("~/");
+            EtherAddress = etherAddress;
+            Signature = signature;
         }
     }
 }

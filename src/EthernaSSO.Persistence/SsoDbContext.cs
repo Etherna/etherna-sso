@@ -15,12 +15,13 @@
 using Etherna.DomainEvents;
 using Etherna.MongODM.Core;
 using Etherna.MongODM.Core.Migration;
-using Etherna.MongODM.Core.Options;
 using Etherna.MongODM.Core.Repositories;
 using Etherna.MongODM.Core.Serialization;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Domain.Models.Logs;
 using Etherna.SSOServer.Persistence.Repositories;
+using Microsoft.AspNetCore.Identity;
 using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
@@ -36,18 +37,31 @@ namespace Etherna.SSOServer.Persistence
         // Consts.
         private const string SerializersNamespace = "Etherna.SSOServer.Persistence.ModelMaps";
 
+        // Fields.
+        private readonly IPasswordHasher<UserBase> passwordHasher;
+
         // Constructor.
         public SsoDbContext(
-            IDbDependencies dbDependencies,
             IEventDispatcher eventDispatcher,
-            DbContextOptions<SsoDbContext> options)
-            : base(dbDependencies, options)
+            IPasswordHasher<UserBase> passwordHasher)
         {
             EventDispatcher = eventDispatcher;
+            this.passwordHasher = passwordHasher;
         }
 
         // Properties.
         //repositories
+        public ICollectionRepository<DailyStats, string> DailyStats { get; } = new DomainCollectionRepository<DailyStats, string>("dailyStats");
+        public ICollectionRepository<Invitation, string> Invitations { get; } = new DomainCollectionRepository<Invitation, string>(
+            new CollectionRepositoryOptions<Invitation>("invitations")
+            {
+                IndexBuilders = new[]
+                {
+                    (Builders<Invitation>.IndexKeys.Ascending(i => i.Code),
+                     new CreateIndexOptions<Invitation> { Unique = true })
+                }
+            });
+        public ICollectionRepository<LogBase, string> Logs { get; } = new DomainCollectionRepository<LogBase, string>("logs");
         public ICollectionRepository<Role, string> Roles { get; } = new DomainCollectionRepository<Role, string>(
             new CollectionRepositoryOptions<Role>("roles")
             {
@@ -57,29 +71,34 @@ namespace Etherna.SSOServer.Persistence
                      new CreateIndexOptions<Role> { Unique = true })
                 }
             });
-        public ICollectionRepository<User, string> Users { get; } = new DomainCollectionRepository<User, string>(
-            new CollectionRepositoryOptions<User>("users")
+        public ICollectionRepository<UserBase, string> Users { get; } = new DomainCollectionRepository<UserBase, string>(
+            new CollectionRepositoryOptions<UserBase>("users")
             {
                 IndexBuilders = new[]
                 {
-                    (Builders<User>.IndexKeys.Ascending(u => u.EtherAddress),
-                     new CreateIndexOptions<User> { Unique = true }),
+                    //UserBase
+                    (Builders<UserBase>.IndexKeys.Ascending(u => u.EtherAddress),
+                     new CreateIndexOptions<UserBase> { Unique = true }),
 
-                    (Builders<User>.IndexKeys.Ascending(u => u.EtherLoginAddress),
-                     new CreateIndexOptions<User> { Unique = true, Sparse = true }),
+                    (Builders<UserBase>.IndexKeys.Descending(u => u.LastLoginDateTime),
+                     new CreateIndexOptions<UserBase> { Sparse = true }),
 
-                    (Builders<User>.IndexKeys.Ascending("Logins.LoginProvider")
-                                             .Ascending("Logins.ProviderKey"),
-                     new CreateIndexOptions<User> { Unique = true, Sparse = true }),
+                    (Builders<UserBase>.IndexKeys.Ascending(u => u.NormalizedEmail),
+                     new CreateIndexOptions<UserBase> { Unique = true, Sparse = true }),
 
-                    (Builders<User>.IndexKeys.Ascending(u => u.NormalizedEmail),
-                     new CreateIndexOptions<User> { Unique = true, Sparse = true }),
+                    (Builders<UserBase>.IndexKeys.Ascending(u => u.NormalizedUsername),
+                     new CreateIndexOptions<UserBase> { Unique = true }),
 
-                    (Builders<User>.IndexKeys.Ascending(u => u.NormalizedUsername),
-                     new CreateIndexOptions<User> { Unique = true }),
+                    (Builders<UserBase>.IndexKeys.Ascending("Roles.Name"),
+                     new CreateIndexOptions<UserBase>()),
 
-                    (Builders<User>.IndexKeys.Ascending("Roles.Name"),
-                     new CreateIndexOptions<User>())
+                    //UserWeb2
+                    (Builders<UserBase>.IndexKeys.Ascending("EtherLoginAddress"),
+                     new CreateIndexOptions<UserBase> { Unique = true, Sparse = true }),
+
+                    (Builders<UserBase>.IndexKeys.Ascending("Logins.LoginProvider")
+                                                 .Ascending("Logins.ProviderKey"),
+                     new CreateIndexOptions<UserBase> { Unique = true, Sparse = true }),
                 }
             });
         public ICollectionRepository<Web3LoginToken, string> Web3LoginTokens { get; } = new DomainCollectionRepository<Web3LoginToken, string>(
@@ -117,6 +136,25 @@ namespace Etherna.SSOServer.Persistence
             }
 
             return base.SaveChangesAsync(cancellationToken);
+        }
+
+        // Protected methods.
+        protected override async Task SeedAsync()
+        {
+            using (EventDispatcher.DisableEventDispatch())
+            {
+                // Create admin role.
+                var adminRole = new Role(Role.AdministratorName);
+                await Roles.CreateAsync(adminRole);
+
+                // Create admin user.
+                var adminUser = new UserWeb2("admin", null, null);
+                var pswHash = passwordHasher.HashPassword(adminUser, "Pass123$");
+                adminUser.PasswordHash = pswHash;
+                adminUser.SecurityStamp = "JC6W6WKRWFN5WHOTFUX5TIKZG2KDFXQQ";
+                adminUser.AddRole(adminRole);
+                await Users.CreateAsync(adminUser);
+            }
         }
     }
 }

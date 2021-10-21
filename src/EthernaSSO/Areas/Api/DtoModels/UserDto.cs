@@ -21,7 +21,7 @@ namespace Etherna.SSOServer.Areas.Api.DtoModels
     public class UserDto
     {
         // Constructor.
-        public UserDto(User user)
+        public UserDto(UserBase user)
         {
             if (user is null)
                 throw new ArgumentNullException(nameof(user));

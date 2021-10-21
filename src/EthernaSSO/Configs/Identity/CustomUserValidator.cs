@@ -12,25 +12,34 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Services.Settings;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Configs.Identity
 {
-    public class CustomUserValidator : IUserValidator<User>
+    public class CustomUserValidator : IUserValidator<UserBase>
     {
+        // Fields.
+        private readonly ApplicationSettings applicationSettings;
+
         // Constructor.
         /// <summary>
         /// Creates a new instance of <see cref="UserValidator{User}"/>/
         /// </summary>
-        /// <param name="errors">The <see cref="IdentityErrorDescriber"/> used to provider error messages.</param>
-        public CustomUserValidator(IdentityErrorDescriber? errors = null)
+        /// <param name="applicationSettings">Application settings</param>
+        /// <param name="errors">The <see cref="IdentityErrorDescriber"/>Used to provider error messages</param>
+        public CustomUserValidator(
+            IOptions<ApplicationSettings> applicationSettings,
+            IdentityErrorDescriber? errors = null)
         {
+            this.applicationSettings = applicationSettings?.Value ?? throw new ArgumentNullException(nameof(applicationSettings));
             Describer = errors ?? new IdentityErrorDescriber();
         }
 
@@ -48,7 +57,7 @@ namespace Etherna.SSOServer.Configs.Identity
         /// <param name="manager">The <see cref="UserManager{User}"/> that can be used to retrieve user properties.</param>
         /// <param name="user">The user to validate.</param>
         /// <returns>The <see cref="Task"/> that represents the asynchronous operation, containing the <see cref="IdentityResult"/> of the validation operation.</returns>
-        public virtual async Task<IdentityResult> ValidateAsync(UserManager<User> manager, User user)
+        public virtual async Task<IdentityResult> ValidateAsync(UserManager<UserBase> manager, UserBase user)
         {
             if (manager == null)
                 throw new ArgumentNullException(nameof(manager));
@@ -62,13 +71,22 @@ namespace Etherna.SSOServer.Configs.Identity
             await ValidateEmailAsync(manager, user, errors);
 
             // Validate logins.
-            ValidateLogins(user, errors);
+            if (user is UserWeb2 userWeb2)
+                ValidateWeb2Logins(userWeb2, errors);
+
+            // Validate invitation.
+            if (applicationSettings.RequireInvitation && user.InvitedBy is null)
+                errors.Add(new IdentityError
+                {
+                    Code = "RequiredInvitation",
+                    Description = "An invitation code is required"
+                });
 
             return errors.Count > 0 ? IdentityResult.Failed(errors.ToArray()) : IdentityResult.Success;
         }
 
         // Helpers.
-        private async Task ValidateEmailAsync(UserManager<User> manager, User user, List<IdentityError> errors)
+        private async Task ValidateEmailAsync(UserManager<UserBase> manager, UserBase user, List<IdentityError> errors)
         {
             var email = await manager.GetEmailAsync(user);
 
@@ -95,24 +113,12 @@ namespace Etherna.SSOServer.Configs.Identity
             }
         }
 
-        private void ValidateLogins(User user, List<IdentityError> errors)
-        {
-            var hasValidLogin =
-                user.CanLoginWithEmail ||
-                user.CanLoginWithEtherAddress ||
-                user.CanLoginWithExternalProvider ||
-                user.CanLoginWithUsername;
-
-            if (!hasValidLogin)
-                errors.Add(Describer.DefaultError());
-        }
-
-        private async Task ValidateUsernameAsync(UserManager<User> manager, User user, ICollection<IdentityError> errors)
+        private async Task ValidateUsernameAsync(UserManager<UserBase> manager, UserBase user, ICollection<IdentityError> errors)
         {
             var username = await manager.GetUserNameAsync(user);
 
-            //check validity with regex
-            if (!Regex.IsMatch(username, User.UsernameRegex))
+            //check validity
+            if (!UsernameHelper.IsValidUsername(username))
             {
                 errors.Add(Describer.InvalidUserName(username));
                 return;
@@ -125,6 +131,18 @@ namespace Etherna.SSOServer.Configs.Identity
             {
                 errors.Add(Describer.DuplicateUserName(username));
             }
+        }
+
+        private void ValidateWeb2Logins(UserWeb2 user, List<IdentityError> errors)
+        {
+            var hasValidLogin =
+                user.CanLoginWithEmail ||
+                user.CanLoginWithEtherAddress ||
+                user.CanLoginWithExternalProvider ||
+                user.CanLoginWithUsername;
+
+            if (!hasValidLogin)
+                errors.Add(Describer.DefaultError());
         }
     }
 }

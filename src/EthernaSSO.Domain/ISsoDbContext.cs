@@ -15,13 +15,17 @@
 using Etherna.MongODM.Core;
 using Etherna.MongODM.Core.Repositories;
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Domain.Models.Logs;
 
 namespace Etherna.SSOServer.Domain
 {
     public interface ISsoDbContext : IDbContext
     {
+        ICollectionRepository<DailyStats, string> DailyStats { get; }
+        ICollectionRepository<Invitation, string> Invitations { get; }
+        ICollectionRepository<LogBase, string> Logs { get; }
         ICollectionRepository<Role, string> Roles { get; }
-        ICollectionRepository<User, string> Users { get; }
+        ICollectionRepository<UserBase, string> Users { get; }
         ICollectionRepository<Web3LoginToken, string> Web3LoginTokens { get; }
     }
 }

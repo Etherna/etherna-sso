@@ -13,8 +13,12 @@
 //   limitations under the License.
 
 using Etherna.MongODM.Core;
+using Etherna.MongODM.Core.Extensions;
 using Etherna.MongODM.Core.Serialization;
+using Etherna.MongODM.Core.Serialization.Serializers;
 using Etherna.SSOServer.Domain.Models;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Serializers;
 
 namespace Etherna.SSOServer.Persistence.ModelMaps
 {
@@ -22,27 +26,58 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
     {
         public void Register(IDbContext dbContext)
         {
-            dbContext.SchemaRegister.AddModelMapsSchema<User>("a492aaa7-196c-4ec0-8fb5-255d099d0b9f",
-                modelMap =>
-                {
-                    modelMap.AutoMap();
+            dbContext.SchemaRegister.AddModelMapsSchema<UserBase>("a492aaa7-196c-4ec0-8fb5-255d099d0b9f", mm =>
+            {
+                mm.AutoMap();
 
-                    // Set members to ignore if null.
-                    modelMap.GetMemberMap(u => u.Email).SetIgnoreIfNull(true);
-                    modelMap.GetMemberMap(u => u.EmailConfirmed).SetIgnoreIfNull(true);
-                    modelMap.GetMemberMap(u => u.EtherLoginAddress).SetIgnoreIfNull(true);
-                    modelMap.GetMemberMap(u => u.EtherManagedPrivateKey).SetIgnoreIfNull(true);
-                    modelMap.GetMemberMap(u => u.LockoutEnabled).SetIgnoreIfNull(true);
-                    modelMap.GetMemberMap(u => u.LockoutEnd).SetIgnoreIfNull(true);
-                    modelMap.GetMemberMap(u => u.Logins).SetIgnoreIfNull(true);
-                    modelMap.GetMemberMap(u => u.NormalizedEmail).SetIgnoreIfNull(true);
-                    modelMap.GetMemberMap(u => u.NormalizedUsername).SetIgnoreIfNull(true);
-                    modelMap.GetMemberMap(u => u.PasswordHash).SetIgnoreIfNull(true);
-                    modelMap.GetMemberMap(u => u.Username).SetIgnoreIfNull(true);
+                // Set members to ignore if null.
+                mm.GetMemberMap(u => u.Email).SetIgnoreIfNull(true);
+                mm.GetMemberMap(u => u.InvitedBy).SetIgnoreIfNull(true);
+                mm.GetMemberMap(u => u.LockoutEnabled).SetIgnoreIfNull(true);
+                mm.GetMemberMap(u => u.LockoutEnd).SetIgnoreIfNull(true);
+                mm.GetMemberMap(u => u.NormalizedEmail).SetIgnoreIfNull(true);
+                mm.GetMemberMap(u => u.NormalizedUsername).SetIgnoreIfNull(true);
+                mm.GetMemberMap(u => u.Username).SetIgnoreIfNull(true);
 
-                    // Force serialization of readonly props.
-                    modelMap.MapProperty(u => u.EtherAddress);
-                });
+                // Set members with custom serializers.
+                mm.SetMemberSerializer(u => u.InvitedBy!, ReferenceSerializer(dbContext));
+                mm.SetMemberSerializer(u => u.Roles, new EnumerableSerializer<Role>(RoleMap.ReferenceSerializer(dbContext)));
+            });
+            dbContext.SchemaRegister.AddModelMapsSchema<UserWeb2>("2ccb567f-63cc-4fb3-b66e-a51fb4ff1bfe", mm =>
+            {
+                mm.AutoMap();
+
+                // Set members to ignore if null.
+                mm.GetMemberMap(u => u.EtherLoginAddress).SetIgnoreIfNull(true);
+                mm.GetMemberMap(u => u.EtherManagedPrivateKey).SetIgnoreIfNull(true);
+                mm.GetMemberMap(u => u.Logins).SetIgnoreIfNull(true);
+                mm.GetMemberMap(u => u.PasswordHash).SetIgnoreIfNull(true);
+            });
+            dbContext.SchemaRegister.AddModelMapsSchema<UserWeb3>("7d8804ab-217c-476a-a47f-977fe693fce3");
         }
+
+        /// <summary>
+        /// A minimal serialized with only id and Ether address
+        /// </summary>
+        public static ReferenceSerializer<UserBase, string> ReferenceSerializer(
+            IDbContext dbContext,
+            bool useCascadeDelete = false) =>
+            new(dbContext, config =>
+            {
+                config.UseCascadeDelete = useCascadeDelete;
+                config.AddModelMapsSchema<ModelBase>("597f29ee-f2d6-40b0-a6f4-86279f72fa68");
+                config.AddModelMapsSchema<EntityModelBase>("9cf5d6bf-9c4b-49e7-9826-dafc30826e10", mm => { });
+                config.AddModelMapsSchema<EntityModelBase<string>>("1ab18071-641f-405a-91bd-93a2b5c1733e", mm =>
+                {
+                    mm.MapIdMember(m => m.Id);
+                    mm.IdMemberMap.SetSerializer(new StringSerializer(BsonType.ObjectId));
+                });
+                config.AddModelMapsSchema<UserBase>("834af7e2-c858-410a-b7b9-bdaf516fa215", mm =>
+                {
+                    mm.MapMember(m => m.EtherAddress);
+                });
+                config.AddModelMapsSchema<UserWeb2>("a1976133-bb21-40af-b6de-3a0f7f7dc676", mm => { });
+                config.AddModelMapsSchema<UserWeb3>("521125ff-f337-4606-81de-89dc0afb35b0", mm => { });
+            });
     }
 }

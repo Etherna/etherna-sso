@@ -14,15 +14,16 @@
 
 using Etherna.DomainEvents;
 using Etherna.MongODM.Core.Domain.Models;
+using System;
 
 namespace Etherna.SSOServer.Domain.Events
 {
     public class EntityDeletedEvent<TModel> : IDomainEvent
-        where TModel : IEntityModel
+        where TModel : class, IEntityModel
     {
         public EntityDeletedEvent(TModel entity)
         {
-            Entity = entity;
+            Entity = entity ?? throw new ArgumentNullException(nameof(entity));
         }
 
         public TModel Entity { get; }

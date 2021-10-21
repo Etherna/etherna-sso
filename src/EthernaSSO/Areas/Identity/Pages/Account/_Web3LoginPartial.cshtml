@@ -1,26 +1,26 @@
-﻿@*   Copyright 2021-present Etherna Sagl
- *
- *   Licensed under the Apache License, Version 2.0 (the "License");
- *   you may not use this file except in compliance with the License.
- *   You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
- *@
+﻿@*  *   Copyright 2021-present Etherna Sagl
+    *
+    *   Licensed under the Apache License, Version 2.0 (the "License");
+    *   you may not use this file except in compliance with the License.
+    *   You may obtain a copy of the License at
+    *
+    *       http://www.apache.org/licenses/LICENSE-2.0
+    *
+    *   Unless required by applicable law or agreed to in writing, software
+    *   distributed under the License is distributed on an "AS IS" BASIS,
+    *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    *   See the License for the specific language governing permissions and
+    *   limitations under the License.
+*@
 
-@using Microsoft.CSharp.RuntimeBinder
+@model Etherna.SSOServer.Areas.Identity.Pages.Account.Web3LoginPartialModel
 @{
-    string? returnUrl = null;
-    try { returnUrl = Model.ReturnUrl; }
-    catch (RuntimeBinderException) { }
-
     var retriveAuthMessageUrl = Url.Page("Web3Login", "RetriveAuthMessage");
-    var confirmSignatureUrl = Url.Page("Web3Login", "ConfirmSignature", new { returnUrl });
+    var confirmSignatureUrl = Url.Page("Web3Login", "ConfirmSignature", new
+    {
+        invitationCode = Model.InvitationCode,
+        returnUrl = Model.ReturnUrl
+    });
 }
 
 <div id="web3-login" style="display:none">
@@ -38,9 +38,7 @@
 </div>
 
 <script type="text/javascript">
-    window.addEventListener('load', function () {
-        window.EthernaWeb3Singin.constants.retriveAuthMessageUrl = '@Html.Raw(retriveAuthMessageUrl)';
-        window.EthernaWeb3Singin.constants.confirmSignatureUrl = '@Html.Raw(confirmSignatureUrl)';
-    });
+    window.retriveAuthMessageUrl = '@Html.Raw(retriveAuthMessageUrl)';
+    window.confirmSignatureUrl = '@Html.Raw(confirmSignatureUrl)';
 </script>
-<script src="~/js/etherna-web3-signin.js" asp-append-version="true"></script>
+<script src="~/dist/js/etherna-web3-signin.js" asp-append-version="true"></script>

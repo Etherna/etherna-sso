@@ -1,0 +1,93 @@
+﻿@*  *   Copyright 2021-present Etherna Sagl
+    *
+    *   Licensed under the Apache License, Version 2.0 (the "License");
+    *   you may not use this file except in compliance with the License.
+    *   You may obtain a copy of the License at
+    *
+    *       http://www.apache.org/licenses/LICENSE-2.0
+    *
+    *   Unless required by applicable law or agreed to in writing, software
+    *   distributed under the License is distributed on an "AS IS" BASIS,
+    *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    *   See the License for the specific language governing permissions and
+    *   limitations under the License.
+*@
+
+@page
+@model Etherna.SSOServer.Areas.Admin.Pages.IdentityServer.RoleUsersModel
+@{
+    ViewData["Title"] = "Role Users";
+
+    var pageSelectorModel = new PageSelectorModel(Model.CurrentPage, Model.MaxPage, routeData: new()
+    {
+        { "q", Model.Query! },
+        { "id", Model.RoleId }
+    });
+    var searchModel = new SearchModel(Model.Query, routeData: new()
+    {
+        { "id", Model.RoleId }
+    });
+}
+
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-page="Roles">Roles</a></li>
+                <li class="breadcrumb-item"><a asp-page="Role" asp-route-id="@Model.RoleId">@Model.RoleName</a></li>
+            </ol>
+        </nav>
+    </div>
+
+    <div class="col-12">
+        <h2>@ViewData["Title"] (@Model.RoleName)</h2>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <partial name="_Search" model="searchModel" />
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>UserId</th>
+                        <th>Username</th>
+                        <th>Ether address</th>
+                        <th>Email</th>
+                        <th></th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var user in Model.Users)
+                    {
+                        <tr>
+                            <td class="align-middle">@user.Id</td>
+                            <td class="align-middle">@user.Username</td>
+                            <td class="align-middle">@user.EtherAddress</td>
+                            <td class="align-middle">@user.Email</td>
+                            <td class="align-middle">
+                                <a class="btn btn-danger"
+                                   asp-page="UserRolesDelete"
+                                   asp-route-roleId="@Model.RoleId"
+                                   asp-route-userId="@user.Id">X</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <partial name="_PageSelector" model="pageSelectorModel" />
+    </div>
+</div>

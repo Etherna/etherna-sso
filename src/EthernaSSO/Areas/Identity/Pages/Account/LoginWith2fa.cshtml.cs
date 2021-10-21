@@ -12,15 +12,14 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Etherna.DomainEvents;
+using Etherna.SSOServer.Domain.Events;
 using Etherna.SSOServer.Domain.Models;
-using Etherna.SSOServer.Extensions;
-using IdentityServer4.Events;
 using IdentityServer4.Services;
 using IdentityServer4.Stores;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 using System;
 using System.ComponentModel.DataAnnotations;
@@ -29,7 +28,7 @@ using System.Threading.Tasks;
 namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 {
     [AllowAnonymous]
-    public class LoginWith2faModel : PageModel
+    public class LoginWith2faModel : SsoExitPageModelBase
     {
         // Models.
         public class InputModel
@@ -45,22 +44,21 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         }
 
         // Fields.
-        private readonly IClientStore clientStore;
-        private readonly IEventService eventService;
+        private readonly IEventDispatcher eventDispatcher;
         private readonly IIdentityServerInteractionService idServerInteractService;
         private readonly ILogger<LoginWith2faModel> logger;
-        private readonly SignInManager<User> signInManager;
+        private readonly SignInManager<UserBase> signInManager;
 
         // Constructor.
         public LoginWith2faModel(
             IClientStore clientStore,
-            IEventService eventService,
+            IEventDispatcher eventDispatcher,
             IIdentityServerInteractionService idServerInteractService,
             ILogger<LoginWith2faModel> logger,
-            SignInManager<User> signInManager)
+            SignInManager<UserBase> signInManager)
+            : base(clientStore)
         {
-            this.clientStore = clientStore;
-            this.eventService = eventService;
+            this.eventDispatcher = eventDispatcher;
             this.idServerInteractService = idServerInteractService;
             this.logger = logger;
             this.signInManager = signInManager;
@@ -70,28 +68,22 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         [BindProperty]
         public InputModel Input { get; set; } = default!;
 
-        public bool RememberMe { get; set; }
-
         public string? ReturnUrl { get; set; }
 
         // Methods.
-        public async Task<IActionResult> OnGetAsync(bool rememberMe, string? returnUrl = null)
+        public async Task<IActionResult> OnGetAsync(string? returnUrl = null)
         {
-            // Ensure the user has gone through the username & password screen first
+            // Ensure the user has gone through the username & password screen first.
             var user = await signInManager.GetTwoFactorAuthenticationUserAsync();
-
             if (user == null)
-            {
                 throw new InvalidOperationException($"Unable to load two-factor authentication user.");
-            }
 
             ReturnUrl = returnUrl;
-            RememberMe = rememberMe;
 
             return Page();
         }
 
-        public async Task<IActionResult> OnPostAsync(bool rememberMe, string? returnUrl = null)
+        public async Task<IActionResult> OnPostAsync(string? returnUrl = null)
         {
             // Init page and validate.
             if (!ModelState.IsValid)
@@ -100,41 +92,27 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             returnUrl ??= Url.Content("~/");
 
             // Login.
-            //check if we are in the context of an authorization request
-            var context = await idServerInteractService.GetAuthorizationContextAsync(returnUrl);
-
             //check 2fa
             var user = await signInManager.GetTwoFactorAuthenticationUserAsync();
             if (user == null)
-            {
                 throw new InvalidOperationException($"Unable to load two-factor authentication user.");
-            }
 
             var authenticatorCode = Input.TwoFactorCode.Replace(" ", string.Empty, StringComparison.InvariantCulture)
                                                        .Replace("-", string.Empty, StringComparison.InvariantCulture);
 
-            var result = await signInManager.TwoFactorAuthenticatorSignInAsync(authenticatorCode, rememberMe, Input.RememberMachine);
+            var result = await signInManager.TwoFactorAuthenticatorSignInAsync(authenticatorCode, true, Input.RememberMachine);
 
             if (result.Succeeded)
             {
-                await eventService.RaiseAsync(new UserLoginSuccessEvent(user.Username, user.Id, user.Username, clientId: context?.Client?.ClientId));
+                // Check if we are in the context of an authorization request.
+                var context = await idServerInteractService.GetAuthorizationContextAsync(returnUrl);
+
+                // Rise event and create log.
+                await eventDispatcher.DispatchAsync(new UserLoginSuccessEvent(user, clientId: context?.Client?.ClientId));
                 logger.LogInformation($"User with ID '{user.Id}' logged in with 2fa.");
 
-                if (context?.Client != null)
-                {
-                    if (await clientStore.IsPkceClientAsync(context.Client.ClientId))
-                    {
-                        // if the client is PKCE then we assume it's native, so this change in how to
-                        // return the response is for better UX for the end user.
-                        return this.LoadingPage("/Redirect", returnUrl!);
-                    }
-
-                    //we can trust returnUrl since GetAuthorizationContextAsync returned non-null
-                    return Redirect(returnUrl);
-                }
-
-                //request for a local page, otherwise user might have clicked on a malicious link - should be logged
-                return LocalRedirect(returnUrl);
+                // Identify redirect.
+                return await ContextedRedirectAsync(context, returnUrl);
             }
             else if (result.IsLockedOut)
             {
