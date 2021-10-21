@@ -67,4 +67,9 @@
     <Exec Command="npm run build-production" />
   </Target>
 
+  <Target Name="ReleaseRunInstall" BeforeTargets="Build" Condition="'$(Configuration)' == 'Release'">
+    <Exec Command="npm install" />
+    <Exec Command="npm run build-production" />
+  </Target>
+
 </Project>
