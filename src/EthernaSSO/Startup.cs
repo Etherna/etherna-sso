@@ -203,8 +203,8 @@ namespace Etherna.SSOServer
             {
 #pragma warning disable CA2000 // Dispose objects before losing scope
                 builder.AddSigningCredential(new X509Certificate2(
-                    Configuration["Certificate:Name"],
-                    Configuration["Certificate:Password"]));
+                    Configuration["SigningCredentialCertificate:Name"],
+                    Configuration["SigningCredentialCertificate:Password"]));
 #pragma warning restore CA2000 // Dispose objects before losing scope
             }
 
