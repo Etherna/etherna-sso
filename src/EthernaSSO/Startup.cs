@@ -34,6 +34,7 @@ using Hangfire.Mongo.Migration.Strategies.Backup;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -120,6 +121,11 @@ namespace Etherna.SSOServer
                 };
             });
 
+            services.Configure<ForwardedHeadersOptions>(options =>
+            {
+                options.ForwardedHeaders = ForwardedHeaders.All;
+            });
+
             services.AddCors();
             services.AddRazorPages(options =>
             {
@@ -203,8 +209,8 @@ namespace Etherna.SSOServer
             {
 #pragma warning disable CA2000 // Dispose objects before losing scope
                 builder.AddSigningCredential(new X509Certificate2(
-                    Configuration["Certificate:Name"],
-                    Configuration["Certificate:Password"]));
+                    Configuration["SigningCredentialCertificate:Name"],
+                    Configuration["SigningCredentialCertificate:Password"]));
 #pragma warning restore CA2000 // Dispose objects before losing scope
             }
 
@@ -290,10 +296,12 @@ namespace Etherna.SSOServer
             if (Environment.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+                app.UseForwardedHeaders();
             }
             else
             {
                 app.UseExceptionHandler("/Error");
+                app.UseForwardedHeaders();
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
