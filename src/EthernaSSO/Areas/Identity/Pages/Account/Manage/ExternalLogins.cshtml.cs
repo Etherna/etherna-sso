@@ -103,7 +103,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             var result = await userManager.AddLoginAsync(user, info);
             if (!result.Succeeded)
             {
-                StatusMessage = "The external login was not added. External logins can only be associated with one account.";
+                StatusMessage = string.Join("\n", result.Errors.Select(e => e.Description));
                 return RedirectToPage();
             }
 
