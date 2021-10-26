@@ -75,7 +75,8 @@ namespace Etherna.SSOServer.Configs.Identity
                 ValidateWeb2Logins(userWeb2, errors);
 
             // Validate invitation.
-            if (applicationSettings.RequireInvitation && user.InvitedBy is null)
+            if (user.Id is null && //is registering
+                applicationSettings.RequireInvitation && user.InvitedBy is null)
                 errors.Add(new IdentityError
                 {
                     Code = "RequiredInvitation",
