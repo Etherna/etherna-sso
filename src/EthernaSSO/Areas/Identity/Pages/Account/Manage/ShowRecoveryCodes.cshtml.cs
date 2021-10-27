@@ -14,7 +14,6 @@
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
@@ -22,8 +21,10 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
     public class ShowRecoveryCodesModel : PageModel
     {
         // Properties.
+#pragma warning disable CA1819 // Properties should not return arrays
         [TempData]
-        public IEnumerable<string> RecoveryCodes { get; set; } = default!;
+        public string[] RecoveryCodes { get; set; } = default!; //array required by [TempData]
+#pragma warning restore CA1819 // Properties should not return arrays
 
         [TempData]
         public string? StatusMessage { get; set; }
