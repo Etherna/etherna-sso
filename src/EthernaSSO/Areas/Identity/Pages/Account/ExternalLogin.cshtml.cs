@@ -206,7 +206,6 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             };
             Email = info.Principal.HasClaim(c => c.Type == ClaimTypes.Email) ?
                 info.Principal.FindFirstValue(ClaimTypes.Email) : null;
-            IsInvitationRequired = applicationSettings.RequireInvitation;
             return Page();
         }
 
@@ -265,6 +264,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         // Helpers.
         private void Initialize(string providerDisplayName, string? returnUrl)
         {
+            IsInvitationRequired = applicationSettings.RequireInvitation;
             ReturnUrl = returnUrl ?? Url.Content("~/");
             ProviderDisplayName = providerDisplayName;
         }

@@ -18,7 +18,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -41,7 +40,9 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
 
         // Properties.
         [TempData]
-        public IEnumerable<string>? RecoveryCodes { get; set; }
+#pragma warning disable CA1819 // Properties should not return arrays
+        public string[]? RecoveryCodes { get; set; }
+#pragma warning restore CA1819 // Properties should not return arrays
 
         [TempData]
         public string? StatusMessage { get; set; }
