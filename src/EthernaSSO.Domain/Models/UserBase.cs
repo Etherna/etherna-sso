@@ -19,6 +19,7 @@ using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Text.Json;
 
 namespace Etherna.SSOServer.Domain.Models
@@ -33,7 +34,7 @@ namespace Etherna.SSOServer.Domain.Models
             public const string IsWeb3Account = "isWeb3Account";
 
             public static readonly IEnumerable<string> Names =
-                new[] { EtherAddress, EtherPreviousAddresses, IsWeb3Account };
+                new[] { EtherAddress, EtherPreviousAddresses, IsWeb3Account, ClaimTypes.Role };
         }
 
         // Fields.
@@ -60,13 +61,24 @@ namespace Etherna.SSOServer.Domain.Models
                     AddClaim(claim);
             }
         }
-        public virtual IEnumerable<UserClaim> DefaultClaims =>
-            new []
+        public virtual IEnumerable<UserClaim> DefaultClaims
+        {
+            get
             {
-                new UserClaim(DefaultClaimTypes.EtherAddress, EtherAddress),
-                new UserClaim(DefaultClaimTypes.EtherPreviousAddresses, JsonSerializer.Serialize(_etherPreviousAddresses)),
-                new UserClaim(DefaultClaimTypes.IsWeb3Account, (this is UserWeb3).ToString())
-            };
+                var claims = new List<UserClaim>
+                {
+                    new UserClaim(DefaultClaimTypes.EtherAddress, EtherAddress),
+                    new UserClaim(DefaultClaimTypes.EtherPreviousAddresses, JsonSerializer.Serialize(_etherPreviousAddresses)),
+                    new UserClaim(DefaultClaimTypes.IsWeb3Account, (this is UserWeb3).ToString())
+                };
+
+                foreach (var role in _roles)
+                    claims.Add(new UserClaim(ClaimTypes.Role, role.NormalizedName));
+
+                return claims;
+            }
+        }
+            
         [PersonalData]
         public virtual string? Email { get; protected set; }
         [PersonalData]

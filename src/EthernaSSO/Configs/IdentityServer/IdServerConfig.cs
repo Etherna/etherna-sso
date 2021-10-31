@@ -21,6 +21,7 @@ using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 
 namespace Etherna.SSOServer.Configs.IdentityServer
 {
@@ -95,6 +96,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                     IdentityServerConstants.StandardScopes.OpenId,
                     IdentityServerConstants.StandardScopes.Profile,
                     "ether_accounts",
+                    "role",
 
                     //for client credential flow
                     EthernaSsoUserContactInfoApiScope.Name
@@ -127,7 +129,8 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                 {
                     IdentityServerConstants.StandardScopes.OpenId,
                     IdentityServerConstants.StandardScopes.Profile,
-                    "ether_accounts"
+                    "ether_accounts",
+                    "role"
                 },
 
                 // Allow token refresh.
@@ -174,7 +177,8 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                 {
                     IdentityServerConstants.StandardScopes.OpenId,
                     IdentityServerConstants.StandardScopes.Profile,
-                    "ether_accounts"
+                    "ether_accounts",
+                    "role"
                 },
 
                 // Allow token refresh.
@@ -205,6 +209,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                     IdentityServerConstants.StandardScopes.OpenId,
                     IdentityServerConstants.StandardScopes.Profile,
                     "ether_accounts",
+                    "role",
 
                     //for client credential flow
                     EthernaSsoUserContactInfoApiScope.Name
@@ -228,6 +233,15 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                     UserBase.DefaultClaimTypes.EtherAddress,
                     UserBase.DefaultClaimTypes.EtherPreviousAddresses,
                     UserBase.DefaultClaimTypes.IsWeb3Account
+                }
+            },
+            new IdentityResource()
+            {
+                DisplayName = "Role",
+                Name = "role",
+                UserClaims = new List<string>()
+                {
+                    ClaimTypes.Role
                 }
             }
         };
