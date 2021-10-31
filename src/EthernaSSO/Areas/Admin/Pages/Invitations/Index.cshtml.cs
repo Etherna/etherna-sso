@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Etherna.SSOServer.Configs;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models;
@@ -122,8 +123,12 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.Invitations
             for (int i = 0; i < invitations.Length; i++)
             {
                 var link = Url.PageLink(
-                    pageName: "../Register",
-                    values: new { invitationCode = invitations[i].Code });
+                    pageName: "/Account/Register",
+                    values: new
+                    {
+                        area = CommonConsts.IdentityArea,
+                        invitationCode = invitations[i].Code
+                    });
 
                 var emailBody = await razorViewRenderer.RenderViewToStringAsync(
                     "Views/Emails/InvitationLetter.cshtml",
