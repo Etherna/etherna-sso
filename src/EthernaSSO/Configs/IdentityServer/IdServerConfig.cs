@@ -12,8 +12,8 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Etherna.RCL.Exceptions;
 using Etherna.SSOServer.Domain.Models;
-using Etherna.SSOServer.Exceptions;
 using IdentityServer4;
 using IdentityServer4.Models;
 using Microsoft.Extensions.Configuration;
