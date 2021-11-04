@@ -59,7 +59,8 @@ namespace Etherna.SSOServer.Domain.Models
                 {
                     new UserClaim(UserClaimTypes.EtherAddress, EtherAddress),
                     new UserClaim(UserClaimTypes.EtherPreviousAddresses, JsonSerializer.Serialize(_etherPreviousAddresses)),
-                    new UserClaim(UserClaimTypes.IsWeb3Account, (this is UserWeb3).ToString())
+                    new UserClaim(UserClaimTypes.IsWeb3Account, (this is UserWeb3).ToString()),
+                    new UserClaim(UserClaimTypes.Username, Username)
                 };
 
                 foreach (var role in _roles)
