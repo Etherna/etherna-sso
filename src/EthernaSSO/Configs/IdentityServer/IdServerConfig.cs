@@ -12,8 +12,8 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Etherna.RCL;
 using Etherna.RCL.Exceptions;
-using Etherna.SSOServer.Domain.Models;
 using IdentityServer4;
 using IdentityServer4.Models;
 using Microsoft.Extensions.Configuration;
@@ -21,7 +21,6 @@ using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Claims;
 
 namespace Etherna.SSOServer.Configs.IdentityServer
 {
@@ -230,9 +229,9 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                 Name = "ether_accounts",
                 UserClaims = new List<string>()
                 {
-                    UserBase.DefaultClaimTypes.EtherAddress,
-                    UserBase.DefaultClaimTypes.EtherPreviousAddresses,
-                    UserBase.DefaultClaimTypes.IsWeb3Account
+                    UserClaimTypes.EtherAddress,
+                    UserClaimTypes.EtherPreviousAddresses,
+                    UserClaimTypes.IsWeb3Account
                 }
             },
             new IdentityResource()
@@ -241,7 +240,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                 Name = "role",
                 UserClaims = new List<string>()
                 {
-                    ClaimTypes.Role
+                    UserClaimTypes.Role
                 }
             }
         };
