@@ -15,173 +15,222 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:v="urn:schemas-microsoft-com:vml">
 
 <head>
-    <meta name="viewport" content="width=device-width" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Source+Code+Pro:wght@600&display=swap"
-        rel="stylesheet">
-    <style>
-        body {
-            position: relative;
-            width: 100%;
-            font-size: 16px;
-            font-family: Inter, Helvetica, sans-serif;
-            margin: 0;
-            background-color: #fafafa;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-        }
+	<title></title>
+	<meta charset="utf-8" />
+	<meta content="width=device-width, initial-scale=1.0" name="viewport" />
+	<!--[if mso]><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch><o:AllowPNG/></o:OfficeDocumentSettings></xml><![endif]-->
+	<!--[if !mso]><!-->
+	<link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro" rel="stylesheet" type="text/css" />
+	<!--<![endif]-->
+	<style>
+		* {
+			box-sizing: border-box;
+		}
 
-        a {
-            color: rgb(0, 81, 255);
-        }
+		body {
+			margin: 0;
+			padding: 0;
+		}
 
-        .header {
-            width: 100%;
-            background-color: #37C4A5;
-        }
+		a[x-apple-data-detectors] {
+			color: inherit !important;
+			text-decoration: inherit !important;
+		}
 
-        .headerContent {
-            display: table;
-            margin-left: auto;
-            margin-right: auto;
-            padding-top: 24px;
-            padding-bottom: 32px;
-        }
+		p {
+			line-height: inherit
+		}
 
-        .headerContent img {
-            margin: 0 auto;
-            height: 20px;
-        }
+		h1 {
+			font-size: 32px;
+			font-weight: bold;
+			color: #2b303a;
+		}
 
-        .main {
-            border-collapse: separate;
-            border-spacing: 0px;
-            border-radius: 4px;
-            width: 100%;
-            max-width: 768px;
-            margin-top: -48px;
-            margin-bottom: 72px;
-            margin-left: auto;
-            margin-right: auto;
-        }
+		.kbd {
+			display: block;
+			font-size: 30px;
+			font-weight: bold;
+			width: 100%;
+			margin-top: 20px;
+			margin-bottom: 20px;
+			background-color: #cfeee7;
+			color: #37C4A5;
+			border-top: 3px solid #37C4A5;
+		}
 
-        .mainContent {
-            margin-left: 24px;
-            margin-right: 24px;
-            margin-left: 24px;
-            margin-right: 24px;
-        }
+		.kbd span {
+			display: block;
+			padding: 15px;
+		}
 
-        .mainContent td {
-            color: #6B7280;
-            background-color: #fff;
-            border-radius: 4px;
-            padding: 24px;
-            box-shadow: 0 11px 24px 0 rgba(218, 218, 218, 0.50);
-            border: 1px solid rgba(218, 218, 218, 0.25);
-            z-index: 1;
-            position: relative;
-        }
+		@@media (max-width:660px) {
+			.icons-inner {
+				text-align: center;
+			}
 
-        h1 {
-            font-size: 26px;
-            font-weight: bold;
-            margin-bottom: 12px;
-        }
+			.icons-inner td {
+				margin: 0 auto;
+			}
 
-        h1,
-        h2,
-        h3,
-        h4,
-        h5,
-        h6 {
-            color: #374151;
-        }
+			.row-content {
+				width: 100% !important;
+			}
 
-        p {
-            margin-bottom: 16px;
-        }
-
-        button,
-        .button {
-            display: inline-block;
-            text-align: center;
-            border-radius: 5px;
-            background-color: #37C4A5;
-            color: #fff;
-            font-weight: 600;
-            padding: 10px 28px;
-            margin: 16px 0;
-            min-width: 120px;
-            text-decoration: none;
-        }
-
-        .kbd {
-            font-family: 'Source Code Pro', monospace;
-            display: inline-block;
-            text-align: center;
-            border-radius: 6px;
-            background-color: #333;
-            color: #fff;
-            font-size: 20px;
-            font-weight: 600;
-            padding: 16px 32px;
-            margin: 16px 0;
-            min-width: 160px;
-        }
-
-        .footer {
-            font-size: 12px;
-            color: #6B7280;
-            text-align: center;
-        }
-
-        .footer img {
-            height: 16px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .footer p {
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .footer .ethernaLink {
-            display: block;
-            margin-top: 32px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-    </style>
+			.stack .column {
+				width: 100%;
+				display: block;
+			}
+		}
+	</style>
 </head>
 
-<body>
-    <div class="header" style="height: 128px;">
-        <div class="headerContent">
-            <img src="@(Context.Request.Scheme + "://" + Context.Request.Host)/images/etherna-mail-white.png"
-                alt="Etherna">
-        </div>
-    </div>
+<body style="background-color: #f6f6f7; margin: 0; padding: 0; -webkit-text-size-adjust: none; text-size-adjust: none;">
+	<table style="background-color: #f6f6f7; width: 100%;" border="0" cellpadding="0" cellspacing="0" role="presentation">
+		<tbody>
+			<tr>
+				<td>
+					<!-- Header -->
+					<table border="0" cellpadding="0" cellspacing="0" role="presentation"
+						style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; font-family: 'Source Sans Pro', 'Helvetica Neue', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;"
+						width="100%">
+						<tbody>
+							<tr>
+								<td style="background-color: #37c4a5; height: 6px; width: 100%;"></td>
+							</tr>
+							<tr style="background-color: white;">
+								<td style="padding-bottom:25px;padding-top:22px;width:100%;padding-right:0px;padding-left:0px;">
+									<div align="center" style="line-height:10px">
+										<img alt="Etherna"
+											src="https://etherna.io/static/9cdb23a45f93e6b9e9251300293a6d5b/7c5fb79b-8f3b-4eaf-89ad-2d1495dcdf32.png"
+											style="display: block; height: auto; border: 0; width: 128px; max-width: 100%;" title="Etherna"
+											width="128" />
+									</div>
+								</td>
+							</tr>
+						</tbody>
+					</table>
 
-    <table class="main" style="margin-top: -56px;">
-        <tbody class="mainContent">
-            <tr>
-                <td>@RenderBody()</td>
-            </tr>
-        </tbody>
-    </table>
+					<table>
+						<tbody>
+							<tr style="height: 40px;"></tr>
+						</tbody>
+					</table>
 
-    <div class="footer">
-        <img src="@(Context.Request.Scheme + "://" + Context.Request.Host)/images/etherna-mail-gray.png" alt="Etherna">
-        <p>You received this email from the Etherna server.</p>
-        <a href="https://etherna.io" class="ethernaLink">etherna.io</a>
-    </div>
+					<!-- Main -->
+					<table border="0" cellpadding="0" cellspacing="0" class="row-content stack" role="presentation"
+						style="margin:0 auto;mso-table-lspace: 0pt; mso-table-rspace: 0pt; background-color: #fff; font-family: 'Source Sans Pro', 'Helvetica Neue', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;"
+						width="640" align="center">
+						<tbody>
+							<tr>
+								<td style="padding: 15px; text-align: center; color: #5d636e;">
+									@RenderBody()
+								</td>
+							</tr>
+						</tbody>
+					</table>
+
+					<table>
+						<tbody>
+							<tr style="height: 40px;"></tr>
+						</tbody>
+					</table>
+
+					<!-- Footer -->
+					<table border="0" cellpadding="0" cellspacing="0" class="row-content stack" role="presentation"
+						style="margin:0 auto;mso-table-lspace: 0pt; mso-table-rspace: 0pt; background-color: #424242; font-family: 'Source Sans Pro', 'Helvetica Neue', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;"
+						width="640" align="center">
+						<tbody>
+							<tr>
+								<td style="background-color: #37c4a5; height: 6px; width: 100%;"></td>
+							</tr>
+							<tr>
+								<td style="padding-bottom:20px;padding-top:28px;width:100%;padding-right:0px;padding-left:0px;">
+									<div align="center" style="line-height:10px">
+										<img alt="Etherna" src="/images/etherna-mail-logo-white.png"
+											style=" display: block; height: auto; border: 0; width: 112px; max-width: 100%;" title="Etherna"
+											width="112" />
+									</div>
+								</td>
+							</tr>
+							<tr>
+								<td
+									style="padding-bottom:10px;padding-left:10px;padding-right:10px;padding-top:10px;text-align:center;">
+									<table align="center" border="0" cellpadding="0" cellspacing="0" class="social-table"
+										role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt;" width="208px">
+										<tr>
+											<td style="padding:0 10px 0 10px;">
+												<a href="https://www.facebook.com/Etherna.io" target="_blank">
+													<img alt="Facebook" height="32" src="/images/etherna-mail-facebook@2x.png"
+														style="display: block; height: auto; border: 0;" title="Facebook" width="32" />
+												</a>
+											</td>
+											<td style="padding:0 10px 0 10px;">
+												<a href="https://twitter.com/Etherna_io" target="_blank">
+													<img alt="Twitter" height="32" src="/images/etherna-mail-twitter@2x.png"
+														style="display: block; height: auto; border: 0;" title="Twitter" width="32" />
+												</a>
+											</td>
+											<td style="padding:0 10px 0 10px;">
+												<a href="https://www.linkedin.com/company/etherna" target="_blank">
+													<img alt="LinkedIn" height="32" src="/images/etherna-mail-linkedin@2x.png"
+														style="display: block; height: auto; border: 0;" title="LinkedIn" width="32" />
+												</a>
+											</td>
+											<td style="padding:0 10px 0 10px;">
+												<a href="https://t.me/etherna_io" target="_blank">
+													<img alt="Telegram" height="32" src="/images/etherna-mail-telegram@2x.png"
+														style="display: block; height: auto; border: 0;" title="Telegram" width="32" />
+												</a>
+											</td>
+											<td style="padding:0 10px 0 10px;">
+												<a href="https://discord.gg/vfHYEXf" target="_blank">
+													<img alt="Discord" height="32" src="/images/etherna-mail-discord@2x.png"
+														style="display: block; height: auto; border: 0;" title="Discord" width="32" />
+												</a>
+											</td>
+											<td style="padding:0 10px 0 10px;">
+												<a href="https://github.com/Etherna" target="_blank">
+													<img alt="GitHub" height="32" src="/images/etherna-mail-github@2x.png"
+														style="display: block; height: auto; border: 0;" title="Github" width="32" />
+												</a>
+											</td>
+										</tr>
+									</table>
+								</td>
+							</tr>
+							<tr>
+								<td
+									style="color: #b3b3b3; font-size: 12px; text-align: center; padding-top: 30px; padding-bottom: 10px;">
+									<p>
+										You received this email from the Etherna server.
+									</p>
+									<p>
+										<a href="https://etherna.io" rel="noopener" style="text-decoration:underline; color:#37c4a5;"
+											target="_blank">etherna.io</a>
+									</p>
+								</td>
+							</tr>
+							<tr>
+								<td
+									style="font-size: 1px; line-height: 1px; border-top: 1px solid #555961; padding-left: 40px; padding-right: 40px;">
+								</td>
+							</tr>
+							<tr>
+								<td
+									style="padding-top: 20px; padding-bottom: 20px; color: #b3b3b3; font-size: 12px; text-align: center">
+									Copyright© Etherna Sagl 2021
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</td>
+			</tr>
+		</tbody>
+	</table>
 </body>
 
 </html>
