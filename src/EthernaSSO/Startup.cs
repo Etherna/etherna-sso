@@ -71,7 +71,6 @@ namespace Etherna.SSOServer
         public IWebHostEnvironment Environment { get; }
 
         // Methods.
-        // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
             // Configure Asp.Net Core framework services.
