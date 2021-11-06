@@ -13,29 +13,20 @@
 //   limitations under the License.
 
 using Etherna.MongODM.Core.Attributes;
+using Etherna.RCL;
 using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models.UserAgg;
 using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Text.Json;
 
 namespace Etherna.SSOServer.Domain.Models
 {
     public abstract class UserBase : EntityModelBase<string>
     {
-        // Consts.
-        public static class DefaultClaimTypes
-        {
-            public const string EtherAddress = "ether_address";
-            public const string EtherPreviousAddresses = "ether_prev_addresses";
-            public const string IsWeb3Account = "isWeb3Account";
-
-            public static readonly IEnumerable<string> Names =
-                new[] { EtherAddress, EtherPreviousAddresses, IsWeb3Account };
-        }
-
         // Fields.
         private readonly List<UserClaim> _customClaims = new();
         private List<string> _etherPreviousAddresses = new();
@@ -60,13 +51,25 @@ namespace Etherna.SSOServer.Domain.Models
                     AddClaim(claim);
             }
         }
-        public virtual IEnumerable<UserClaim> DefaultClaims =>
-            new []
+        public virtual IEnumerable<UserClaim> DefaultClaims
+        {
+            get
             {
-                new UserClaim(DefaultClaimTypes.EtherAddress, EtherAddress),
-                new UserClaim(DefaultClaimTypes.EtherPreviousAddresses, JsonSerializer.Serialize(_etherPreviousAddresses)),
-                new UserClaim(DefaultClaimTypes.IsWeb3Account, (this is UserWeb3).ToString())
-            };
+                var claims = new List<UserClaim>
+                {
+                    new UserClaim(UserClaimTypes.EtherAddress, EtherAddress),
+                    new UserClaim(UserClaimTypes.EtherPreviousAddresses, JsonSerializer.Serialize(_etherPreviousAddresses)),
+                    new UserClaim(UserClaimTypes.IsWeb3Account, (this is UserWeb3).ToString()),
+                    new UserClaim(UserClaimTypes.Username, Username)
+                };
+
+                foreach (var role in _roles)
+                    claims.Add(new UserClaim(ClaimTypes.Role, role.NormalizedName));
+
+                return claims;
+            }
+        }
+            
         [PersonalData]
         public virtual string? Email { get; protected set; }
         [PersonalData]
@@ -104,7 +107,7 @@ namespace Etherna.SSOServer.Domain.Models
                 throw new ArgumentNullException(nameof(claim));
 
             //keep default claims managed by model
-            if (DefaultClaimTypes.Names.Contains(claim.Type))
+            if (UserClaimTypes.Names.Contains(claim.Type))
                 return false;
 
             //don't add duplicate claims
