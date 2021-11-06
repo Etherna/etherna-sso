@@ -197,7 +197,9 @@
 {
     <script type="text/javascript">
         $(function () {
-            $('#lockoutend-picker').datetimepicker();
+            $('#lockoutend-picker').datetimepicker({
+                format: 'd/m/Y H:i:s P'
+            });
         });
     </script>
 }

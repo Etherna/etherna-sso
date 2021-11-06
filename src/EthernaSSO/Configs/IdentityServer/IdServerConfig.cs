@@ -12,8 +12,8 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-using Etherna.SSOServer.Domain.Models;
-using Etherna.SSOServer.Exceptions;
+using Etherna.RCL;
+using Etherna.RCL.Exceptions;
 using IdentityServer4;
 using IdentityServer4.Models;
 using Microsoft.Extensions.Configuration;
@@ -95,6 +95,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                     IdentityServerConstants.StandardScopes.OpenId,
                     IdentityServerConstants.StandardScopes.Profile,
                     "ether_accounts",
+                    "role",
 
                     //for client credential flow
                     EthernaSsoUserContactInfoApiScope.Name
@@ -127,7 +128,8 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                 {
                     IdentityServerConstants.StandardScopes.OpenId,
                     IdentityServerConstants.StandardScopes.Profile,
-                    "ether_accounts"
+                    "ether_accounts",
+                    "role"
                 },
 
                 // Allow token refresh.
@@ -174,7 +176,8 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                 {
                     IdentityServerConstants.StandardScopes.OpenId,
                     IdentityServerConstants.StandardScopes.Profile,
-                    "ether_accounts"
+                    "ether_accounts",
+                    "role"
                 },
 
                 // Allow token refresh.
@@ -205,6 +208,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                     IdentityServerConstants.StandardScopes.OpenId,
                     IdentityServerConstants.StandardScopes.Profile,
                     "ether_accounts",
+                    "role",
 
                     //for client credential flow
                     EthernaSsoUserContactInfoApiScope.Name
@@ -225,9 +229,18 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                 Name = "ether_accounts",
                 UserClaims = new List<string>()
                 {
-                    UserBase.DefaultClaimTypes.EtherAddress,
-                    UserBase.DefaultClaimTypes.EtherPreviousAddresses,
-                    UserBase.DefaultClaimTypes.IsWeb3Account
+                    UserClaimTypes.EtherAddress,
+                    UserClaimTypes.EtherPreviousAddresses,
+                    UserClaimTypes.IsWeb3Account
+                }
+            },
+            new IdentityResource()
+            {
+                DisplayName = "Role",
+                Name = "role",
+                UserClaims = new List<string>()
+                {
+                    UserClaimTypes.Role
                 }
             }
         };
