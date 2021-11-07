@@ -16,7 +16,7 @@ namespace Etherna.SSOServer.RCL.Views.Emails
 {
     public class ConfirmEmailChangeModel
     {
-        public const string Title = "Etherna: Confirm your new email";
+        public const string Title = "Etherna - Confirm your new email";
 
         public ConfirmEmailChangeModel(string callbackUrl)
         {
