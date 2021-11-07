@@ -134,29 +134,6 @@ namespace Etherna.SSOServer.Services.Domain
         }
 
         // Helpers.
-        private async Task<(IEnumerable<(string key, string msg)> errors, UserBase? invitedByUser)> ConsumeInvitationCodeAsync(
-            string? invitationCode)
-        {
-            var errors = new List<(string key, string msg)>();
-
-            // Verify invitation code.
-            if (invitationCode is null)
-                return (errors, null);
-
-            var invitation = await ssoDbContext.Invitations.TryFindOneAsync(i => i.Code == invitationCode);
-            if (invitation is null || !invitation.IsAlive)
-            {
-                errors.Add((InvalidValidationErrorKey, "Invitation is not valid."));
-                return (errors, null);
-            }
-
-            // Delete used invitation.
-            if (invitation.IsSingleUse)
-                await ssoDbContext.Invitations.DeleteAsync(invitation);
-
-            return (errors, invitation.Emitter);
-        }
-
         private async Task<(IEnumerable<(string key, string msg)> errors, TUser? user)> RegisterUserHelperAsync<TUser>(
             string username,
             string? invitationCode,
@@ -167,13 +144,23 @@ namespace Etherna.SSOServer.Services.Domain
             if (await userManager.FindByNameAsync(username) is not null) //if duplicate username
                 return (new[] { (DuplicateUsernameErrorKey, "Username already registered.") }, null);
 
-            // Consume invitation code.
-            var (invitationErrors, invitedByUser) = await ConsumeInvitationCodeAsync(invitationCode);
-            if (invitationErrors.Any())
-                return (invitationErrors, null);
+            // Verify invitation code.
+            Invitation? invitation = null;
+            if (invitationCode is not null)
+            {
+                invitation = await ssoDbContext.Invitations.TryFindOneAsync(i => i.Code == invitationCode);
+                if (invitation is null || !invitation.IsAlive)
+                    return (new[] { (InvalidValidationErrorKey, "Invitation is not valid.") }, null);
+            }
 
             // Register new user.
-            var (user, creationResult) = await registerUserAsync(invitedByUser);
+            var (user, creationResult) = await registerUserAsync(invitation?.Emitter);
+
+            // Delete used invitation if is single use, and if registration succeeded.
+            if (creationResult.Succeeded &&
+                invitation is not null &&
+                invitation.IsSingleUse)
+                await ssoDbContext.Invitations.DeleteAsync(invitation);
 
             return (creationResult.Errors.Select(e => (e.Code, e.Description)),
                 creationResult.Succeeded ? user : null);
