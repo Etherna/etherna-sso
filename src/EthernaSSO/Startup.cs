@@ -25,6 +25,7 @@ using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Extensions;
 using Etherna.SSOServer.Persistence;
+using Etherna.SSOServer.Persistence.Settings;
 using Etherna.SSOServer.Services.Settings;
 using Etherna.SSOServer.Services.Tasks;
 using Hangfire;
@@ -251,6 +252,7 @@ namespace Etherna.SSOServer
                 options.AssemblyVersion = assemblyVersion.Version;
             });
             services.Configure<EmailSettings>(Configuration.GetSection("Email"));
+            services.Configure<DbSeedSettings>(Configuration.GetSection("DbSeed"));
 
             // Configure persistence.
             services.AddMongODMWithHangfire<ModelBase>(configureHangfireOptions: options =>
@@ -271,7 +273,8 @@ namespace Etherna.SSOServer
             {
                 var eventDispatcher = sp.GetRequiredService<IEventDispatcher>();
                 var passwordHasher = sp.CreateScope().ServiceProvider.GetRequiredService<IPasswordHasher<UserBase>>();
-                return new SsoDbContext(eventDispatcher, passwordHasher);
+                var seedSettings = sp.GetRequiredService<IOptions<DbSeedSettings>>();
+                return new SsoDbContext(eventDispatcher, passwordHasher, seedSettings.Value);
             },
             options =>
             {
