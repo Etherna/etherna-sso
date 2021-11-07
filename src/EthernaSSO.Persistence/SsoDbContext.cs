@@ -89,7 +89,7 @@ namespace Etherna.SSOServer.Persistence
                     (Builders<UserBase>.IndexKeys.Ascending(u => u.NormalizedUsername),
                      new CreateIndexOptions<UserBase> { Unique = true }),
 
-                    (Builders<UserBase>.IndexKeys.Ascending("Roles.Name"),
+                    (Builders<UserBase>.IndexKeys.Ascending("Roles.NormalizedName"),
                      new CreateIndexOptions<UserBase>()),
 
                     //UserWeb2
