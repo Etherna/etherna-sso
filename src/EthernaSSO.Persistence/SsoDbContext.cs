@@ -21,6 +21,7 @@ using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Domain.Models.Logs;
 using Etherna.SSOServer.Persistence.Repositories;
+using Etherna.SSOServer.Persistence.Settings;
 using Microsoft.AspNetCore.Identity;
 using MongoDB.Driver;
 using System;
@@ -39,14 +40,17 @@ namespace Etherna.SSOServer.Persistence
 
         // Fields.
         private readonly IPasswordHasher<UserBase> passwordHasher;
+        private readonly DbSeedSettings seedSettings;
 
         // Constructor.
         public SsoDbContext(
             IEventDispatcher eventDispatcher,
-            IPasswordHasher<UserBase> passwordHasher)
+            IPasswordHasher<UserBase> passwordHasher,
+            DbSeedSettings seedSettings)
         {
             EventDispatcher = eventDispatcher;
             this.passwordHasher = passwordHasher;
+            this.seedSettings = seedSettings;
         }
 
         // Properties.
@@ -148,8 +152,8 @@ namespace Etherna.SSOServer.Persistence
                 await Roles.CreateAsync(adminRole);
 
                 // Create admin user.
-                var adminUser = new UserWeb2("admin", null, null);
-                var pswHash = passwordHasher.HashPassword(adminUser, "Pass123$");
+                var adminUser = new UserWeb2(seedSettings.FirstAdminUsername, null, null);
+                var pswHash = passwordHasher.HashPassword(adminUser, seedSettings.FirstAdminPassword);
                 adminUser.PasswordHash = pswHash;
                 adminUser.SecurityStamp = "JC6W6WKRWFN5WHOTFUX5TIKZG2KDFXQQ";
                 adminUser.AddRole(adminRole);
