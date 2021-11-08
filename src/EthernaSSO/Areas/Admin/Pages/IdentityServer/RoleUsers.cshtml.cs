@@ -13,6 +13,7 @@
 //   limitations under the License.
 
 using Etherna.SSOServer.Domain;
+using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Services.Domain;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using MongoDB.Driver.Linq;
@@ -28,16 +29,15 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
         // Models.
         public class UserDto
         {
-            public UserDto(
-                string id,
-                string? email,
-                string etherAddress,
-                string username)
+            public UserDto(UserBase user)
             {
-                Id = id;
-                Email = email;
-                EtherAddress = etherAddress;
-                Username = username;
+                if (user is null)
+                    throw new ArgumentNullException(nameof(user));
+
+                Id = user.Id;
+                Email = user.Email;
+                EtherAddress = user.EtherAddress;
+                Username = user.Username;
             }
 
             public string Id { get; }
@@ -88,7 +88,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
 
             MaxPage = paginatedUsers.MaxPage;
 
-            Users.AddRange(paginatedUsers.Elements.Select(u => new UserDto(u.Id, u.Email, u.EtherAddress, u.Username)));
+            Users.AddRange(paginatedUsers.Elements.Select(u => new UserDto(u)));
         }
     }
 }
