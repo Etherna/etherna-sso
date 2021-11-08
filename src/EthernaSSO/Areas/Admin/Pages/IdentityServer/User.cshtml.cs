@@ -29,7 +29,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
     public class UserModel : PageModel
     {
         // Model.
-        public class InputModel
+        public class InputModel : IValidatableObject
         {
             // Constructors.
             public InputModel() { }
@@ -38,6 +38,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
                 if (user is null)
                     throw new ArgumentNullException(nameof(user));
 
+                Id = user.Id;
                 Email = user.Email;
                 PhoneNumber = user.PhoneNumber;
                 LockoutEnabled = user.LockoutEnabled;
@@ -56,6 +57,8 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
             }
 
             // Properties.
+            public string? Id { get; set; }
+
             [EmailAddress]
             public string? Email { get; set; }
 
@@ -68,6 +71,9 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
             [Display(Name = "Lockout end")]
             public DateTimeOffset? LockoutEnd { get; set; }
 
+            [Display(Name = "New user password")]
+            public string? NewUserPassword { get; set; }
+
             [Display(Name = "Phone number")]
             public string? PhoneNumber { get; set; }
 
@@ -77,6 +83,12 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
             [Required]
             [RegularExpression(UsernameHelper.UsernameRegex)]
             public string Username { get; set; } = default!;
+
+            public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+            {
+                if (Id is null && NewUserPassword is null) //new user require password
+                    yield return new ValidationResult("Password is required", new[] { nameof(NewUserPassword) });
+            }
         }
 
         // Fields.
@@ -93,8 +105,6 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
         }
 
         // Properties.
-        public string? Id { get; private set; }
-
         [Display(Name = "Access failed count")]
         public int AccessFailedCount { get; private set; }
 
@@ -121,11 +131,12 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
         [Display(Name = "Phone number confirmed")]
         public bool PhoneNumberConfirmed { get; private set; }
 
+        [TempData]
+        public string? StatusMessage { get; set; }
+
         // Methods.
         public async Task OnGetAsync(string? id)
         {
-            Id = id;
-
             if (id is not null)
             {
                 var user = await context.Users.FindOneAsync(id);
@@ -154,15 +165,13 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
             }
         }
 
-        public async Task<IActionResult> OnPostSaveAsync(string? id)
+        public async Task<IActionResult> OnPostSaveAsync()
         {
-            Id = id;
-
             if (!ModelState.IsValid)
                 return Page();
 
             UserBase user;
-            if (id is null) //create
+            if (Input.Id is null) //create
             {
                 var userWeb2 = new UserWeb2(Input.Username, null, true, null);
 
@@ -176,11 +185,20 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
                 userWeb2.TwoFactorEnabled = Input.TwoFactorEnabled;
 
                 user = userWeb2;
-                await userManager.CreateAsync(user);
+
+                // Create.
+                var result = await userManager.CreateAsync(user, Input.NewUserPassword);
+
+                // Report errors.
+                if (!result.Succeeded)
+                {
+                    StatusMessage = "Error: " + string.Join("\n", result.Errors.Select(e => e.Description));
+                    return Page();
+                }
             }
             else //update
             {
-                user = await context.Users.FindOneAsync(id);
+                user = await context.Users.FindOneAsync(Input.Id);
 
                 if (user.Username != Input.Username)
                     user.SetUsername(Input.Username);
