@@ -164,7 +164,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
             UserBase user;
             if (id is null) //create
             {
-                var userWeb2 = new UserWeb2(Input.Username, null, null);
+                var userWeb2 = new UserWeb2(Input.Username, null, true, null);
 
                 if (Input.Email is not null)
                     userWeb2.SetEmail(Input.Email);
