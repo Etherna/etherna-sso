@@ -15,8 +15,11 @@
 using Etherna.SSOServer.Domain;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using MongoDB.Driver;
+using MongoDB.Driver.Linq;
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
@@ -53,6 +56,15 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
         {
             if (id is null)
                 throw new ArgumentNullException(nameof(id));
+
+            var role = await context.Roles.FindOneAsync(id);
+            var usersWithRole = await context.Users.QueryElementsAsync(elements =>
+                elements.Where(u => u.Roles.Contains(role))
+                        .ToListAsync());
+
+            foreach (var user in usersWithRole)
+                user.RemoveRole(role.Name);
+            await context.SaveChangesAsync();
 
             await context.Roles.DeleteAsync(id);
 
