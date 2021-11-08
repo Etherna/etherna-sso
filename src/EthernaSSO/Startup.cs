@@ -80,11 +80,11 @@ namespace Etherna.SSOServer
 
             services.AddIdentity<UserBase, Role>(options =>
             {
-                options.Password.RequireDigit = true;
                 options.Password.RequiredLength = 6;
+                options.Password.RequireDigit = true;
                 options.Password.RequireLowercase = true;
-                options.Password.RequireNonAlphanumeric = true;
                 options.Password.RequireUppercase = true;
+                options.Password.RequireNonAlphanumeric = false;
 
                 options.Tokens.EmailConfirmationTokenProvider = TokenOptions.DefaultEmailProvider; //totp code
 
