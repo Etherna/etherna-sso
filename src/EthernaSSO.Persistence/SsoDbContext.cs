@@ -19,7 +19,6 @@ using Etherna.MongODM.Core.Repositories;
 using Etherna.MongODM.Core.Serialization;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
-using Etherna.SSOServer.Domain.Models.Logs;
 using Etherna.SSOServer.Persistence.Repositories;
 using Etherna.SSOServer.Persistence.Settings;
 using Microsoft.AspNetCore.Identity;
@@ -65,7 +64,6 @@ namespace Etherna.SSOServer.Persistence
                      new CreateIndexOptions<Invitation> { Unique = true })
                 }
             });
-        public ICollectionRepository<LogBase, string> Logs { get; } = new DomainCollectionRepository<LogBase, string>("logs");
         public ICollectionRepository<Role, string> Roles { get; } = new DomainCollectionRepository<Role, string>(
             new CollectionRepositoryOptions<Role>("roles")
             {
