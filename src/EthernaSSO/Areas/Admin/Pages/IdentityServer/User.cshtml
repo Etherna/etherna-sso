@@ -19,8 +19,9 @@
     ViewData["Title"] = "User";
 
     var etherPrevAddressesToString = Model.EtherPreviousAddresses.Any() ?
-        Model.EtherPreviousAddresses.Aggregate((a, b) => a + '\n' + b) :
-        "";
+        Model.EtherPreviousAddresses.Aggregate((a, b) => a + '\n' + b) : "";
+    var externalLoginProvidersToString = Model.ExternalLoginProviders.Any() ?
+        Model.ExternalLoginProviders.Aggregate((a, b) => a + '\n' + b) : "";
 }
 
 <div class="row">
@@ -154,6 +155,23 @@
                     @if (!Model.IsWeb3) // Web2 only account
                     {
                         <h6>Web2 fields</h6>
+
+                        <div class="mb-3 row">
+                            <label asp-for="@Model.HasPassword" class="col-sm-3 col-form-label"></label>
+                            <div class="col-sm-9">
+                                <input asp-for="@Model.HasPassword" disabled type="checkbox">
+                            </div>
+                        </div>
+
+                        <div class="mb-3 row">
+                            <label asp-for="@Model.ExternalLoginProviders" class="col-sm-3 col-form-label"></label>
+                            <div class="col-sm-9">
+                                <textarea type="text" disabled
+                                          asp-for="@externalLoginProvidersToString"
+                                          rows="@Math.Max(1, Model.ExternalLoginProviders.Count())"
+                                          class="form-control"></textarea>
+                            </div>
+                        </div>
 
                         <div class="mb-3 row">
                             <label asp-for="Input.EtherLoginAddress" class="col-sm-3 col-form-label"></label>

@@ -21,6 +21,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
@@ -103,6 +104,12 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
         [Display(Name = "Previous ethereum addresses")]
         public IEnumerable<string> EtherPreviousAddresses { get; private set; } = Array.Empty<string>();
 
+        [Display(Name = "External login providers")]
+        public IEnumerable<string> ExternalLoginProviders { get; private set; } = Array.Empty<string>();
+
+        [Display(Name = "Has password")]
+        public bool HasPassword { get; private set; }
+
         [BindProperty]
         public InputModel Input { get; set; } = default!;
 
@@ -134,6 +141,8 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
                 {
                     case UserWeb2 userWeb2:
                         AccessFailedCount = userWeb2.AccessFailedCount;
+                        ExternalLoginProviders = userWeb2.Logins.Select(l => l.ProviderDisplayName);
+                        HasPassword = userWeb2.HasPassword;
                         break;
                     case UserWeb3 _: break;
                     default: throw new InvalidOperationException();
