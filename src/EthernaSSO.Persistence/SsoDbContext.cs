@@ -152,7 +152,7 @@ namespace Etherna.SSOServer.Persistence
                 await Roles.CreateAsync(adminRole);
 
                 // Create admin user.
-                var adminUser = new UserWeb2(seedSettings.FirstAdminUsername, null, null);
+                var adminUser = new UserWeb2(seedSettings.FirstAdminUsername, null, true, null);
                 var pswHash = passwordHasher.HashPassword(adminUser, seedSettings.FirstAdminPassword);
                 adminUser.PasswordHash = pswHash;
                 adminUser.SecurityStamp = "JC6W6WKRWFN5WHOTFUX5TIKZG2KDFXQQ";
