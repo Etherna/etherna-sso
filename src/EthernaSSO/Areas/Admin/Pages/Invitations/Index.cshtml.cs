@@ -74,7 +74,6 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.Invitations
         [Display(Name = "Total alive invites")]
         public int TotalAlive { get; set; }
 
-        [TempData]
         public string? StatusMessage { get; set; }
 
         // Methods.

@@ -131,7 +131,6 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
         [Display(Name = "Phone number confirmed")]
         public bool PhoneNumberConfirmed { get; private set; }
 
-        [TempData]
         public string? StatusMessage { get; set; }
 
         // Methods.
