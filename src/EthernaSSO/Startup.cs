@@ -172,11 +172,6 @@ namespace Etherna.SSOServer
                 .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
                 {
                     options.Authority = Configuration["IdServer:SsoServer:BaseUrl"];
-
-                    options.TokenValidationParameters = new TokenValidationParameters
-                    {
-                        ValidateAudience = false
-                    };
                 });
             services.AddAuthorization(options =>
             {
