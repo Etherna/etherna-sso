@@ -39,8 +39,8 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
         }
 
         // Properties.
-        [TempData]
 #pragma warning disable CA1819 // Properties should not return arrays
+        [TempData]
         public string[]? RecoveryCodes { get; set; }
 #pragma warning restore CA1819 // Properties should not return arrays
 
