@@ -38,7 +38,6 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         }
 
         // Properties.
-        [TempData]
         public string? StatusMessage { get; set; }
 
         // Methods.

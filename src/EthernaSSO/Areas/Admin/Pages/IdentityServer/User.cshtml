@@ -19,8 +19,9 @@
     ViewData["Title"] = "User";
 
     var etherPrevAddressesToString = Model.EtherPreviousAddresses.Any() ?
-        Model.EtherPreviousAddresses.Aggregate((a, b) => a + '\n' + b) :
-        "";
+        Model.EtherPreviousAddresses.Aggregate((a, b) => a + '\n' + b) : "";
+    var externalLoginProvidersToString = Model.ExternalLoginProviders.Any() ?
+        Model.ExternalLoginProviders.Aggregate((a, b) => a + '\n' + b) : "";
 }
 
 <div class="row">
@@ -35,6 +36,7 @@
 
     <div class="col-12">
         <h2>@ViewData["Title"]</h2>
+        <partial name="_StatusMessage" model="Model.StatusMessage" />
     </div>
 </div>
 
@@ -42,25 +44,25 @@
 
     <div asp-validation-summary="All" class="text-danger"></div>
 
-    @if (Model.Id is not null)
+    @if (Model.Input.Id is not null)
     {
         <!--Button-->
         <div class="mb-3 row">
             <div class="col-md-12 col-m-b-10  col-m-t-10">
-                <a asp-page="UserClaims" asp-route-id="@Model.Id" class="btn btn-outline-primary">Manage User Claims</a>
-                <a asp-page="UserRoles" asp-route-id="@Model.Id" class="btn btn-outline-primary">Manage User Roles</a>
+                <a asp-page="UserClaims" asp-route-id="@Model.Input.Id" class="btn btn-outline-primary">Manage User Claims</a>
+                <a asp-page="UserRoles" asp-route-id="@Model.Input.Id" class="btn btn-outline-primary">Manage User Roles</a>
                 @if (!Model.IsWeb3)
                 {
-                    <a asp-page="UserProviders" asp-route-id="@Model.Id" class="btn btn-outline-primary">Manage User External Providers</a>
-                    <a asp-page="UserChangePassword" asp-route-id="@Model.Id" class="btn btn-dark">Change Password</a>
+                    <a asp-page="UserProviders" asp-route-id="@Model.Input.Id" class="btn btn-outline-primary">Manage User External Providers</a>
+                    <a asp-page="UserChangePassword" asp-route-id="@Model.Input.Id" class="btn btn-dark">Change Password</a>
                 }
-                <a asp-page="UserDelete" asp-route-id="@Model.Id" class="btn btn-danger">Delete User</a>
+                <a asp-page="UserDelete" asp-route-id="@Model.Input.Id" class="btn btn-danger">Delete User</a>
             </div>
         </div>
     }
 
     <!--Hidden -->
-    <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="Input.Id" />
 
     <div class="card mt-3">
         @if (Model.IsWeb3)
@@ -82,6 +84,17 @@
                             <span asp-validation-for="Input.Username" class="text-danger"></span>
                         </div>
                     </div>
+
+                    @if (Model.Input.Id is null)
+                    {
+                        <div class="mb-3 row">
+                            <label asp-for="Input.NewUserPassword" class="col-sm-3 col-form-label"></label>
+                            <div class="col-sm-9">
+                                <input type="password" class="form-control" asp-for="Input.NewUserPassword">
+                                <span asp-validation-for="Input.NewUserPassword" class="text-danger"></span>
+                            </div>
+                        </div>
+                    }
 
                     <div class="mb-3 row">
                         <label asp-for="@Model.EtherAddress" class="col-sm-3 col-form-label"></label>
@@ -154,6 +167,23 @@
                     @if (!Model.IsWeb3) // Web2 only account
                     {
                         <h6>Web2 fields</h6>
+
+                        <div class="mb-3 row">
+                            <label asp-for="@Model.HasPassword" class="col-sm-3 col-form-label"></label>
+                            <div class="col-sm-9">
+                                <input asp-for="@Model.HasPassword" disabled type="checkbox">
+                            </div>
+                        </div>
+
+                        <div class="mb-3 row">
+                            <label asp-for="@Model.ExternalLoginProviders" class="col-sm-3 col-form-label"></label>
+                            <div class="col-sm-9">
+                                <textarea type="text" disabled
+                                          asp-for="@externalLoginProvidersToString"
+                                          rows="@Math.Max(1, Model.ExternalLoginProviders.Count())"
+                                          class="form-control"></textarea>
+                            </div>
+                        </div>
 
                         <div class="mb-3 row">
                             <label asp-for="Input.EtherLoginAddress" class="col-sm-3 col-form-label"></label>

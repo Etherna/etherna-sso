@@ -74,7 +74,6 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.Invitations
         [Display(Name = "Total alive invites")]
         public int TotalAlive { get; set; }
 
-        [TempData]
         public string? StatusMessage { get; set; }
 
         // Methods.
@@ -152,7 +151,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.Invitations
             var invitations = new Invitation[quantity];
 
             for (int i = 0; i < quantity; i++)
-                invitations[i] = new Invitation(DefaultInvitationDuration, user, true);
+                invitations[i] = new Invitation(DefaultInvitationDuration, user, true, true);
 
             await ssoDbContext.Invitations.CreateAsync(invitations);
 

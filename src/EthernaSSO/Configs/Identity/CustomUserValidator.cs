@@ -76,7 +76,7 @@ namespace Etherna.SSOServer.Configs.Identity
 
             // Validate invitation.
             if (user.Id is null && //is registering
-                applicationSettings.RequireInvitation && user.InvitedBy is null)
+                applicationSettings.RequireInvitation && !user.IsInvited)
                 errors.Add(new IdentityError
                 {
                     Code = "RequiredInvitation",
@@ -143,7 +143,7 @@ namespace Etherna.SSOServer.Configs.Identity
                 user.CanLoginWithUsername;
 
             if (!hasValidLogin)
-                errors.Add(Describer.DefaultError());
+                errors.Add(new IdentityError { Description = "Error, user doesn't have a valid login method" });
         }
     }
 }

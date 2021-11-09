@@ -30,9 +30,10 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
             {
                 mm.AutoMap();
 
-                // Set members to ignore if null.
+                // Set members to ignore if null or default.
                 mm.GetMemberMap(u => u.Email).SetIgnoreIfNull(true);
                 mm.GetMemberMap(u => u.InvitedBy).SetIgnoreIfNull(true);
+                mm.GetMemberMap(u => u.InvitedByAdmin).SetIgnoreIfDefault(true);
                 mm.GetMemberMap(u => u.LockoutEnabled).SetIgnoreIfNull(true);
                 mm.GetMemberMap(u => u.LockoutEnd).SetIgnoreIfNull(true);
                 mm.GetMemberMap(u => u.NormalizedEmail).SetIgnoreIfNull(true);
