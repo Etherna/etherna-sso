@@ -14,6 +14,7 @@
 
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Extensions;
 using Etherna.SSOServer.Services.Domain;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -158,7 +159,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
 
             await signInManager.SignOutAsync();
 
-            logger.LogInformation("User with ID '{UserId}' deleted themselves.", userId);
+            logger.AccountDeleted(userId, userId);
         }
     }
 }

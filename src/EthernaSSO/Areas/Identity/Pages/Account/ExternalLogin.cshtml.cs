@@ -17,6 +17,7 @@ using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Events;
 using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Extensions;
 using Etherna.SSOServer.Services.Domain;
 using Etherna.SSOServer.Services.Settings;
 using IdentityServer4.Services;
@@ -150,7 +151,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             if (logger.IsEnabled(LogLevel.Debug) && authResult.Principal is not null)
             {
                 var externalClaims = authResult.Principal.Claims.Select(c => $"{c.Type}: {c.Value}");
-                logger.LogDebug("External claims: {@claims}", externalClaims);
+                logger.ExternalClaims(externalClaims);
             }
 
             // Get external login info and user.
@@ -185,7 +186,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                     clientId: context?.Client?.ClientId,
                     provider: info.LoginProvider,
                     providerUserId: info.ProviderKey));
-                logger.LogInformation($"{info.Principal.Identity.Name} logged in with {info.LoginProvider} provider.");
+                logger.LoggedInWithProvider(info.Principal.Identity.Name!, info.LoginProvider);
 
                 // Identify redirect.
                 return await ContextedRedirectAsync(context, returnUrl);
@@ -245,7 +246,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                     clientId: context?.Client?.ClientId,
                     provider: info.LoginProvider,
                     providerUserId: info.ProviderKey));
-                logger.LogInformation($"User created an account using {info.LoginProvider} provider.");
+                logger.CreatedAccountWithProvider(user.Id, info.LoginProvider);
 
                 // Redirect to add verified email page.
                 return RedirectToPage("SetVerifiedEmail", new { email, returnUrl });

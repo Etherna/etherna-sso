@@ -13,6 +13,7 @@
 //   limitations under the License.
 
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Extensions;
 using Etherna.SSOServer.Services.Settings;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -118,7 +119,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
 
             await userManager.SetTwoFactorEnabledAsync(user, true);
             var userId = await userManager.GetUserIdAsync(user);
-            logger.LogInformation("User with ID '{UserId}' has enabled 2FA with an authenticator app.", userId);
+            logger.Enabled2FAWithAuthApp(userId);
 
             StatusMessage = "Your authenticator app has been verified.";
 
