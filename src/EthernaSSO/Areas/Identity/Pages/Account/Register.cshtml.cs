@@ -42,7 +42,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         {
             // Properties.
             [Required]
-            [RegularExpression(UsernameHelper.UsernameRegex, ErrorMessage = "Allowed characters are a-z, A-Z, 0-9, _. Permitted length is between 5 and 20.")]
+            [RegularExpression(UsernameHelper.UsernameRegex, ErrorMessage = UsernameHelper.UsernameValidationErrorMessage)]
             [Display(Name = "Username")]
             public string Username { get; set; } = default!;
 
