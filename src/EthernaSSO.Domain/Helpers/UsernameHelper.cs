@@ -22,7 +22,8 @@ namespace Etherna.SSOServer.Domain.Helpers
     {
         // Consts.
         public const string AllowedUsernameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._";
-        public const string UsernameRegex = "^[a-zA-Z0-9_]{5,20}$";
+        public const string UsernameRegex = "^[a-zA-Z0-9_]{5,25}$";
+        public const string UsernameValidationErrorMessage = "Allowed characters are a-z, A-Z, 0-9, _. Permitted length is between 5 and 25.";
 
         // Methods.
         public static bool IsValidUsername(string username) =>
