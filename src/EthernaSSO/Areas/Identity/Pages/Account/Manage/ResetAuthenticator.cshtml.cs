@@ -13,6 +13,7 @@
 //   limitations under the License.
 
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -24,19 +25,19 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
     public class ResetAuthenticatorModel : PageModel
     {
         // Fields.
-        private readonly UserManager<UserBase> _userManager;
-        private readonly SignInManager<UserBase> _signInManager;
-        private readonly ILogger<ResetAuthenticatorModel> _logger;
+        private readonly ILogger<ResetAuthenticatorModel> logger;
+        private readonly SignInManager<UserBase> signInManager;
+        private readonly UserManager<UserBase> userManager;
 
         // Constructor.
         public ResetAuthenticatorModel(
-            UserManager<UserBase> userManager,
+            ILogger<ResetAuthenticatorModel> logger,
             SignInManager<UserBase> signInManager,
-            ILogger<ResetAuthenticatorModel> logger)
+            UserManager<UserBase> userManager)
         {
-            _userManager = userManager;
-            _signInManager = signInManager;
-            _logger = logger;
+            this.logger = logger;
+            this.signInManager = signInManager;
+            this.userManager = userManager;
         }
 
         // Properties.
@@ -46,10 +47,10 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
         // Methods.
         public async Task<IActionResult> OnGet()
         {
-            var user = await _userManager.GetUserAsync(User);
+            var user = await userManager.GetUserAsync(User);
             if (user == null)
             {
-                return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
+                return NotFound($"Unable to load user with ID '{userManager.GetUserId(User)}'.");
             }
 
             return Page();
@@ -57,17 +58,17 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
 
         public async Task<IActionResult> OnPostAsync()
         {
-            var user = await _userManager.GetUserAsync(User);
+            var user = await userManager.GetUserAsync(User);
             if (user == null)
             {
-                return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
+                return NotFound($"Unable to load user with ID '{userManager.GetUserId(User)}'.");
             }
 
-            await _userManager.SetTwoFactorEnabledAsync(user, false);
-            await _userManager.ResetAuthenticatorKeyAsync(user);
-            _logger.LogInformation("User with ID '{UserId}' has reset their authentication app key.", user.Id);
+            await userManager.SetTwoFactorEnabledAsync(user, false);
+            await userManager.ResetAuthenticatorKeyAsync(user);
+            logger.Resetted2FAAuthApp(user.Id);
 
-            await _signInManager.RefreshSignInAsync(user);
+            await signInManager.RefreshSignInAsync(user);
             StatusMessage = "Your authenticator app key has been reset, you will need to configure your authenticator app using the new key.";
 
             return RedirectToPage("./EnableAuthenticator");

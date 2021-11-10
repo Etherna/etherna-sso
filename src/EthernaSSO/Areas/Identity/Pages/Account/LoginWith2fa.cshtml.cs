@@ -15,6 +15,7 @@
 using Etherna.DomainEvents;
 using Etherna.SSOServer.Domain.Events;
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Extensions;
 using IdentityServer4.Services;
 using IdentityServer4.Stores;
 using Microsoft.AspNetCore.Authorization;
@@ -109,19 +110,19 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
                 // Rise event and create log.
                 await eventDispatcher.DispatchAsync(new UserLoginSuccessEvent(user, clientId: context?.Client?.ClientId));
-                logger.LogInformation($"User with ID '{user.Id}' logged in with 2fa.");
+                logger.LoggedInWith2FA(user.Id);
 
                 // Identify redirect.
                 return await ContextedRedirectAsync(context, returnUrl);
             }
             else if (result.IsLockedOut)
             {
-                logger.LogWarning("User with ID '{UserId}' account locked out.", user.Id);
+                logger.LockedOutLoginAttempt(user.Id);
                 return RedirectToPage("./Lockout");
             }
             else
             {
-                logger.LogWarning("Invalid authenticator code entered for user with ID '{UserId}'.", user.Id);
+                logger.Invalid2FACodeAttempt(user.Id);
                 ModelState.AddModelError(string.Empty, "Invalid authenticator code.");
                 return Page();
             }

@@ -13,6 +13,7 @@
 //   limitations under the License.
 
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -70,7 +71,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             if (!disable2faResult.Succeeded)
                 throw new InvalidOperationException($"Unexpected error occurred disabling 2FA for user with ID '{userManager.GetUserId(User)}'.");
 
-            logger.LogInformation("User with ID '{UserId}' has disabled 2fa.", userManager.GetUserId(User));
+            logger.Disabled2FA(userManager.GetUserId(User));
             StatusMessage = "2fa has been disabled. You can reenable 2fa when you setup an authenticator app";
             return RedirectToPage("./TwoFactorAuthentication");
         }

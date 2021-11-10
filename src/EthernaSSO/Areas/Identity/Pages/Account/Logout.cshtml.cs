@@ -15,6 +15,7 @@
 using Etherna.DomainEvents;
 using Etherna.SSOServer.Domain.Events;
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Extensions;
 using IdentityServer4.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -116,7 +117,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             {
                 await signInManager.SignOutAsync();
 
-                logger.LogInformation("User logged out.");
+                logger.LoggedOut();
                 var user = await userManager.GetUserAsync(User);
                 await eventDispatcher.DispatchAsync(new UserLogoutSuccessEvent(user));
             }
