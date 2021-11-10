@@ -13,6 +13,7 @@
 //   limitations under the License.
 
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -47,7 +48,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             if (user == null)
                 return NotFound($"Unable to load user with ID '{userManager.GetUserId(User)}'.");
 
-            logger.LogInformation($"User with ID '{userManager.GetUserId(User)}' asked for their personal data.");
+            logger.DownloadedPersonalData(userManager.GetUserId(User));
 
             // Only include personal data for download
             var personalData = new Dictionary<string, object?>();

@@ -16,6 +16,7 @@ using Etherna.DomainEvents;
 using Etherna.SSOServer.Domain.Events;
 using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Extensions;
 using Etherna.SSOServer.Services.Domain;
 using Etherna.SSOServer.Services.Settings;
 using IdentityServer4.Services;
@@ -41,7 +42,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         {
             // Properties.
             [Required]
-            [RegularExpression(UsernameHelper.UsernameRegex, ErrorMessage = "Allowed characters are a-z, A-Z, 0-9, _. Permitted length is between 5 and 20.")]
+            [RegularExpression(UsernameHelper.UsernameRegex, ErrorMessage = UsernameHelper.UsernameValidationErrorMessage)]
             [Display(Name = "Username")]
             public string Username { get; set; } = default!;
 
@@ -140,7 +141,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
                 // Rise event and create log.
                 await eventDispatcher.DispatchAsync(new UserLoginSuccessEvent(user, clientId: context?.Client?.ClientId));
-                logger.LogInformation("User created a new account with password.");
+                logger.CreatedAccountWithPassword(user.Id);
 
                 // Redirect to add verified email page.
                 return RedirectToPage("SetVerifiedEmail", new { returnUrl });

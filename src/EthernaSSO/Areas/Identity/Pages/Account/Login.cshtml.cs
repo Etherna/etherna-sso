@@ -15,6 +15,7 @@
 using Etherna.DomainEvents;
 using Etherna.SSOServer.Domain.Events;
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Extensions;
 using IdentityServer4.Services;
 using IdentityServer4.Stores;
 using Microsoft.AspNetCore.Authentication;
@@ -119,7 +120,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             {
                 // Rise event and create log.
                 await eventDispatcher.DispatchAsync(new UserLoginSuccessEvent(user, clientId: context?.Client?.ClientId));
-                logger.LogInformation("User logged in.");
+                logger.LoggedInWithPassword(user.Id);
 
                 // Identify redirect.
                 return await ContextedRedirectAsync(context, returnUrl);
@@ -132,7 +133,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
             else if (result.IsLockedOut)
             {
-                logger.LogWarning("User account locked out.");
+                logger.LockedOutLoginAttempt(user.Id);
                 return RedirectToPage("./Lockout");
             }
 

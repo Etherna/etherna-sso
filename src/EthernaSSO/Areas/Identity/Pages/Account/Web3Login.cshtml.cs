@@ -17,6 +17,7 @@ using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Events;
 using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Extensions;
 using Etherna.SSOServer.Services.Domain;
 using Etherna.SSOServer.Services.Settings;
 using IdentityServer4.Services;
@@ -43,7 +44,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             public string? InvitationCode { get; set; }
 
             [Required]
-            [RegularExpression(UsernameHelper.UsernameRegex, ErrorMessage = "Allowed characters are a-z, A-Z, 0-9, _. Permitted length is between 5 and 20.")]
+            [RegularExpression(UsernameHelper.UsernameRegex, ErrorMessage = UsernameHelper.UsernameValidationErrorMessage)]
             [Display(Name = "Username")]
             public string Username { get; set; } = default!;
 
@@ -173,7 +174,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                     clientId: context?.Client?.ClientId,
                     provider: "web3",
                     providerUserId: etherAddress));
-                logger.LogInformation($"{etherAddress} logged in with web3.");
+                logger.LoggedInWithWeb3(user.Id);
 
                 // Identify redirect.
                 return await ContextedRedirectAsync(context, returnUrl);
@@ -233,7 +234,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                     clientId: context?.Client?.ClientId,
                     provider: "web3",
                     providerUserId: etherAddress));
-                logger.LogInformation($"{etherAddress} created a web3 account and logged in.");
+                logger.CreatedAccountWithWeb3(user.Id);
 
                 // Redirect to add verified email page.
                 return RedirectToPage("SetVerifiedEmail", new { returnUrl });
