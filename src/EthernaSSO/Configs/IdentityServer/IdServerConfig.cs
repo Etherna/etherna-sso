@@ -12,7 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-using Etherna.RCL;
+using Etherna.Authentication;
 using Etherna.RCL.Exceptions;
 using IdentityServer4;
 using IdentityServer4.Models;
@@ -229,9 +229,9 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                 Name = "ether_accounts",
                 UserClaims = new List<string>()
                 {
-                    UserClaimTypes.EtherAddress,
-                    UserClaimTypes.EtherPreviousAddresses,
-                    UserClaimTypes.IsWeb3Account
+                    ClaimTypes.EtherAddress,
+                    ClaimTypes.EtherPreviousAddresses,
+                    ClaimTypes.IsWeb3Account
                 }
             },
             new IdentityResource()
@@ -240,7 +240,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                 Name = "role",
                 UserClaims = new List<string>()
                 {
-                    UserClaimTypes.Role
+                    ClaimTypes.Role
                 }
             }
         };
