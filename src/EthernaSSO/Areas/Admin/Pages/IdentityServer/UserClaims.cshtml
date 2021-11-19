@@ -100,7 +100,7 @@
                                     <td>@claim.Type</td>
                                     <td>@claim.Value</td>
                                     <td>
-                                        @if (!UserClaimTypes.Names.Contains(claim.Type))
+                                        @if (!UserBase.DomainManagedClaimNames.Contains(claim.Type))
                                         {
                                             <a asp-page="UserClaimsDelete"
                                                asp-route-claimType="@claim.Type"
