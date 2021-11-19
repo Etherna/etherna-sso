@@ -12,21 +12,30 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Etherna.Authentication;
 using Etherna.MongODM.Core.Attributes;
-using Etherna.RCL;
 using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models.UserAgg;
 using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Claims;
 using System.Text.Json;
 
 namespace Etherna.SSOServer.Domain.Models
 {
     public abstract class UserBase : EntityModelBase<string>
     {
+        // Consts.
+        public static readonly IEnumerable<string> DomainManagedClaimNames = new[]
+        {
+            ClaimTypes.EtherAddress,
+            ClaimTypes.EtherPreviousAddresses,
+            ClaimTypes.IsWeb3Account,
+            ClaimTypes.Role,
+            ClaimTypes.Username
+        };
+
         // Fields.
         private readonly List<UserClaim> _customClaims = new();
         private List<string> _etherPreviousAddresses = new();
@@ -58,10 +67,10 @@ namespace Etherna.SSOServer.Domain.Models
             {
                 var claims = new List<UserClaim>
                 {
-                    new UserClaim(UserClaimTypes.EtherAddress, EtherAddress),
-                    new UserClaim(UserClaimTypes.EtherPreviousAddresses, JsonSerializer.Serialize(_etherPreviousAddresses)),
-                    new UserClaim(UserClaimTypes.IsWeb3Account, (this is UserWeb3).ToString()),
-                    new UserClaim(UserClaimTypes.Username, Username)
+                    new UserClaim(ClaimTypes.EtherAddress, EtherAddress),
+                    new UserClaim(ClaimTypes.EtherPreviousAddresses, JsonSerializer.Serialize(_etherPreviousAddresses)),
+                    new UserClaim(ClaimTypes.IsWeb3Account, (this is UserWeb3).ToString()),
+                    new UserClaim(ClaimTypes.Username, Username)
                 };
 
                 foreach (var role in _roles)
@@ -110,7 +119,7 @@ namespace Etherna.SSOServer.Domain.Models
                 throw new ArgumentNullException(nameof(claim));
 
             //keep default claims managed by model
-            if (UserClaimTypes.Names.Contains(claim.Type))
+            if (DomainManagedClaimNames.Contains(claim.Type))
                 return false;
 
             //don't add duplicate claims
