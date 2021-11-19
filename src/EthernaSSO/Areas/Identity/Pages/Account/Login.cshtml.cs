@@ -114,7 +114,9 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             }
 
             //validate login
-            var result = await signInManager.PasswordSignInAsync(user, Input.Password, true, lockoutOnFailure: true);
+            var result = user is UserWeb2 ? //if user is not UserWeb2, fail password login
+                await signInManager.PasswordSignInAsync(user, Input.Password, true, lockoutOnFailure: true) :
+                Microsoft.AspNetCore.Identity.SignInResult.Failed;
 
             if (result.Succeeded)
             {
