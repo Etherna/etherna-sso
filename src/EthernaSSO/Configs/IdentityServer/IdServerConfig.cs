@@ -79,6 +79,8 @@ namespace Etherna.SSOServer.Configs.IdentityServer
 
         // Fields.
         private readonly string ethernaCredit_BaseUrl;
+        private readonly string ethernaCredit_Sso_ClientId;
+        private readonly string ethernaCredit_Sso_Secret;
         private readonly string ethernaCredit_Webapp_ClientId;
         private readonly string ethernaCredit_Webapp_Secret;
 
@@ -92,6 +94,8 @@ namespace Etherna.SSOServer.Configs.IdentityServer
         private readonly string ethernaGateway_Webapp_Secret;
 
         private readonly string ethernaIndex_BaseUrl;
+        private readonly string ethernaIndex_Sso_ClientId;
+        private readonly string ethernaIndex_Sso_Secret;
         private readonly string ethernaIndex_Webapp_ClientId;
         private readonly string ethernaIndex_Webapp_Secret;
 
@@ -102,6 +106,8 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                 throw new ArgumentNullException(nameof(configuration));
 
             ethernaCredit_BaseUrl = configuration["IdServer:Clients:EthernaCredit:BaseUrl"] ?? throw new ServiceConfigurationException();
+            ethernaCredit_Sso_ClientId = configuration["IdServer:Clients:EthernaCredit:Clients:SsoServer:ClientId"] ?? throw new ServiceConfigurationException();
+            ethernaCredit_Sso_Secret = configuration["IdServer:Clients:EthernaCredit:Clients:SsoServer:Secret"] ?? throw new ServiceConfigurationException();
             ethernaCredit_Webapp_ClientId = configuration["IdServer:Clients:EthernaCredit:Clients:Webapp:ClientId"] ?? throw new ServiceConfigurationException();
             ethernaCredit_Webapp_Secret = configuration["IdServer:Clients:EthernaCredit:Clients:Webapp:Secret"] ?? throw new ServiceConfigurationException();
 
@@ -115,6 +121,8 @@ namespace Etherna.SSOServer.Configs.IdentityServer
             ethernaGateway_Webapp_Secret = configuration["IdServer:Clients:EthernaGateway:Clients:Webapp:Secret"] ?? throw new ServiceConfigurationException();
 
             ethernaIndex_BaseUrl = configuration["IdServer:Clients:EthernaIndex:BaseUrl"] ?? throw new ServiceConfigurationException();
+            ethernaIndex_Sso_ClientId = configuration["IdServer:Clients:EthernaIndex:Clients:SsoServer:ClientId"] ?? throw new ServiceConfigurationException();
+            ethernaIndex_Sso_Secret = configuration["IdServer:Clients:EthernaIndex:Clients:SsoServer:Secret"] ?? throw new ServiceConfigurationException();
             ethernaIndex_Webapp_ClientId = configuration["IdServer:Clients:EthernaIndex:Clients:Webapp:ClientId"] ?? throw new ServiceConfigurationException();
             ethernaIndex_Webapp_Secret = configuration["IdServer:Clients:EthernaIndex:Clients:Webapp:Secret"] ?? throw new ServiceConfigurationException();
         }
@@ -134,6 +142,23 @@ namespace Etherna.SSOServer.Configs.IdentityServer
 
         public IEnumerable<Client> Clients => new Client[]
         {
+            //credit (sso client)
+            new Client
+            {
+                ClientId = ethernaCredit_Sso_ClientId,
+                ClientName = "EthernaCredit Sso client",
+                ClientSecrets = { new Secret(ethernaCredit_Sso_Secret.Sha256()) },
+
+                //no interactive user, use the clientid/secret for authentication
+                AllowedGrantTypes = GrantTypes.ClientCredentials,
+
+                //scopes that client has access to
+                AllowedScopes =
+                {
+                    ApiScopesDef.EthernaSsoUserContactInfo.Name
+                }
+            },
+
             //credit (user login)
             new Client
             {
@@ -238,6 +263,23 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                 AllowOfflineAccess = true
             },
             
+            //index (sso client)
+            new Client
+            {
+                ClientId = ethernaIndex_Sso_ClientId,
+                ClientName = "EthernaIndex Sso client",
+                ClientSecrets = { new Secret(ethernaIndex_Sso_Secret.Sha256()) },
+
+                //no interactive user, use the clientid/secret for authentication
+                AllowedGrantTypes = GrantTypes.ClientCredentials,
+
+                //scopes that client has access to
+                AllowedScopes =
+                {
+                    ApiScopesDef.EthernaSsoUserContactInfo.Name
+                }
+            },
+
             //index (user login)
             new Client
             {
