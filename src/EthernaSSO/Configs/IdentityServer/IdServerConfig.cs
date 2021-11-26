@@ -27,22 +27,73 @@ namespace Etherna.SSOServer.Configs.IdentityServer
     public class IdServerConfig
     {
         // Consts.
-        private readonly ApiScope EthernaCreditServiceInteractApiScope = new("ethernaCredit_serviceInteract_api", "Etherna Credit service interact API");
-        private readonly ApiScope EthernaSsoUserContactInfoApiScope = new("ethernaSso_userContactInfo_api", "Etherna SSO user contatct info API");
+        private static class ApiResourcesDef
+        {
+            public static readonly ApiResource EthernaCreditServiceInteract = new(
+                "ethernaCreditServiceInteract",
+                "Etherna Credit service interact")
+            {
+                Scopes = { ApiScopesDef.EthernaCreditServiceInteract.Name }
+            };
+
+            public static readonly ApiResource EthernaSsoServiceInteract = new(
+                "ethernaSsoServiceInteract",
+                "Etherna SSO service interact")
+            {
+                Scopes = { ApiScopesDef.EthernaSsoUserContactInfo.Name }
+            };
+        }
+        private static class ApiScopesDef
+        {
+            public static readonly ApiScope EthernaCreditServiceInteract = new(
+                "ethernaCredit_serviceInteract_api",
+                "Etherna Credit service interact API");
+
+            public static readonly ApiScope EthernaSsoUserContactInfo = new(
+                "ethernaSso_userContactInfo_api",
+                "Etherna SSO user contatct info API");
+        }
+        private static class IdResourcesDef
+        {
+            public static readonly IdentityResource EtherAccounts = new()
+            {
+                DisplayName = "Ether accounts",
+                Name = "ether_accounts",
+                UserClaims = new List<string>()
+                {
+                    ClaimTypes.EtherAddress,
+                    ClaimTypes.EtherPreviousAddresses,
+                    ClaimTypes.IsWeb3Account
+                }
+            };
+            public static readonly IdentityResource Role = new()
+            {
+                DisplayName = "Role",
+                Name = "role",
+                UserClaims = new List<string>()
+                {
+                    ClaimTypes.Role
+                }
+            };
+        }
 
         // Fields.
-        private readonly string ethernaCreditBaseUrl;
-        private readonly string ethernaCreditSecret;
+        private readonly string ethernaCredit_BaseUrl;
+        private readonly string ethernaCredit_Webapp_ClientId;
+        private readonly string ethernaCredit_Webapp_Secret;
 
-        private readonly string ethernaDappBaseUrl;
+        private readonly string ethernaDapp_BaseUrl;
+        private readonly string ethernaDapp_ClientId;
 
-        private readonly string ethernaGatewayCreditSecret;
+        private readonly string[] ethernaGateway_BaseUrls;
+        private readonly string ethernaGateway_Credit_ClientId;
+        private readonly string ethernaGateway_Credit_Secret;
+        private readonly string ethernaGateway_Webapp_ClientId;
+        private readonly string ethernaGateway_Webapp_Secret;
 
-        private readonly string[] ethernaGatewayWebappBaseUrls;
-        private readonly string ethernaGatewayWebappSecret;
-
-        private readonly string ethernaIndexBaseUrl;
-        private readonly string ethernaIndexSecret;
+        private readonly string ethernaIndex_BaseUrl;
+        private readonly string ethernaIndex_Webapp_ClientId;
+        private readonly string ethernaIndex_Webapp_Secret;
 
         // Constructor.
         public IdServerConfig(IConfiguration configuration)
@@ -50,55 +101,61 @@ namespace Etherna.SSOServer.Configs.IdentityServer
             if (configuration is null)
                 throw new ArgumentNullException(nameof(configuration));
 
-            ethernaCreditBaseUrl = configuration["IdServer:Clients:EthernaCredit:BaseUrl"] ?? throw new ServiceConfigurationException();
-            ethernaCreditSecret = configuration["IdServer:Clients:EthernaCredit:Secret"] ?? throw new ServiceConfigurationException();
+            ethernaCredit_BaseUrl = configuration["IdServer:Clients:EthernaCredit:BaseUrl"] ?? throw new ServiceConfigurationException();
+            ethernaCredit_Webapp_ClientId = configuration["IdServer:Clients:EthernaCredit:Clients:Webapp:ClientId"] ?? throw new ServiceConfigurationException();
+            ethernaCredit_Webapp_Secret = configuration["IdServer:Clients:EthernaCredit:Clients:Webapp:Secret"] ?? throw new ServiceConfigurationException();
 
-            ethernaDappBaseUrl = configuration["IdServer:Clients:EthernaDapp:BaseUrl"] ?? throw new ServiceConfigurationException();
+            ethernaDapp_BaseUrl = configuration["IdServer:Clients:EthernaDapp:BaseUrl"] ?? throw new ServiceConfigurationException();
+            ethernaDapp_ClientId = configuration["IdServer:Clients:EthernaDapp:ClientId"] ?? throw new ServiceConfigurationException();
 
-            ethernaGatewayCreditSecret = configuration["IdServer:Clients:EthernaGatewayCreditClient:Secret"] ?? throw new ServiceConfigurationException();
+            ethernaGateway_BaseUrls = configuration.GetSection("IdServer:Clients:EthernaGateway:BaseUrls").Get<string[]>() ?? throw new ServiceConfigurationException();
+            ethernaGateway_Credit_ClientId = configuration["IdServer:Clients:EthernaGateway:Clients:Credit:ClientId"] ?? throw new ServiceConfigurationException();
+            ethernaGateway_Credit_Secret = configuration["IdServer:Clients:EthernaGateway:Clients:Credit:Secret"] ?? throw new ServiceConfigurationException();
+            ethernaGateway_Webapp_ClientId = configuration["IdServer:Clients:EthernaGateway:Clients:Webapp:ClientId"] ?? throw new ServiceConfigurationException();
+            ethernaGateway_Webapp_Secret = configuration["IdServer:Clients:EthernaGateway:Clients:Webapp:Secret"] ?? throw new ServiceConfigurationException();
 
-            ethernaGatewayWebappBaseUrls = configuration.GetSection("IdServer:Clients:EthernaGatewayWebapp:BaseUrls").Get<string[]>() ?? throw new ServiceConfigurationException();
-            ethernaGatewayWebappSecret = configuration["IdServer:Clients:EthernaGatewayWebapp:Secret"] ?? throw new ServiceConfigurationException();
-
-            ethernaIndexBaseUrl = configuration["IdServer:Clients:EthernaIndex:BaseUrl"] ?? throw new ServiceConfigurationException();
-            ethernaIndexSecret = configuration["IdServer:Clients:EthernaIndex:Secret"] ?? throw new ServiceConfigurationException();
+            ethernaIndex_BaseUrl = configuration["IdServer:Clients:EthernaIndex:BaseUrl"] ?? throw new ServiceConfigurationException();
+            ethernaIndex_Webapp_ClientId = configuration["IdServer:Clients:EthernaIndex:Clients:Webapp:ClientId"] ?? throw new ServiceConfigurationException();
+            ethernaIndex_Webapp_Secret = configuration["IdServer:Clients:EthernaIndex:Clients:Webapp:Secret"] ?? throw new ServiceConfigurationException();
         }
 
         // Properties.
+        public IEnumerable<ApiResource> ApiResources => new ApiResource[]
+        {
+            ApiResourcesDef.EthernaCreditServiceInteract,
+            ApiResourcesDef.EthernaSsoServiceInteract
+        };
+
         public IEnumerable<ApiScope> ApiScopes => new ApiScope[]
         {
-            EthernaCreditServiceInteractApiScope,
-            EthernaSsoUserContactInfoApiScope
+            ApiScopesDef.EthernaCreditServiceInteract,
+            ApiScopesDef.EthernaSsoUserContactInfo
         };
 
         public IEnumerable<Client> Clients => new Client[]
         {
-            //credit
+            //credit (user login)
             new Client
             {
-                ClientId = "ethernaCreditClientId",
+                ClientId = ethernaCredit_Webapp_ClientId,
                 ClientName = "Etherna Credit",
-                ClientSecrets = { new Secret(ethernaCreditSecret.Sha256()) },
+                ClientSecrets = { new Secret(ethernaCredit_Webapp_Secret.Sha256()) },
 
-                AllowedGrantTypes = GrantTypes.CodeAndClientCredentials,
+                AllowedGrantTypes = GrantTypes.Code,
 
                 //where to redirect to after login
-                RedirectUris = { $"{ethernaCreditBaseUrl}/signin-oidc" },
+                RedirectUris = { $"{ethernaCredit_BaseUrl}/signin-oidc" },
 
                 //where to redirect to after logout
-                PostLogoutRedirectUris = { $"{ethernaCreditBaseUrl}/signout-callback-oidc" },
+                PostLogoutRedirectUris = { $"{ethernaCredit_BaseUrl}/signout-callback-oidc" },
 
                 AlwaysIncludeUserClaimsInIdToken = true,
                 AllowedScopes = new List<string>
                 {
-                    //for code flow
                     IdentityServerConstants.StandardScopes.OpenId,
                     IdentityServerConstants.StandardScopes.Profile,
-                    "ether_accounts",
-                    "role",
-
-                    //for client credential flow
-                    EthernaSsoUserContactInfoApiScope.Name
+                    IdResourcesDef.EtherAccounts.Name,
+                    IdResourcesDef.Role.Name
                 },
 
                 // Allow token refresh.
@@ -108,28 +165,27 @@ namespace Etherna.SSOServer.Configs.IdentityServer
             //dapp
             new Client
             {
-                ClientId = "ethernaDappClientId",
+                ClientId = ethernaDapp_ClientId,
                 ClientName = "Etherna Dapp",
+                RequireClientSecret = false,
 
                 AllowedGrantTypes = GrantTypes.Code,
-                RequirePkce = true,
-                RequireConsent = false,
-                RequireClientSecret = false,
                     
                 //where to redirect to after login
-                RedirectUris = { $"{ethernaDappBaseUrl}/callback.html" },
+                RedirectUris = { $"{ethernaDapp_BaseUrl}/callback.html" },
 
                 //where to redirect to after logout
-                PostLogoutRedirectUris = { ethernaDappBaseUrl },
+                PostLogoutRedirectUris = { ethernaDapp_BaseUrl },
 
-                AllowedCorsOrigins = { ethernaDappBaseUrl },
+                AllowedCorsOrigins = { ethernaDapp_BaseUrl },
 
-                AllowedScopes = new List<string>
+                AlwaysIncludeUserClaimsInIdToken = true,
+                AllowedScopes =
                 {
                     IdentityServerConstants.StandardScopes.OpenId,
                     IdentityServerConstants.StandardScopes.Profile,
-                    "ether_accounts",
-                    "role"
+                    IdResourcesDef.EtherAccounts.Name,
+                    IdResourcesDef.Role.Name
                 },
 
                 // Allow token refresh.
@@ -137,12 +193,12 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                 RefreshTokenUsage = TokenUsage.OneTimeOnly //because client have not secret
             },
 
-            //gateway validator (credit client)
+            //gateway (credit client)
             new Client
             {
-                ClientId = "ethernaGatevalCreditClientId",
-                ClientName = "Etherna Gateway Validator",
-                ClientSecrets = { new Secret(ethernaGatewayCreditSecret.Sha256()) },
+                ClientId = ethernaGateway_Credit_ClientId,
+                ClientName = "EthernaGateway Credit client",
+                ClientSecrets = { new Secret(ethernaGateway_Credit_Secret.Sha256()) },
 
                 //no interactive user, use the clientid/secret for authentication
                 AllowedGrantTypes = GrantTypes.ClientCredentials,
@@ -150,68 +206,60 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                 //scopes that client has access to
                 AllowedScopes =
                 {
-                    EthernaCreditServiceInteractApiScope.Name
+                    ApiScopesDef.EthernaCreditServiceInteract.Name
                 }
             },
                 
-            //gateway validator (user login)
+            //gateway (user login)
             new Client
             {
-                ClientId = "ethernaGatevalUserClientId",
+                ClientId = ethernaGateway_Webapp_ClientId,
                 ClientName = "Etherna Gateway",
-                ClientSecrets = { new Secret(ethernaGatewayWebappSecret.Sha256()) },
+                ClientSecrets = { new Secret(ethernaGateway_Webapp_Secret.Sha256()) },
 
                 AllowedGrantTypes = GrantTypes.Code,
-                RequireConsent = false,
-                RequirePkce = true,
 
                 //where to redirect to after login
-                RedirectUris = ethernaGatewayWebappBaseUrls.Select(url => $"{url}/signin-oidc").ToList(),
+                RedirectUris = ethernaGateway_BaseUrls.Select(url => $"{url}/signin-oidc").ToList(),
 
                 //where to redirect to after logout
-                PostLogoutRedirectUris = ethernaGatewayWebappBaseUrls.Select(url => $"{url}/signout-callback-oidc").ToList(),
+                PostLogoutRedirectUris = ethernaGateway_BaseUrls.Select(url => $"{url}/signout-callback-oidc").ToList(),
 
                 AlwaysIncludeUserClaimsInIdToken = true,
-                AllowedScopes = new List<string>
+                AllowedScopes =
                 {
                     IdentityServerConstants.StandardScopes.OpenId,
                     IdentityServerConstants.StandardScopes.Profile,
-                    "ether_accounts",
-                    "role"
+                    IdResourcesDef.EtherAccounts.Name,
+                    IdResourcesDef.Role.Name
                 },
 
                 // Allow token refresh.
                 AllowOfflineAccess = true
             },
-
-            //index
+            
+            //index (user login)
             new Client
             {
-                ClientId = "ethernaIndexClientId",
+                ClientId = ethernaIndex_Webapp_ClientId,
                 ClientName = "Etherna Index",
-                ClientSecrets = { new Secret(ethernaIndexSecret.Sha256()) },
+                ClientSecrets = { new Secret(ethernaIndex_Webapp_Secret.Sha256()) },
 
-                AllowedGrantTypes = GrantTypes.CodeAndClientCredentials,
-                RequireConsent = false,
-                RequirePkce = true,
+                AllowedGrantTypes = GrantTypes.Code,
 
                 //where to redirect to after login
-                RedirectUris = { $"{ethernaIndexBaseUrl}/signin-oidc" },
+                RedirectUris = { $"{ethernaIndex_BaseUrl}/signin-oidc" },
 
                 //where to redirect to after logout
-                PostLogoutRedirectUris = { $"{ethernaIndexBaseUrl}/signout-callback-oidc" },
+                PostLogoutRedirectUris = { $"{ethernaIndex_BaseUrl}/signout-callback-oidc" },
 
                 AlwaysIncludeUserClaimsInIdToken = true,
-                AllowedScopes = new List<string>
+                AllowedScopes =
                 {
-                    //for code flow
                     IdentityServerConstants.StandardScopes.OpenId,
                     IdentityServerConstants.StandardScopes.Profile,
-                    "ether_accounts",
-                    "role",
-
-                    //for client credential flow
-                    EthernaSsoUserContactInfoApiScope.Name
+                    IdResourcesDef.EtherAccounts.Name,
+                    IdResourcesDef.Role.Name
                 },
 
                 // Allow token refresh.
@@ -223,26 +271,8 @@ namespace Etherna.SSOServer.Configs.IdentityServer
         {
             new IdentityResources.OpenId(),
             new IdentityResources.Profile(),
-            new IdentityResource()
-            {
-                DisplayName = "Ether accounts",
-                Name = "ether_accounts",
-                UserClaims = new List<string>()
-                {
-                    ClaimTypes.EtherAddress,
-                    ClaimTypes.EtherPreviousAddresses,
-                    ClaimTypes.IsWeb3Account
-                }
-            },
-            new IdentityResource()
-            {
-                DisplayName = "Role",
-                Name = "role",
-                UserClaims = new List<string>()
-                {
-                    ClaimTypes.Role
-                }
-            }
+            IdResourcesDef.EtherAccounts,
+            IdResourcesDef.Role
         };
     }
 }
