@@ -12,17 +12,17 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-namespace Etherna.SSOServer.RCL.Views.Emails
+namespace Etherna.SSOServer.Services.Views.Emails
 {
-    public class ConfirmEmailChangeModel
+    public class InvitationLetterModel
     {
-        public const string Title = "Etherna - Confirm your new email";
+        public const string Title = "Etherna invitation";
 
-        public ConfirmEmailChangeModel(string callbackUrl)
+        public InvitationLetterModel(string invitationUrl)
         {
-            CallbackUrl = callbackUrl;
+            InvitationUrl = invitationUrl;
         }
 
-        public string CallbackUrl { get; }
+        public string InvitationUrl { get; }
     }
 }

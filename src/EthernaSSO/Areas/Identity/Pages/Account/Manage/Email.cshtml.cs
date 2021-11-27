@@ -12,10 +12,9 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-using Etherna.SSOServer.Configs;
+using Etherna.RCL.Services;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
-using Etherna.SSOServer.Services.Utilities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -105,11 +104,11 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
 
                 var emailBody = await razorViewRenderer.RenderViewToStringAsync(
                     "Views/Emails/ConfirmEmailChange.cshtml",
-                    new RCL.Views.Emails.ConfirmEmailChangeModel(callbackUrl));
+                    new Services.Views.Emails.ConfirmEmailChangeModel(callbackUrl));
 
                 await emailSender.SendEmailAsync(
                     Input.NewEmail,
-                    RCL.Views.Emails.ConfirmEmailChangeModel.Title,
+                    Services.Views.Emails.ConfirmEmailChangeModel.Title,
                     emailBody);
 
                 StatusMessage = "Confirmation link to change email sent. Please check your email.";

@@ -12,11 +12,11 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Etherna.RCL.Helpers;
+using Etherna.RCL.Services;
 using Etherna.SSOServer.Domain;
-using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models;
-using Etherna.SSOServer.RCL.Views.Emails;
-using Etherna.SSOServer.Services.Utilities;
+using Etherna.SSOServer.Services.Views.Emails;
 using IdentityServer4.Services;
 using IdentityServer4.Stores;
 using Microsoft.AspNetCore.Identity;
