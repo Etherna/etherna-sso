@@ -12,17 +12,17 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-namespace Etherna.SSOServer.RCL.Views.Emails
+namespace Etherna.SSOServer.Services.Views.Emails
 {
-    public class TotpConfirmEmailModel
+    public class ConfirmEmailChangeModel
     {
-        public const string Title = "Etherna - Confirm your email";
+        public const string Title = "Etherna - Confirm your new email";
 
-        public TotpConfirmEmailModel(string code)
+        public ConfirmEmailChangeModel(string callbackUrl)
         {
-            Code = code;
+            CallbackUrl = callbackUrl;
         }
 
-        public string Code { get; }
+        public string CallbackUrl { get; }
     }
 }

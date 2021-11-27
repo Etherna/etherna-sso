@@ -14,6 +14,7 @@
 
 using Etherna.Authentication;
 using Etherna.MongODM.Core.Attributes;
+using Etherna.RCL.Helpers;
 using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models.UserAgg;
 using Microsoft.AspNetCore.Identity;

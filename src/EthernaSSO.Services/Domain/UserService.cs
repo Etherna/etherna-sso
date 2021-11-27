@@ -13,6 +13,7 @@
 //   limitations under the License.
 
 using Etherna.MongODM.Core.Repositories;
+using Etherna.RCL.Helpers;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models;

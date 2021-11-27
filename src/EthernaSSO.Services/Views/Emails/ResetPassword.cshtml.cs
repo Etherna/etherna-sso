@@ -12,17 +12,17 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-namespace Etherna.SSOServer.RCL.Views.Emails
+namespace Etherna.SSOServer.Services.Views.Emails
 {
-    public class InvitationLetterModel
+    public class ResetPasswordModel
     {
-        public const string Title = "Etherna invitation";
+        public const string Title = "Etherna - Reset password";
 
-        public InvitationLetterModel(string invitationUrl)
+        public ResetPasswordModel(string url)
         {
-            InvitationUrl = invitationUrl;
+            Url = url;
         }
 
-        public string InvitationUrl { get; }
+        public string Url { get; }
     }
 }
