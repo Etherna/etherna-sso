@@ -13,7 +13,7 @@
 //   limitations under the License.
 
 using Etherna.Authentication;
-using Etherna.RCL.Exceptions;
+using Etherna.SSL.Exceptions;
 using IdentityServer4;
 using IdentityServer4.Models;
 using Microsoft.Extensions.Configuration;

@@ -14,6 +14,7 @@
 
 using Etherna.DomainEvents;
 using Etherna.DomainEvents.AspNetCore;
+using Etherna.SSL;
 using Etherna.SSOServer.Services.Domain;
 using Etherna.SSOServer.Services.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,7 +31,7 @@ namespace Etherna.SSOServer.Services
         public static void AddDomainServices(this IServiceCollection services)
         {
             // Dependencies.
-            services.AddEthernaRCL();
+            services.AddEthernaServicesSharedLibrary();
 
             // Events.
             //register handlers in Ioc

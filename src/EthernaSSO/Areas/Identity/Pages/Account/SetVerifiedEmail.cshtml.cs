@@ -12,8 +12,8 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-using Etherna.RCL.Helpers;
-using Etherna.RCL.Services;
+using Etherna.SSL.Helpers;
+using Etherna.SSL.Services;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Services.Views.Emails;
