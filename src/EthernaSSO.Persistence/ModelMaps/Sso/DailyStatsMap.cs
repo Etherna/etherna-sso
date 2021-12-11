@@ -12,9 +12,17 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-using System;
-using System.Runtime.CompilerServices;
+using Etherna.MongODM.Core;
+using Etherna.MongODM.Core.Serialization;
+using Etherna.SSOServer.Domain.Models;
 
-[assembly: CLSCompliant(false)]
-[assembly: InternalsVisibleTo("EthernaSSO.Persistence")]
-[assembly: InternalsVisibleTo("EthernaSSO.Services")]
+namespace Etherna.SSOServer.Persistence.ModelMaps.Sso
+{
+    class DailyStatsMap : IModelMapsCollector
+    {
+        public void Register(IDbContext dbContext)
+        {
+            dbContext.SchemaRegister.AddModelMapsSchema<DailyStats>("375a3f26-9219-4ae4-86cf-32b9ba0ac703");
+        }
+    }
+}

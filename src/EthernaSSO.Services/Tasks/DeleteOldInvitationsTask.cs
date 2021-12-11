@@ -12,9 +12,9 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Etherna.MongoDB.Driver;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
-using MongoDB.Driver;
 using System;
 using System.Threading.Tasks;
 

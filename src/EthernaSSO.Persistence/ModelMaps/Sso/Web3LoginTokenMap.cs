@@ -16,7 +16,7 @@ using Etherna.MongODM.Core;
 using Etherna.MongODM.Core.Serialization;
 using Etherna.SSOServer.Domain.Models;
 
-namespace Etherna.SSOServer.Persistence.ModelMaps
+namespace Etherna.SSOServer.Persistence.ModelMaps.Sso
 {
     class Web3LoginTokenMap : IModelMapsCollector
     {

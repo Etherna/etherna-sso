@@ -13,6 +13,7 @@
 //   limitations under the License.
 
 using Etherna.DomainEvents;
+using Etherna.MongoDB.Driver.Linq;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Events;
 using Etherna.SSOServer.Domain.Helpers;
@@ -29,7 +30,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using MongoDB.Driver.Linq;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;

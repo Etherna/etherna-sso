@@ -12,14 +12,16 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Etherna.MongoDB.Bson;
+using Etherna.MongoDB.Driver.Linq;
+using Etherna.MongODM.Core.Exceptions;
 using Etherna.MongODM.Core.Repositories;
 using Etherna.SSL.Helpers;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Domain.Models.UserAgg;
 using Microsoft.AspNetCore.Identity;
-using MongoDB.Bson;
-using MongoDB.Driver.Linq;
 using Nethereum.Util;
 using System;
 using System.Collections.Generic;
@@ -37,14 +39,17 @@ namespace Etherna.SSOServer.Services.Domain
         public const string InvalidValidationErrorKey = "InvalidInvitation";
 
         // Fields.
+        private readonly IServiceSharedDbContext sharedDbContext;
         private readonly ISsoDbContext ssoDbContext;
         private readonly UserManager<UserBase> userManager;
 
         // Constructor.
         public UserService(
+            IServiceSharedDbContext sharedDbContext,
             ISsoDbContext ssoDbContext,
             UserManager<UserBase> userManager)
         {
+            this.sharedDbContext = sharedDbContext;
             this.ssoDbContext = ssoDbContext;
             this.userManager = userManager;
         }
@@ -56,6 +61,15 @@ namespace Etherna.SSOServer.Services.Domain
             return ssoDbContext.Users.FindOneAsync(
                 u => u.EtherAddress == etherAddress ||
                 u.EtherPreviousAddresses.Contains(etherAddress));
+        }
+
+        public async Task<UserSharedInfo> GetSharedUserInfo(UserBase user)
+        {
+            if (user is null)
+                throw new ArgumentNullException(nameof(user));
+
+            var sharedInfoId = user.UserSharedInfoId;
+            return await sharedDbContext.UsersInfo.FindOneAsync(sharedInfoId);
         }
 
         public Task<(IEnumerable<(string key, string msg)> errors, UserWeb2? user)> RegisterWeb2UserAsync(
@@ -110,28 +124,74 @@ namespace Etherna.SSOServer.Services.Domain
             filterPredicate ??= _ => true;
             query ??= "";
 
-            var queryIsObjectId = ObjectId.TryParse(query, out var parsedObjectId);
-            var queryAsObjectId = queryIsObjectId ? parsedObjectId.ToString() : null;
+            //try search by address
+            if (query.IsValidEthereumAddressHexFormat())
+            {
+                //get user
+                UserBase? user = null;
+                try { user = await FindUserByAddressAsync(query); }
+                catch (MongodmEntityNotFoundException) { }
 
-            var queryAsEtherAddress = query.IsValidEthereumAddressHexFormat() ?
-                query.ConvertToEthereumChecksumAddress() : "";
+                //verify filter predicate
+                if (user is not null)
+                {
+                    var filter = filterPredicate.Compile();
+                    if (!filter(user)) //if filter doesn't allow user
+                        user = null;
+                }
 
-            var queryAsEmail = EmailHelper.IsValidEmail(query) ?
-                EmailHelper.NormalizeEmail(query) : "";
+                return new PaginatedEnumerable<UserBase>(
+                    user is not null ? new[] { user } : Array.Empty<UserBase>(), 0, take, 0 );
+            }
 
-            var queryAsUsername = UsernameHelper.NormalizeUsername(query);
+            //try search by email
+            else if(EmailHelper.IsValidEmail(query))
+            {
+                var normalizedEmail = EmailHelper.NormalizeEmail(query);
 
-            var paginatedUsers = await ssoDbContext.Users.QueryPaginatedElementsAsync(elements =>
-                elements.Where(filterPredicate)
-                        .Where(u => u.Id == queryAsObjectId ||
-                                    u.EtherAddress == queryAsEtherAddress ||
-                                    u.NormalizedEmail == queryAsEmail ||
-                                    u.NormalizedUsername.Contains(queryAsUsername)),
-                orderKeySelector,
-                page,
-                take);
+                return await ssoDbContext.Users.QueryPaginatedElementsAsync(elements =>
+                    elements.Where(filterPredicate)
+                            .Where(u => u.NormalizedEmail == normalizedEmail),
+                    orderKeySelector,
+                    page,
+                    take);
+            }
 
-            return paginatedUsers;
+            //try search by Id
+            else if (ObjectId.TryParse(query, out var parsedObjectId))
+            {
+                var objectId = parsedObjectId.ToString();
+
+                return await ssoDbContext.Users.QueryPaginatedElementsAsync(elements =>
+                    elements.Where(filterPredicate)
+                            .Where(u => u.Id == objectId),
+                    orderKeySelector,
+                    page,
+                    take);
+            }
+
+            //try search by username
+            else
+            {
+                var normalizedUsername = UsernameHelper.NormalizeUsername(query);
+
+                return await ssoDbContext.Users.QueryPaginatedElementsAsync(elements =>
+                    elements.Where(filterPredicate)
+                            .Where(u => u.NormalizedUsername.Contains(normalizedUsername)),
+                    orderKeySelector,
+                    page,
+                    take);
+            }
+        }
+
+        public async Task UpdateLockoutStatusAsync(UserBase user, bool lockoutEnabled, DateTimeOffset? lockoutEnd)
+        {
+            var sharedInfo = await GetSharedUserInfo(user);
+
+            sharedInfo.LockoutEnabled = lockoutEnabled;
+            sharedInfo.LockoutEnd = lockoutEnd;
+
+            await sharedDbContext.SaveChangesAsync();
         }
 
         // Helpers.

@@ -257,7 +257,7 @@ namespace Etherna.SSOServer
             services.Configure<DbSeedSettings>(Configuration.GetSection("DbSeed") ?? throw new ServiceConfigurationException());
 
             // Configure persistence.
-            services.AddMongODMWithHangfire<ModelBase>(configureHangfireOptions: options =>
+            services.AddMongODMWithHangfire(configureHangfireOptions: options =>
             {
                 options.ConnectionString = Configuration["ConnectionStrings:HangfireDb"] ?? throw new ServiceConfigurationException();
                 options.StorageOptions = new MongoStorageOptions
@@ -271,18 +271,30 @@ namespace Etherna.SSOServer
             }, configureMongODMOptions: options =>
             {
                 options.DbMaintenanceQueueName = Queues.DB_MAINTENANCE;
-            }).AddDbContext<ISsoDbContext, SsoDbContext>(sp =>
-            {
-                var eventDispatcher = sp.GetRequiredService<IEventDispatcher>();
-                var passwordHasher = sp.CreateScope().ServiceProvider.GetRequiredService<IPasswordHasher<UserBase>>();
-                var seedSettings = sp.GetRequiredService<IOptions<DbSeedSettings>>();
-                return new SsoDbContext(eventDispatcher, passwordHasher, seedSettings.Value);
-            },
-            options =>
-            {
-                options.DocumentSemVer.CurrentVersion = assemblyVersion.SimpleVersion;
-                options.ConnectionString = Configuration["ConnectionStrings:SSOServerDb"] ?? throw new ServiceConfigurationException();
-            });
+            })
+                .AddDbContext<ISsoDbContext, SsoDbContext>(sp =>
+                {
+                    var eventDispatcher = sp.GetRequiredService<IEventDispatcher>();
+                    var passwordHasher = sp.CreateScope().ServiceProvider.GetRequiredService<IPasswordHasher<UserBase>>();
+                    var seedSettings = sp.GetRequiredService<IOptions<DbSeedSettings>>();
+                    return new SsoDbContext(eventDispatcher, passwordHasher, seedSettings.Value);
+                },
+                options =>
+                {
+                    options.DocumentSemVer.CurrentVersion = assemblyVersion.SimpleVersion;
+                    options.ConnectionString = Configuration["ConnectionStrings:SSOServerDb"] ?? throw new ServiceConfigurationException();
+                })
+                
+                .AddDbContext<IServiceSharedDbContext, ServiceSharedDbContext>(sp =>
+                {
+                    var eventDispatcher = sp.GetRequiredService<IEventDispatcher>();
+                    return new ServiceSharedDbContext(eventDispatcher);
+                },
+                options =>
+                {
+                    options.DocumentSemVer.CurrentVersion = assemblyVersion.SimpleVersion;
+                    options.ConnectionString = Configuration["ConnectionStrings:SSOServerDb"] ?? throw new ServiceConfigurationException();
+                });
 
             services.AddMongODMAdminDashboard(new MongODM.AspNetCore.UI.DashboardOptions
             {

@@ -12,15 +12,15 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Etherna.MongoDB.Bson;
+using Etherna.MongoDB.Bson.Serialization.Serializers;
 using Etherna.MongODM.Core;
 using Etherna.MongODM.Core.Extensions;
 using Etherna.MongODM.Core.Serialization;
 using Etherna.MongODM.Core.Serialization.Serializers;
 using Etherna.SSOServer.Domain.Models;
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Serializers;
 
-namespace Etherna.SSOServer.Persistence.ModelMaps
+namespace Etherna.SSOServer.Persistence.ModelMaps.Sso
 {
     class UserMap : IModelMapsCollector
     {
@@ -34,8 +34,6 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
                 mm.GetMemberMap(u => u.Email).SetIgnoreIfNull(true);
                 mm.GetMemberMap(u => u.InvitedBy).SetIgnoreIfNull(true);
                 mm.GetMemberMap(u => u.InvitedByAdmin).SetIgnoreIfDefault(true);
-                mm.GetMemberMap(u => u.LockoutEnabled).SetIgnoreIfNull(true);
-                mm.GetMemberMap(u => u.LockoutEnd).SetIgnoreIfNull(true);
                 mm.GetMemberMap(u => u.NormalizedEmail).SetIgnoreIfNull(true);
                 mm.GetMemberMap(u => u.NormalizedUsername).SetIgnoreIfNull(true);
                 mm.GetMemberMap(u => u.Username).SetIgnoreIfNull(true);

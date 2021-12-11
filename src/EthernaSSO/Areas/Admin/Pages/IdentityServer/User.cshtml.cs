@@ -15,6 +15,8 @@
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Domain.Models.UserAgg;
+using Etherna.SSOServer.Services.Domain;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -33,16 +35,18 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
         {
             // Constructors.
             public InputModel() { }
-            public InputModel(UserBase user)
+            public InputModel(UserBase user, UserSharedInfo sharedInfo)
             {
                 if (user is null)
                     throw new ArgumentNullException(nameof(user));
+                if (sharedInfo is null)
+                    throw new ArgumentNullException(nameof(sharedInfo));
 
                 Id = user.Id;
                 Email = user.Email;
                 PhoneNumber = user.PhoneNumber;
-                LockoutEnabled = user.LockoutEnabled;
-                LockoutEnd = user.LockoutEnd;
+                LockoutEnabled = sharedInfo.LockoutEnabled;
+                LockoutEnd = sharedInfo.LockoutEnd;
                 Username = user.Username;
 
                 switch (user)
@@ -94,14 +98,17 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
         // Fields.
         private readonly ISsoDbContext context;
         private readonly UserManager<UserBase> userManager;
+        private readonly IUserService userService;
 
         // Constructor.
         public UserModel(
             ISsoDbContext context,
-            UserManager<UserBase> userManager)
+            UserManager<UserBase> userManager,
+            IUserService userService)
         {
             this.context = context;
             this.userManager = userManager;
+            this.userService = userService;
         }
 
         // Properties.
@@ -139,10 +146,11 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
             if (id is not null)
             {
                 var user = await context.Users.FindOneAsync(id);
+                var sharedInfo = await userService.GetSharedUserInfo(user);
 
                 EtherAddress = user.EtherAddress;
                 EtherPreviousAddresses = user.EtherPreviousAddresses;
-                Input = new InputModel(user);
+                Input = new InputModel(user, sharedInfo);
                 IsWeb3 = user is UserWeb3;
                 LastLoginDateTime = user.LastLoginDateTime;
                 PhoneNumberConfirmed = user.PhoneNumberConfirmed;
@@ -197,6 +205,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
             }
             else //update
             {
+                //user info
                 user = await context.Users.FindOneAsync(Input.Id);
 
                 if (user.Username != Input.Username)
@@ -209,10 +218,6 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
 
                 if (user.PhoneNumber != Input.PhoneNumber)
                     user.SetPhoneNumber(Input.PhoneNumber);
-
-                user.LockoutEnabled = Input.LockoutEnabled;
-
-                user.LockoutEnd = Input.LockoutEnd;
 
                 switch (user)
                 {
@@ -231,6 +236,12 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
                 }
 
                 await context.SaveChangesAsync();
+
+                //shared user info
+                await userService.UpdateLockoutStatusAsync(
+                    user,
+                    Input.LockoutEnabled,
+                    Input.LockoutEnd);
             }
 
             return RedirectToPage(new { user.Id });

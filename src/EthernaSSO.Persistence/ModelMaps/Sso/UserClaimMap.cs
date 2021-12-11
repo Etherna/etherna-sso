@@ -14,15 +14,15 @@
 
 using Etherna.MongODM.Core;
 using Etherna.MongODM.Core.Serialization;
-using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Domain.Models.UserAgg;
 
-namespace Etherna.SSOServer.Persistence.ModelMaps
+namespace Etherna.SSOServer.Persistence.ModelMaps.Sso
 {
-    class DailyStatsMap : IModelMapsCollector
+    class UserClaimMap : IModelMapsCollector
     {
         public void Register(IDbContext dbContext)
         {
-            dbContext.SchemaRegister.AddModelMapsSchema<DailyStats>("375a3f26-9219-4ae4-86cf-32b9ba0ac703");
+            dbContext.SchemaRegister.AddModelMapsSchema<UserClaim>("f7831985-dc0c-439f-b118-d7c511619a87");
         }
     }
 }

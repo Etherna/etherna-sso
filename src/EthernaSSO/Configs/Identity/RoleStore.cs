@@ -12,11 +12,11 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Etherna.MongoDB.Driver;
+using Etherna.MongoDB.Driver.Linq;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
 using Microsoft.AspNetCore.Identity;
-using MongoDB.Driver;
-using MongoDB.Driver.Linq;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;

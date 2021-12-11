@@ -12,11 +12,12 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Etherna.MongoDB.Driver;
+using Etherna.MongoDB.Driver.Linq;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Services.Domain;
 using Microsoft.AspNetCore.Identity;
-using MongoDB.Driver;
-using MongoDB.Driver.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -47,12 +48,15 @@ namespace Etherna.SSOServer.Configs.Identity
     {
         // Fields.
         private readonly ISsoDbContext context;
+        private readonly IUserService userService;
 
         // Constructor.
         public UserStore(
-            ISsoDbContext context)
+            ISsoDbContext context,
+            IUserService userService)
         {
             this.context = context;
+            this.userService = userService;
         }
 
         // Properties.
@@ -179,20 +183,24 @@ namespace Etherna.SSOServer.Configs.Identity
             return Task.FromResult(user.NormalizedEmail is not null);
         }
 
-        public Task<bool> GetLockoutEnabledAsync(UserBase user, CancellationToken cancellationToken)
+        public async Task<bool> GetLockoutEnabledAsync(UserBase user, CancellationToken cancellationToken)
         {
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
 
-            return Task.FromResult(user.LockoutEnabled);
+            var sharedInfo = await userService.GetSharedUserInfo(user);
+
+            return sharedInfo.LockoutEnabled;
         }
 
-        public Task<DateTimeOffset?> GetLockoutEndDateAsync(UserBase user, CancellationToken cancellationToken)
+        public async Task<DateTimeOffset?> GetLockoutEndDateAsync(UserBase user, CancellationToken cancellationToken)
         {
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
 
-            return Task.FromResult(user.LockoutEnd);
+            var sharedInfo = await userService.GetSharedUserInfo(user);
+
+            return sharedInfo.LockoutEnd;
         }
 
         public Task<IList<UserLoginInfo>> GetLoginsAsync(UserBase user, CancellationToken cancellationToken)

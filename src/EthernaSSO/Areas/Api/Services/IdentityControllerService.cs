@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Etherna.MongoDB.Driver.Linq;
 using Etherna.SSL.Helpers;
 using Etherna.SSOServer.Areas.Api.DtoModels;
 using Etherna.SSOServer.Domain;
@@ -19,7 +20,6 @@ using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Services.Domain;
 using Microsoft.AspNetCore.Identity;
-using MongoDB.Driver.Linq;
 using Nethereum.Util;
 using System;
 using System.Security.Claims;

@@ -26,6 +26,8 @@ namespace Etherna.SSOServer.Services.Domain
     {
         Task<UserBase> FindUserByAddressAsync(string etherAddress);
 
+        Task<UserSharedInfo> GetSharedUserInfo(UserBase user);
+
         Task<(IEnumerable<(string key, string msg)> errors, UserWeb2? user)> RegisterWeb2UserAsync(
             string username,
             string password,
@@ -47,5 +49,10 @@ namespace Etherna.SSOServer.Services.Domain
             int page,
             int take,
             Expression<Func<UserBase, bool>>? filterPredicate = null);
+
+        Task UpdateLockoutStatusAsync(
+            UserBase user,
+            bool lockoutEnabled,
+            DateTimeOffset? lockoutEnd);
     }
 }

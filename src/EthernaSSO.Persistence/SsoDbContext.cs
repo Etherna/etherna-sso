@@ -13,6 +13,7 @@
 //   limitations under the License.
 
 using Etherna.DomainEvents;
+using Etherna.MongoDB.Driver;
 using Etherna.MongODM.Core;
 using Etherna.MongODM.Core.Migration;
 using Etherna.MongODM.Core.Repositories;
@@ -22,7 +23,6 @@ using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Persistence.Repositories;
 using Etherna.SSOServer.Persistence.Settings;
 using Microsoft.AspNetCore.Identity;
-using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,7 +35,7 @@ namespace Etherna.SSOServer.Persistence
     public class SsoDbContext : DbContext, IEventDispatcherDbContext, ISsoDbContext
     {
         // Consts.
-        private const string SerializersNamespace = "Etherna.SSOServer.Persistence.ModelMaps";
+        private const string ModelMapsNamespace = "Etherna.SSOServer.Persistence.ModelMaps.Sso";
 
         // Fields.
         private readonly IPasswordHasher<UserBase> passwordHasher;
@@ -97,6 +97,9 @@ namespace Etherna.SSOServer.Persistence
                     (Builders<UserBase>.IndexKeys.Ascending("Roles.NormalizedName"),
                      new CreateIndexOptions<UserBase>()),
 
+                    (Builders<UserBase>.IndexKeys.Ascending(u => u.UserSharedInfoId),
+                     new CreateIndexOptions<UserBase> { Unique = true }),
+
                     //UserWeb2
                     (Builders<UserBase>.IndexKeys.Ascending("EtherLoginAddress"),
                      new CreateIndexOptions<UserBase> { Unique = true, Sparse = true }),
@@ -125,7 +128,7 @@ namespace Etherna.SSOServer.Persistence
         // Protected properties.
         protected override IEnumerable<IModelMapsCollector> ModelMapsCollectors =>
             from t in typeof(SsoDbContext).GetTypeInfo().Assembly.GetTypes()
-            where t.IsClass && t.Namespace == SerializersNamespace
+            where t.IsClass && t.Namespace == ModelMapsNamespace
             where t.GetInterfaces().Contains(typeof(IModelMapsCollector))
             select Activator.CreateInstance(t) as IModelMapsCollector;
 

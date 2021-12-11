@@ -16,13 +16,19 @@ using Etherna.MongODM.Core;
 using Etherna.MongODM.Core.Serialization;
 using Etherna.SSOServer.Domain.Models.UserAgg;
 
-namespace Etherna.SSOServer.Persistence.ModelMaps
+namespace Etherna.SSOServer.Persistence.ModelMaps.ServiceShared
 {
-    class UserClaimMap : IModelMapsCollector
+    class UserSharedInfoMap : IModelMapsCollector
     {
         public void Register(IDbContext dbContext)
         {
-            dbContext.SchemaRegister.AddModelMapsSchema<UserClaim>("f7831985-dc0c-439f-b118-d7c511619a87");
+            dbContext.SchemaRegister.AddModelMapsSchema<UserSharedInfo>("6d0d2ee1-6aa3-42ea-9833-ac592bfc6613", mm =>
+            {
+                mm.AutoMap();
+
+                // Set members to ignore if null or default.
+                mm.GetMemberMap(u => u.LockoutEnd).SetIgnoreIfNull(true);
+            });
         }
     }
 }
