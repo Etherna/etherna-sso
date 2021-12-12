@@ -26,7 +26,7 @@ namespace Etherna.SSOServer.Persistence.ModelMaps.Sso
     {
         public void Register(IDbContext dbContext)
         {
-            dbContext.SchemaRegister.AddModelMapsSchema<UserBase>("a492aaa7-196c-4ec0-8fb5-255d099d0b9f", mm =>
+            dbContext.SchemaRegistry.AddModelMapsSchema<UserBase>("a492aaa7-196c-4ec0-8fb5-255d099d0b9f", mm =>
             {
                 mm.AutoMap();
 
@@ -42,7 +42,7 @@ namespace Etherna.SSOServer.Persistence.ModelMaps.Sso
                 mm.SetMemberSerializer(u => u.InvitedBy!, ReferenceSerializer(dbContext));
                 mm.SetMemberSerializer(u => u.Roles, new EnumerableSerializer<Role>(RoleMap.ReferenceSerializer(dbContext)));
             });
-            dbContext.SchemaRegister.AddModelMapsSchema<UserWeb2>("2ccb567f-63cc-4fb3-b66e-a51fb4ff1bfe", mm =>
+            dbContext.SchemaRegistry.AddModelMapsSchema<UserWeb2>("2ccb567f-63cc-4fb3-b66e-a51fb4ff1bfe", mm =>
             {
                 mm.AutoMap();
 
@@ -52,7 +52,7 @@ namespace Etherna.SSOServer.Persistence.ModelMaps.Sso
                 mm.GetMemberMap(u => u.Logins).SetIgnoreIfNull(true);
                 mm.GetMemberMap(u => u.PasswordHash).SetIgnoreIfNull(true);
             });
-            dbContext.SchemaRegister.AddModelMapsSchema<UserWeb3>("7d8804ab-217c-476a-a47f-977fe693fce3");
+            dbContext.SchemaRegistry.AddModelMapsSchema<UserWeb3>("7d8804ab-217c-476a-a47f-977fe693fce3");
         }
 
         /// <summary>
