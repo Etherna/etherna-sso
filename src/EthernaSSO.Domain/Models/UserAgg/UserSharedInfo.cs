@@ -25,12 +25,12 @@ namespace Etherna.SSOServer.Domain.Models.UserAgg
 
         // Properties.
         [PersonalData]
-        public virtual string EtherAddress { get; protected set; } = default!;
+        public virtual string EtherAddress { get; protected internal set; } = default!;
         [PersonalData]
         public virtual IEnumerable<string> EtherPreviousAddresses
         {
             get => _etherPreviousAddresses;
-            protected set => _etherPreviousAddresses = new List<string>(value ?? Array.Empty<string>());
+            protected internal set => _etherPreviousAddresses = new List<string>(value ?? Array.Empty<string>());
         }
         public virtual bool LockoutEnabled { get; set; }
         public virtual DateTimeOffset? LockoutEnd { get; set; }

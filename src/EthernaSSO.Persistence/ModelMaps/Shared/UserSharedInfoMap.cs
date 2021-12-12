@@ -16,7 +16,7 @@ using Etherna.MongODM.Core;
 using Etherna.MongODM.Core.Serialization;
 using Etherna.SSOServer.Domain.Models.UserAgg;
 
-namespace Etherna.SSOServer.Persistence.ModelMaps.ServiceShared
+namespace Etherna.SSOServer.Persistence.ModelMaps.Shared
 {
     class UserSharedInfoMap : IModelMapsCollector
     {

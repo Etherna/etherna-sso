@@ -29,32 +29,31 @@ namespace Etherna.SSOServer.Domain.Models
 
             EtherAddress = address;
         }
-        //public UserWeb3(UserWeb2 web2User)
-        //{
-        //    if (web2User is null)
-        //        throw new ArgumentNullException(nameof(web2User));
-        //    if (web2User.EtherLoginAddress is null)
-        //        throw new InvalidOperationException();
+        internal UserWeb3(UserWeb2 web2User)
+        {
+            if (web2User is null)
+                throw new ArgumentNullException(nameof(web2User));
+            if (web2User.EtherLoginAddress is null)
+                throw new InvalidOperationException();
 
-        //    Id = web2User.Id;
-        //    Claims = web2User.Claims;
-        //    CreationDateTime = web2User.CreationDateTime;
-        //    Email = web2User.Email;
-        //    EtherAddress = web2User.EtherLoginAddress;
-        //    EtherPreviousAddresses = web2User.EtherPreviousAddresses.Append(web2User.EtherAddress);
-        //    InvitedBy = web2User.InvitedBy;
-        //    InvitedByAdmin = web2User.InvitedByAdmin;
-        //    LastLoginDateTime = web2User.LastLoginDateTime;
-        //    LockoutEnabled = web2User.LockoutEnabled;
-        //    LockoutEnd = web2User.LockoutEnd;
-        //    NormalizedEmail = web2User.NormalizedEmail;
-        //    NormalizedUsername = web2User.NormalizedUsername;
-        //    PhoneNumber = web2User.PhoneNumber;
-        //    PhoneNumberConfirmed = web2User.PhoneNumberConfirmed;
-        //    Roles = web2User.Roles;
-        //    SecurityStamp = web2User.SecurityStamp;
-        //    Username = web2User.Username;
-        //}
+            Id = web2User.Id;
+            Claims = web2User.Claims;
+            CreationDateTime = web2User.CreationDateTime;
+            Email = web2User.Email;
+            EtherAddress = web2User.EtherLoginAddress;
+            EtherPreviousAddresses = web2User.EtherPreviousAddresses.Append(web2User.EtherAddress);
+            InvitedBy = web2User.InvitedBy;
+            InvitedByAdmin = web2User.InvitedByAdmin;
+            LastLoginDateTime = web2User.LastLoginDateTime;
+            NormalizedEmail = web2User.NormalizedEmail;
+            NormalizedUsername = web2User.NormalizedUsername;
+            PhoneNumber = web2User.PhoneNumber;
+            PhoneNumberConfirmed = web2User.PhoneNumberConfirmed;
+            Roles = web2User.Roles;
+            SecurityStamp = web2User.SecurityStamp;
+            Username = web2User.Username;
+            UserSharedInfoId = web2User.UserSharedInfoId;
+        }
         protected UserWeb3() { }
     }
 }

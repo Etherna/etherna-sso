@@ -38,6 +38,16 @@ namespace Etherna.SSOServer.Services.Domain
             UserLoginInfo loginInfo,
             string? invitationCode);
 
+        Task<(IEnumerable<(string key, string msg)> errors, UserWeb2? user)> RegisterWeb2UserByAdminAsync(
+            string username,
+            string password,
+            string? email,
+            string? etherLoginAddress,
+            bool lockoutEnabled,
+            DateTimeOffset? lockoutEnd,
+            string? phoneNumber,
+            bool twoFactorEnabled);
+        
         Task<(IEnumerable<(string key, string msg)> errors, UserWeb3? user)> RegisterWeb3UserAsync(
             string username,
             string etherAddress,
@@ -54,5 +64,7 @@ namespace Etherna.SSOServer.Services.Domain
             UserBase user,
             bool lockoutEnabled,
             DateTimeOffset? lockoutEnd);
+
+        Task<UserWeb3> UpgradeToWeb3(UserWeb2 userWeb2);
     }
 }

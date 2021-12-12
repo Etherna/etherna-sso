@@ -16,13 +16,13 @@ using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Persistence
 {
-    public class ServiceSharedDbContext : DbContext, IEventDispatcherDbContext, IServiceSharedDbContext
+    public class SharedDbContext : DbContext, IEventDispatcherDbContext, ISharedDbContext
     {
         // Consts.
-        private const string ModelMapsNamespace = "Etherna.SSOServer.Persistence.ModelMaps.ServiceShared";
+        private const string ModelMapsNamespace = "Etherna.SSOServer.Persistence.ModelMaps.Shared";
 
         // Constructor.
-        public ServiceSharedDbContext(
+        public SharedDbContext(
             IEventDispatcher eventDispatcher)
         {
             EventDispatcher = eventDispatcher;
@@ -48,7 +48,7 @@ namespace Etherna.SSOServer.Persistence
 
         // Protected properties.
         protected override IEnumerable<IModelMapsCollector> ModelMapsCollectors =>
-            from t in typeof(ServiceSharedDbContext).GetTypeInfo().Assembly.GetTypes()
+            from t in typeof(SharedDbContext).GetTypeInfo().Assembly.GetTypes()
             where t.IsClass && t.Namespace == ModelMapsNamespace
             where t.GetInterfaces().Contains(typeof(IModelMapsCollector))
             select Activator.CreateInstance(t) as IModelMapsCollector;

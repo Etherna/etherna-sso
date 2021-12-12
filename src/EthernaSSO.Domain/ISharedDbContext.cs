@@ -4,7 +4,7 @@ using Etherna.SSOServer.Domain.Models.UserAgg;
 
 namespace Etherna.SSOServer.Domain
 {
-    public interface IServiceSharedDbContext : IDbContext
+    public interface ISharedDbContext : IDbContext
     {
         ICollectionRepository<UserSharedInfo, string> UsersInfo { get; }
     }

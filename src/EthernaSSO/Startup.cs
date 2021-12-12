@@ -285,10 +285,10 @@ namespace Etherna.SSOServer
                     options.ConnectionString = Configuration["ConnectionStrings:SSOServerDb"] ?? throw new ServiceConfigurationException();
                 })
                 
-                .AddDbContext<IServiceSharedDbContext, ServiceSharedDbContext>(sp =>
+                .AddDbContext<ISharedDbContext, SharedDbContext>(sp =>
                 {
                     var eventDispatcher = sp.GetRequiredService<IEventDispatcher>();
-                    return new ServiceSharedDbContext(eventDispatcher);
+                    return new SharedDbContext(eventDispatcher);
                 },
                 options =>
                 {

@@ -97,17 +97,14 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
 
         // Fields.
         private readonly ISsoDbContext context;
-        private readonly UserManager<UserBase> userManager;
         private readonly IUserService userService;
 
         // Constructor.
         public UserModel(
             ISsoDbContext context,
-            UserManager<UserBase> userManager,
             IUserService userService)
         {
             this.context = context;
-            this.userManager = userManager;
             this.userService = userService;
         }
 
@@ -180,28 +177,25 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
             UserBase user;
             if (Input.Id is null) //create
             {
-                var userWeb2 = new UserWeb2(Input.Username, null, true, null);
-
-                if (Input.Email is not null)
-                    userWeb2.SetEmail(Input.Email);
-                userWeb2.SetPhoneNumber(Input.PhoneNumber);
-                userWeb2.LockoutEnabled = Input.LockoutEnabled;
-                userWeb2.LockoutEnd = Input.LockoutEnd;
-                if (!string.IsNullOrWhiteSpace(Input.EtherLoginAddress))
-                    userWeb2.SetEtherLoginAddress(Input.EtherLoginAddress);
-                userWeb2.TwoFactorEnabled = Input.TwoFactorEnabled;
-
-                user = userWeb2;
-
-                // Create.
-                var result = await userManager.CreateAsync(user, Input.NewUserPassword);
+                // Register.
+                var (errors, newUser) = await userService.RegisterWeb2UserByAdminAsync(
+                    Input.Username,
+                    Input.NewUserPassword!,
+                    Input.Email,
+                    Input.EtherLoginAddress,
+                    Input.LockoutEnabled,
+                    Input.LockoutEnd,
+                    Input.PhoneNumber,
+                    Input.TwoFactorEnabled);
 
                 // Report errors.
-                if (!result.Succeeded)
+                if (newUser is null)
                 {
-                    StatusMessage = "Error: " + string.Join("\n", result.Errors.Select(e => e.Description));
+                    StatusMessage = "Error: " + string.Join("\n", errors.Select(e => e.msg));
                     return Page();
                 }
+
+                user = newUser;
             }
             else //update
             {

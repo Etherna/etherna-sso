@@ -39,13 +39,13 @@ namespace Etherna.SSOServer.Services.Domain
         public const string InvalidValidationErrorKey = "InvalidInvitation";
 
         // Fields.
-        private readonly IServiceSharedDbContext sharedDbContext;
+        private readonly ISharedDbContext sharedDbContext;
         private readonly ISsoDbContext ssoDbContext;
         private readonly UserManager<UserBase> userManager;
 
         // Constructor.
         public UserService(
-            IServiceSharedDbContext sharedDbContext,
+            ISharedDbContext sharedDbContext,
             ISsoDbContext ssoDbContext,
             UserManager<UserBase> userManager)
         {
@@ -98,6 +98,40 @@ namespace Etherna.SSOServer.Services.Domain
                     var user = new UserWeb2(username, invitedByUser, invitedByAdmin, loginInfo);
                     var result = await userManager.CreateAsync(user);
                     return (user, result);
+                });
+
+        public Task<(IEnumerable<(string key, string msg)> errors, UserWeb2? user)> RegisterWeb2UserByAdminAsync(
+            string username,
+            string password,
+            string? email,
+            string? etherLoginAddress,
+            bool lockoutEnabled,
+            DateTimeOffset? lockoutEnd,
+            string? phoneNumber,
+            bool twoFactorEnabled) =>
+            RegisterUserHelperAsync(
+                username,
+                null,
+                async (_, _) =>
+                {
+                    //init
+                    var user = new UserWeb2(username, null, true);
+
+                    if (email is not null)
+                        user.SetEmail(email);
+                    user.SetPhoneNumber(phoneNumber);
+                    if (!string.IsNullOrWhiteSpace(etherLoginAddress))
+                        user.SetEtherLoginAddress(etherLoginAddress);
+                    user.TwoFactorEnabled = twoFactorEnabled;
+
+                    //create
+                    var result = await userManager.CreateAsync(user, password);
+                    return (user, result);
+                },
+                (sharedInfo) =>
+                {
+                    sharedInfo.LockoutEnabled = lockoutEnabled;
+                    sharedInfo.LockoutEnd = lockoutEnd;
                 });
 
         public Task<(IEnumerable<(string key, string msg)> errors, UserWeb3? user)> RegisterWeb3UserAsync(
@@ -194,11 +228,31 @@ namespace Etherna.SSOServer.Services.Domain
             await sharedDbContext.SaveChangesAsync();
         }
 
+        public async Task<UserWeb3> UpgradeToWeb3(UserWeb2 userWeb2)
+        {
+            // Update user.
+            var userWeb3 = new UserWeb3(userWeb2);
+
+            //deleting and recreating because of this https://etherna.atlassian.net/browse/MODM-83
+            //await ssoDbContext.Users.ReplaceAsync(userWeb3);
+            await ssoDbContext.Users.DeleteAsync(userWeb2);
+            await ssoDbContext.Users.CreateAsync(userWeb3);
+
+            // Update shared info.
+            var sharedInfo = await sharedDbContext.UsersInfo.FindOneAsync(userWeb3.UserSharedInfoId);
+            sharedInfo.EtherAddress = userWeb3.EtherAddress;
+            sharedInfo.EtherPreviousAddresses = userWeb3.EtherPreviousAddresses;
+            await sharedDbContext.SaveChangesAsync();
+
+            return userWeb3;
+        }
+
         // Helpers.
         private async Task<(IEnumerable<(string key, string msg)> errors, TUser? user)> RegisterUserHelperAsync<TUser>(
             string username,
             string? invitationCode,
-            Func<UserBase?, bool, Task<(TUser, IdentityResult)>> registerUserAsync)
+            Func<UserBase?, bool, Task<(TUser, IdentityResult)>> registerUserAsync,
+            Action<UserSharedInfo>? customizeSharedInfo = null)
             where TUser : UserBase
         {
             // Verify for unique username.
@@ -215,13 +269,28 @@ namespace Etherna.SSOServer.Services.Domain
             }
 
             // Register new user.
-            var (user, creationResult) = await registerUserAsync(invitation?.Emitter, invitation?.IsFromAdmin ?? false);
+            var (user, creationResult) = await registerUserAsync(
+                invitation?.Emitter,
+                invitation?.IsFromAdmin ?? false);
 
-            // Delete used invitation if is single use, and if registration succeeded.
-            if (creationResult.Succeeded &&
-                invitation is not null &&
-                invitation.IsSingleUse)
-                await ssoDbContext.Invitations.DeleteAsync(invitation);
+            //if registration succeeded
+            if (creationResult.Succeeded)
+            {
+                //register shared information
+                var sharedInformation = new UserSharedInfo(user.EtherAddress);
+                customizeSharedInfo?.Invoke(sharedInformation);
+                await sharedDbContext.UsersInfo.CreateAsync(sharedInformation);
+
+                //update shared information id
+                user = (TUser)await ssoDbContext.Users.FindOneAsync(user.Id); //find again because of https://etherna.atlassian.net/browse/MODM-83
+                user.UserSharedInfoId = sharedInformation.Id;
+                await ssoDbContext.SaveChangesAsync();
+
+                //delete used invitation if is single use
+                if (invitation is not null &&
+                    invitation.IsSingleUse)
+                    await ssoDbContext.Invitations.DeleteAsync(invitation);
+            }
 
             return (creationResult.Errors.Select(e => (e.Code, e.Description)),
                 creationResult.Succeeded ? user : null);
