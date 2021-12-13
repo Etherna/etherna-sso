@@ -275,14 +275,13 @@ namespace Etherna.SSOServer
                 .AddDbContext<ISsoDbContext, SsoDbContext>(sp =>
                 {
                     var eventDispatcher = sp.GetRequiredService<IEventDispatcher>();
-                    var passwordHasher = sp.CreateScope().ServiceProvider.GetRequiredService<IPasswordHasher<UserBase>>();
                     var seedSettings = sp.GetRequiredService<IOptions<DbSeedSettings>>();
-                    return new SsoDbContext(eventDispatcher, passwordHasher, seedSettings.Value);
+                    return new SsoDbContext(eventDispatcher, seedSettings.Value, sp);
                 },
                 options =>
                 {
-                    options.DocumentSemVer.CurrentVersion = assemblyVersion.SimpleVersion;
                     options.ConnectionString = Configuration["ConnectionStrings:SSOServerDb"] ?? throw new ServiceConfigurationException();
+                    options.DocumentSemVer.CurrentVersion = assemblyVersion.SimpleVersion;
                 })
                 
                 .AddDbContext<ISharedDbContext, SharedDbContext>(sp =>
@@ -292,8 +291,8 @@ namespace Etherna.SSOServer
                 },
                 options =>
                 {
-                    options.DocumentSemVer.CurrentVersion = assemblyVersion.SimpleVersion;
                     options.ConnectionString = Configuration["ConnectionStrings:ServiceSharedDb"] ?? throw new ServiceConfigurationException();
+                    options.DocumentSemVer.CurrentVersion = assemblyVersion.SimpleVersion;
                 });
 
             services.AddMongODMAdminDashboard(new MongODM.AspNetCore.UI.DashboardOptions
@@ -349,6 +348,9 @@ namespace Etherna.SSOServer
             app.UseIdentityServer();
             app.UseAuthentication();
             app.UseAuthorization();
+
+            // Seed db if required.
+            app.UseDbContextsSeeding();
 
             // Add Hangfire.
             app.UseHangfireDashboard(CommonConsts.HangfireAdminPath,

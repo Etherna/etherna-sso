@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Nethereum.Util;
 using System;
 using System.Collections.Generic;
 
@@ -19,6 +20,9 @@ namespace Etherna.SSOServer.Domain.Models.UserAgg
         // Constructors.
         public UserSharedInfo(string etherAddress)
         {
+            if (!etherAddress.IsValidEthereumAddressHexFormat())
+                throw new ArgumentException("The value is not a valid address", nameof(etherAddress));
+
             EtherAddress = etherAddress;
         }
         protected UserSharedInfo() { }

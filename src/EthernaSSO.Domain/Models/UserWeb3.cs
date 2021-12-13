@@ -12,7 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-using Nethereum.Util;
+using Etherna.SSOServer.Domain.Models.UserAgg;
 using System;
 using System.Linq;
 
@@ -21,13 +21,14 @@ namespace Etherna.SSOServer.Domain.Models
     public class UserWeb3 : UserBase
     {
         // Constructors.
-        public UserWeb3(string address, string username, UserBase? invitedBy, bool invitedByAdmin)
-            : base(username, invitedBy, invitedByAdmin)
+        public UserWeb3(
+            string username,
+            UserBase? invitedBy,
+            bool invitedByAdmin,
+            UserSharedInfo sharedInfo)
+            : base(username, invitedBy, invitedByAdmin, sharedInfo)
         {
-            if (!address.IsValidEthereumAddressHexFormat())
-                throw new ArgumentException("The value is not a valid address", nameof(address));
-
-            EtherAddress = address;
+            EtherAddress = sharedInfo.EtherAddress;
         }
         internal UserWeb3(UserWeb2 web2User)
         {
@@ -52,7 +53,7 @@ namespace Etherna.SSOServer.Domain.Models
             Roles = web2User.Roles;
             SecurityStamp = web2User.SecurityStamp;
             Username = web2User.Username;
-            UserSharedInfoId = web2User.UserSharedInfoId;
+            SharedInfoId = web2User.SharedInfoId;
         }
         protected UserWeb3() { }
     }

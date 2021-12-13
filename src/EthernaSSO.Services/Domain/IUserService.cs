@@ -26,7 +26,7 @@ namespace Etherna.SSOServer.Services.Domain
     {
         Task<UserBase> FindUserByAddressAsync(string etherAddress);
 
-        Task<UserSharedInfo> GetSharedUserInfo(UserBase user);
+        Task<UserSharedInfo> GetSharedUserInfoAsync(UserBase user);
 
         Task<(IEnumerable<(string key, string msg)> errors, UserWeb2? user)> RegisterWeb2UserAsync(
             string username,
@@ -46,6 +46,7 @@ namespace Etherna.SSOServer.Services.Domain
             bool lockoutEnabled,
             DateTimeOffset? lockoutEnd,
             string? phoneNumber,
+            IEnumerable<Role> roles,
             bool twoFactorEnabled);
         
         Task<(IEnumerable<(string key, string msg)> errors, UserWeb3? user)> RegisterWeb3UserAsync(

@@ -188,7 +188,7 @@ namespace Etherna.SSOServer.Configs.Identity
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
 
-            var sharedInfo = await userService.GetSharedUserInfo(user);
+            var sharedInfo = await userService.GetSharedUserInfoAsync(user);
 
             return sharedInfo.LockoutEnabled;
         }
@@ -198,7 +198,7 @@ namespace Etherna.SSOServer.Configs.Identity
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
 
-            var sharedInfo = await userService.GetSharedUserInfo(user);
+            var sharedInfo = await userService.GetSharedUserInfoAsync(user);
 
             return sharedInfo.LockoutEnd;
         }
@@ -433,7 +433,7 @@ namespace Etherna.SSOServer.Configs.Identity
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
 
-            var sharedInfo = await userService.GetSharedUserInfo(user);
+            var sharedInfo = await userService.GetSharedUserInfoAsync(user);
             sharedInfo.LockoutEnabled = enabled;
         }
 
@@ -442,7 +442,7 @@ namespace Etherna.SSOServer.Configs.Identity
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
 
-            var sharedInfo = await userService.GetSharedUserInfo(user);
+            var sharedInfo = await userService.GetSharedUserInfoAsync(user);
             sharedInfo.LockoutEnd = lockoutEnd;
         }
 

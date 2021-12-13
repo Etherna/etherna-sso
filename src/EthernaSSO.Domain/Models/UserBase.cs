@@ -43,11 +43,19 @@ namespace Etherna.SSOServer.Domain.Models
         private List<Role> _roles = new();
 
         // Constructors.
-        protected UserBase(string username, UserBase? invitedBy, bool invitedByAdmin)
+        protected UserBase(
+            string username,
+            UserBase? invitedBy,
+            bool invitedByAdmin,
+            UserSharedInfo sharedInfo)
         {
+            if (sharedInfo is null)
+                throw new ArgumentNullException(nameof(sharedInfo));
+
             SetUsername(username);
             InvitedBy = invitedBy;
             InvitedByAdmin = invitedByAdmin;
+            SharedInfoId = sharedInfo.Id;
         }
         protected UserBase() { }
 
@@ -128,7 +136,7 @@ namespace Etherna.SSOServer.Domain.Models
          * pointing to SharedInfo internal property, and avoid data duplication.
          */
         //protected abstract SharedUserInfo SharedInfo { get; set; }
-        protected internal virtual string UserSharedInfoId { get; set; } = default!;
+        protected internal virtual string SharedInfoId { get; set; } = default!;
 
         // Methods.
         [PropertyAlterer(nameof(Claims))]

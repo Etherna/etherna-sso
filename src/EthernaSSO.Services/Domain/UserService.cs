@@ -22,7 +22,11 @@ using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Domain.Models.UserAgg;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.DependencyInjection;
+using Nethereum.Hex.HexConvertors.Extensions;
+using Nethereum.Signer;
 using Nethereum.Util;
+using Nethereum.Web3.Accounts;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -39,19 +43,31 @@ namespace Etherna.SSOServer.Services.Domain
         public const string InvalidValidationErrorKey = "InvalidInvitation";
 
         // Fields.
+        private readonly IServiceProvider serviceProvider;
         private readonly ISharedDbContext sharedDbContext;
         private readonly ISsoDbContext ssoDbContext;
-        private readonly UserManager<UserBase> userManager;
+        private UserManager<UserBase>? _userManager;
 
         // Constructor.
         public UserService(
+            IServiceProvider serviceProvider,
             ISharedDbContext sharedDbContext,
-            ISsoDbContext ssoDbContext,
-            UserManager<UserBase> userManager)
+            ISsoDbContext ssoDbContext)
         {
+            this.serviceProvider = serviceProvider;
             this.sharedDbContext = sharedDbContext;
             this.ssoDbContext = ssoDbContext;
-            this.userManager = userManager;
+        }
+
+        // Properties.
+        private UserManager<UserBase> UserManager
+        {
+            get
+            {
+                if (_userManager is null)
+                    _userManager = serviceProvider.GetRequiredService<UserManager<UserBase>>();
+                return _userManager;
+            }
         }
 
         // Methods.
@@ -63,13 +79,12 @@ namespace Etherna.SSOServer.Services.Domain
                 u.EtherPreviousAddresses.Contains(etherAddress));
         }
 
-        public async Task<UserSharedInfo> GetSharedUserInfo(UserBase user)
+        public async Task<UserSharedInfo> GetSharedUserInfoAsync(UserBase user)
         {
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
 
-            var sharedInfoId = user.UserSharedInfoId;
-            return await sharedDbContext.UsersInfo.FindOneAsync(sharedInfoId);
+            return await sharedDbContext.UsersInfo.FindOneAsync(user.SharedInfoId);
         }
 
         public Task<(IEnumerable<(string key, string msg)> errors, UserWeb2? user)> RegisterWeb2UserAsync(
@@ -81,8 +96,18 @@ namespace Etherna.SSOServer.Services.Domain
                 invitationCode,
                 async (invitedByUser, invitedByAdmin) =>
                 {
-                    var user = new UserWeb2(username, invitedByUser, invitedByAdmin);
-                    var result = await userManager.CreateAsync(user, password);
+                    // Generate managed key.
+                    var etherPrivateKey = GenerateEtherPrivateKey();
+                    var etherAddress = new Account(etherPrivateKey).Address;
+
+                    // Create shared info.
+                    var sharedInfo = new UserSharedInfo(etherAddress);
+                    await sharedDbContext.UsersInfo.CreateAsync(sharedInfo);
+
+                    // Create user.
+                    var user = new UserWeb2(username, invitedByUser, invitedByAdmin, etherPrivateKey, sharedInfo);
+                    var result = await UserManager.CreateAsync(user, password);
+
                     return (user, result);
                 });
 
@@ -95,8 +120,17 @@ namespace Etherna.SSOServer.Services.Domain
                 invitationCode,
                 async (invitedByUser, invitedByAdmin) =>
                 {
-                    var user = new UserWeb2(username, invitedByUser, invitedByAdmin, loginInfo);
-                    var result = await userManager.CreateAsync(user);
+                    // Generate managed key.
+                    var etherPrivateKey = GenerateEtherPrivateKey();
+                    var etherAddress = new Account(etherPrivateKey).Address;
+
+                    // Create shared info.
+                    var sharedInfo = new UserSharedInfo(etherAddress);
+                    await sharedDbContext.UsersInfo.CreateAsync(sharedInfo);
+
+                    // Create user.
+                    var user = new UserWeb2(username, invitedByUser, invitedByAdmin, etherPrivateKey, sharedInfo, loginInfo);
+                    var result = await UserManager.CreateAsync(user);
                     return (user, result);
                 });
 
@@ -108,30 +142,39 @@ namespace Etherna.SSOServer.Services.Domain
             bool lockoutEnabled,
             DateTimeOffset? lockoutEnd,
             string? phoneNumber,
+            IEnumerable<Role> roles,
             bool twoFactorEnabled) =>
             RegisterUserHelperAsync(
                 username,
                 null,
                 async (_, _) =>
                 {
-                    //init
-                    var user = new UserWeb2(username, null, true);
+                    // Generate managed key.
+                    var etherPrivateKey = GenerateEtherPrivateKey();
+                    var etherAddress = new Account(etherPrivateKey).Address;
+
+                    // Create shared info.
+                    var sharedInfo = new UserSharedInfo(etherAddress)
+                    {
+                        LockoutEnabled = lockoutEnabled,
+                        LockoutEnd = lockoutEnd
+                    };
+                    await sharedDbContext.UsersInfo.CreateAsync(sharedInfo);
+
+                    // Create user.
+                    var user = new UserWeb2(username, null, true, etherPrivateKey, sharedInfo);
 
                     if (email is not null)
                         user.SetEmail(email);
                     user.SetPhoneNumber(phoneNumber);
                     if (!string.IsNullOrWhiteSpace(etherLoginAddress))
                         user.SetEtherLoginAddress(etherLoginAddress);
+                    foreach (var role in roles)
+                        user.AddRole(role);
                     user.TwoFactorEnabled = twoFactorEnabled;
 
-                    //create
-                    var result = await userManager.CreateAsync(user, password);
+                    var result = await UserManager.CreateAsync(user, password);
                     return (user, result);
-                },
-                (sharedInfo) =>
-                {
-                    sharedInfo.LockoutEnabled = lockoutEnabled;
-                    sharedInfo.LockoutEnd = lockoutEnd;
                 });
 
         public Task<(IEnumerable<(string key, string msg)> errors, UserWeb3? user)> RegisterWeb3UserAsync(
@@ -143,8 +186,13 @@ namespace Etherna.SSOServer.Services.Domain
                 invitationCode,
                 async (invitedByUser, invitedByAdmin) =>
                 {
-                    var user = new UserWeb3(etherAddress, username, invitedByUser, invitedByAdmin);
-                    var result = await userManager.CreateAsync(user);
+                    // Create shared info.
+                    var sharedInfo = new UserSharedInfo(etherAddress);
+                    await sharedDbContext.UsersInfo.CreateAsync(sharedInfo);
+
+                    // Create user.
+                    var user = new UserWeb3(username, invitedByUser, invitedByAdmin, sharedInfo);
+                    var result = await UserManager.CreateAsync(user);
                     return (user, result);
                 });
 
@@ -220,7 +268,7 @@ namespace Etherna.SSOServer.Services.Domain
 
         public async Task UpdateLockoutStatusAsync(UserBase user, bool lockoutEnabled, DateTimeOffset? lockoutEnd)
         {
-            var sharedInfo = await GetSharedUserInfo(user);
+            var sharedInfo = await GetSharedUserInfoAsync(user);
 
             sharedInfo.LockoutEnabled = lockoutEnabled;
             sharedInfo.LockoutEnd = lockoutEnd;
@@ -239,7 +287,7 @@ namespace Etherna.SSOServer.Services.Domain
             await ssoDbContext.Users.CreateAsync(userWeb3);
 
             // Update shared info.
-            var sharedInfo = await sharedDbContext.UsersInfo.FindOneAsync(userWeb3.UserSharedInfoId);
+            var sharedInfo = await sharedDbContext.UsersInfo.FindOneAsync(userWeb3.SharedInfoId);
             sharedInfo.EtherAddress = userWeb3.EtherAddress;
             sharedInfo.EtherPreviousAddresses = userWeb3.EtherPreviousAddresses;
             await sharedDbContext.SaveChangesAsync();
@@ -248,15 +296,21 @@ namespace Etherna.SSOServer.Services.Domain
         }
 
         // Helpers.
+        private string GenerateEtherPrivateKey()
+        {
+            var ecKey = EthECKey.GenerateKey();
+            var privateKey = ecKey.GetPrivateKeyAsBytes().ToHex();
+            return privateKey;
+        }
+
         private async Task<(IEnumerable<(string key, string msg)> errors, TUser? user)> RegisterUserHelperAsync<TUser>(
             string username,
             string? invitationCode,
-            Func<UserBase?, bool, Task<(TUser, IdentityResult)>> registerUserAsync,
-            Action<UserSharedInfo>? customizeSharedInfo = null)
+            Func<UserBase?, bool, Task<(TUser, IdentityResult)>> registerUserAsync)
             where TUser : UserBase
         {
             // Verify for unique username.
-            if (await userManager.FindByNameAsync(username) is not null) //if duplicate username
+            if (await UserManager.FindByNameAsync(username) is not null) //if duplicate username
                 return (new[] { (DuplicateUsernameErrorKey, "Username already registered.") }, null);
 
             // Verify invitation code.
@@ -276,17 +330,7 @@ namespace Etherna.SSOServer.Services.Domain
             //if registration succeeded
             if (creationResult.Succeeded)
             {
-                //register shared information
-                var sharedInformation = new UserSharedInfo(user.EtherAddress);
-                customizeSharedInfo?.Invoke(sharedInformation);
-                await sharedDbContext.UsersInfo.CreateAsync(sharedInformation);
-
-                //update shared information id
-                user = (TUser)await ssoDbContext.Users.FindOneAsync(user.Id); //find again because of https://etherna.atlassian.net/browse/MODM-83
-                user.UserSharedInfoId = sharedInformation.Id;
-                await ssoDbContext.SaveChangesAsync();
-
-                //delete used invitation if is single use
+                //if used invitation is single use, delete it
                 if (invitation is not null &&
                     invitation.IsSingleUse)
                     await ssoDbContext.Invitations.DeleteAsync(invitation);

@@ -143,7 +143,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
             if (id is not null)
             {
                 var user = await context.Users.FindOneAsync(id);
-                var sharedInfo = await userService.GetSharedUserInfo(user);
+                var sharedInfo = await userService.GetSharedUserInfoAsync(user);
 
                 EtherAddress = user.EtherAddress;
                 EtherPreviousAddresses = user.EtherPreviousAddresses;
@@ -186,6 +186,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
                     Input.LockoutEnabled,
                     Input.LockoutEnd,
                     Input.PhoneNumber,
+                    Array.Empty<Role>(),
                     Input.TwoFactorEnabled);
 
                 // Report errors.
