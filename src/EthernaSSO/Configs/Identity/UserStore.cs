@@ -32,7 +32,6 @@ namespace Etherna.SSOServer.Configs.Identity
     /// A facade for <see cref="UserBase"/> used by Asp.Net Identity framework.
     /// </summary>
     public sealed class UserStore :
-        IQueryableUserStore<UserBase>,
         IUserAuthenticatorKeyStore<UserBase>,
         IUserClaimStore<UserBase>,
         IUserEmailStore<UserBase>,
@@ -58,9 +57,6 @@ namespace Etherna.SSOServer.Configs.Identity
             this.ssoDbContext = ssoDbContext;
             this.userService = userService;
         }
-
-        // Properties.
-        public IQueryable<UserBase> Users => ssoDbContext.Users.Collection.AsQueryable();
 
         // Methods.
         public Task AddClaimsAsync(UserBase user, IEnumerable<Claim> claims, CancellationToken cancellationToken)

@@ -19,14 +19,12 @@ using Etherna.SSOServer.Domain.Models;
 using Microsoft.AspNetCore.Identity;
 using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Configs.Identity
 {
     public sealed class RoleStore :
-        IQueryableRoleStore<Role>,
         IRoleStore<Role>
     {
         // Fields.
@@ -38,9 +36,6 @@ namespace Etherna.SSOServer.Configs.Identity
         {
             this.context = context;
         }
-
-        // Properties.
-        public IQueryable<Role> Roles => context.Roles.Collection.AsQueryable();
 
         // Methods.
         [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "External library doesn't declare exceptions")]

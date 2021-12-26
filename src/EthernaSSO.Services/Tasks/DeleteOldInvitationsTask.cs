@@ -36,10 +36,11 @@ namespace Etherna.SSOServer.Services.Tasks
         }
 
         // Methods.
-        public async Task RunAsync()
-        {
-            await ssoDbContext.Invitations.Collection.DeleteManyAsync(
-                Builders<Invitation>.Filter.Where(i => i.EndLife != null && i.EndLife < DateTime.Now));
-        }
+        public Task RunAsync() =>
+            ssoDbContext.Invitations.AccessToCollectionAsync(collection =>
+            {
+                return collection.DeleteManyAsync(
+                    Builders<Invitation>.Filter.Where(i => i.EndLife != null && i.EndLife < DateTime.Now));
+            });
     }
 }
