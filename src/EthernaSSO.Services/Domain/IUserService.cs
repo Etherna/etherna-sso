@@ -24,6 +24,8 @@ namespace Etherna.SSOServer.Services.Domain
 {
     public interface IUserService
     {
+        Task DeleteAsync(UserBase user);
+
         Task<UserBase> FindUserByAddressAsync(string etherAddress);
 
         Task<UserSharedInfo> GetSharedUserInfoAsync(UserBase user);

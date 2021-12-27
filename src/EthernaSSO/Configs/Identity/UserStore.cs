@@ -113,7 +113,7 @@ namespace Etherna.SSOServer.Configs.Identity
         [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "External library doesn't declare exceptions")]
         public async Task<IdentityResult> DeleteAsync(UserBase user, CancellationToken cancellationToken)
         {
-            try { await ssoDbContext.Users.DeleteAsync(user, cancellationToken); }
+            try { await userService.DeleteAsync(user); }
             catch { return IdentityResult.Failed(); }
             return IdentityResult.Success;
         }

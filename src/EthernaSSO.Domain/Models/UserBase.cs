@@ -126,17 +126,16 @@ namespace Etherna.SSOServer.Domain.Models
             protected set => _roles = new List<Role>(value ?? Array.Empty<Role>());
         }
         public virtual string SecurityStamp { get; set; } = default!;
-        [PersonalData]
-        public virtual string Username { get; protected set; } = default!;
-
-        // Protected properties.
 
         /* SharedInfo is encapsulable with resolution of https://etherna.atlassian.net/browse/MODM-101.
          * With encapsulation we can expose also EtherAddress and EtherPreviousAddresses properties
          * pointing to SharedInfo internal property, and avoid data duplication.
          */
         //protected abstract SharedUserInfo SharedInfo { get; set; }
-        protected internal virtual string SharedInfoId { get; set; } = default!;
+        public virtual string SharedInfoId { get; protected set; } = default!;
+
+        [PersonalData]
+        public virtual string Username { get; protected set; } = default!;
 
         // Methods.
         [PropertyAlterer(nameof(Claims))]

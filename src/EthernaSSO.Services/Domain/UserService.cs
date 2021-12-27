@@ -59,7 +59,7 @@ namespace Etherna.SSOServer.Services.Domain
             this.ssoDbContext = ssoDbContext;
         }
 
-        // Properties.
+        // Private properties.
         private UserManager<UserBase> UserManager
         {
             get
@@ -71,6 +71,15 @@ namespace Etherna.SSOServer.Services.Domain
         }
 
         // Methods.
+        public async Task DeleteAsync(UserBase user)
+        {
+            if (user is null)
+                throw new ArgumentNullException(nameof(user));
+
+            await ssoDbContext.Users.DeleteAsync(user);
+            await sharedDbContext.UsersInfo.DeleteAsync(user.SharedInfoId);
+        }
+
         public Task<UserBase> FindUserByAddressAsync(string etherAddress)
         {
             etherAddress = etherAddress.ConvertToEthereumChecksumAddress();
