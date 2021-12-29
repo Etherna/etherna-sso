@@ -12,7 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-using Nethereum.Util;
+using Etherna.SSOServer.Domain.Models.UserAgg;
 using System;
 using System.Linq;
 
@@ -21,15 +21,16 @@ namespace Etherna.SSOServer.Domain.Models
     public class UserWeb3 : UserBase
     {
         // Constructors.
-        public UserWeb3(string address, string username, UserBase? invitedBy, bool invitedByAdmin)
-            : base(username, invitedBy, invitedByAdmin)
+        public UserWeb3(
+            string username,
+            UserBase? invitedBy,
+            bool invitedByAdmin,
+            UserSharedInfo sharedInfo)
+            : base(username, invitedBy, invitedByAdmin, sharedInfo)
         {
-            if (!address.IsValidEthereumAddressHexFormat())
-                throw new ArgumentException("The value is not a valid address", nameof(address));
-
-            EtherAddress = address;
+            EtherAddress = sharedInfo.EtherAddress;
         }
-        public UserWeb3(UserWeb2 web2User)
+        internal UserWeb3(UserWeb2 web2User)
         {
             if (web2User is null)
                 throw new ArgumentNullException(nameof(web2User));
@@ -45,8 +46,6 @@ namespace Etherna.SSOServer.Domain.Models
             InvitedBy = web2User.InvitedBy;
             InvitedByAdmin = web2User.InvitedByAdmin;
             LastLoginDateTime = web2User.LastLoginDateTime;
-            LockoutEnabled = web2User.LockoutEnabled;
-            LockoutEnd = web2User.LockoutEnd;
             NormalizedEmail = web2User.NormalizedEmail;
             NormalizedUsername = web2User.NormalizedUsername;
             PhoneNumber = web2User.PhoneNumber;
@@ -54,6 +53,7 @@ namespace Etherna.SSOServer.Domain.Models
             Roles = web2User.Roles;
             SecurityStamp = web2User.SecurityStamp;
             Username = web2User.Username;
+            SharedInfoId = web2User.SharedInfoId;
         }
         protected UserWeb3() { }
     }

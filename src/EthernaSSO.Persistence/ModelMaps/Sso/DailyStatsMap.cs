@@ -16,13 +16,13 @@ using Etherna.MongODM.Core;
 using Etherna.MongODM.Core.Serialization;
 using Etherna.SSOServer.Domain.Models;
 
-namespace Etherna.SSOServer.Persistence.ModelMaps
+namespace Etherna.SSOServer.Persistence.ModelMaps.Sso
 {
-    class Web3LoginTokenMap : IModelMapsCollector
+    class DailyStatsMap : IModelMapsCollector
     {
         public void Register(IDbContext dbContext)
         {
-            dbContext.SchemaRegister.AddModelMapsSchema<Web3LoginToken>("150f4cdf-099a-4195-a145-45f1f9eda60c");
+            dbContext.SchemaRegistry.AddModelMapsSchema<DailyStats>("375a3f26-9219-4ae4-86cf-32b9ba0ac703");
         }
     }
 }

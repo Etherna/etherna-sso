@@ -12,23 +12,23 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Etherna.MongoDB.Bson;
+using Etherna.MongoDB.Bson.Serialization.IdGenerators;
+using Etherna.MongoDB.Bson.Serialization.Serializers;
 using Etherna.MongODM.Core;
 using Etherna.MongODM.Core.Serialization;
 using Etherna.SSOServer.Domain.Models;
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization.IdGenerators;
-using MongoDB.Bson.Serialization.Serializers;
 
-namespace Etherna.SSOServer.Persistence.ModelMaps
+namespace Etherna.SSOServer.Persistence.ModelMaps.Sso
 {
     class ModelBaseMap : IModelMapsCollector
     {
         public void Register(IDbContext dbContext)
         {
             // register class maps.
-            dbContext.SchemaRegister.AddModelMapsSchema<ModelBase>("eff57bde-15fb-44ba-ab38-e600ad2835e2");
-            dbContext.SchemaRegister.AddModelMapsSchema<EntityModelBase>("d8ead46c-ba33-4587-b478-16aab83ffb47");
-            dbContext.SchemaRegister.AddModelMapsSchema<EntityModelBase<string>>("7ddc64f6-3459-4641-957a-7c1dce83d56e",
+            dbContext.SchemaRegistry.AddModelMapsSchema<ModelBase>("eff57bde-15fb-44ba-ab38-e600ad2835e2");
+            dbContext.SchemaRegistry.AddModelMapsSchema<EntityModelBase>("d8ead46c-ba33-4587-b478-16aab83ffb47");
+            dbContext.SchemaRegistry.AddModelMapsSchema<EntityModelBase<string>>("7ddc64f6-3459-4641-957a-7c1dce83d56e",
                 modelMap =>
                 {
                     modelMap.AutoMap();

@@ -29,6 +29,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
         private readonly SignInManager<UserBase> signInManager;
         private readonly ISsoDbContext ssoDbContext;
         private readonly UserManager<UserBase> userManager;
+        private readonly IUserService userService;
         private readonly IWeb3AuthnService web3AuthnService;
 
         // Constructor.
@@ -36,11 +37,13 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             SignInManager<UserBase> signInManager,
             ISsoDbContext ssoDbContext,
             UserManager<UserBase> userManager,
+            IUserService userService,
             IWeb3AuthnService web3AuthnService)
         {
             this.signInManager = signInManager;
             this.ssoDbContext = ssoDbContext;
             this.userManager = userManager;
+            this.userService = userService;
             this.web3AuthnService = web3AuthnService;
         }
 
@@ -89,12 +92,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             }
 
             // Upgrade user to Web3 account.
-            var userWeb3 = new UserWeb3(userWeb2);
-
-            //deleting and recreating because of this https://etherna.atlassian.net/browse/MODM-83
-            //await ssoDbContext.Users.ReplaceAsync(userWeb3);
-            await ssoDbContext.Users.DeleteAsync(userWeb2);
-            await ssoDbContext.Users.CreateAsync(userWeb3);
+            var userWeb3 = await userService.UpgradeToWeb3(userWeb2);
 
             //refresh cookie claims
             await signInManager.RefreshSignInAsync(userWeb3);

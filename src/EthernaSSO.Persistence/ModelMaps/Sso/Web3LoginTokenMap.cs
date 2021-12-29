@@ -14,15 +14,15 @@
 
 using Etherna.MongODM.Core;
 using Etherna.MongODM.Core.Serialization;
-using Etherna.SSOServer.Domain.Models.UserAgg;
+using Etherna.SSOServer.Domain.Models;
 
-namespace Etherna.SSOServer.Persistence.ModelMaps
+namespace Etherna.SSOServer.Persistence.ModelMaps.Sso
 {
-    class UserClaimMap : IModelMapsCollector
+    class Web3LoginTokenMap : IModelMapsCollector
     {
         public void Register(IDbContext dbContext)
         {
-            dbContext.SchemaRegister.AddModelMapsSchema<UserClaim>("f7831985-dc0c-439f-b118-d7c511619a87");
+            dbContext.SchemaRegistry.AddModelMapsSchema<Web3LoginToken>("150f4cdf-099a-4195-a145-45f1f9eda60c");
         }
     }
 }

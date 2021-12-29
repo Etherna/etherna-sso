@@ -13,7 +13,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\EthernaSSO.Domain\EthernaSSO.Domain.csproj" />
+    <ProjectReference Include="..\EthernaSSO.Services\EthernaSSO.Services.csproj" />
   </ItemGroup>
 
 </Project>

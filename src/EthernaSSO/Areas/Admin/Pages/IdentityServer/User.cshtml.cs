@@ -15,6 +15,8 @@
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Domain.Models.UserAgg;
+using Etherna.SSOServer.Services.Domain;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -33,16 +35,18 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
         {
             // Constructors.
             public InputModel() { }
-            public InputModel(UserBase user)
+            public InputModel(UserBase user, UserSharedInfo sharedInfo)
             {
                 if (user is null)
                     throw new ArgumentNullException(nameof(user));
+                if (sharedInfo is null)
+                    throw new ArgumentNullException(nameof(sharedInfo));
 
                 Id = user.Id;
                 Email = user.Email;
                 PhoneNumber = user.PhoneNumber;
-                LockoutEnabled = user.LockoutEnabled;
-                LockoutEnd = user.LockoutEnd;
+                LockoutEnabled = sharedInfo.LockoutEnabled;
+                LockoutEnd = sharedInfo.LockoutEnd;
                 Username = user.Username;
 
                 switch (user)
@@ -93,15 +97,15 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
 
         // Fields.
         private readonly ISsoDbContext context;
-        private readonly UserManager<UserBase> userManager;
+        private readonly IUserService userService;
 
         // Constructor.
         public UserModel(
             ISsoDbContext context,
-            UserManager<UserBase> userManager)
+            IUserService userService)
         {
             this.context = context;
-            this.userManager = userManager;
+            this.userService = userService;
         }
 
         // Properties.
@@ -139,10 +143,11 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
             if (id is not null)
             {
                 var user = await context.Users.FindOneAsync(id);
+                var sharedInfo = await userService.GetSharedUserInfoAsync(user);
 
                 EtherAddress = user.EtherAddress;
                 EtherPreviousAddresses = user.EtherPreviousAddresses;
-                Input = new InputModel(user);
+                Input = new InputModel(user, sharedInfo);
                 IsWeb3 = user is UserWeb3;
                 LastLoginDateTime = user.LastLoginDateTime;
                 PhoneNumberConfirmed = user.PhoneNumberConfirmed;
@@ -172,31 +177,30 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
             UserBase user;
             if (Input.Id is null) //create
             {
-                var userWeb2 = new UserWeb2(Input.Username, null, true, null);
-
-                if (Input.Email is not null)
-                    userWeb2.SetEmail(Input.Email);
-                userWeb2.SetPhoneNumber(Input.PhoneNumber);
-                userWeb2.LockoutEnabled = Input.LockoutEnabled;
-                userWeb2.LockoutEnd = Input.LockoutEnd;
-                if (!string.IsNullOrWhiteSpace(Input.EtherLoginAddress))
-                    userWeb2.SetEtherLoginAddress(Input.EtherLoginAddress);
-                userWeb2.TwoFactorEnabled = Input.TwoFactorEnabled;
-
-                user = userWeb2;
-
-                // Create.
-                var result = await userManager.CreateAsync(user, Input.NewUserPassword);
+                // Register.
+                var (errors, newUser) = await userService.RegisterWeb2UserByAdminAsync(
+                    Input.Username,
+                    Input.NewUserPassword!,
+                    Input.Email,
+                    Input.EtherLoginAddress,
+                    Input.LockoutEnabled,
+                    Input.LockoutEnd,
+                    Input.PhoneNumber,
+                    Array.Empty<Role>(),
+                    Input.TwoFactorEnabled);
 
                 // Report errors.
-                if (!result.Succeeded)
+                if (newUser is null)
                 {
-                    StatusMessage = "Error: " + string.Join("\n", result.Errors.Select(e => e.Description));
+                    StatusMessage = "Error: " + string.Join("\n", errors.Select(e => e.msg));
                     return Page();
                 }
+
+                user = newUser;
             }
             else //update
             {
+                //user info
                 user = await context.Users.FindOneAsync(Input.Id);
 
                 if (user.Username != Input.Username)
@@ -209,10 +213,6 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
 
                 if (user.PhoneNumber != Input.PhoneNumber)
                     user.SetPhoneNumber(Input.PhoneNumber);
-
-                user.LockoutEnabled = Input.LockoutEnabled;
-
-                user.LockoutEnd = Input.LockoutEnd;
 
                 switch (user)
                 {
@@ -231,6 +231,12 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
                 }
 
                 await context.SaveChangesAsync();
+
+                //shared user info
+                await userService.UpdateLockoutStatusAsync(
+                    user,
+                    Input.LockoutEnabled,
+                    Input.LockoutEnd);
             }
 
             return RedirectToPage(new { user.Id });
