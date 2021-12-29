@@ -282,6 +282,7 @@ namespace Etherna.SSOServer
                 {
                     options.ConnectionString = Configuration["ConnectionStrings:SSOServerDb"] ?? throw new ServiceConfigurationException();
                     options.DocumentSemVer.CurrentVersion = assemblyVersion.SimpleVersion;
+                    options.ParentFor<ISharedDbContext>();
                 })
                 
                 .AddDbContext<ISharedDbContext, SharedDbContext>(sp =>
