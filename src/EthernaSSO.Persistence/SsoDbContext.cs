@@ -84,7 +84,7 @@ namespace Etherna.SSOServer.Persistence
                      new CreateIndexOptions<UserBase> { Unique = true }),
 
                     (Builders<UserBase>.IndexKeys.Ascending(u => u.EtherPreviousAddresses),
-                     new CreateIndexOptions<UserBase> { Unique = true }),
+                     new CreateIndexOptions<UserBase>()),
 
                     (Builders<UserBase>.IndexKeys.Descending(u => u.LastLoginDateTime),
                      new CreateIndexOptions<UserBase> { Sparse = true }),

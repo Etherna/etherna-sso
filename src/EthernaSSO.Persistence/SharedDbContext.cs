@@ -39,7 +39,7 @@ namespace Etherna.SSOServer.Persistence
                      new CreateIndexOptions<UserSharedInfo> { Unique = true }),
 
                     (Builders<UserSharedInfo>.IndexKeys.Ascending(u => u.EtherPreviousAddresses),
-                     new CreateIndexOptions<UserSharedInfo> { Unique = true }),
+                     new CreateIndexOptions<UserSharedInfo>()),
                 }
             });
 
