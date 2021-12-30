@@ -12,12 +12,23 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-using System.Threading.Tasks;
+using Etherna.MongODM.Core;
+using Etherna.MongODM.Core.Serialization;
+using Etherna.SSOServer.Domain.Models.UserAgg;
 
-namespace Etherna.SSOServer.Services.Utilities
+namespace Etherna.SSOServer.Persistence.ModelMaps.Shared
 {
-    public interface IEmailSender
+    class UserSharedInfoMap : IModelMapsCollector
     {
-        Task SendEmailAsync(string email, string subject, string message);
+        public void Register(IDbContext dbContext)
+        {
+            dbContext.SchemaRegistry.AddModelMapsSchema<UserSharedInfo>("6d0d2ee1-6aa3-42ea-9833-ac592bfc6613", mm =>
+            {
+                mm.AutoMap();
+
+                // Set members to ignore if null or default.
+                mm.GetMemberMap(u => u.LockoutEnd).SetIgnoreIfNull(true);
+            });
+        }
     }
 }

@@ -16,13 +16,13 @@ using Etherna.MongODM.Core;
 using Etherna.MongODM.Core.Serialization;
 using Etherna.SSOServer.Domain.Models.UserAgg;
 
-namespace Etherna.SSOServer.Persistence.ModelMaps
+namespace Etherna.SSOServer.Persistence.ModelMaps.Sso
 {
     class UserLoginInfoMap : IModelMapsCollector
     {
         public void Register(IDbContext dbContext)
         {
-            dbContext.SchemaRegister.AddModelMapsSchema<UserLoginInfo>("6cec179b-807a-4ff9-977b-9314a60725a7");
+            dbContext.SchemaRegistry.AddModelMapsSchema<UserLoginInfo>("6cec179b-807a-4ff9-977b-9314a60725a7");
         }
     }
 }

@@ -16,7 +16,6 @@ using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Services.Domain;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using MongoDB.Driver.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;

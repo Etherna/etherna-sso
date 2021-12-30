@@ -16,4 +16,5 @@ using System;
 using System.Runtime.CompilerServices;
 
 [assembly: CLSCompliant(false)]
+[assembly: InternalsVisibleTo("EthernaSSO.Persistence")]
 [assembly: InternalsVisibleTo("EthernaSSO.Services")]

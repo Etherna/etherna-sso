@@ -12,9 +12,9 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Etherna.SSL.Services;
 using Etherna.SSOServer.Configs;
 using Etherna.SSOServer.Domain.Models;
-using Etherna.SSOServer.Services.Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -82,11 +82,11 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             // Send email.
             var emailBody = await razorViewRenderer.RenderViewToStringAsync(
                 "Views/Emails/ResetPassword.cshtml",
-                new RCL.Views.Emails.ResetPasswordModel(callbackUrl));
+                new Services.Views.Emails.ResetPasswordModel(callbackUrl));
 
             await emailSender.SendEmailAsync(
                 Input.Email,
-                RCL.Views.Emails.ResetPasswordModel.Title,
+                Services.Views.Emails.ResetPasswordModel.Title,
                 emailBody);
 
             return RedirectToPage("./ForgotPasswordConfirmation");

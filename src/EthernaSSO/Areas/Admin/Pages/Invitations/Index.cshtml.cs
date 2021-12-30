@@ -12,16 +12,16 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Etherna.MongoDB.Driver.Linq;
+using Etherna.SSL.Helpers;
+using Etherna.SSL.Services;
 using Etherna.SSOServer.Configs;
 using Etherna.SSOServer.Domain;
-using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models;
-using Etherna.SSOServer.RCL.Views.Emails;
-using Etherna.SSOServer.Services.Utilities;
+using Etherna.SSOServer.Services.Views.Emails;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using MongoDB.Driver.Linq;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;

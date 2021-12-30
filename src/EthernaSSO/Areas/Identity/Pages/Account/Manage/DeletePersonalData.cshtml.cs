@@ -153,13 +153,12 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
         private async Task DeleteUserHelperAsync(UserBase user)
         {
             var result = await userManager.DeleteAsync(user);
-            var userId = await userManager.GetUserIdAsync(user);
             if (!result.Succeeded)
-                throw new InvalidOperationException($"Unexpected error occurred deleting user with ID '{userId}'.");
+                throw new InvalidOperationException($"Unexpected error occurred deleting user with ID '{user.Id}'.");
 
             await signInManager.SignOutAsync();
 
-            logger.AccountDeleted(userId, userId);
+            logger.AccountDeleted(user.Id, user.Id);
         }
     }
 }

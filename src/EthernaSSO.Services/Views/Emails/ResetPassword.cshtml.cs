@@ -12,24 +12,17 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-using Etherna.MongODM.Core;
-using Etherna.MongODM.Core.Extensions;
-using Etherna.MongODM.Core.Serialization;
-using Etherna.SSOServer.Domain.Models;
-
-namespace Etherna.SSOServer.Persistence.ModelMaps
+namespace Etherna.SSOServer.Services.Views.Emails
 {
-    class InvitationMap : IModelMapsCollector
+    public class ResetPasswordModel
     {
-        public void Register(IDbContext dbContext)
-        {
-            dbContext.SchemaRegister.AddModelMapsSchema<Invitation>("a51c7ca1-b53e-43d2-b1ab-7efb7f5e735b", mm =>
-            {
-                mm.AutoMap();
+        public const string Title = "Etherna - Reset password";
 
-                // Set members with custom serializers.
-                mm.SetMemberSerializer(i => i.Emitter, UserMap.ReferenceSerializer(dbContext));
-            });
+        public ResetPasswordModel(string url)
+        {
+            Url = url;
         }
+
+        public string Url { get; }
     }
 }

@@ -12,21 +12,17 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-namespace Etherna.SSOServer.Services.Settings
-{
-    public class EmailSettings
-    {
-        public enum EmailService
-        {
-            Sendgrid,
-            Mailtrap,
-            FakeSender
-        }
+using Etherna.MongODM.Core;
+using Etherna.MongODM.Core.Serialization;
+using Etherna.SSOServer.Domain.Models;
 
-        public EmailService CurrentService { get; set; } = EmailService.FakeSender;
-        public string DisplayName { get; set; } = default!;
-        public string SendingAddress { get; set; } = default!;
-        public string ServiceKey { get; set; } = default!;
-        public string? ServiceUser { get; set; }
+namespace Etherna.SSOServer.Persistence.ModelMaps.Sso
+{
+    class DailyStatsMap : IModelMapsCollector
+    {
+        public void Register(IDbContext dbContext)
+        {
+            dbContext.SchemaRegistry.AddModelMapsSchema<DailyStats>("375a3f26-9219-4ae4-86cf-32b9ba0ac703");
+        }
     }
 }

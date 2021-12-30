@@ -12,17 +12,24 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-namespace Etherna.SSOServer.RCL.Views.Emails
+using Etherna.MongODM.Core;
+using Etherna.MongODM.Core.Extensions;
+using Etherna.MongODM.Core.Serialization;
+using Etherna.SSOServer.Domain.Models;
+
+namespace Etherna.SSOServer.Persistence.ModelMaps.Sso
 {
-    public class InvitationLetterModel
+    class InvitationMap : IModelMapsCollector
     {
-        public const string Title = "Etherna invitation";
-
-        public InvitationLetterModel(string invitationUrl)
+        public void Register(IDbContext dbContext)
         {
-            InvitationUrl = invitationUrl;
-        }
+            dbContext.SchemaRegistry.AddModelMapsSchema<Invitation>("a51c7ca1-b53e-43d2-b1ab-7efb7f5e735b", mm =>
+            {
+                mm.AutoMap();
 
-        public string InvitationUrl { get; }
+                // Set members with custom serializers.
+                mm.SetMemberSerializer(i => i.Emitter, UserMap.ReferenceSerializer(dbContext));
+            });
+        }
     }
 }

@@ -12,12 +12,17 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-using System.Threading.Tasks;
-
-namespace Etherna.SSOServer.Services.Utilities
+namespace Etherna.SSOServer.Services.Views.Emails
 {
-    public interface IRazorViewRenderer
+    public class TotpConfirmEmailModel
     {
-        Task<string> RenderViewToStringAsync<TModel>(string viewName, TModel model);
+        public const string Title = "Etherna - Confirm your email";
+
+        public TotpConfirmEmailModel(string code)
+        {
+            Code = code;
+        }
+
+        public string Code { get; }
     }
 }
