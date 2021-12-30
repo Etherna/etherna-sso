@@ -14,14 +14,15 @@
 
 using Etherna.DomainEvents;
 using Etherna.DomainEvents.AspNetCore;
+using Etherna.SSL;
 using Etherna.SSOServer.Services.Domain;
 using Etherna.SSOServer.Services.Tasks;
-using Etherna.SSOServer.Services.Utilities;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Linq;
 using System.Reflection;
 
-namespace Microsoft.Extensions.DependencyInjection
+namespace Etherna.SSOServer.Services
 {
     public static class ServiceCollectionExtensions
     {
@@ -29,6 +30,9 @@ namespace Microsoft.Extensions.DependencyInjection
 
         public static void AddDomainServices(this IServiceCollection services)
         {
+            // Dependencies.
+            services.AddEthernaServicesSharedLibrary();
+
             // Events.
             //register handlers in Ioc
             var eventHandlerTypes = from t in typeof(ServiceCollectionExtensions).GetTypeInfo().Assembly.GetTypes()
@@ -42,10 +46,6 @@ namespace Microsoft.Extensions.DependencyInjection
             //domain
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IWeb3AuthnService, Web3AuthnService>();
-
-            //utilities
-            services.AddScoped<IEmailSender, EmailSender>();
-            services.AddScoped<IRazorViewRenderer, RazorViewRenderer>();
 
             // Tasks.
             services.AddTransient<ICompileDailyStatsTask, CompileDailyStatsTask>();

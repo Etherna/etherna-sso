@@ -12,20 +12,20 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Etherna.MongoDB.Bson;
+using Etherna.MongoDB.Bson.Serialization.Serializers;
 using Etherna.MongODM.Core;
 using Etherna.MongODM.Core.Serialization;
 using Etherna.MongODM.Core.Serialization.Serializers;
 using Etherna.SSOServer.Domain.Models;
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Serializers;
 
-namespace Etherna.SSOServer.Persistence.ModelMaps
+namespace Etherna.SSOServer.Persistence.ModelMaps.Sso
 {
     class RoleMap : IModelMapsCollector
     {
         public void Register(IDbContext dbContext)
         {
-            dbContext.SchemaRegister.AddModelMapsSchema<Role>("82413cc7-9f38-4ea2-a841-4d9479ab4f11");
+            dbContext.SchemaRegistry.AddModelMapsSchema<Role>("82413cc7-9f38-4ea2-a841-4d9479ab4f11");
         }
 
         /// <summary>

@@ -12,17 +12,17 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-namespace Etherna.SSOServer.RCL.Views.Emails
+namespace Etherna.SSOServer.Services.Views.Emails
 {
-    public class TotpConfirmEmailModel
+    public class InvitationLetterModel
     {
-        public const string Title = "Etherna - Confirm your email";
+        public const string Title = "Etherna invitation";
 
-        public TotpConfirmEmailModel(string code)
+        public InvitationLetterModel(string invitationUrl)
         {
-            Code = code;
+            InvitationUrl = invitationUrl;
         }
 
-        public string Code { get; }
+        public string InvitationUrl { get; }
     }
 }

@@ -12,21 +12,21 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Etherna.MongoDB.Bson;
+using Etherna.MongoDB.Bson.Serialization.Serializers;
 using Etherna.MongODM.Core;
 using Etherna.MongODM.Core.Extensions;
 using Etherna.MongODM.Core.Serialization;
 using Etherna.MongODM.Core.Serialization.Serializers;
 using Etherna.SSOServer.Domain.Models;
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Serializers;
 
-namespace Etherna.SSOServer.Persistence.ModelMaps
+namespace Etherna.SSOServer.Persistence.ModelMaps.Sso
 {
     class UserMap : IModelMapsCollector
     {
         public void Register(IDbContext dbContext)
         {
-            dbContext.SchemaRegister.AddModelMapsSchema<UserBase>("a492aaa7-196c-4ec0-8fb5-255d099d0b9f", mm =>
+            dbContext.SchemaRegistry.AddModelMapsSchema<UserBase>("a492aaa7-196c-4ec0-8fb5-255d099d0b9f", mm =>
             {
                 mm.AutoMap();
 
@@ -34,8 +34,6 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
                 mm.GetMemberMap(u => u.Email).SetIgnoreIfNull(true);
                 mm.GetMemberMap(u => u.InvitedBy).SetIgnoreIfNull(true);
                 mm.GetMemberMap(u => u.InvitedByAdmin).SetIgnoreIfDefault(true);
-                mm.GetMemberMap(u => u.LockoutEnabled).SetIgnoreIfNull(true);
-                mm.GetMemberMap(u => u.LockoutEnd).SetIgnoreIfNull(true);
                 mm.GetMemberMap(u => u.NormalizedEmail).SetIgnoreIfNull(true);
                 mm.GetMemberMap(u => u.NormalizedUsername).SetIgnoreIfNull(true);
                 mm.GetMemberMap(u => u.Username).SetIgnoreIfNull(true);
@@ -44,7 +42,7 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
                 mm.SetMemberSerializer(u => u.InvitedBy!, ReferenceSerializer(dbContext));
                 mm.SetMemberSerializer(u => u.Roles, new EnumerableSerializer<Role>(RoleMap.ReferenceSerializer(dbContext)));
             });
-            dbContext.SchemaRegister.AddModelMapsSchema<UserWeb2>("2ccb567f-63cc-4fb3-b66e-a51fb4ff1bfe", mm =>
+            dbContext.SchemaRegistry.AddModelMapsSchema<UserWeb2>("2ccb567f-63cc-4fb3-b66e-a51fb4ff1bfe", mm =>
             {
                 mm.AutoMap();
 
@@ -54,7 +52,7 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
                 mm.GetMemberMap(u => u.Logins).SetIgnoreIfNull(true);
                 mm.GetMemberMap(u => u.PasswordHash).SetIgnoreIfNull(true);
             });
-            dbContext.SchemaRegister.AddModelMapsSchema<UserWeb3>("7d8804ab-217c-476a-a47f-977fe693fce3");
+            dbContext.SchemaRegistry.AddModelMapsSchema<UserWeb3>("7d8804ab-217c-476a-a47f-977fe693fce3");
         }
 
         /// <summary>

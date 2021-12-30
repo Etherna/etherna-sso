@@ -14,6 +14,7 @@
 
 using Etherna.Authentication;
 using Etherna.MongODM.Core.Attributes;
+using Etherna.SSL.Helpers;
 using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models.UserAgg;
 using Microsoft.AspNetCore.Identity;
@@ -42,11 +43,19 @@ namespace Etherna.SSOServer.Domain.Models
         private List<Role> _roles = new();
 
         // Constructors.
-        protected UserBase(string username, UserBase? invitedBy, bool invitedByAdmin)
+        protected UserBase(
+            string username,
+            UserBase? invitedBy,
+            bool invitedByAdmin,
+            UserSharedInfo sharedInfo)
         {
+            if (sharedInfo is null)
+                throw new ArgumentNullException(nameof(sharedInfo));
+
             SetUsername(username);
             InvitedBy = invitedBy;
             InvitedByAdmin = invitedByAdmin;
+            SharedInfoId = sharedInfo.Id;
         }
         protected UserBase() { }
 
@@ -79,24 +88,33 @@ namespace Etherna.SSOServer.Domain.Models
                 return claims;
             }
         }
-            
+
         [PersonalData]
         public virtual string? Email { get; protected set; }
+
         [PersonalData]
+        /* Keep until SharedInfo can't be encapsulated. */
         public virtual string EtherAddress { get; protected set; } = default!;
+        //[PersonalData]
+        //public virtual string EtherAddress => SharedInfo.EtherAddress;
+
         [PersonalData]
+        /* Keep until SharedInfo can't be encapsulated. */
         public virtual IEnumerable<string> EtherPreviousAddresses
         {
             get => _etherPreviousAddresses;
             protected set => _etherPreviousAddresses = new List<string>(value ?? Array.Empty<string>());
         }
+        //[PersonalData]
+        //public virtual IEnumerable<string> EtherPreviousAddresses => SharedInfo.EtherPreviousAddresses;
+
         public virtual UserBase? InvitedBy { get; protected set; }
         public virtual bool InvitedByAdmin { get; protected set; }
         public virtual bool IsInvited => InvitedByAdmin || InvitedBy is not null;
         [PersonalData]
         public virtual DateTime LastLoginDateTime { get; protected set; }
-        public virtual bool LockoutEnabled { get; set; }
-        public virtual DateTimeOffset? LockoutEnd { get; set; }
+        //public virtual bool LockoutEnabled => SharedInfo.LockoutEnabled;
+        //public virtual DateTimeOffset? LockoutEnd => SharedInfo.LockoutEnd;
         public virtual string? NormalizedEmail { get; protected set; }
         public virtual string NormalizedUsername { get; protected set; } = default!;
         [PersonalData]
@@ -108,6 +126,14 @@ namespace Etherna.SSOServer.Domain.Models
             protected set => _roles = new List<Role>(value ?? Array.Empty<Role>());
         }
         public virtual string SecurityStamp { get; set; } = default!;
+
+        /* SharedInfo is encapsulable with resolution of https://etherna.atlassian.net/browse/MODM-101.
+         * With encapsulation we can expose also EtherAddress and EtherPreviousAddresses properties
+         * pointing to SharedInfo internal property, and avoid data duplication.
+         */
+        //protected abstract SharedUserInfo SharedInfo { get; set; }
+        public virtual string SharedInfoId { get; protected set; } = default!;
+
         [PersonalData]
         public virtual string Username { get; protected set; } = default!;
 

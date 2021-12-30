@@ -24,7 +24,11 @@ namespace Etherna.SSOServer.Services.Domain
 {
     public interface IUserService
     {
+        Task DeleteAsync(UserBase user);
+
         Task<UserBase> FindUserByAddressAsync(string etherAddress);
+
+        Task<UserSharedInfo> GetSharedUserInfoAsync(UserBase user);
 
         Task<(IEnumerable<(string key, string msg)> errors, UserWeb2? user)> RegisterWeb2UserAsync(
             string username,
@@ -36,6 +40,17 @@ namespace Etherna.SSOServer.Services.Domain
             UserLoginInfo loginInfo,
             string? invitationCode);
 
+        Task<(IEnumerable<(string key, string msg)> errors, UserWeb2? user)> RegisterWeb2UserByAdminAsync(
+            string username,
+            string password,
+            string? email,
+            string? etherLoginAddress,
+            bool lockoutEnabled,
+            DateTimeOffset? lockoutEnd,
+            string? phoneNumber,
+            IEnumerable<Role> roles,
+            bool twoFactorEnabled);
+        
         Task<(IEnumerable<(string key, string msg)> errors, UserWeb3? user)> RegisterWeb3UserAsync(
             string username,
             string etherAddress,
@@ -47,5 +62,12 @@ namespace Etherna.SSOServer.Services.Domain
             int page,
             int take,
             Expression<Func<UserBase, bool>>? filterPredicate = null);
+
+        Task UpdateLockoutStatusAsync(
+            UserBase user,
+            bool lockoutEnabled,
+            DateTimeOffset? lockoutEnd);
+
+        Task<UserWeb3> UpgradeToWeb3(UserWeb2 userWeb2);
     }
 }

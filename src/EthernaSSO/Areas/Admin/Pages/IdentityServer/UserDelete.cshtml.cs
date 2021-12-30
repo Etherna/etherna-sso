@@ -13,6 +13,7 @@
 //   limitations under the License.
 
 using Etherna.SSOServer.Domain;
+using Etherna.SSOServer.Services.Domain;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System;
@@ -24,12 +25,15 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
     {
         // Fields.
         private readonly ISsoDbContext context;
+        private readonly IUserService userService;
 
         // Constructor.
         public UserDeleteModel(
-            ISsoDbContext context)
+            ISsoDbContext context,
+            IUserService userService)
         {
             this.context = context;
+            this.userService = userService;
         }
 
         // Properties.
@@ -49,7 +53,8 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
 
         public async Task<IActionResult> OnPostDeleteAsync(string id)
         {
-            await context.Users.DeleteAsync(id);
+            var user = await context.Users.FindOneAsync(id);
+            await userService.DeleteAsync(user);
             return RedirectToPage("Users");
         }
     }

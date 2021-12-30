@@ -16,7 +16,10 @@ using Etherna.DomainEvents;
 using Etherna.MongODM;
 using Etherna.MongODM.AspNetCore.UI;
 using Etherna.MongODM.Core.Options;
+using Etherna.SSL.Exceptions;
+using Etherna.SSL.Settings;
 using Etherna.SSOServer.Configs;
+using Etherna.SSOServer.Configs.Authorization;
 using Etherna.SSOServer.Configs.Hangfire;
 using Etherna.SSOServer.Configs.Identity;
 using Etherna.SSOServer.Configs.IdentityServer;
@@ -26,6 +29,7 @@ using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Extensions;
 using Etherna.SSOServer.Persistence;
 using Etherna.SSOServer.Persistence.Settings;
+using Etherna.SSOServer.Services;
 using Etherna.SSOServer.Services.Settings;
 using Etherna.SSOServer.Services.Tasks;
 using Hangfire;
@@ -33,6 +37,8 @@ using Hangfire.Mongo;
 using Hangfire.Mongo.Migration.Strategies;
 using Hangfire.Mongo.Migration.Strategies.Backup;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -44,7 +50,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System;
 using System.Collections.Generic;
@@ -76,7 +81,10 @@ namespace Etherna.SSOServer
         {
             // Configure Asp.Net Core framework services.
             services.AddDataProtection()
-                .PersistKeysToDbContext(new DbContextOptions { ConnectionString = Configuration["ConnectionStrings:DataProtectionDb"] });
+                .PersistKeysToDbContext(new DbContextOptions
+                {
+                    ConnectionString = Configuration["ConnectionStrings:DataProtectionDb"] ?? throw new ServiceConfigurationException()
+                });
 
             services.AddIdentity<UserBase, Role>(options =>
             {
@@ -101,7 +109,7 @@ namespace Etherna.SSOServer
             {
                 // Cookie settings.
                 options.Cookie.HttpOnly = true;
-                options.Cookie.Name = Configuration["Application:CompactName"];
+                options.Cookie.Name = Configuration["Application:CompactName"] ?? throw new ServiceConfigurationException();
                 options.ExpireTimeSpan = TimeSpan.FromDays(30);
 
                 options.LoginPath = "/Identity/Account/Login";
@@ -156,27 +164,45 @@ namespace Etherna.SSOServer
             services.AddAuthentication()
                 .AddGoogle(options =>
                 {
-                    options.ClientId = Configuration["Authentication:Google:ClientId"];
-                    options.ClientSecret = Configuration["Authentication:Google:ClientSecret"];
+                    options.ClientId = Configuration["Authentication:Google:ClientId"] ?? throw new ServiceConfigurationException();
+                    options.ClientSecret = Configuration["Authentication:Google:ClientSecret"] ?? throw new ServiceConfigurationException();
                 })
                 .AddFacebook(options =>
                 {
-                    options.AppId = Configuration["Authentication:Facebook:ClientId"];
-                    options.AppSecret = Configuration["Authentication:Facebook:ClientSecret"];
+                    options.AppId = Configuration["Authentication:Facebook:ClientId"] ?? throw new ServiceConfigurationException();
+                    options.AppSecret = Configuration["Authentication:Facebook:ClientSecret"] ?? throw new ServiceConfigurationException();
                 })
                 .AddTwitter(options =>
                 {
-                    options.ConsumerKey = Configuration["Authentication:Twitter:ClientId"];
-                    options.ConsumerSecret = Configuration["Authentication:Twitter:ClientSecret"];
+                    options.ConsumerKey = Configuration["Authentication:Twitter:ClientId"] ?? throw new ServiceConfigurationException();
+                    options.ConsumerSecret = Configuration["Authentication:Twitter:ClientSecret"] ?? throw new ServiceConfigurationException();
                 })
                 .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
                 {
-                    options.Authority = Configuration["IdServer:SsoServer:BaseUrl"];
+                    options.Audience = "ethernaSsoServiceInteract";
+                    options.Authority = Configuration["IdServer:SsoServer:BaseUrl"] ?? throw new ServiceConfigurationException();
                 });
+
+            // Configure authorization.
+            //policy and requirements
             services.AddAuthorization(options =>
             {
+                //default policy
+                options.DefaultPolicy = new AuthorizationPolicy(
+                    new IAuthorizationRequirement[]
+                    {
+                        new DenyAnonymousAuthorizationRequirement(),
+                        new DenyBannedAuthorizationRequirement()
+                    },
+                    Array.Empty<string>());
+
+                //other policies
                 options.AddPolicy(CommonConsts.RequireAdministratorRolePolicy,
-                     policy => policy.RequireRole(Role.AdministratorName));
+                     policy =>
+                     {
+                         policy.RequireRole(Role.AdministratorName);
+                         policy.AddRequirements(new DenyBannedAuthorizationRequirement());
+                     });
 
                 options.AddPolicy(CommonConsts.ServiceInteractApiScopePolicy, policy =>
                 {
@@ -186,12 +212,16 @@ namespace Etherna.SSOServer
                 });
             });
 
+            //requirement handlers
+            services.AddScoped<IAuthorizationHandler, DenyBannedAuthorizationHandler>();
+
             // Configure IdentityServer.
             var idServerConfig = new IdServerConfig(Configuration);
             var builder = services.AddIdentityServer(options =>
             {
                 options.UserInteraction.ErrorUrl = "/Error";
             })
+                .AddInMemoryApiResources(idServerConfig.ApiResources)
                 .AddInMemoryApiScopes(idServerConfig.ApiScopes)
                 .AddInMemoryClients(idServerConfig.Clients)
                 .AddInMemoryIdentityResources(idServerConfig.IdResources)
@@ -204,8 +234,8 @@ namespace Etherna.SSOServer
             {
 #pragma warning disable CA2000 // Dispose objects before losing scope
                 builder.AddSigningCredential(new X509Certificate2(
-                    Configuration["SigningCredentialCertificate:Name"],
-                    Configuration["SigningCredentialCertificate:Password"]));
+                    Configuration["SigningCredentialCertificate:Name"] ?? throw new ServiceConfigurationException(),
+                    Configuration["SigningCredentialCertificate:Password"] ?? throw new ServiceConfigurationException()));
 #pragma warning restore CA2000 // Dispose objects before losing scope
             }
 
@@ -241,18 +271,18 @@ namespace Etherna.SSOServer
 
             // Configure setting.
             var assemblyVersion = new AssemblyVersion(GetType().GetTypeInfo().Assembly);
-            services.Configure<ApplicationSettings>(Configuration.GetSection("Application"));
+            services.Configure<ApplicationSettings>(Configuration.GetSection("Application") ?? throw new ServiceConfigurationException());
             services.PostConfigure<ApplicationSettings>(options =>
             {
                 options.AssemblyVersion = assemblyVersion.Version;
             });
-            services.Configure<EmailSettings>(Configuration.GetSection("Email"));
-            services.Configure<DbSeedSettings>(Configuration.GetSection("DbSeed"));
+            services.Configure<EmailSettings>(Configuration.GetSection("Email") ?? throw new ServiceConfigurationException());
+            services.Configure<DbSeedSettings>(Configuration.GetSection("DbSeed") ?? throw new ServiceConfigurationException());
 
             // Configure persistence.
-            services.AddMongODMWithHangfire<ModelBase>(configureHangfireOptions: options =>
+            services.AddMongODMWithHangfire(configureHangfireOptions: options =>
             {
-                options.ConnectionString = Configuration["ConnectionStrings:HangfireDb"];
+                options.ConnectionString = Configuration["ConnectionStrings:HangfireDb"] ?? throw new ServiceConfigurationException();
                 options.StorageOptions = new MongoStorageOptions
                 {
                     MigrationOptions = new MongoMigrationOptions //don't remove, could throw exception
@@ -264,18 +294,30 @@ namespace Etherna.SSOServer
             }, configureMongODMOptions: options =>
             {
                 options.DbMaintenanceQueueName = Queues.DB_MAINTENANCE;
-            }).AddDbContext<ISsoDbContext, SsoDbContext>(sp =>
-            {
-                var eventDispatcher = sp.GetRequiredService<IEventDispatcher>();
-                var passwordHasher = sp.CreateScope().ServiceProvider.GetRequiredService<IPasswordHasher<UserBase>>();
-                var seedSettings = sp.GetRequiredService<IOptions<DbSeedSettings>>();
-                return new SsoDbContext(eventDispatcher, passwordHasher, seedSettings.Value);
-            },
-            options =>
-            {
-                options.DocumentSemVer.CurrentVersion = assemblyVersion.SimpleVersion;
-                options.ConnectionString = Configuration["ConnectionStrings:SSOServerDb"];
-            });
+            })
+                .AddDbContext<ISsoDbContext, SsoDbContext>(sp =>
+                {
+                    var eventDispatcher = sp.GetRequiredService<IEventDispatcher>();
+                    var seedSettings = sp.GetRequiredService<IOptions<DbSeedSettings>>();
+                    return new SsoDbContext(eventDispatcher, seedSettings.Value, sp);
+                },
+                options =>
+                {
+                    options.ConnectionString = Configuration["ConnectionStrings:SSOServerDb"] ?? throw new ServiceConfigurationException();
+                    options.DocumentSemVer.CurrentVersion = assemblyVersion.SimpleVersion;
+                    options.ParentFor<ISharedDbContext>();
+                })
+                
+                .AddDbContext<ISharedDbContext, SharedDbContext>(sp =>
+                {
+                    var eventDispatcher = sp.GetRequiredService<IEventDispatcher>();
+                    return new SharedDbContext(eventDispatcher);
+                },
+                options =>
+                {
+                    options.ConnectionString = Configuration["ConnectionStrings:ServiceSharedDb"] ?? throw new ServiceConfigurationException();
+                    options.DocumentSemVer.CurrentVersion = assemblyVersion.SimpleVersion;
+                });
 
             services.AddMongODMAdminDashboard(new MongODM.AspNetCore.UI.DashboardOptions
             {
@@ -330,6 +372,9 @@ namespace Etherna.SSOServer
             app.UseIdentityServer();
             app.UseAuthentication();
             app.UseAuthorization();
+
+            // Seed db if required.
+            app.UseDbContextsSeeding();
 
             // Add Hangfire.
             app.UseHangfireDashboard(CommonConsts.HangfireAdminPath,

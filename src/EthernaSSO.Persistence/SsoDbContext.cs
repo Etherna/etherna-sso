@@ -13,6 +13,7 @@
 //   limitations under the License.
 
 using Etherna.DomainEvents;
+using Etherna.MongoDB.Driver;
 using Etherna.MongODM.Core;
 using Etherna.MongODM.Core.Migration;
 using Etherna.MongODM.Core.Repositories;
@@ -21,8 +22,8 @@ using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Persistence.Repositories;
 using Etherna.SSOServer.Persistence.Settings;
-using Microsoft.AspNetCore.Identity;
-using MongoDB.Driver;
+using Etherna.SSOServer.Services.Domain;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,21 +36,21 @@ namespace Etherna.SSOServer.Persistence
     public class SsoDbContext : DbContext, IEventDispatcherDbContext, ISsoDbContext
     {
         // Consts.
-        private const string SerializersNamespace = "Etherna.SSOServer.Persistence.ModelMaps";
+        private const string ModelMapsNamespace = "Etherna.SSOServer.Persistence.ModelMaps.Sso";
 
         // Fields.
-        private readonly IPasswordHasher<UserBase> passwordHasher;
         private readonly DbSeedSettings seedSettings;
+        private readonly IServiceProvider serviceProvider;
 
         // Constructor.
         public SsoDbContext(
             IEventDispatcher eventDispatcher,
-            IPasswordHasher<UserBase> passwordHasher,
-            DbSeedSettings seedSettings)
+            DbSeedSettings seedSettings,
+            IServiceProvider serviceProvider)
         {
             EventDispatcher = eventDispatcher;
-            this.passwordHasher = passwordHasher;
             this.seedSettings = seedSettings;
+            this.serviceProvider = serviceProvider;
         }
 
         // Properties.
@@ -83,7 +84,7 @@ namespace Etherna.SSOServer.Persistence
                      new CreateIndexOptions<UserBase> { Unique = true }),
 
                     (Builders<UserBase>.IndexKeys.Ascending(u => u.EtherPreviousAddresses),
-                     new CreateIndexOptions<UserBase> { Unique = true }),
+                     new CreateIndexOptions<UserBase>()),
 
                     (Builders<UserBase>.IndexKeys.Descending(u => u.LastLoginDateTime),
                      new CreateIndexOptions<UserBase> { Sparse = true }),
@@ -96,6 +97,9 @@ namespace Etherna.SSOServer.Persistence
 
                     (Builders<UserBase>.IndexKeys.Ascending("Roles.NormalizedName"),
                      new CreateIndexOptions<UserBase>()),
+
+                    (Builders<UserBase>.IndexKeys.Ascending(u => u.SharedInfoId),
+                     new CreateIndexOptions<UserBase> { Unique = true }),
 
                     //UserWeb2
                     (Builders<UserBase>.IndexKeys.Ascending("EtherLoginAddress"),
@@ -125,7 +129,7 @@ namespace Etherna.SSOServer.Persistence
         // Protected properties.
         protected override IEnumerable<IModelMapsCollector> ModelMapsCollectors =>
             from t in typeof(SsoDbContext).GetTypeInfo().Assembly.GetTypes()
-            where t.IsClass && t.Namespace == SerializersNamespace
+            where t.IsClass && t.Namespace == ModelMapsNamespace
             where t.GetInterfaces().Contains(typeof(IModelMapsCollector))
             select Activator.CreateInstance(t) as IModelMapsCollector;
 
@@ -147,18 +151,28 @@ namespace Etherna.SSOServer.Persistence
         protected override async Task SeedAsync()
         {
             using (EventDispatcher.DisableEventDispatch())
+            using (var serviceScope = serviceProvider.CreateScope())
             {
+                var userService = serviceScope.ServiceProvider.GetRequiredService<IUserService>();
+
                 // Create admin role.
                 var adminRole = new Role(Role.AdministratorName);
                 await Roles.CreateAsync(adminRole);
 
                 // Create admin user.
-                var adminUser = new UserWeb2(seedSettings.FirstAdminUsername, null, true, null);
-                var pswHash = passwordHasher.HashPassword(adminUser, seedSettings.FirstAdminPassword);
-                adminUser.PasswordHash = pswHash;
-                adminUser.SecurityStamp = "JC6W6WKRWFN5WHOTFUX5TIKZG2KDFXQQ";
-                adminUser.AddRole(adminRole);
-                await Users.CreateAsync(adminUser);
+                var (_, user) = await userService.RegisterWeb2UserByAdminAsync(
+                    seedSettings.FirstAdminUsername,
+                    seedSettings.FirstAdminPassword,
+                    null,
+                    null,
+                    true,
+                    null,
+                    null,
+                    new[] { adminRole },
+                    false);
+
+                if (user is null)
+                    throw new InvalidOperationException("Error creating first user");
             }
         }
     }

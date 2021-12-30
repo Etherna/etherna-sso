@@ -30,7 +30,7 @@ function load() {
   store.manageWeb3View = document.querySelector("#manage-web3-login")
   store.installMetamaskView = document.querySelector("#install-metamask")
 
-  if (typeof window.web3 !== "undefined") {
+  if (typeof window.ethereum !== "undefined") {
     showEl(store.web3LoginView)
     showEl(store.manageWeb3View)
   } else {
@@ -115,6 +115,7 @@ async function getSignMsg(accounts: string[]) {
       address
     }
   } catch (error) {
+    showError(error)
     setBtnDisabled(store.web3LoginButton, false)
     setBtnDisabled(store.confirmWeb3LoginButton, false)
     throw error

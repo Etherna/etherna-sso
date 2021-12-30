@@ -12,17 +12,17 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-namespace Etherna.SSOServer.RCL.Views.Emails
+using Etherna.MongODM.Core;
+using Etherna.MongODM.Core.Serialization;
+using Etherna.SSOServer.Domain.Models;
+
+namespace Etherna.SSOServer.Persistence.ModelMaps.Sso
 {
-    public class ConfirmEmailChangeModel
+    class Web3LoginTokenMap : IModelMapsCollector
     {
-        public const string Title = "Etherna - Confirm your new email";
-
-        public ConfirmEmailChangeModel(string callbackUrl)
+        public void Register(IDbContext dbContext)
         {
-            CallbackUrl = callbackUrl;
+            dbContext.SchemaRegistry.AddModelMapsSchema<Web3LoginToken>("150f4cdf-099a-4195-a145-45f1f9eda60c");
         }
-
-        public string CallbackUrl { get; }
     }
 }

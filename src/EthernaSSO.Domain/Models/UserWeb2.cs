@@ -13,8 +13,8 @@
 //   limitations under the License.
 
 using Etherna.MongODM.Core.Attributes;
+using Etherna.SSOServer.Domain.Models.UserAgg;
 using Microsoft.AspNetCore.Identity;
-using Nethereum.Hex.HexConvertors.Extensions;
 using Nethereum.Util;
 using Nethereum.Web3.Accounts;
 using System;
@@ -31,13 +31,25 @@ namespace Etherna.SSOServer.Domain.Models
         private List<string> _twoFactorRecoveryCode = new();
 
         // Constructors.
-        public UserWeb2(string username, UserBase? invitedBy, bool invitedByAdmin, UserAgg.UserLoginInfo? loginInfo = default)
-            : base(username, invitedBy, invitedByAdmin)
+        public UserWeb2(
+            string username,
+            UserBase? invitedBy,
+            bool invitedByAdmin,
+            string etherManagedPrivateKey,
+            UserSharedInfo sharedInfo,
+            UserAgg.UserLoginInfo? loginInfo = default)
+            : base(username, invitedBy, invitedByAdmin, sharedInfo)
         {
+            // Verify that private key generates correct ether address.
+            var account = new Account(etherManagedPrivateKey);
+            if (account.Address != sharedInfo.EtherAddress)
+                throw new ArgumentException("Ethereum managed private key doesn't generate same address of shared info");
+
+            // Initialize.
             if (loginInfo is not null)
                 AddLogin(loginInfo);
 
-            EtherManagedPrivateKey = GenerateEtherPrivateKey();
+            EtherManagedPrivateKey = etherManagedPrivateKey;
         }
         protected UserWeb2() { }
 
@@ -74,7 +86,7 @@ namespace Etherna.SSOServer.Domain.Models
                 return _etherManagedAccount;
             }
         }
-        public virtual string? EtherManagedPrivateKey { get; protected set; }
+        public virtual string EtherManagedPrivateKey { get; protected set; } = default!;
         [PersonalData]
         public virtual string? EtherLoginAddress { get; protected set; }
         public virtual bool HasPassword => !string.IsNullOrEmpty(PasswordHash);
@@ -151,14 +163,6 @@ namespace Etherna.SSOServer.Domain.Models
                 throw new ArgumentException("The value is not a valid address", nameof(address));
 
             EtherLoginAddress = address.ConvertToEthereumChecksumAddress();
-        }
-
-        // Private helpers.
-        private static string GenerateEtherPrivateKey()
-        {
-            var ecKey = Nethereum.Signer.EthECKey.GenerateKey();
-            var privateKey = ecKey.GetPrivateKeyAsBytes().ToHex();
-            return privateKey;
         }
     }
 }

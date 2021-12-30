@@ -13,11 +13,11 @@
 //   limitations under the License.
 
 using Etherna.DomainEvents;
+using Etherna.MongoDB.Driver.Linq;
 using Etherna.MongODM.Core;
 using Etherna.MongODM.Core.Repositories;
 using Etherna.SSOServer.Domain.Events;
 using Etherna.SSOServer.Domain.Models;
-using MongoDB.Driver.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;

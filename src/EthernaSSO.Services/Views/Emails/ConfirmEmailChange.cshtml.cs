@@ -12,17 +12,17 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-using Etherna.MongODM.Core;
-using Etherna.MongODM.Core.Serialization;
-using Etherna.SSOServer.Domain.Models.UserAgg;
-
-namespace Etherna.SSOServer.Persistence.ModelMaps
+namespace Etherna.SSOServer.Services.Views.Emails
 {
-    class UserClaimMap : IModelMapsCollector
+    public class ConfirmEmailChangeModel
     {
-        public void Register(IDbContext dbContext)
+        public const string Title = "Etherna - Confirm your new email";
+
+        public ConfirmEmailChangeModel(string callbackUrl)
         {
-            dbContext.SchemaRegister.AddModelMapsSchema<UserClaim>("f7831985-dc0c-439f-b118-d7c511619a87");
+            CallbackUrl = callbackUrl;
         }
+
+        public string CallbackUrl { get; }
     }
 }
