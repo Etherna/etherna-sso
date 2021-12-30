@@ -19,6 +19,7 @@ using Etherna.MongODM.Core.Options;
 using Etherna.SSL.Exceptions;
 using Etherna.SSL.Settings;
 using Etherna.SSOServer.Configs;
+using Etherna.SSOServer.Configs.Authorization;
 using Etherna.SSOServer.Configs.Hangfire;
 using Etherna.SSOServer.Configs.Identity;
 using Etherna.SSOServer.Configs.IdentityServer;
@@ -36,6 +37,8 @@ using Hangfire.Mongo;
 using Hangfire.Mongo.Migration.Strategies;
 using Hangfire.Mongo.Migration.Strategies.Backup;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -179,10 +182,27 @@ namespace Etherna.SSOServer
                     options.Audience = "ethernaSsoServiceInteract";
                     options.Authority = Configuration["IdServer:SsoServer:BaseUrl"] ?? throw new ServiceConfigurationException();
                 });
+
+            // Configure authorization.
+            //policy and requirements
             services.AddAuthorization(options =>
             {
+                //default policy
+                options.DefaultPolicy = new AuthorizationPolicy(
+                    new IAuthorizationRequirement[]
+                    {
+                        new DenyAnonymousAuthorizationRequirement(),
+                        new DenyBannedAuthorizationRequirement()
+                    },
+                    Array.Empty<string>());
+
+                //other policies
                 options.AddPolicy(CommonConsts.RequireAdministratorRolePolicy,
-                     policy => policy.RequireRole(Role.AdministratorName));
+                     policy =>
+                     {
+                         policy.RequireRole(Role.AdministratorName);
+                         policy.AddRequirements(new DenyBannedAuthorizationRequirement());
+                     });
 
                 options.AddPolicy(CommonConsts.ServiceInteractApiScopePolicy, policy =>
                 {
@@ -191,6 +211,9 @@ namespace Etherna.SSOServer
                     policy.RequireClaim("scope", "ethernaSso_userContactInfo_api");
                 });
             });
+
+            //requirement handlers
+            services.AddScoped<IAuthorizationHandler, DenyBannedAuthorizationHandler>();
 
             // Configure IdentityServer.
             var idServerConfig = new IdServerConfig(Configuration);
