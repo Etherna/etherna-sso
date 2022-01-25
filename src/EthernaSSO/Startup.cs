@@ -12,18 +12,19 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Etherna.ACR.Exceptions;
+using Etherna.ACR.Settings;
 using Etherna.DomainEvents;
 using Etherna.MongODM;
 using Etherna.MongODM.AspNetCore.UI;
 using Etherna.MongODM.Core.Options;
-using Etherna.SSL.Exceptions;
-using Etherna.SSL.Settings;
 using Etherna.SSOServer.Configs;
 using Etherna.SSOServer.Configs.Authorization;
 using Etherna.SSOServer.Configs.Hangfire;
 using Etherna.SSOServer.Configs.Identity;
 using Etherna.SSOServer.Configs.IdentityServer;
 using Etherna.SSOServer.Configs.Swagger;
+using Etherna.SSOServer.Configs.SystemStore;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Extensions;
@@ -36,6 +37,7 @@ using Hangfire;
 using Hangfire.Mongo;
 using Hangfire.Mongo.Migration.Strategies;
 using Hangfire.Mongo.Migration.Strategies.Backup;
+using IdentityServer4.Stores;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
@@ -53,7 +55,9 @@ using Microsoft.Extensions.Options;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
@@ -132,6 +136,24 @@ namespace Etherna.SSOServer
             services.Configure<ForwardedHeadersOptions>(options =>
             {
                 options.ForwardedHeaders = ForwardedHeaders.All;
+
+                var knownNetworksConfig = Configuration.GetSection("ForwardedHeaders:KnownNetworks");
+                if (knownNetworksConfig.Exists())
+                {
+                    var networks = knownNetworksConfig.Get<string[]>().Select(address =>
+                    {
+                        var parts = address.Split('/');
+                        if (parts.Length != 2)
+                            throw new ServiceConfigurationException();
+
+                        return new IPNetwork(
+                            IPAddress.Parse(parts[0]),
+                            int.Parse(parts[1], CultureInfo.InvariantCulture));
+                    });
+
+                    foreach (var network in networks)
+                        options.KnownNetworks.Add(network);
+                }
             });
 
             services.AddCors();
@@ -239,6 +261,11 @@ namespace Etherna.SSOServer
 #pragma warning restore CA2000 // Dispose objects before losing scope
             }
 
+            services.AddSingleton<IPersistedGrantStore>(new PersistedGrantRepository(new DbContextOptions
+            {
+                ConnectionString = Configuration["ConnectionStrings:DataProtectionDb"] ?? throw new ServiceConfigurationException()
+            }, "persistedGrants"));
+
             // Configure Hangfire server.
             if (!Environment.IsStaging()) //don't start server in staging
             {
@@ -277,7 +304,7 @@ namespace Etherna.SSOServer
                 options.AssemblyVersion = assemblyVersion.Version;
             });
             services.Configure<EmailSettings>(Configuration.GetSection("Email") ?? throw new ServiceConfigurationException());
-            services.Configure<DbSeedSettings>(Configuration.GetSection("DbSeed") ?? throw new ServiceConfigurationException());
+            services.Configure<SsoDbSeedSettings>(Configuration.GetSection("DbSeed") ?? throw new ServiceConfigurationException());
 
             // Configure persistence.
             services.AddMongODMWithHangfire(configureHangfireOptions: options =>
@@ -298,7 +325,7 @@ namespace Etherna.SSOServer
                 .AddDbContext<ISsoDbContext, SsoDbContext>(sp =>
                 {
                     var eventDispatcher = sp.GetRequiredService<IEventDispatcher>();
-                    var seedSettings = sp.GetRequiredService<IOptions<DbSeedSettings>>();
+                    var seedSettings = sp.GetRequiredService<IOptions<SsoDbSeedSettings>>();
                     return new SsoDbContext(eventDispatcher, seedSettings.Value, sp);
                 },
                 options =>
