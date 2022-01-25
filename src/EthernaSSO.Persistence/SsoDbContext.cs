@@ -39,13 +39,13 @@ namespace Etherna.SSOServer.Persistence
         private const string ModelMapsNamespace = "Etherna.SSOServer.Persistence.ModelMaps.Sso";
 
         // Fields.
-        private readonly DbSeedSettings seedSettings;
+        private readonly SsoDbSeedSettings seedSettings;
         private readonly IServiceProvider serviceProvider;
 
         // Constructor.
         public SsoDbContext(
             IEventDispatcher eventDispatcher,
-            DbSeedSettings seedSettings,
+            SsoDbSeedSettings seedSettings,
             IServiceProvider serviceProvider)
         {
             EventDispatcher = eventDispatcher;

@@ -14,7 +14,7 @@
 
 namespace Etherna.SSOServer.Persistence.Settings
 {
-    public class DbSeedSettings
+    public class SsoDbSeedSettings
     {
         public string FirstAdminUsername { get; set; } = default!;
         public string FirstAdminPassword { get; set; } = default!;
