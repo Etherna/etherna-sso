@@ -12,7 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-using Etherna.SSL.Services;
+using Etherna.ACR.Services;
 using Etherna.SSOServer.Configs;
 using Etherna.SSOServer.Domain.Models;
 using Microsoft.AspNetCore.Authorization;
