@@ -24,6 +24,7 @@ using Etherna.SSOServer.Configs.Hangfire;
 using Etherna.SSOServer.Configs.Identity;
 using Etherna.SSOServer.Configs.IdentityServer;
 using Etherna.SSOServer.Configs.Swagger;
+using Etherna.SSOServer.Configs.SystemStore;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Extensions;
@@ -36,6 +37,7 @@ using Hangfire;
 using Hangfire.Mongo;
 using Hangfire.Mongo.Migration.Strategies;
 using Hangfire.Mongo.Migration.Strategies.Backup;
+using IdentityServer4.Stores;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
@@ -239,6 +241,11 @@ namespace Etherna.SSOServer
 #pragma warning restore CA2000 // Dispose objects before losing scope
             }
 
+            services.AddSingleton<IPersistedGrantStore>(new PersistedGrantRepository(new DbContextOptions
+            {
+                ConnectionString = Configuration["ConnectionStrings:DataProtectionDb"] ?? throw new ServiceConfigurationException()
+            }, "persistedGrants"));
+
             // Configure Hangfire server.
             if (!Environment.IsStaging()) //don't start server in staging
             {
@@ -277,7 +284,7 @@ namespace Etherna.SSOServer
                 options.AssemblyVersion = assemblyVersion.Version;
             });
             services.Configure<EmailSettings>(Configuration.GetSection("Email") ?? throw new ServiceConfigurationException());
-            services.Configure<DbSeedSettings>(Configuration.GetSection("DbSeed") ?? throw new ServiceConfigurationException());
+            services.Configure<SsoDbSeedSettings>(Configuration.GetSection("DbSeed") ?? throw new ServiceConfigurationException());
 
             // Configure persistence.
             services.AddMongODMWithHangfire(configureHangfireOptions: options =>
@@ -298,7 +305,7 @@ namespace Etherna.SSOServer
                 .AddDbContext<ISsoDbContext, SsoDbContext>(sp =>
                 {
                     var eventDispatcher = sp.GetRequiredService<IEventDispatcher>();
-                    var seedSettings = sp.GetRequiredService<IOptions<DbSeedSettings>>();
+                    var seedSettings = sp.GetRequiredService<IOptions<SsoDbSeedSettings>>();
                     return new SsoDbContext(eventDispatcher, seedSettings.Value, sp);
                 },
                 options =>
