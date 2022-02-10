@@ -13,10 +13,10 @@
 //   limitations under the License.
 
 using Etherna.DomainEvents;
+using Etherna.DomainEvents.Events;
 using Etherna.MongODM.Core;
 using Etherna.MongODM.Core.Domain.Models;
 using Etherna.MongODM.Core.Repositories;
-using Etherna.SSOServer.Domain.Events;
 using System;
 using System.Collections.Generic;
 using System.Linq;
