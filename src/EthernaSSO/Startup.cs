@@ -383,8 +383,7 @@ namespace Etherna.SSOServer
                 }
                 else
                 {
-                    builder.WithOrigins("https://*.etherna.io")
-                           .SetIsOriginAllowedToAllowWildcardSubdomains()
+                    builder.WithOrigins("https://app.etherna.io")
                            .AllowAnyHeader()
                            .AllowAnyMethod()
                            .AllowCredentials();
