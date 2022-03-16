@@ -38,6 +38,8 @@ using Hangfire.Mongo;
 using Hangfire.Mongo.Migration.Strategies;
 using Hangfire.Mongo.Migration.Strategies.Backup;
 using IdentityServer4.Stores;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
@@ -123,14 +125,16 @@ namespace Etherna.SSOServer
                 options.SlidingExpiration = true;
 
                 // Response 401 for unauthorized call on api.
-                options.Events.OnRedirectToLogin = context =>
+                static Task unauthorizedApiCallHandler(RedirectContext<CookieAuthenticationOptions> context)
                 {
                     if (context.Request.Path.StartsWithSegments("/api", StringComparison.InvariantCulture))
                         context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
                     else
                         context.Response.Redirect(context.RedirectUri);
                     return Task.CompletedTask;
-                };
+                }
+                options.Events.OnRedirectToAccessDenied = unauthorizedApiCallHandler;
+                options.Events.OnRedirectToLogin = unauthorizedApiCallHandler;
             });
 
             services.Configure<ForwardedHeadersOptions>(options =>
