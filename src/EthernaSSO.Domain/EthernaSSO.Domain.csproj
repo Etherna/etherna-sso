@@ -17,8 +17,8 @@
     <PackageReference Include="EthernaACR" Version="0.3.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Etherna" Version="0.3.0-alpha.7" />
     <PackageReference Include="Microsoft.Extensions.Identity.Core" Version="5.0.16" />
-    <PackageReference Include="MongODM.Core" Version="0.23.0-alpha.103" />
-    <PackageReference Include="Nethereum.Accounts" Version="4.3.0" />
+    <PackageReference Include="MongODM.Core" Version="0.23.0-alpha.105" />
+    <PackageReference Include="Nethereum.Accounts" Version="4.4.1" />
   </ItemGroup>
 
 </Project>
