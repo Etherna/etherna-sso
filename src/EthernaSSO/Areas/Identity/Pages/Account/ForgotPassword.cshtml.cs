@@ -20,6 +20,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 using System.Threading.Tasks;
@@ -78,6 +79,9 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 pageHandler: null,
                 values: new { area = CommonConsts.IdentityArea, code },
                 protocol: Request.Scheme);
+
+            if (callbackUrl is null)
+                throw new InvalidOperationException();
 
             // Send email.
             var emailBody = await razorViewRenderer.RenderViewToStringAsync(

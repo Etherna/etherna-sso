@@ -19,6 +19,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 using System.Threading.Tasks;
@@ -101,6 +102,9 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
                         email = Input.NewEmail,
                         code
                     });
+
+                if (callbackUrl is null)
+                    throw new InvalidOperationException();
 
                 var emailBody = await razorViewRenderer.RenderViewToStringAsync(
                     "Views/Emails/ConfirmEmailChange.cshtml",
