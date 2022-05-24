@@ -38,6 +38,8 @@ using Hangfire.Mongo;
 using Hangfire.Mongo.Migration.Strategies;
 using Hangfire.Mongo.Migration.Strategies.Backup;
 using IdentityServer4.Stores;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
@@ -123,14 +125,16 @@ namespace Etherna.SSOServer
                 options.SlidingExpiration = true;
 
                 // Response 401 for unauthorized call on api.
-                options.Events.OnRedirectToLogin = context =>
+                static Task unauthorizedApiCallHandler(RedirectContext<CookieAuthenticationOptions> context)
                 {
                     if (context.Request.Path.StartsWithSegments("/api", StringComparison.InvariantCulture))
                         context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
                     else
                         context.Response.Redirect(context.RedirectUri);
                     return Task.CompletedTask;
-                };
+                }
+                options.Events.OnRedirectToAccessDenied = unauthorizedApiCallHandler;
+                options.Events.OnRedirectToLogin = unauthorizedApiCallHandler;
             });
 
             services.Configure<ForwardedHeadersOptions>(options =>
@@ -203,6 +207,9 @@ namespace Etherna.SSOServer
                 {
                     options.Audience = "ethernaSsoServiceInteract";
                     options.Authority = Configuration["IdServer:SsoServer:BaseUrl"] ?? throw new ServiceConfigurationException();
+
+                    if (bool.TryParse(Configuration["IdServer:SsoServer:AllowUnsafeConnection"], out var allowUnsafeConnection))
+                        options.RequireHttpsMetadata = !allowUnsafeConnection;
                 });
 
             // Configure authorization.
@@ -287,6 +294,8 @@ namespace Etherna.SSOServer
             services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
             services.AddSwaggerGen(options =>
             {
+                options.SupportNonNullableReferenceTypes();
+
                 //add a custom operation filter which sets default values
                 options.OperationFilter<SwaggerDefaultValues>();
 
