@@ -129,6 +129,9 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.Invitations
                         invitationCode = invitations[i].Code
                     });
 
+                if (link is null)
+                    throw new InvalidOperationException();
+
                 var emailBody = await razorViewRenderer.RenderViewToStringAsync(
                     "Views/Emails/InvitationLetter.cshtml",
                     new InvitationLetterModel(link));
