@@ -207,6 +207,9 @@ namespace Etherna.SSOServer
                 {
                     options.Audience = "ethernaSsoServiceInteract";
                     options.Authority = Configuration["IdServer:SsoServer:BaseUrl"] ?? throw new ServiceConfigurationException();
+
+                    if (bool.TryParse(Configuration["IdServer:SsoServer:AllowUnsafeConnection"], out var allowUnsafeConnection))
+                        options.RequireHttpsMetadata = !allowUnsafeConnection;
                 });
 
             // Configure authorization.
