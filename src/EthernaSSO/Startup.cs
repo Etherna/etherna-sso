@@ -187,30 +187,42 @@ namespace Etherna.SSOServer
             services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
 
             // Configure authentication.
-            services.AddAuthentication()
-                .AddGoogle(options =>
-                {
-                    options.ClientId = Configuration["Authentication:Google:ClientId"] ?? throw new ServiceConfigurationException();
-                    options.ClientSecret = Configuration["Authentication:Google:ClientSecret"] ?? throw new ServiceConfigurationException();
-                })
-                .AddFacebook(options =>
-                {
-                    options.AppId = Configuration["Authentication:Facebook:ClientId"] ?? throw new ServiceConfigurationException();
-                    options.AppSecret = Configuration["Authentication:Facebook:ClientSecret"] ?? throw new ServiceConfigurationException();
-                })
-                .AddTwitter(options =>
-                {
-                    options.ConsumerKey = Configuration["Authentication:Twitter:ClientId"] ?? throw new ServiceConfigurationException();
-                    options.ConsumerSecret = Configuration["Authentication:Twitter:ClientSecret"] ?? throw new ServiceConfigurationException();
-                })
-                .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
-                {
-                    options.Audience = "ethernaSsoServiceInteract";
-                    options.Authority = Configuration["IdServer:SsoServer:BaseUrl"] ?? throw new ServiceConfigurationException();
+            var authBuilder = services.AddAuthentication();
 
-                    if (bool.TryParse(Configuration["IdServer:SsoServer:AllowUnsafeConnection"], out var allowUnsafeConnection))
-                        options.RequireHttpsMetadata = !allowUnsafeConnection;
+            //add external login providers
+            if (Configuration["Authentication:Google:ClientId"] is not null &&
+                Configuration["Authentication:Google:ClientSecret"] is not null)
+                authBuilder.AddGoogle(options =>
+                {
+                    options.ClientId = Configuration["Authentication:Google:ClientId"];
+                    options.ClientSecret = Configuration["Authentication:Google:ClientSecret"];
                 });
+
+            if (Configuration["Authentication:Facebook:ClientId"] is not null &&
+                Configuration["Authentication:Facebook:ClientSecret"] is not null)
+                authBuilder.AddFacebook(options =>
+                {
+                    options.AppId = Configuration["Authentication:Facebook:ClientId"];
+                    options.AppSecret = Configuration["Authentication:Facebook:ClientSecret"];
+                });
+
+            if (Configuration["Authentication:Twitter:ClientId"] is not null &&
+                Configuration["Authentication:Twitter:ClientSecret"] is not null)
+                authBuilder.AddTwitter(options =>
+                {
+                    options.ConsumerKey = Configuration["Authentication:Twitter:ClientId"];
+                    options.ConsumerSecret = Configuration["Authentication:Twitter:ClientSecret"];
+                });
+
+            //add JWT
+            authBuilder.AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
+            {
+                options.Audience = "ethernaSsoServiceInteract";
+                options.Authority = Configuration["IdServer:SsoServer:BaseUrl"] ?? throw new ServiceConfigurationException();
+
+                if (bool.TryParse(Configuration["IdServer:SsoServer:AllowUnsafeConnection"], out var allowUnsafeConnection))
+                    options.RequireHttpsMetadata = !allowUnsafeConnection;
+            });
 
             // Configure authorization.
             //policy and requirements
