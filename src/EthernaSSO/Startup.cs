@@ -420,9 +420,6 @@ namespace Etherna.SSOServer
             app.UseAuthentication();
             app.UseAuthorization();
 
-            // Seed db if required.
-            app.UseDbContextsSeeding();
-
             // Add Hangfire.
             app.UseHangfireDashboard(CommonConsts.HangfireAdminPath,
                 new Hangfire.DashboardOptions
@@ -458,6 +455,9 @@ namespace Etherna.SSOServer
                 DeleteOldInvitationsTask.TaskId,
                 task => task.RunAsync(),
                 "0 5 * * *"); //at 05:00 every day
+
+            // Seed db.
+            app.SeedDbContexts();
         }
     }
 }
