@@ -404,7 +404,7 @@ namespace Etherna.SSOServer
                 }
                 else
                 {
-                    builder.WithOrigins("https://app.etherna.io")
+                    builder.WithOrigins("https://etherna.io")
                            .AllowAnyHeader()
                            .AllowAnyMethod()
                            .AllowCredentials();
