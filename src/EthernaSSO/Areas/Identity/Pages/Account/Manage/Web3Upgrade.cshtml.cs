@@ -26,24 +26,24 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
     public class Web3UpgradeModel : PageModel
     {
         // Fields.
-        private readonly SignInManager<UserBase> signInManager;
-        private readonly ISsoDbContext ssoDbContext;
-        private readonly UserManager<UserBase> userManager;
-        private readonly IUserService userService;
+        //private readonly SignInManager<UserBase> signInManager;
+        //private readonly ISsoDbContext ssoDbContext;
+        //private readonly UserManager<UserBase> userManager;
+        //private readonly IUserService userService;
         private readonly IWeb3AuthnService web3AuthnService;
 
         // Constructor.
         public Web3UpgradeModel(
-            SignInManager<UserBase> signInManager,
-            ISsoDbContext ssoDbContext,
-            UserManager<UserBase> userManager,
-            IUserService userService,
+            //SignInManager<UserBase> signInManager,
+            //ISsoDbContext ssoDbContext,
+            //UserManager<UserBase> userManager,
+            //IUserService userService,
             IWeb3AuthnService web3AuthnService)
         {
-            this.signInManager = signInManager;
-            this.ssoDbContext = ssoDbContext;
-            this.userManager = userManager;
-            this.userService = userService;
+            //this.signInManager = signInManager;
+            //this.ssoDbContext = ssoDbContext;
+            //this.userManager = userManager;
+            //this.userService = userService;
             this.web3AuthnService = web3AuthnService;
         }
 
@@ -59,45 +59,49 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
         public async Task<IActionResult> OnGetRetriveAuthMessageAsync(string etherAddress) =>
             new JsonResult(await web3AuthnService.RetriveAuthnMessageAsync(etherAddress));
 
-        public async Task<IActionResult> OnGetUpgradeWeb3Async(string etherAddress, string signature)
+        public Task<IActionResult> OnGetUpgradeWeb3Async(string etherAddress, string signature)
         {
-            // Verify signature.
-            //get token
-            var token = await ssoDbContext.Web3LoginTokens.TryFindOneAsync(t => t.EtherAddress == etherAddress);
-            if (token is null)
-            {
-                StatusMessage = $"Web3 authentication code for {etherAddress} address not found";
-                return RedirectToPage();
-            }
+            // Temporary disabled (see: https://etherna.atlassian.net/browse/ESSO-165)
+            StatusMessage = $"Error, this function is temporary disabled";
+            return Task.FromResult<IActionResult>(RedirectToPage());
 
-            //check signature
-            var verifiedSignature = web3AuthnService.VerifySignature(token.Code, etherAddress, signature);
-            if (!verifiedSignature)
-            {
-                StatusMessage = $"Invalid signature for web3 authentication";
-                return RedirectToPage();
-            }
+            //// Verify signature.
+            ////get token
+            //var token = await ssoDbContext.Web3LoginTokens.TryFindOneAsync(t => t.EtherAddress == etherAddress);
+            //if (token is null)
+            //{
+            //    StatusMessage = $"Web3 authentication code for {etherAddress} address not found";
+            //    return RedirectToPage();
+            //}
+            
+            ////check signature
+            //var verifiedSignature = web3AuthnService.VerifySignature(token.Code, etherAddress, signature);
+            //if (!verifiedSignature)
+            //{
+            //    StatusMessage = $"Invalid signature for web3 authentication";
+            //    return RedirectToPage();
+            //}
 
-            //delete used token
-            await ssoDbContext.Web3LoginTokens.DeleteAsync(token);
+            ////delete used token
+            //await ssoDbContext.Web3LoginTokens.DeleteAsync(token);
 
-            //verify address
-            if (await userManager.GetUserAsync(User) is not UserWeb2 userWeb2)
-                return NotFound($"Unable to load user with ID '{userManager.GetUserId(User)}'.");
+            ////verify address
+            //if (await userManager.GetUserAsync(User) is not UserWeb2 userWeb2)
+            //    return NotFound($"Unable to load user with ID '{userManager.GetUserId(User)}'.");
 
-            if (!userWeb2.EtherLoginAddress.IsTheSameAddress(etherAddress))
-            {
-                StatusMessage = $"Signing address is different than user's Ethereum login address";
-                return RedirectToPage();
-            }
+            //if (!userWeb2.EtherLoginAddress.IsTheSameAddress(etherAddress))
+            //{
+            //    StatusMessage = $"Signing address is different than user's Ethereum login address";
+            //    return RedirectToPage();
+            //}
 
-            // Upgrade user to Web3 account.
-            var userWeb3 = await userService.UpgradeToWeb3(userWeb2);
+            //// Upgrade user to Web3 account.
+            //var userWeb3 = await userService.UpgradeToWeb3(userWeb2);
 
-            //refresh cookie claims
-            await signInManager.RefreshSignInAsync(userWeb3);
+            ////refresh cookie claims
+            //await signInManager.RefreshSignInAsync(userWeb3);
 
-            return RedirectToPage("./Index");
+            //return RedirectToPage("./Index");
         }
     }
 }
