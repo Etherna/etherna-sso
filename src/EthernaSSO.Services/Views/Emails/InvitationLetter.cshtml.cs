@@ -18,11 +18,18 @@ namespace Etherna.SSOServer.Services.Views.Emails
     {
         public const string Title = "Etherna invitation";
 
-        public InvitationLetterModel(string invitationUrl)
+        public InvitationLetterModel(
+            string invitationCode,
+            string invitationUrl,
+            string userName)
         {
+            InvitationCode = invitationCode;
             InvitationUrl = invitationUrl;
+            UserName = userName;
         }
 
+        public string InvitationCode { get; }
         public string InvitationUrl { get; }
+        public string UserName { get; }
     }
 }
