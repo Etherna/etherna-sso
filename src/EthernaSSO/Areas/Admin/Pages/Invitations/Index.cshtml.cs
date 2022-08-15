@@ -41,8 +41,8 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.Invitations
             [Display(Name = "New invitations quantity")]
             public int Quantity { get; set; }
 
-            [Display(Name = "New invitation email receivers")]
-            public string? EmailReceivers { get; set; }
+            [Display(Name = "New invitation email and name receivers. Format <email>[;<name>]")]
+            public string? EmailAndNameReceivers { get; set; }
         }
 
         // Fields.
@@ -100,22 +100,32 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.Invitations
         public async Task<IActionResult> OnPostGenerateAndSendAsync()
         {
             // Validate input.
-            if (Input?.EmailReceivers is null)
+            if (Input?.EmailAndNameReceivers is null)
             {
                 await InitializeAsync();
                 return Page();
             }
 
             // Clean input.
-            var emails = Input.EmailReceivers
+            var emailsAndNames = Input.EmailAndNameReceivers
                 .Split('\r', '\n')
-                .Select(s => s.Trim())
-                .Where(s => EmailHelper.IsValidEmail(s))
-                .Distinct()
+                .Select(line =>
+                {
+                    var split = line.Split(';');
+                    var email = split[0].Trim();
+                    var name = split.Length >= 2 && !string.IsNullOrEmpty(split[1]) ?
+                        split[1].Trim() :
+                        email.Split('@')[0];
+
+                    return new { Email = email, Name = name };
+                })
+                .Where(r => EmailHelper.IsValidEmail(r.Email))
+                .GroupBy(r => r.Email) //distinct by email
+                .Select(r => r.First())
                 .ToArray();
 
             // Generate invitations.
-            var invitations = await GenerateInvitationsAsync(emails.Length);
+            var invitations = await GenerateInvitationsAsync(emailsAndNames.Length);
             GeneratedInvitations = invitations;
 
             // Send emails.
@@ -134,10 +144,13 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.Invitations
 
                 var emailBody = await razorViewRenderer.RenderViewToStringAsync(
                     "Views/Emails/InvitationLetter.cshtml",
-                    new InvitationLetterModel(link));
+                    new InvitationLetterModel(
+                        invitations[i].Code,
+                        link,
+                        emailsAndNames[i].Name));
 
                 await emailSender.SendEmailAsync(
-                    emails[i],
+                    emailsAndNames[i].Email,
                     InvitationLetterModel.Title,
                     emailBody);
             }
