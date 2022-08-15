@@ -60,15 +60,7 @@ namespace Etherna.SSOServer.Services.Domain
         }
 
         // Private properties.
-        private UserManager<UserBase> UserManager
-        {
-            get
-            {
-                if (_userManager is null)
-                    _userManager = serviceProvider.GetRequiredService<UserManager<UserBase>>();
-                return _userManager;
-            }
-        }
+        private UserManager<UserBase> UserManager => _userManager ??= serviceProvider.GetRequiredService<UserManager<UserBase>>();
 
         // Methods.
         public async Task DeleteAsync(UserBase user)
