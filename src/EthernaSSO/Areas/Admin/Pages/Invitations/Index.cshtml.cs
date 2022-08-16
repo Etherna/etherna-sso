@@ -143,16 +143,28 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.Invitations
                     throw new InvalidOperationException();
 
                 var emailBody = await razorViewRenderer.RenderViewToStringAsync(
-                    "Views/Emails/InvitationLetter.cshtml",
-                    new InvitationLetterModel(
+                    "Views/Emails/AlphaPassLetter.cshtml",
+                    new AlphaPassLetterModel(
                         invitations[i].Code,
                         link,
                         emailsAndNames[i].Name));
 
                 await emailSender.SendEmailAsync(
                     emailsAndNames[i].Email,
-                    InvitationLetterModel.Title,
+                    AlphaPassLetterModel.Title,
                     emailBody);
+
+                //var emailBody = await razorViewRenderer.RenderViewToStringAsync(
+                //    "Views/Emails/InvitationLetter.cshtml",
+                //    new InvitationLetterModel(
+                //        invitations[i].Code,
+                //        link,
+                //        emailsAndNames[i].Name));
+
+                //await emailSender.SendEmailAsync(
+                //    emailsAndNames[i].Email,
+                //    InvitationLetterModel.Title,
+                //    emailBody);
             }
 
             StatusMessage = $"{invitations.Length} invitations generated and sent";
