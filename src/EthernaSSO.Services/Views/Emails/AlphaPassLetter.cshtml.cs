@@ -14,11 +14,11 @@
 
 namespace Etherna.SSOServer.Services.Views.Emails
 {
-    public class InvitationLetterModel
+    public class AlphaPassLetterModel
     {
-        public const string Title = "Etherna invitation";
+        public const string Title = "Etherna is here";
 
-        public InvitationLetterModel(
+        public AlphaPassLetterModel(
             string invitationCode,
             string invitationUrl,
             string userName)

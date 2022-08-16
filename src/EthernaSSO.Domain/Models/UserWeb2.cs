@@ -76,16 +76,7 @@ namespace Etherna.SSOServer.Domain.Models
             get => EtherManagedAccount.Address;
             protected set { } //disable set for managed account
         }
-        public virtual Account EtherManagedAccount
-        {
-            get
-            {
-                if (_etherManagedAccount is null)
-                    _etherManagedAccount = new Account(EtherManagedPrivateKey);
-
-                return _etherManagedAccount;
-            }
-        }
+        public virtual Account EtherManagedAccount => _etherManagedAccount ??= new Account(EtherManagedPrivateKey);
         public virtual string EtherManagedPrivateKey { get; protected set; } = default!;
         [PersonalData]
         public virtual string? EtherLoginAddress { get; protected set; }
