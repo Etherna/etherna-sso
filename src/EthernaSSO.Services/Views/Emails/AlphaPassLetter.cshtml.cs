@@ -16,7 +16,7 @@ namespace Etherna.SSOServer.Services.Views.Emails
 {
     public class AlphaPassLetterModel
     {
-        public const string Title = "Etherna is here";
+        public const string Title = "[Announcement] Your Alpha Pass for Etherna";
 
         public AlphaPassLetterModel(
             string invitationCode,
