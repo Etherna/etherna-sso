@@ -162,7 +162,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
             //load data
             ExternalLogins.AddRange(await signInManager.GetExternalAuthenticationSchemesAsync());
-            if (Input is null) Input = new InputModel();
+            Input ??= new InputModel();
             Input.InvitationCode ??= invitationCode;
             IsInvitationRequired = applicationSettings.RequireInvitation;
             ReturnUrl = returnUrl ?? Url.Content("~/");

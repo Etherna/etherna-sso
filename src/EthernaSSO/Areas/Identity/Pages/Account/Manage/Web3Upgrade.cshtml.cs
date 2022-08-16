@@ -59,7 +59,9 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
         public async Task<IActionResult> OnGetRetriveAuthMessageAsync(string etherAddress) =>
             new JsonResult(await web3AuthnService.RetriveAuthnMessageAsync(etherAddress));
 
+#pragma warning disable IDE0060 // Remove unused parameter
         public Task<IActionResult> OnGetUpgradeWeb3Async(string etherAddress, string signature)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             // Temporary disabled (see: https://etherna.atlassian.net/browse/ESSO-165)
             StatusMessage = $"Error, this function is temporary disabled";

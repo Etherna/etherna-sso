@@ -45,9 +45,9 @@
                 <form id="generate-and-send" method="post">
                     <h3>Bulk generate and send</h3>
                     <div class="mb-3">
-                        <label asp-for="Input.EmailReceivers"></label>
-                        <textarea asp-for="Input.EmailReceivers" class="form-control" type="text" placeholder="Email addresses, one per line"></textarea>
-                        <span asp-validation-for="Input.EmailReceivers" class="text-danger"></span>
+                        <label asp-for="Input.EmailAndNameReceivers"></label>
+                        <textarea asp-for="Input.EmailAndNameReceivers" class="form-control" type="text" placeholder="Email addresses, one per line. Name is optional"></textarea>
+                        <span asp-validation-for="Input.EmailAndNameReceivers" class="text-danger"></span>
                     </div>
                     <button type="submit" asp-page-handler="GenerateAndSend" class="btn btn-primary">Generate and send</button>
                 </form>
