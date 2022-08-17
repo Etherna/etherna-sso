@@ -65,8 +65,11 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.Invitations
         }
 
         // Properties.
+        [Display(Name = "Failed invitations")]
+        public List<string> FailedInvitations { get; } = new List<string>();
+
         [Display(Name = "New generated invitations")]
-        public IEnumerable<Invitation>? GeneratedInvitations { get; set; }
+        public List<Invitation> GeneratedInvitations { get; } = new List<Invitation>();
 
         [BindProperty]
         public InputModel Input { get; set; } = default!;
@@ -90,7 +93,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.Invitations
             }
 
             // Generate invitations.
-            GeneratedInvitations = await GenerateInvitationsAsync(Input.Quantity);
+            GeneratedInvitations.AddRange(await GenerateInvitationsAsync(Input.Quantity));
 
             StatusMessage = $"{Input.Quantity} invitations generated";
             await InitializeAsync();
@@ -126,48 +129,58 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.Invitations
 
             // Generate invitations.
             var invitations = await GenerateInvitationsAsync(emailsAndNames.Length);
-            GeneratedInvitations = invitations;
 
             // Send emails.
             for (int i = 0; i < invitations.Length; i++)
             {
-                var link = Url.PageLink(
-                    pageName: "/Account/Register",
-                    values: new
-                    {
-                        area = CommonConsts.IdentityArea,
-                        invitationCode = invitations[i].Code
-                    });
+#pragma warning disable CA1031 // Do not catch general exception types
+                try
+                {
+                    var link = Url.PageLink(
+                        pageName: "/Account/Register",
+                        values: new
+                        {
+                            area = CommonConsts.IdentityArea,
+                            invitationCode = invitations[i].Code
+                        });
 
-                if (link is null)
-                    throw new InvalidOperationException();
+                    if (link is null)
+                        throw new InvalidOperationException();
 
-                var emailBody = await razorViewRenderer.RenderViewToStringAsync(
-                    "Views/Emails/AlphaPassLetter.cshtml",
-                    new AlphaPassLetterModel(
-                        invitations[i].Code,
-                        link,
-                        emailsAndNames[i].Name));
+                    var emailBody = await razorViewRenderer.RenderViewToStringAsync(
+                        "Views/Emails/AlphaPassLetter.cshtml",
+                        new AlphaPassLetterModel(
+                            invitations[i].Code,
+                            link,
+                            emailsAndNames[i].Name));
 
-                await emailSender.SendEmailAsync(
-                    emailsAndNames[i].Email,
-                    AlphaPassLetterModel.Title,
-                    emailBody);
+                    await emailSender.SendEmailAsync(
+                        emailsAndNames[i].Email,
+                        AlphaPassLetterModel.Title,
+                        emailBody);
 
-                //var emailBody = await razorViewRenderer.RenderViewToStringAsync(
-                //    "Views/Emails/InvitationLetter.cshtml",
-                //    new InvitationLetterModel(
-                //        invitations[i].Code,
-                //        link,
-                //        emailsAndNames[i].Name));
+                    //var emailBody = await razorViewRenderer.RenderViewToStringAsync(
+                    //    "Views/Emails/InvitationLetter.cshtml",
+                    //    new InvitationLetterModel(
+                    //        invitations[i].Code,
+                    //        link,
+                    //        emailsAndNames[i].Name));
 
-                //await emailSender.SendEmailAsync(
-                //    emailsAndNames[i].Email,
-                //    InvitationLetterModel.Title,
-                //    emailBody);
+                    //await emailSender.SendEmailAsync(
+                    //    emailsAndNames[i].Email,
+                    //    InvitationLetterModel.Title,
+                    //    emailBody);
+
+                    GeneratedInvitations.Add(invitations[i]);
+                }
+                catch (Exception)
+                {
+                    FailedInvitations.Add($"{emailsAndNames[i].Email};{emailsAndNames[i].Name}");
+                }
+#pragma warning restore CA1031 // Do not catch general exception types
             }
 
-            StatusMessage = $"{invitations.Length} invitations generated and sent";
+            StatusMessage = $"{invitations.Length} invitations generated. {GeneratedInvitations.Count} succeeded to send, {FailedInvitations.Count} failed.";
             await InitializeAsync();
             return Page();
         }
