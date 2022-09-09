@@ -30,7 +30,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Twitter" Version="6.0.8" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="6.0.8" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning.ApiExplorer" Version="5.0.0" />
-    <PackageReference Include="Microsoft.TypeScript.MSBuild" Version="4.7.4"> <!--Installed only for hide warning-->
+    <PackageReference Include="Microsoft.TypeScript.MSBuild" Version="4.8.3"> <!--Installed only for hide warning-->
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
