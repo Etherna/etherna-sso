@@ -68,17 +68,18 @@ namespace Etherna.SSOServer.Persistence
             select Activator.CreateInstance(t) as IModelMapsCollector;
 
         // Methods.
-        public override Task SaveChangesAsync(CancellationToken cancellationToken = default)
+        public override async Task SaveChangesAsync(CancellationToken cancellationToken = default)
         {
             // Dispatch events.
             foreach (var model in ChangedModelsList.Where(m => m is EntityModelBase)
-                                                   .Select(m => (EntityModelBase)m))
+                                                   .Select(m => (EntityModelBase)m)
+                                                   .ToArray())
             {
-                EventDispatcher.DispatchAsync(model.Events);
+                await EventDispatcher.DispatchAsync(model.Events);
                 model.ClearEvents();
             }
 
-            return base.SaveChangesAsync(cancellationToken);
+            await base.SaveChangesAsync(cancellationToken);
         }
     }
 }
