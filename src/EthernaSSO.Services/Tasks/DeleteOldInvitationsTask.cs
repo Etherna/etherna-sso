@@ -40,7 +40,7 @@ namespace Etherna.SSOServer.Services.Tasks
             ssoDbContext.Invitations.AccessToCollectionAsync(collection =>
             {
                 return collection.DeleteManyAsync(
-                    Builders<Invitation>.Filter.Where(i => i.EndLife != null && i.EndLife < DateTime.Now));
+                    Builders<Invitation>.Filter.Where(i => i.EndLife != null && i.EndLife < DateTime.UtcNow));
             });
     }
 }

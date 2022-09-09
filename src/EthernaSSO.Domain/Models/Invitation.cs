@@ -24,7 +24,7 @@ namespace Etherna.SSOServer.Domain.Models
             Code = Guid.NewGuid().ToString();
             Emitter = emitter ?? throw new ArgumentNullException(nameof(emitter));
             if (duration is not null)
-                EndLife = DateTime.Now + duration;
+                EndLife = DateTime.UtcNow + duration;
             IsFromAdmin = isFromAdmin;
             IsSingleUse = isSingleUse;
         }
@@ -34,7 +34,7 @@ namespace Etherna.SSOServer.Domain.Models
         public virtual string Code { get; protected set; } = default!;
         public virtual UserBase Emitter { get; protected set; } = default!;
         public virtual DateTime? EndLife { get; protected set; }
-        public virtual bool IsAlive => EndLife is null || DateTime.Now < EndLife;
+        public virtual bool IsAlive => EndLife is null || DateTime.UtcNow < EndLife;
         public virtual bool IsFromAdmin { get; protected set; }
         public virtual bool IsSingleUse { get; protected set; }
     }

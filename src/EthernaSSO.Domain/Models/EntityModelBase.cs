@@ -27,7 +27,7 @@ namespace Etherna.SSOServer.Domain.Models
         // Constructors and dispose.
         protected EntityModelBase()
         {
-            _creationDateTime = DateTime.Now;
+            _creationDateTime = DateTime.UtcNow;
         }
 
         public virtual void DisposeForDelete() { }
