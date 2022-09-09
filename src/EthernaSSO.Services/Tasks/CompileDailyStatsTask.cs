@@ -40,15 +40,15 @@ namespace Etherna.SSOServer.Services.Tasks
         {
             var stats = new DailyStats(
                 await ssoDbContext.Users.QueryElementsAsync(users =>
-                    users.Where(u => u.LastLoginDateTime >= DateTime.Now - TimeSpan.FromDays(30))
+                    users.Where(u => u.LastLoginDateTime >= DateTime.UtcNow - TimeSpan.FromDays(30))
                          .CountAsync()),
 
                 await ssoDbContext.Users.QueryElementsAsync(users =>
-                    users.Where(u => u.LastLoginDateTime >= DateTime.Now - TimeSpan.FromDays(60))
+                    users.Where(u => u.LastLoginDateTime >= DateTime.UtcNow - TimeSpan.FromDays(60))
                          .CountAsync()),
 
                 await ssoDbContext.Users.QueryElementsAsync(users =>
-                    users.Where(u => u.LastLoginDateTime >= DateTime.Now - TimeSpan.FromDays(180))
+                    users.Where(u => u.LastLoginDateTime >= DateTime.UtcNow - TimeSpan.FromDays(180))
                          .CountAsync()),
 
                 await ssoDbContext.Users.QueryElementsAsync(users =>
