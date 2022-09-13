@@ -99,6 +99,9 @@ namespace Etherna.SSOServer.Configs.IdentityServer
         private readonly string ethernaIndex_Webapp_ClientId;
         private readonly string ethernaIndex_Webapp_Secret;
 
+        private readonly string ethernaVideoImporter_BaseUrl;
+        private readonly string ethernaVideoImporter_ClientId;
+
         // Constructor.
         public IdServerConfig(IConfiguration configuration)
         {
@@ -125,6 +128,9 @@ namespace Etherna.SSOServer.Configs.IdentityServer
             ethernaIndex_Sso_Secret = configuration["IdServer:Clients:EthernaIndex:Clients:SsoServer:Secret"] ?? throw new ServiceConfigurationException();
             ethernaIndex_Webapp_ClientId = configuration["IdServer:Clients:EthernaIndex:Clients:Webapp:ClientId"] ?? throw new ServiceConfigurationException();
             ethernaIndex_Webapp_Secret = configuration["IdServer:Clients:EthernaIndex:Clients:Webapp:Secret"] ?? throw new ServiceConfigurationException();
+
+            ethernaVideoImporter_BaseUrl = configuration["IdServer:Clients:EthernaVideoImporter:BaseUrl"] ?? throw new ServiceConfigurationException();
+            ethernaVideoImporter_ClientId = configuration["IdServer:Clients:EthernaVideoImporter:ClientId"] ?? throw new ServiceConfigurationException();
         }
 
         // Properties.
@@ -306,6 +312,37 @@ namespace Etherna.SSOServer.Configs.IdentityServer
 
                 // Allow token refresh.
                 AllowOfflineAccess = true
+            },
+
+            //video importer
+            new Client
+            {
+                ClientId = ethernaVideoImporter_ClientId,
+                ClientName = "Etherna Video Importer",
+                RequireClientSecret = false,
+
+                AllowedGrantTypes = GrantTypes.Code,
+
+                //where to redirect to after login
+                RedirectUris = { ethernaVideoImporter_BaseUrl },
+
+                //where to redirect to after logout
+                PostLogoutRedirectUris = { ethernaVideoImporter_BaseUrl },
+
+                AllowedCorsOrigins = { ethernaVideoImporter_BaseUrl },
+
+                AlwaysIncludeUserClaimsInIdToken = true,
+                AllowedScopes =
+                {
+                    IdentityServerConstants.StandardScopes.OpenId,
+                    IdentityServerConstants.StandardScopes.Profile,
+                    IdResourcesDef.EtherAccounts.Name,
+                    IdResourcesDef.Role.Name
+                },
+
+                // Allow token refresh.
+                AllowOfflineAccess = true,
+                RefreshTokenUsage = TokenUsage.OneTimeOnly //because client have not secret
             },
         };
 
