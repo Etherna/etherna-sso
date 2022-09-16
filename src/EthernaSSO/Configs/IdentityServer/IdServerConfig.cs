@@ -29,29 +29,39 @@ namespace Etherna.SSOServer.Configs.IdentityServer
         // Consts.
         private static class ApiResourcesDef
         {
-            public static readonly ApiResource EthernaCreditServiceInteract = new(
-                "ethernaCreditServiceInteract",
-                "Etherna Credit service interact")
+            public static readonly ApiResource EthernaCreditServiceInteract = new("ethernaCreditServiceInteract", "Etherna Credit service interact")
             {
                 Scopes = { ApiScopesDef.EthernaCreditServiceInteract.Name }
             };
 
-            public static readonly ApiResource EthernaSsoServiceInteract = new(
-                "ethernaSsoServiceInteract",
-                "Etherna SSO service interact")
+            public static readonly ApiResource EthernaSsoServiceInteract = new("ethernaSsoServiceInteract", "Etherna SSO service interact")
             {
                 Scopes = { ApiScopesDef.EthernaSsoUserContactInfo.Name }
             };
-        }
-        private static class ApiScopesDef
-        {
-            public static readonly ApiScope EthernaCreditServiceInteract = new(
-                "ethernaCredit_serviceInteract_api",
-                "Etherna Credit service interact API");
 
-            public static readonly ApiScope EthernaSsoUserContactInfo = new(
-                "ethernaSso_userContactInfo_api",
-                "Etherna SSO user contatct info API");
+            public static readonly ApiResource EthernaUserApi = new("userApi", "Etherna user APIs")
+            {
+                Scopes = {
+                    ApiScopesDef.UserInteractEthernaCredit.Name,
+                    ApiScopesDef.UserInteractEthernaGateway.Name,
+                    ApiScopesDef.UserInteractEthernaIndex.Name,
+                    ApiScopesDef.UserInteractEthernaSso.Name
+                }
+            };
+        }
+        private static class ApiScopesDef //these can go in very details of client permissions
+        {
+            //credit service interaction scopes
+            public static readonly ApiScope EthernaCreditServiceInteract = new("ethernaCredit_serviceInteract_api", "Etherna Credit service interact API");
+
+            //sso service interaction scopes
+            public static readonly ApiScope EthernaSsoUserContactInfo = new("ethernaSso_userContactInfo_api", "Etherna SSO user contatct info API");
+
+            //global user interaction scopes
+            public static readonly ApiScope UserInteractEthernaCredit = new("userApi.credit", "Etherna Credit user API");
+            public static readonly ApiScope UserInteractEthernaGateway = new("userApi.gateway", "Etherna Gateway user API");
+            public static readonly ApiScope UserInteractEthernaIndex = new("userApi.index", "Etherna Index user API");
+            public static readonly ApiScope UserInteractEthernaSso = new("userApi.sso", "Etherna Sso user API");
         }
         private static class IdResourcesDef
         {
@@ -137,13 +147,18 @@ namespace Etherna.SSOServer.Configs.IdentityServer
         public IEnumerable<ApiResource> ApiResources => new ApiResource[]
         {
             ApiResourcesDef.EthernaCreditServiceInteract,
-            ApiResourcesDef.EthernaSsoServiceInteract
+            ApiResourcesDef.EthernaSsoServiceInteract,
+            ApiResourcesDef.EthernaUserApi
         };
 
         public IEnumerable<ApiScope> ApiScopes => new ApiScope[]
         {
             ApiScopesDef.EthernaCreditServiceInteract,
-            ApiScopesDef.EthernaSsoUserContactInfo
+            ApiScopesDef.EthernaSsoUserContactInfo,
+            ApiScopesDef.UserInteractEthernaCredit,
+            ApiScopesDef.UserInteractEthernaGateway,
+            ApiScopesDef.UserInteractEthernaIndex,
+            ApiScopesDef.UserInteractEthernaSso
         };
 
         public IEnumerable<Client> Clients => new Client[]
@@ -161,6 +176,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                 //scopes that client has access to
                 AllowedScopes =
                 {
+                    //resource
                     ApiScopesDef.EthernaSsoUserContactInfo.Name
                 }
             },
@@ -183,6 +199,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                 AlwaysIncludeUserClaimsInIdToken = true,
                 AllowedScopes = new List<string>
                 {
+                    //identity
                     IdentityServerConstants.StandardScopes.OpenId,
                     IdentityServerConstants.StandardScopes.Profile,
                     IdResourcesDef.EtherAccounts.Name,
@@ -213,6 +230,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                 AlwaysIncludeUserClaimsInIdToken = true,
                 AllowedScopes =
                 {
+                    //identity
                     IdentityServerConstants.StandardScopes.OpenId,
                     IdentityServerConstants.StandardScopes.Profile,
                     IdResourcesDef.EtherAccounts.Name,
@@ -237,6 +255,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                 //scopes that client has access to
                 AllowedScopes =
                 {
+                    //resource
                     ApiScopesDef.EthernaCreditServiceInteract.Name
                 }
             },
@@ -259,6 +278,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                 AlwaysIncludeUserClaimsInIdToken = true,
                 AllowedScopes =
                 {
+                    //identity
                     IdentityServerConstants.StandardScopes.OpenId,
                     IdentityServerConstants.StandardScopes.Profile,
                     IdResourcesDef.EtherAccounts.Name,
@@ -282,6 +302,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                 //scopes that client has access to
                 AllowedScopes =
                 {
+                    //resource
                     ApiScopesDef.EthernaSsoUserContactInfo.Name
                 }
             },
@@ -304,6 +325,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                 AlwaysIncludeUserClaimsInIdToken = true,
                 AllowedScopes =
                 {
+                    //identity
                     IdentityServerConstants.StandardScopes.OpenId,
                     IdentityServerConstants.StandardScopes.Profile,
                     IdResourcesDef.EtherAccounts.Name,
@@ -334,10 +356,14 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                 AlwaysIncludeUserClaimsInIdToken = true,
                 AllowedScopes =
                 {
+                    //identity
                     IdentityServerConstants.StandardScopes.OpenId,
                     IdentityServerConstants.StandardScopes.Profile,
                     IdResourcesDef.EtherAccounts.Name,
-                    IdResourcesDef.Role.Name
+
+                    //resource
+                    ApiScopesDef.UserInteractEthernaGateway.Name,
+                    ApiScopesDef.UserInteractEthernaIndex.Name,
                 },
 
                 // Allow token refresh.
