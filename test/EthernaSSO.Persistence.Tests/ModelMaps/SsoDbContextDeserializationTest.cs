@@ -36,6 +36,40 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
         }
 
         // Data.
+        public static IEnumerable<object[]> AlphaPassRequestDeserializationTests
+        {
+            get
+            {
+                var tests = new List<DeserializationTestElement<AlphaPassRequest, SsoDbContext>>();
+
+                // "cdfb69bd-b70c-4736-9210-737b675333bc" - v0.3.22
+                {
+                    var sourceDocument =
+                        @"{
+                            ""_id"" : ObjectId(""6328dcf4955896e143e25f4c""),
+                            ""_m"" : ""cdfb69bd-b70c-4736-9210-737b675333bc"",
+                            ""CreationDateTime"" : ISODate(""2022-09-19T21:19:48.210+0000""),
+                            ""IsEmailConfirmed"" : true,
+                            ""IsInvitationSent"" : true,
+                            ""NormalizedEmail"" : ""WOW@EMAIL.COM"",
+                            ""Secret"" : ""MXJZZ3FD6G""
+                        }";
+
+                    var expectedDocumentMock = new Mock<AlphaPassRequest>();
+                    expectedDocumentMock.Setup(d => d.Id).Returns("6328dcf4955896e143e25f4c");
+                    expectedDocumentMock.Setup(d => d.CreationDateTime).Returns(new DateTime(2022, 09, 19, 21, 19, 48, 210));
+                    expectedDocumentMock.Setup(d => d.IsEmailConfirmed).Returns(true);
+                    expectedDocumentMock.Setup(d => d.IsInvitationSent).Returns(true);
+                    expectedDocumentMock.Setup(d => d.NormalizedEmail).Returns("WOW@EMAIL.COM");
+                    expectedDocumentMock.Setup(d => d.Secret).Returns("MXJZZ3FD6G");
+
+                    tests.Add(new(sourceDocument, expectedDocumentMock.Object));
+                }
+
+                return tests.Select(t => new object[] { t });
+            }
+        }
+
         public static IEnumerable<object[]> DailyStatsDeserializationTests
         {
             get
@@ -379,6 +413,34 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
         }
 
         // Tests.
+        [Theory, MemberData(nameof(AlphaPassRequestDeserializationTests))]
+        public void AlphaPassRequestDeserialization(DeserializationTestElement<AlphaPassRequest, SsoDbContext> testElement)
+        {
+            if (testElement is null)
+                throw new ArgumentNullException(nameof(testElement));
+
+            // Arrange.
+            using var documentReader = new JsonReader(testElement.SourceDocument);
+            var modelMapSerializer = new ModelMapSerializer<AlphaPassRequest>(dbContext);
+            var deserializationContext = BsonDeserializationContext.CreateRoot(documentReader);
+            testElement.SetupAction(mongoDatabaseMock, dbContext);
+
+            // Action.
+            using var dbExecutionContext = new DbExecutionContextHandler(dbContext); //run into a db execution context
+            var result = modelMapSerializer.Deserialize(deserializationContext);
+
+            // Assert.
+            Assert.Equal(testElement.ExpectedModel.Id, result.Id);
+            Assert.Equal(testElement.ExpectedModel.CreationDateTime, result.CreationDateTime);
+            Assert.Equal(testElement.ExpectedModel.IsEmailConfirmed, result.IsEmailConfirmed);
+            Assert.Equal(testElement.ExpectedModel.IsInvitationSent, result.IsInvitationSent);
+            Assert.Equal(testElement.ExpectedModel.NormalizedEmail, result.NormalizedEmail);
+            Assert.Equal(testElement.ExpectedModel.Secret, result.Secret);
+            Assert.NotNull(result.Id);
+            Assert.NotNull(result.NormalizedEmail);
+            Assert.NotNull(result.Secret);
+        }
+
         [Theory, MemberData(nameof(DailyStatsDeserializationTests))]
         public void DailyStatsDeserialization(DeserializationTestElement<DailyStats, SsoDbContext> testElement)
         {

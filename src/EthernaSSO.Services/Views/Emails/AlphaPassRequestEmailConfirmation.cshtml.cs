@@ -12,19 +12,17 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-using Etherna.MongODM.Core;
-using Etherna.MongODM.Core.Repositories;
-using Etherna.SSOServer.Domain.Models;
-
-namespace Etherna.SSOServer.Domain
+namespace Etherna.SSOServer.Services.Views.Emails
 {
-    public interface ISsoDbContext : IDbContext
+    public class AlphaPassRequestEmailConfirmationModel
     {
-        ICollectionRepository<AlphaPassRequest, string> AlphaPassRequests { get; }
-        ICollectionRepository<DailyStats, string> DailyStats { get; }
-        ICollectionRepository<Invitation, string> Invitations { get; }
-        ICollectionRepository<Role, string> Roles { get; }
-        ICollectionRepository<UserBase, string> Users { get; }
-        ICollectionRepository<Web3LoginToken, string> Web3LoginTokens { get; }
+        public const string Title = "Request for Etherna Alpha Pass";
+
+        public AlphaPassRequestEmailConfirmationModel(string callbackUrl)
+        {
+            CallbackUrl = callbackUrl;
+        }
+
+        public string CallbackUrl { get; }
     }
 }
