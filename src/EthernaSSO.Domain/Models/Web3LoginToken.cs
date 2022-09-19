@@ -25,9 +25,6 @@ namespace Etherna.SSOServer.Domain.Models
         public const int CodeLength = 10;
         public readonly static string CodeValidChars = "0123456789" + "abcdefghijklmnopqrstuvwxyz" + "ABCDEFGHIJKLMNOPQRSTUVWXYZ" + "-_";
 
-        // Static fields.
-        private static readonly Random random = new();
-
         // Constructors.
         public Web3LoginToken(string etherAddress)
         {
@@ -52,7 +49,7 @@ namespace Etherna.SSOServer.Domain.Models
 
             var codeBuilder = new StringBuilder();
             for (int i = 0; i < length; i++)
-                codeBuilder.Append(dictionary[random.Next(dictionary.Length)]);
+                codeBuilder.Append(dictionary[Random.Shared.Next(dictionary.Length)]);
 
             return codeBuilder.ToString();
         }

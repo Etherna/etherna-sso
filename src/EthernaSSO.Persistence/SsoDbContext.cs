@@ -55,6 +55,15 @@ namespace Etherna.SSOServer.Persistence
 
         // Properties.
         //repositories
+        public ICollectionRepository<AlphaPassRequest, string> AlphaPassRequests { get; } = new DomainCollectionRepository<AlphaPassRequest, string>(
+            new CollectionRepositoryOptions<AlphaPassRequest>("alphaPassRequests")
+            {
+                IndexBuilders = new[]
+                {
+                    (Builders<AlphaPassRequest>.IndexKeys.Ascending(r => r.NormalizedEmail),
+                     new CreateIndexOptions<AlphaPassRequest> { Unique = true })
+                }
+            });
         public ICollectionRepository<DailyStats, string> DailyStats { get; } = new DomainCollectionRepository<DailyStats, string>("dailyStats");
         public ICollectionRepository<Invitation, string> Invitations { get; } = new DomainCollectionRepository<Invitation, string>(
             new CollectionRepositoryOptions<Invitation>("invitations")

@@ -1,0 +1,33 @@
+﻿@page
+@model Etherna.SSOServer.Areas.AlphaPass.Pages.IndexModel
+@{
+    ViewData["Title"] = "Request Alpha Pass";
+}
+
+<h2>@ViewData["Title"]</h2>
+<partial name="_StatusMessage" model="Model.StatusMessage" />
+
+<h4>Enter your email.</h4>
+<hr />
+<div class="row">
+    <div class="col-md-6">
+        <p>This is a queue system.<br />
+            You will receive an Alpha Pass when available.</p>
+
+        <p>For any question you can write to <a href="mailto:info@etherna.io">info@etherna.io</a>.</p>
+
+        <form method="post">
+            <div asp-validation-summary="All" class="text-danger"></div>
+            <div class="mb-3">
+                <label asp-for="Input.Email"></label>
+                <input asp-for="Input.Email" class="form-control" />
+                <span asp-validation-for="Input.Email" class="text-danger"></span>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
