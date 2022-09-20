@@ -151,8 +151,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.Invitations
                         "Views/Emails/AlphaPassLetter.cshtml",
                         new AlphaPassLetterModel(
                             invitations[i].Code,
-                            link,
-                            emailsAndNames[i].Name));
+                            link));
 
                     await emailSender.SendEmailAsync(
                         emailsAndNames[i].Email,

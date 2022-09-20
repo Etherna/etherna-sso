@@ -61,7 +61,12 @@ namespace Etherna.SSOServer.Persistence
                 IndexBuilders = new[]
                 {
                     (Builders<AlphaPassRequest>.IndexKeys.Ascending(r => r.NormalizedEmail),
-                     new CreateIndexOptions<AlphaPassRequest> { Unique = true })
+                     new CreateIndexOptions<AlphaPassRequest> { Unique = true }),
+
+                    (Builders<AlphaPassRequest>.IndexKeys.Ascending(r => r.CreationDateTime)
+                                                         .Ascending(r => r.IsEmailConfirmed)
+                                                         .Ascending(r => r.IsInvitationSent),
+                     new CreateIndexOptions<AlphaPassRequest>())
                 }
             });
         public ICollectionRepository<DailyStats, string> DailyStats { get; } = new DomainCollectionRepository<DailyStats, string>("dailyStats");

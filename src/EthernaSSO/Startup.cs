@@ -448,6 +448,11 @@ namespace Etherna.SSOServer
                 task => task.RunAsync(),
                 "0 5 * * *"); //at 05:00 every day
 
+            RecurringJob.AddOrUpdate<IProcessAlphaPassRequestsTask>(
+                ProcessAlphaPassRequestsTask.TaskId,
+                task => task.RunAsync(),
+                Cron.Hourly());
+
             // Seed db.
             app.SeedDbContexts();
         }

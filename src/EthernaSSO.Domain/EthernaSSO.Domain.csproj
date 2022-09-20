@@ -14,7 +14,7 @@
 
   <ItemGroup>
     <PackageReference Include="Etherna.DomainEvents" Version="1.4.0" />
-    <PackageReference Include="EthernaACR" Version="0.3.4" />
+    <PackageReference Include="EthernaACR" Version="0.3.5" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Etherna" Version="0.3.0-alpha.7" />
     <PackageReference Include="MongODM.Core" Version="0.23.1" />
     <PackageReference Include="Nethereum.Accounts" Version="4.8.0" />
