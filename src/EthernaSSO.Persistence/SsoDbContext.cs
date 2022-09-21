@@ -55,6 +55,20 @@ namespace Etherna.SSOServer.Persistence
 
         // Properties.
         //repositories
+        public ICollectionRepository<AlphaPassRequest, string> AlphaPassRequests { get; } = new DomainCollectionRepository<AlphaPassRequest, string>(
+            new CollectionRepositoryOptions<AlphaPassRequest>("alphaPassRequests")
+            {
+                IndexBuilders = new[]
+                {
+                    (Builders<AlphaPassRequest>.IndexKeys.Ascending(r => r.NormalizedEmail),
+                     new CreateIndexOptions<AlphaPassRequest> { Unique = true }),
+
+                    (Builders<AlphaPassRequest>.IndexKeys.Ascending(r => r.CreationDateTime)
+                                                         .Ascending(r => r.IsEmailConfirmed)
+                                                         .Ascending(r => r.IsInvitationSent),
+                     new CreateIndexOptions<AlphaPassRequest>())
+                }
+            });
         public ICollectionRepository<DailyStats, string> DailyStats { get; } = new DomainCollectionRepository<DailyStats, string>("dailyStats");
         public ICollectionRepository<Invitation, string> Invitations { get; } = new DomainCollectionRepository<Invitation, string>(
             new CollectionRepositoryOptions<Invitation>("invitations")
@@ -134,17 +148,18 @@ namespace Etherna.SSOServer.Persistence
             select Activator.CreateInstance(t) as IModelMapsCollector;
 
         // Methods.
-        public override Task SaveChangesAsync(CancellationToken cancellationToken = default)
+        public override async Task SaveChangesAsync(CancellationToken cancellationToken = default)
         {
             // Dispatch events.
             foreach (var model in ChangedModelsList.Where(m => m is EntityModelBase)
-                                                   .Select(m => (EntityModelBase)m))
+                                                   .Select(m => (EntityModelBase)m)
+                                                   .ToArray())
             {
-                EventDispatcher.DispatchAsync(model.Events);
+                await EventDispatcher.DispatchAsync(model.Events);
                 model.ClearEvents();
             }
 
-            return base.SaveChangesAsync(cancellationToken);
+            await base.SaveChangesAsync(cancellationToken);
         }
 
         // Protected methods.

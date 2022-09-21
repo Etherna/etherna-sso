@@ -151,8 +151,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.Invitations
                         "Views/Emails/AlphaPassLetter.cshtml",
                         new AlphaPassLetterModel(
                             invitations[i].Code,
-                            link,
-                            emailsAndNames[i].Name));
+                            link));
 
                     await emailSender.SendEmailAsync(
                         emailsAndNames[i].Email,
@@ -202,7 +201,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.Invitations
         private async Task InitializeAsync()
         {
             TotalAlive = await ssoDbContext.Invitations.QueryElementsAsync(invitations =>
-                invitations.Where(i => i.EndLife == null || i.EndLife > System.DateTime.Now)
+                invitations.Where(i => i.EndLife == null || i.EndLife > System.DateTime.UtcNow)
                            .CountAsync());
         }
     }

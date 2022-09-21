@@ -65,6 +65,11 @@
                 }
                 <input asp-for="Input.InvitationCode" class="form-control" />
                 <span asp-validation-for="Input.InvitationCode" class="text-danger"></span>
+                <p>
+                    Do you need an invitation code?<br />
+                    <a asp-area="@CommonConsts.AlphaPassArea"
+                       asp-page="/Index">Click here to request an Alpha Pass!</a>
+                </p>
             </div>
             <div class="mb-3">
                 <button type="submit" class="btn btn-primary">Register</button>

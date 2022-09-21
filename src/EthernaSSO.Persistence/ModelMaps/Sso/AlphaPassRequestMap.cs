@@ -13,18 +13,16 @@
 //   limitations under the License.
 
 using Etherna.MongODM.Core;
-using Etherna.MongODM.Core.Repositories;
+using Etherna.MongODM.Core.Serialization;
 using Etherna.SSOServer.Domain.Models;
 
-namespace Etherna.SSOServer.Domain
+namespace Etherna.SSOServer.Persistence.ModelMaps.Sso
 {
-    public interface ISsoDbContext : IDbContext
+    internal class AlphaPassRequestMap : IModelMapsCollector
     {
-        ICollectionRepository<AlphaPassRequest, string> AlphaPassRequests { get; }
-        ICollectionRepository<DailyStats, string> DailyStats { get; }
-        ICollectionRepository<Invitation, string> Invitations { get; }
-        ICollectionRepository<Role, string> Roles { get; }
-        ICollectionRepository<UserBase, string> Users { get; }
-        ICollectionRepository<Web3LoginToken, string> Web3LoginTokens { get; }
+        public void Register(IDbContext dbContext)
+        {
+            dbContext.SchemaRegistry.AddModelMapsSchema<AlphaPassRequest>("cdfb69bd-b70c-4736-9210-737b675333bc");
+        }
     }
 }

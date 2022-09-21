@@ -13,9 +13,5 @@
 //   limitations under the License.
 
 using System;
-using System.Runtime.CompilerServices;
 
 [assembly: CLSCompliant(false)]
-[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
-[assembly: InternalsVisibleTo("EthernaSSO.Persistence")]
-[assembly: InternalsVisibleTo("EthernaSSO.Services")]

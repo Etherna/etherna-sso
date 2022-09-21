@@ -29,29 +29,39 @@ namespace Etherna.SSOServer.Configs.IdentityServer
         // Consts.
         private static class ApiResourcesDef
         {
-            public static readonly ApiResource EthernaCreditServiceInteract = new(
-                "ethernaCreditServiceInteract",
-                "Etherna Credit service interact")
+            public static readonly ApiResource EthernaCreditServiceInteract = new("ethernaCreditServiceInteract", "Etherna Credit service interact")
             {
                 Scopes = { ApiScopesDef.EthernaCreditServiceInteract.Name }
             };
 
-            public static readonly ApiResource EthernaSsoServiceInteract = new(
-                "ethernaSsoServiceInteract",
-                "Etherna SSO service interact")
+            public static readonly ApiResource EthernaSsoServiceInteract = new("ethernaSsoServiceInteract", "Etherna SSO service interact")
             {
                 Scopes = { ApiScopesDef.EthernaSsoUserContactInfo.Name }
             };
-        }
-        private static class ApiScopesDef
-        {
-            public static readonly ApiScope EthernaCreditServiceInteract = new(
-                "ethernaCredit_serviceInteract_api",
-                "Etherna Credit service interact API");
 
-            public static readonly ApiScope EthernaSsoUserContactInfo = new(
-                "ethernaSso_userContactInfo_api",
-                "Etherna SSO user contatct info API");
+            public static readonly ApiResource EthernaUserApi = new("userApi", "Etherna user APIs")
+            {
+                Scopes = {
+                    ApiScopesDef.UserInteractEthernaCredit.Name,
+                    ApiScopesDef.UserInteractEthernaGateway.Name,
+                    ApiScopesDef.UserInteractEthernaIndex.Name,
+                    ApiScopesDef.UserInteractEthernaSso.Name
+                }
+            };
+        }
+        private static class ApiScopesDef //these can go in very details of client permissions
+        {
+            //credit service interaction scopes
+            public static readonly ApiScope EthernaCreditServiceInteract = new("ethernaCredit_serviceInteract_api", "Etherna Credit service interact API");
+
+            //sso service interaction scopes
+            public static readonly ApiScope EthernaSsoUserContactInfo = new("ethernaSso_userContactInfo_api", "Etherna SSO user contatct info API");
+
+            //global user interaction scopes
+            public static readonly ApiScope UserInteractEthernaCredit = new("userApi.credit", "Etherna Credit user API");
+            public static readonly ApiScope UserInteractEthernaGateway = new("userApi.gateway", "Etherna Gateway user API");
+            public static readonly ApiScope UserInteractEthernaIndex = new("userApi.index", "Etherna Index user API");
+            public static readonly ApiScope UserInteractEthernaSso = new("userApi.sso", "Etherna Sso user API");
         }
         private static class IdResourcesDef
         {
@@ -99,6 +109,9 @@ namespace Etherna.SSOServer.Configs.IdentityServer
         private readonly string ethernaIndex_Webapp_ClientId;
         private readonly string ethernaIndex_Webapp_Secret;
 
+        private readonly string ethernaVideoImporter_BaseUrl;
+        private readonly string ethernaVideoImporter_ClientId;
+
         // Constructor.
         public IdServerConfig(IConfiguration configuration)
         {
@@ -125,19 +138,27 @@ namespace Etherna.SSOServer.Configs.IdentityServer
             ethernaIndex_Sso_Secret = configuration["IdServer:Clients:EthernaIndex:Clients:SsoServer:Secret"] ?? throw new ServiceConfigurationException();
             ethernaIndex_Webapp_ClientId = configuration["IdServer:Clients:EthernaIndex:Clients:Webapp:ClientId"] ?? throw new ServiceConfigurationException();
             ethernaIndex_Webapp_Secret = configuration["IdServer:Clients:EthernaIndex:Clients:Webapp:Secret"] ?? throw new ServiceConfigurationException();
+
+            ethernaVideoImporter_BaseUrl = configuration["IdServer:Clients:EthernaVideoImporter:BaseUrl"] ?? throw new ServiceConfigurationException();
+            ethernaVideoImporter_ClientId = configuration["IdServer:Clients:EthernaVideoImporter:ClientId"] ?? throw new ServiceConfigurationException();
         }
 
         // Properties.
         public IEnumerable<ApiResource> ApiResources => new ApiResource[]
         {
             ApiResourcesDef.EthernaCreditServiceInteract,
-            ApiResourcesDef.EthernaSsoServiceInteract
+            ApiResourcesDef.EthernaSsoServiceInteract,
+            ApiResourcesDef.EthernaUserApi
         };
 
         public IEnumerable<ApiScope> ApiScopes => new ApiScope[]
         {
             ApiScopesDef.EthernaCreditServiceInteract,
-            ApiScopesDef.EthernaSsoUserContactInfo
+            ApiScopesDef.EthernaSsoUserContactInfo,
+            ApiScopesDef.UserInteractEthernaCredit,
+            ApiScopesDef.UserInteractEthernaGateway,
+            ApiScopesDef.UserInteractEthernaIndex,
+            ApiScopesDef.UserInteractEthernaSso
         };
 
         public IEnumerable<Client> Clients => new Client[]
@@ -155,6 +176,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                 //scopes that client has access to
                 AllowedScopes =
                 {
+                    //resource
                     ApiScopesDef.EthernaSsoUserContactInfo.Name
                 }
             },
@@ -177,6 +199,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                 AlwaysIncludeUserClaimsInIdToken = true,
                 AllowedScopes = new List<string>
                 {
+                    //identity
                     IdentityServerConstants.StandardScopes.OpenId,
                     IdentityServerConstants.StandardScopes.Profile,
                     IdResourcesDef.EtherAccounts.Name,
@@ -207,6 +230,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                 AlwaysIncludeUserClaimsInIdToken = true,
                 AllowedScopes =
                 {
+                    //identity
                     IdentityServerConstants.StandardScopes.OpenId,
                     IdentityServerConstants.StandardScopes.Profile,
                     IdResourcesDef.EtherAccounts.Name,
@@ -231,6 +255,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                 //scopes that client has access to
                 AllowedScopes =
                 {
+                    //resource
                     ApiScopesDef.EthernaCreditServiceInteract.Name
                 }
             },
@@ -253,6 +278,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                 AlwaysIncludeUserClaimsInIdToken = true,
                 AllowedScopes =
                 {
+                    //identity
                     IdentityServerConstants.StandardScopes.OpenId,
                     IdentityServerConstants.StandardScopes.Profile,
                     IdResourcesDef.EtherAccounts.Name,
@@ -276,6 +302,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                 //scopes that client has access to
                 AllowedScopes =
                 {
+                    //resource
                     ApiScopesDef.EthernaSsoUserContactInfo.Name
                 }
             },
@@ -298,6 +325,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                 AlwaysIncludeUserClaimsInIdToken = true,
                 AllowedScopes =
                 {
+                    //identity
                     IdentityServerConstants.StandardScopes.OpenId,
                     IdentityServerConstants.StandardScopes.Profile,
                     IdResourcesDef.EtherAccounts.Name,
@@ -306,6 +334,41 @@ namespace Etherna.SSOServer.Configs.IdentityServer
 
                 // Allow token refresh.
                 AllowOfflineAccess = true
+            },
+
+            //video importer
+            new Client
+            {
+                ClientId = ethernaVideoImporter_ClientId,
+                ClientName = "Etherna Video Importer",
+                RequireClientSecret = false,
+
+                AllowedGrantTypes = GrantTypes.Code,
+
+                //where to redirect to after login
+                RedirectUris = { ethernaVideoImporter_BaseUrl },
+
+                //where to redirect to after logout
+                PostLogoutRedirectUris = { ethernaVideoImporter_BaseUrl },
+
+                AllowedCorsOrigins = { ethernaVideoImporter_BaseUrl },
+
+                AlwaysIncludeUserClaimsInIdToken = true,
+                AllowedScopes =
+                {
+                    //identity
+                    IdentityServerConstants.StandardScopes.OpenId,
+                    IdentityServerConstants.StandardScopes.Profile,
+                    IdResourcesDef.EtherAccounts.Name,
+
+                    //resource
+                    ApiScopesDef.UserInteractEthernaGateway.Name,
+                    ApiScopesDef.UserInteractEthernaIndex.Name,
+                },
+
+                // Allow token refresh.
+                AllowOfflineAccess = true,
+                RefreshTokenUsage = TokenUsage.OneTimeOnly //because client have not secret
             },
         };
 
