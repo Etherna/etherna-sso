@@ -5,10 +5,8 @@ using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.AspNetCore.WebUtilities;
 using System;
 using System.ComponentModel.DataAnnotations;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Areas.AlphaPass.Pages

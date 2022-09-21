@@ -28,7 +28,7 @@ namespace Etherna.SSOServer.Persistence.ModelMaps.Sso
                 mm.AutoMap();
 
                 // Set members with custom serializers.
-                mm.SetMemberSerializer(i => i.Emitter, UserMap.ReferenceSerializer(dbContext));
+                mm.SetMemberSerializer(i => i.Emitter!, UserMap.ReferenceSerializer(dbContext));
             });
         }
     }

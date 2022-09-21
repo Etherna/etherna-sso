@@ -19,10 +19,10 @@ namespace Etherna.SSOServer.Domain.Models
     public class Invitation : EntityModelBase<string>
     {
         // Constructors.
-        public Invitation(TimeSpan? duration, UserBase emitter, bool isFromAdmin, bool isSingleUse)
+        public Invitation(TimeSpan? duration, UserBase? emitter, bool isFromAdmin, bool isSingleUse)
         {
             Code = Guid.NewGuid().ToString();
-            Emitter = emitter ?? throw new ArgumentNullException(nameof(emitter));
+            Emitter = emitter;
             if (duration is not null)
                 EndLife = DateTime.UtcNow + duration;
             IsFromAdmin = isFromAdmin;
@@ -32,7 +32,7 @@ namespace Etherna.SSOServer.Domain.Models
 
         // Properties.
         public virtual string Code { get; protected set; } = default!;
-        public virtual UserBase Emitter { get; protected set; } = default!;
+        public virtual UserBase? Emitter { get; protected set; } = default!;
         public virtual DateTime? EndLife { get; protected set; }
         public virtual bool IsAlive => EndLife is null || DateTime.UtcNow < EndLife;
         public virtual bool IsFromAdmin { get; protected set; }

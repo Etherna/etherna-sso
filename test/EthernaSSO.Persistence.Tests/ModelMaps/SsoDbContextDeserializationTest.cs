@@ -492,7 +492,6 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
             Assert.Equal(testElement.ExpectedModel.IsSingleUse, result.IsSingleUse);
             Assert.NotNull(result.Id);
             Assert.NotNull(result.Code);
-            Assert.NotNull(result.Emitter);
         }
 
         [Theory, MemberData(nameof(RoleDeserializationTests))]
