@@ -16,20 +16,17 @@ namespace Etherna.SSOServer.Services.Views.Emails
 {
     public class AlphaPassLetterModel
     {
-        public const string Title = "[Announcement] Your Alpha Pass for Etherna";
+        public const string Title = "Your Alpha Pass for Etherna";
 
         public AlphaPassLetterModel(
             string invitationCode,
-            string invitationUrl,
-            string userName)
+            string invitationUrl)
         {
             InvitationCode = invitationCode;
             InvitationUrl = invitationUrl;
-            UserName = userName;
         }
 
         public string InvitationCode { get; }
         public string InvitationUrl { get; }
-        public string UserName { get; }
     }
 }

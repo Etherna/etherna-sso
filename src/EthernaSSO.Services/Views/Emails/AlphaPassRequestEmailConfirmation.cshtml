@@ -13,22 +13,21 @@
     *   limitations under the License.
 *@
 
-@page
-@model IndexModel
+@model AlphaPassRequestEmailConfirmationModel
+
 @{
-    ViewData["Title"] = "Home page";
+    ViewData["EmailTitle"] = AlphaPassRequestEmailConfirmationModel.Title;
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Etherna SSO Server</p>
+<span style="text-align: left">
+    <h1>Confirm your Alpha Pass request</h1>
 
-    <div class="d-flex justify-content-center mt-5">
-        <div class="card">
-            <div class="card-body">
-                <h3 class="card-title">Etherna Dapp</h3>
-                <p>Visit our Dapp at <a href="https://etherna.io" >https://etherna.io →</a></p>
-            </div>
-        </div>
-    </div>
-</div>
+    <p>Confirm your Etherna Alpha Pass request clicking here:</p>
+    <p><a href='@Model.CallbackUrl'>Confirm Alpha Pass request</a></p>
+
+    <p>or copy/pasting this url:</p>
+    <p>@Model.CallbackUrl</p>
+
+    <p>If you received this email by mistake, simply delete it.<br />
+        You won't be subscribed if you don't click the confirmation link above.</p>
+</span>

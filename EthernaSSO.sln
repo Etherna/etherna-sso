@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30011.22
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32901.215
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EthernaSSO", "src\EthernaSSO\EthernaSSO.csproj", "{28E5CA92-231F-468F-80FB-E9504AD590AA}"
 EndProject
@@ -37,6 +37,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 		.github\workflows\unstable-release.yml = .github\workflows\unstable-release.yml
 	EndProjectSection
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EthernaSSO.Persistence.Tests", "test\EthernaSSO.Persistence.Tests\EthernaSSO.Persistence.Tests.csproj", "{7928405E-1942-4B8A-AEFB-447EEEA092B7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -59,6 +61,10 @@ Global
 		{8EE2E2BE-2FB6-4E96-8F34-08F9CDACFCFE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8EE2E2BE-2FB6-4E96-8F34-08F9CDACFCFE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8EE2E2BE-2FB6-4E96-8F34-08F9CDACFCFE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7928405E-1942-4B8A-AEFB-447EEEA092B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7928405E-1942-4B8A-AEFB-447EEEA092B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7928405E-1942-4B8A-AEFB-447EEEA092B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7928405E-1942-4B8A-AEFB-447EEEA092B7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -71,6 +77,7 @@ Global
 		{AF83D80A-77BE-48C8-ABE3-D1373F20F2B0} = {5AE428C2-CD56-4E51-A229-3F4C137D9D83}
 		{8EE2E2BE-2FB6-4E96-8F34-08F9CDACFCFE} = {BB9B2543-8741-4D95-AC15-35923C422E60}
 		{61C8B690-EEA5-440E-B5B5-7C8D5098503C} = {1C01CDAC-366E-4F9B-8A52-25F7770FE92A}
+		{7928405E-1942-4B8A-AEFB-447EEEA092B7} = {10DAD3ED-08F6-48B9-A298-60D0ABF3B2E2}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6EB5F2B3-8912-4D50-BAB1-C3884E3BF3C0}

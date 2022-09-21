@@ -258,7 +258,7 @@ namespace Etherna.SSOServer.Domain.Models
         [PropertyAlterer(nameof(LastLoginDateTime))]
         public virtual void UpdateLastLoginDateTime()
         {
-            LastLoginDateTime = DateTime.Now;
+            LastLoginDateTime = DateTime.UtcNow;
         }
     }
 }

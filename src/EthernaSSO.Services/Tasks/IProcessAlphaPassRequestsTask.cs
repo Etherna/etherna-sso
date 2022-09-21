@@ -12,19 +12,14 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-using Etherna.MongODM.Core;
-using Etherna.MongODM.Core.Repositories;
-using Etherna.SSOServer.Domain.Models;
+using Hangfire;
+using System.Threading.Tasks;
 
-namespace Etherna.SSOServer.Domain
+namespace Etherna.SSOServer.Services.Tasks
 {
-    public interface ISsoDbContext : IDbContext
+    public interface IProcessAlphaPassRequestsTask
     {
-        ICollectionRepository<AlphaPassRequest, string> AlphaPassRequests { get; }
-        ICollectionRepository<DailyStats, string> DailyStats { get; }
-        ICollectionRepository<Invitation, string> Invitations { get; }
-        ICollectionRepository<Role, string> Roles { get; }
-        ICollectionRepository<UserBase, string> Users { get; }
-        ICollectionRepository<Web3LoginToken, string> Web3LoginTokens { get; }
+        [Queue(Queues.DOMAIN_MAINTENANCE)]
+        Task RunAsync();
     }
 }

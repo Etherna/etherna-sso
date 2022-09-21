@@ -12,33 +12,49 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-using Nethereum.Util;
+using Etherna.ACR.Helpers;
+using Etherna.MongODM.Core.Attributes;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 namespace Etherna.SSOServer.Domain.Models
 {
-    public class Web3LoginToken : EntityModelBase<string>
+    public class AlphaPassRequest : EntityModelBase<string>
     {
         // Consts.
         public const int CodeLength = 10;
-        public readonly static string CodeValidChars = "0123456789" + "abcdefghijklmnopqrstuvwxyz" + "ABCDEFGHIJKLMNOPQRSTUVWXYZ" + "-_";
+        public readonly static string CodeValidChars = "0123456789" + "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-        // Constructors.
-        public Web3LoginToken(string etherAddress)
+        // Constructor.
+        public AlphaPassRequest(string email)
         {
-            if (!etherAddress.IsValidEthereumAddressHexFormat())
-                throw new ArgumentException("The value is not a valid address", nameof(etherAddress));
+            if (!EmailHelper.IsValidEmail(email))
+                throw new ArgumentException("Email is not valid", nameof(email));
 
-            EtherAddress = etherAddress.ConvertToEthereumChecksumAddress();
-            Code = GenerateNewCode();
+            IsEmailConfirmed = false;
+            NormalizedEmail = EmailHelper.NormalizeEmail(email);
+            Secret = GenerateNewCode();
         }
-        protected Web3LoginToken() { }
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+        protected AlphaPassRequest() { }
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
         // Properties.
-        public virtual string Code { get; protected set; } = default!;
-        public virtual string EtherAddress { get; protected set; } = default!;
+        public virtual bool IsEmailConfirmed { get; protected set; }
+        public virtual bool IsInvitationSent { get; set; }
+        public virtual string NormalizedEmail { get; protected set; }
+        public virtual string Secret { get; protected set; }
+
+        // Methods.
+        [PropertyAlterer(nameof(IsEmailConfirmed))]
+        public bool ConfirmEmail(string secret)
+        {
+            if (Secret != secret)
+                return false;
+            IsEmailConfirmed = true;
+            return true;
+        }
 
         // Helpers.
         [SuppressMessage("Security", "CA5394:Do not use insecure randomness", Justification = "A different code each login is sufficient. Secure randomness is not required")]

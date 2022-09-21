@@ -32,5 +32,22 @@ namespace Etherna.SSOServer.Domain.Models.UserAgg
         public virtual string LoginProvider { get; protected set; } = default!;
         public virtual string ProviderDisplayName { get; protected set; } = default!;
         public virtual string ProviderKey { get; protected set; } = default!;
+
+        // Methods.
+        public override bool Equals(object? obj)
+        {
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj is null) return false;
+            if (obj is not UserLoginInfo) return false;
+            return GetType() == obj.GetType() &&
+                LoginProvider == ((UserLoginInfo)obj).LoginProvider &&
+                ProviderDisplayName == ((UserLoginInfo)obj).ProviderDisplayName &&
+                ProviderKey == ((UserLoginInfo)obj).ProviderKey;
+        }
+
+        public override int GetHashCode() =>
+            LoginProvider.GetHashCode() ^
+            ProviderDisplayName.GetHashCode() ^
+            ProviderKey.GetHashCode();
     }
 }

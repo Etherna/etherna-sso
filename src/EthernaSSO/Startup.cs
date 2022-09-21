@@ -198,14 +198,6 @@ namespace Etherna.SSOServer
                     options.ClientSecret = Configuration["Authentication:Google:ClientSecret"];
                 });
 
-            if (Configuration["Authentication:Facebook:ClientId"] is not null &&
-                Configuration["Authentication:Facebook:ClientSecret"] is not null)
-                authBuilder.AddFacebook(options =>
-                {
-                    options.AppId = Configuration["Authentication:Facebook:ClientId"];
-                    options.AppSecret = Configuration["Authentication:Facebook:ClientSecret"];
-                });
-
             if (Configuration["Authentication:Twitter:ClientId"] is not null &&
                 Configuration["Authentication:Twitter:ClientSecret"] is not null)
                 authBuilder.AddTwitter(options =>
@@ -455,6 +447,11 @@ namespace Etherna.SSOServer
                 DeleteOldInvitationsTask.TaskId,
                 task => task.RunAsync(),
                 "0 5 * * *"); //at 05:00 every day
+
+            RecurringJob.AddOrUpdate<IProcessAlphaPassRequestsTask>(
+                ProcessAlphaPassRequestsTask.TaskId,
+                task => task.RunAsync(),
+                Cron.Hourly());
 
             // Seed db if required.
             app.SeedDbContexts();
