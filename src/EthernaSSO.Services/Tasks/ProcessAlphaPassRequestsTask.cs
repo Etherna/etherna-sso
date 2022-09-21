@@ -18,6 +18,7 @@ namespace Etherna.SSOServer.Services.Tasks
         // Consts.
         private readonly TimeSpan DefaultInvitationDuration = TimeSpan.FromDays(30);
         private const int MaxRequestsPerTime = 1;
+        private readonly Uri SsoBaseUri = new("https://sso.etherna.io/");
 
         public const string TaskId = "processAlphaPassRequestsTask";
 
@@ -44,7 +45,15 @@ namespace Etherna.SSOServer.Services.Tasks
         public async Task RunAsync()
         {
             // Create an action context. Required for view rendering.
-            var httpContext = new DefaultHttpContext { RequestServices = serviceProvider };
+            var httpContext = new DefaultHttpContext {
+                RequestServices = serviceProvider,
+                Request =
+                {
+                    Scheme = SsoBaseUri.Scheme,
+                    Host = HostString.FromUriComponent(SsoBaseUri),
+                    PathBase = PathString.FromUriComponent(SsoBaseUri),
+                }
+            };
             var actionContext = new ActionContext(httpContext, new RouteData(), new ActionDescriptor());
 
             // Get requests.
@@ -57,8 +66,6 @@ namespace Etherna.SSOServer.Services.Tasks
 
             foreach (var request in requests)
             {
-                request.IsInvitationSent = true;
-
                 // Generate invitation.
                 var invitation = new Invitation(DefaultInvitationDuration, null, false, true);
                 await dbContext.Invitations.CreateAsync(invitation);
@@ -77,6 +84,9 @@ namespace Etherna.SSOServer.Services.Tasks
                     request.NormalizedEmail,
                     AlphaPassLetterModel.Title,
                     emailBody);
+
+                // Set as sent.
+                request.IsInvitationSent = true;
             }
 
             await dbContext.SaveChangesAsync();
