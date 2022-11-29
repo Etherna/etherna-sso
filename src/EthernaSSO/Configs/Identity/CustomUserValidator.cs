@@ -26,20 +26,14 @@ namespace Etherna.SSOServer.Configs.Identity
 {
     public class CustomUserValidator : IUserValidator<UserBase>
     {
-        // Fields.
-        private readonly ApplicationSettings applicationSettings;
-
         // Constructor.
         /// <summary>
         /// Creates a new instance of <see cref="UserValidator{User}"/>/
         /// </summary>
-        /// <param name="applicationSettings">Application settings</param>
         /// <param name="errors">The <see cref="IdentityErrorDescriber"/>Used to provider error messages</param>
         public CustomUserValidator(
-            IOptions<ApplicationSettings> applicationSettings,
             IdentityErrorDescriber? errors = null)
         {
-            this.applicationSettings = applicationSettings?.Value ?? throw new ArgumentNullException(nameof(applicationSettings));
             Describer = errors ?? new IdentityErrorDescriber();
         }
 
