@@ -13,7 +13,7 @@
 //   limitations under the License.
 
 using Etherna.ACR.Exceptions;
-using Etherna.ACR.Middlewares.PrintConfigurationPage;
+using Etherna.ACR.Middlewares.DebugPages;
 using Etherna.ACR.Settings;
 using Etherna.DomainEvents;
 using Etherna.MongODM;
@@ -377,7 +377,7 @@ namespace Etherna.SSOServer
             {
                 app.UseDeveloperExceptionPage();
                 app.UseForwardedHeaders();
-                app.UsePrintConfigurationPage();
+                app.UseEthernaAcrDebugPages();
             }
             else
             {
