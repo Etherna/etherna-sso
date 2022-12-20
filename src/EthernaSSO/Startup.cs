@@ -345,7 +345,6 @@ namespace Etherna.SSOServer
                 options =>
                 {
                     options.ConnectionString = Configuration["ConnectionStrings:SSOServerDb"] ?? throw new ServiceConfigurationException();
-                    options.DocumentSemVer.CurrentVersion = assemblyVersion.SimpleVersion;
                     options.ParentFor<ISharedDbContext>();
                 })
                 
@@ -357,7 +356,6 @@ namespace Etherna.SSOServer
                 options =>
                 {
                     options.ConnectionString = Configuration["ConnectionStrings:ServiceSharedDb"] ?? throw new ServiceConfigurationException();
-                    options.DocumentSemVer.CurrentVersion = assemblyVersion.SimpleVersion;
                 });
 
             services.AddMongODMAdminDashboard(new MongODM.AspNetCore.UI.DashboardOptions
