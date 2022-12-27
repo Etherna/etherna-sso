@@ -51,9 +51,9 @@ namespace Etherna.SSOServer.Persistence.Helpers
             dbDependenciesMock.Setup(d => d.DbMigrationManager).Returns(new Mock<IDbMigrationManager>().Object);
             dbDependenciesMock.Setup(d => d.DiscriminatorRegistry).Returns(new DiscriminatorRegistry());
             dbDependenciesMock.Setup(d => d.ExecutionContext).Returns(execContext);
+            dbDependenciesMock.Setup(d => d.MapRegistry).Returns(new MapRegistry());
             dbDependenciesMock.Setup(d => d.ProxyGenerator).Returns(new ProxyGenerator(new Mock<ILoggerFactory>().Object, new Castle.DynamicProxy.ProxyGenerator()));
             dbDependenciesMock.Setup(d => d.RepositoryRegistry).Returns(new RepositoryRegistry());
-            dbDependenciesMock.Setup(d => d.SchemaRegistry).Returns(new SchemaRegistry());
             dbDependenciesMock.Setup(d => d.SerializerModifierAccessor).Returns(new SerializerModifierAccessor(execContext));
 
             // Setup Mongo client.

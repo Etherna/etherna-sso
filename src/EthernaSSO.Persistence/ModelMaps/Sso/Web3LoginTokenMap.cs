@@ -22,7 +22,7 @@ namespace Etherna.SSOServer.Persistence.ModelMaps.Sso
     {
         public void Register(IDbContext dbContext)
         {
-            dbContext.SchemaRegistry.AddModelSchema<Web3LoginToken>("150f4cdf-099a-4195-a145-45f1f9eda60c");
+            dbContext.MapRegistry.AddModelMap<Web3LoginToken>("150f4cdf-099a-4195-a145-45f1f9eda60c");
         }
     }
 }

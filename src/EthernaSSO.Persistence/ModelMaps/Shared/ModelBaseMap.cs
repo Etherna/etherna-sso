@@ -26,9 +26,9 @@ namespace Etherna.SSOServer.Persistence.ModelMaps.Shared
         public void Register(IDbContext dbContext)
         {
             // register class maps.
-            dbContext.SchemaRegistry.AddModelSchema<ModelBase>("d517f32d-cc45-4d21-8a99-27dca658bde5");
-            dbContext.SchemaRegistry.AddModelSchema<EntityModelBase>("4c17bb54-af84-4a21-83ae-cb1050b721f5");
-            dbContext.SchemaRegistry.AddModelSchema<EntityModelBase<string>>("e5e834e0-30cc-42a8-a1a2-9d5c79d35485",
+            dbContext.MapRegistry.AddModelMap<ModelBase>("d517f32d-cc45-4d21-8a99-27dca658bde5");
+            dbContext.MapRegistry.AddModelMap<EntityModelBase>("4c17bb54-af84-4a21-83ae-cb1050b721f5");
+            dbContext.MapRegistry.AddModelMap<EntityModelBase<string>>("e5e834e0-30cc-42a8-a1a2-9d5c79d35485",
                 modelMap =>
                 {
                     modelMap.AutoMap();
