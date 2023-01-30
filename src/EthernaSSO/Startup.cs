@@ -311,12 +311,7 @@ namespace Etherna.SSOServer
             });
 
             // Configure setting.
-            var assemblyVersion = new AssemblyVersion(GetType().GetTypeInfo().Assembly);
             services.Configure<ApplicationSettings>(Configuration.GetSection("Application") ?? throw new ServiceConfigurationException());
-            services.PostConfigure<ApplicationSettings>(options =>
-            {
-                options.AssemblyVersion = assemblyVersion.Version;
-            });
             services.Configure<EmailSettings>(Configuration.GetSection("Email") ?? throw new ServiceConfigurationException());
             services.Configure<SsoDbSeedSettings>(Configuration.GetSection("DbSeed") ?? throw new ServiceConfigurationException());
 
