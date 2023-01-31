@@ -20,7 +20,7 @@
   <ItemGroup>
     <PackageReference Include="Etherna.DomainEvents.AspNetCore" Version="1.4.0" />
     <PackageReference Include="IdentityServer4.AspNetIdentity" Version="4.1.2" />
-    <PackageReference Include="MongODM.Hangfire" Version="0.23.1" />
+    <PackageReference Include="MongODM.Hangfire" Version="0.24.0-alpha.80" />
   </ItemGroup>
 
   <ItemGroup>
