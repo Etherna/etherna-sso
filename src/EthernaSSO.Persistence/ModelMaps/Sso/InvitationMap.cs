@@ -23,7 +23,7 @@ namespace Etherna.SSOServer.Persistence.ModelMaps.Sso
     {
         public void Register(IDbContext dbContext)
         {
-            dbContext.SchemaRegistry.AddModelMapsSchema<Invitation>("a51c7ca1-b53e-43d2-b1ab-7efb7f5e735b", mm =>
+            dbContext.MapRegistry.AddModelMap<Invitation>("a51c7ca1-b53e-43d2-b1ab-7efb7f5e735b", mm =>
             {
                 mm.AutoMap();
 

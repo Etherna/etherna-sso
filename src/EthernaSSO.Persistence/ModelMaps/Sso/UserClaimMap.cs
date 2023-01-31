@@ -22,7 +22,7 @@ namespace Etherna.SSOServer.Persistence.ModelMaps.Sso
     {
         public void Register(IDbContext dbContext)
         {
-            dbContext.SchemaRegistry.AddModelMapsSchema<UserClaim>("f7831985-dc0c-439f-b118-d7c511619a87");
+            dbContext.MapRegistry.AddModelMap<UserClaim>("f7831985-dc0c-439f-b118-d7c511619a87");
         }
     }
 }
