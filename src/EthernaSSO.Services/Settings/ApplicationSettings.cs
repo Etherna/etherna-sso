@@ -18,6 +18,7 @@ namespace Etherna.SSOServer.Services.Settings
     {
         // Properties.
         public string DisplayName { get; set; } = default!;
+        public bool EnableAlphaPassEmission { get; set; }
         public bool RequireInvitation { get; set; }
     }
 }
