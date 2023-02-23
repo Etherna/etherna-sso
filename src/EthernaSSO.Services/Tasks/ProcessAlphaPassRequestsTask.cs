@@ -17,11 +17,13 @@ using Etherna.MongoDB.Driver;
 using Etherna.MongoDB.Driver.Linq;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Services.Settings;
 using Etherna.SSOServer.Services.Views.Emails;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Options;
 using System;
 using System.Threading.Tasks;
 
@@ -37,6 +39,7 @@ namespace Etherna.SSOServer.Services.Tasks
         public const string TaskId = "processAlphaPassRequestsTask";
 
         // Fields.
+        private readonly ApplicationSettings applicationSettings;
         private readonly ISsoDbContext dbContext;
         private readonly IEmailSender emailSender;
         private readonly IRazorViewRenderer razorViewRenderer;
@@ -44,11 +47,16 @@ namespace Etherna.SSOServer.Services.Tasks
 
         // Constructor.
         public ProcessAlphaPassRequestsTask(
+            IOptions<ApplicationSettings> applicationSettings,
             ISsoDbContext dbContext,
             IEmailSender emailSender,
             IRazorViewRenderer razorViewRenderer,
             IServiceProvider serviceProvider)
         {
+            if (applicationSettings is null)
+                throw new ArgumentNullException(nameof(applicationSettings));
+
+            this.applicationSettings = applicationSettings.Value;
             this.dbContext = dbContext;
             this.emailSender = emailSender;
             this.razorViewRenderer = razorViewRenderer;
@@ -58,6 +66,10 @@ namespace Etherna.SSOServer.Services.Tasks
         // Methods.
         public async Task RunAsync()
         {
+            // Disable alpha pass emission if required.
+            if (!applicationSettings.EnableAlphaPassEmission)
+                return;
+
             // Create an action context. Required for view rendering.
             var httpContext = new DefaultHttpContext {
                 RequestServices = serviceProvider,

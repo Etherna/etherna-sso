@@ -40,7 +40,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
             }
 
             public string LoginProvider { get; }
-            public string ProviderDisplayName { get; }
+            public string? ProviderDisplayName { get; }
             public string ProviderKey { get; }
         }
 

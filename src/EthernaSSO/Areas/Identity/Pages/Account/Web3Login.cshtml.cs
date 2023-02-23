@@ -12,6 +12,8 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Duende.IdentityServer.Services;
+using Duende.IdentityServer.Stores;
 using Etherna.DomainEvents;
 using Etherna.MongoDB.Driver;
 using Etherna.SSOServer.Domain;
@@ -21,8 +23,6 @@ using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Extensions;
 using Etherna.SSOServer.Services.Domain;
 using Etherna.SSOServer.Services.Settings;
-using IdentityServer4.Services;
-using IdentityServer4.Stores;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -185,7 +185,6 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             {
                 InvitationCode = invitationCode,
             };
-            IsInvitationRequired = applicationSettings.RequireInvitation;
             return Page();
         }
 
@@ -253,8 +252,9 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         // Helpers.
         private void Initialize(string etherAddress, string signature, string? returnUrl)
         {
-            ReturnUrl = returnUrl ?? Url.Content("~/");
             EtherAddress = etherAddress;
+            IsInvitationRequired = applicationSettings.RequireInvitation;
+            ReturnUrl = returnUrl ?? Url.Content("~/");
             Signature = signature;
         }
     }

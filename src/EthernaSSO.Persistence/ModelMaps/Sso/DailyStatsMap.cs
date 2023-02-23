@@ -18,11 +18,11 @@ using Etherna.SSOServer.Domain.Models;
 
 namespace Etherna.SSOServer.Persistence.ModelMaps.Sso
 {
-    class DailyStatsMap : IModelMapsCollector
+    internal sealed class DailyStatsMap : IModelMapsCollector
     {
         public void Register(IDbContext dbContext)
         {
-            dbContext.SchemaRegistry.AddModelMapsSchema<DailyStats>("375a3f26-9219-4ae4-86cf-32b9ba0ac703");
+            dbContext.MapRegistry.AddModelMap<DailyStats>("375a3f26-9219-4ae4-86cf-32b9ba0ac703");
         }
     }
 }

@@ -46,12 +46,6 @@ namespace Etherna.SSOServer.Areas.Api.Services
         }
 
         // Methods.
-        public async Task<PrivateUserDto> GetPrivateUserInfoByClaimsAsync(ClaimsPrincipal userClaims)
-        {
-            var user = await userManager.GetUserAsync(userClaims);
-            return new PrivateUserDto(user);
-        }
-
         public async Task<UserDto> GetUserByEtherAddressAsync(string etherAddress)
         {
             if (!etherAddress.IsValidEthereumAddressHexFormat())
@@ -71,5 +65,11 @@ namespace Etherna.SSOServer.Areas.Api.Services
 
         public Task<bool> IsEmailRegisteredAsync(string email) =>
             context.Users.QueryElementsAsync(users => users.AnyAsync(u => u.NormalizedEmail == EmailHelper.NormalizeEmail(email)));
+
+        public async Task<PrivateUserDto?> TryGetPrivateUserInfoByClaimsAsync(ClaimsPrincipal userClaims)
+        {
+            var user = await userManager.GetUserAsync(userClaims);
+            return user is null ? null : new PrivateUserDto(user);
+        }
     }
 }

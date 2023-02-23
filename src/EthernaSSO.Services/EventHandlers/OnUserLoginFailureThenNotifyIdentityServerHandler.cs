@@ -12,14 +12,14 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Duende.IdentityServer.Services;
 using Etherna.DomainEvents;
 using Etherna.SSOServer.Domain.Events;
-using IdentityServer4.Services;
 using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Services.EventHandlers
 {
-    class OnUserLoginFailureThenNotifyIdentityServerHandler : EventHandlerBase<UserLoginFailureEvent>
+    internal sealed class OnUserLoginFailureThenNotifyIdentityServerHandler : EventHandlerBase<UserLoginFailureEvent>
     {
         // Fields.
         private readonly IEventService identityServerEventService;
@@ -34,7 +34,7 @@ namespace Etherna.SSOServer.Services.EventHandlers
         // Methods.
         public override async Task HandleAsync(UserLoginFailureEvent @event)
         {
-            await identityServerEventService.RaiseAsync(new IdentityServer4.Events.UserLoginFailureEvent(
+            await identityServerEventService.RaiseAsync(new Duende.IdentityServer.Events.UserLoginFailureEvent(
                 @event.Identifier,
                 @event.Error,
                 clientId: @event.ClientId));

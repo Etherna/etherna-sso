@@ -12,7 +12,9 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Duende.IdentityServer.Stores;
 using Etherna.ACR.Exceptions;
+using Etherna.ACR.Middlewares.DebugPages;
 using Etherna.ACR.Settings;
 using Etherna.DomainEvents;
 using Etherna.MongODM;
@@ -37,7 +39,6 @@ using Hangfire;
 using Hangfire.Mongo;
 using Hangfire.Mongo.Migration.Strategies;
 using Hangfire.Mongo.Migration.Strategies.Backup;
-using IdentityServer4.Stores;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -144,7 +145,7 @@ namespace Etherna.SSOServer
                 var knownNetworksConfig = Configuration.GetSection("ForwardedHeaders:KnownNetworks");
                 if (knownNetworksConfig.Exists())
                 {
-                    var networks = knownNetworksConfig.Get<string[]>().Select(address =>
+                    var networks = (knownNetworksConfig.Get<string[]>() ?? throw new ServiceConfigurationException()).Select(address =>
                     {
                         var parts = address.Split('/');
                         if (parts.Length != 2)
@@ -194,8 +195,8 @@ namespace Etherna.SSOServer
                 Configuration["Authentication:Google:ClientSecret"] is not null)
                 authBuilder.AddGoogle(options =>
                 {
-                    options.ClientId = Configuration["Authentication:Google:ClientId"];
-                    options.ClientSecret = Configuration["Authentication:Google:ClientSecret"];
+                    options.ClientId = Configuration["Authentication:Google:ClientId"]!;
+                    options.ClientSecret = Configuration["Authentication:Google:ClientSecret"]!;
                 });
 
             if (Configuration["Authentication:Twitter:ClientId"] is not null &&
@@ -252,6 +253,7 @@ namespace Etherna.SSOServer
             var idServerConfig = new IdServerConfig(Configuration);
             var builder = services.AddIdentityServer(options =>
             {
+                options.LicenseKey = Configuration["IdServer:LicenseKey"]; //can be null in dev env
                 options.UserInteraction.ErrorUrl = "/Error";
             })
                 .AddInMemoryApiResources(idServerConfig.ApiResources)
@@ -259,23 +261,15 @@ namespace Etherna.SSOServer
                 .AddInMemoryClients(idServerConfig.Clients)
                 .AddInMemoryIdentityResources(idServerConfig.IdResources)
                 .AddAspNetIdentity<UserBase>();
-            if (Environment.IsDevelopment())
-            {
-                builder.AddDeveloperSigningCredential();
-            }
-            else
-            {
-#pragma warning disable CA2000 // Dispose objects before losing scope
-                builder.AddSigningCredential(new X509Certificate2(
-                    Configuration["SigningCredentialCertificate:Name"] ?? throw new ServiceConfigurationException(),
-                    Configuration["SigningCredentialCertificate:Password"] ?? throw new ServiceConfigurationException()));
-#pragma warning restore CA2000 // Dispose objects before losing scope
-            }
 
             services.AddSingleton<IPersistedGrantStore>(new PersistedGrantRepository(new DbContextOptions
             {
                 ConnectionString = Configuration["ConnectionStrings:DataProtectionDb"] ?? throw new ServiceConfigurationException()
             }, "persistedGrants"));
+            services.AddSingleton<ISigningKeyStore>(new SigningKeyRepository(new DbContextOptions
+            {
+                ConnectionString = Configuration["ConnectionStrings:DataProtectionDb"] ?? throw new ServiceConfigurationException()
+            }, "signingKeys"));
 
             // Configure Hangfire server.
             if (!Environment.IsStaging()) //don't start server in staging
@@ -299,6 +293,7 @@ namespace Etherna.SSOServer
             services.AddSwaggerGen(options =>
             {
                 options.SupportNonNullableReferenceTypes();
+                options.UseInlineDefinitionsForEnums();
 
                 //add a custom operation filter which sets default values
                 options.OperationFilter<SwaggerDefaultValues>();
@@ -310,12 +305,7 @@ namespace Etherna.SSOServer
             });
 
             // Configure setting.
-            var assemblyVersion = new AssemblyVersion(GetType().GetTypeInfo().Assembly);
             services.Configure<ApplicationSettings>(Configuration.GetSection("Application") ?? throw new ServiceConfigurationException());
-            services.PostConfigure<ApplicationSettings>(options =>
-            {
-                options.AssemblyVersion = assemblyVersion.Version;
-            });
             services.Configure<EmailSettings>(Configuration.GetSection("Email") ?? throw new ServiceConfigurationException());
             services.Configure<SsoDbSeedSettings>(Configuration.GetSection("DbSeed") ?? throw new ServiceConfigurationException());
 
@@ -344,7 +334,6 @@ namespace Etherna.SSOServer
                 options =>
                 {
                     options.ConnectionString = Configuration["ConnectionStrings:SSOServerDb"] ?? throw new ServiceConfigurationException();
-                    options.DocumentSemVer.CurrentVersion = assemblyVersion.SimpleVersion;
                     options.ParentFor<ISharedDbContext>();
                 })
                 
@@ -356,7 +345,6 @@ namespace Etherna.SSOServer
                 options =>
                 {
                     options.ConnectionString = Configuration["ConnectionStrings:ServiceSharedDb"] ?? throw new ServiceConfigurationException();
-                    options.DocumentSemVer.CurrentVersion = assemblyVersion.SimpleVersion;
                 });
 
             services.AddMongODMAdminDashboard(new MongODM.AspNetCore.UI.DashboardOptions
@@ -376,6 +364,7 @@ namespace Etherna.SSOServer
             {
                 app.UseDeveloperExceptionPage();
                 app.UseForwardedHeaders();
+                app.UseEthernaAcrDebugPages();
             }
             else
             {
@@ -423,6 +412,8 @@ namespace Etherna.SSOServer
             app.UseSwagger();
             app.UseSwaggerUI(options =>
             {
+                options.DocumentTitle = "Etherna SSO API";
+
                 // build a swagger endpoint for each discovered API version
                 foreach (var description in apiProvider.ApiVersionDescriptions)
                 {

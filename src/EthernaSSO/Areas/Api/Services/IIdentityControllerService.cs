@@ -20,12 +20,12 @@ namespace Etherna.SSOServer.Areas.Api.Services
 {
     public interface IIdentityControllerService
     {
-        Task<PrivateUserDto> GetPrivateUserInfoByClaimsAsync(ClaimsPrincipal userClaims);
-
         Task<UserDto> GetUserByEtherAddressAsync(string etherAddress);
 
         Task<UserDto> GetUserByUsernameAsync(string username);
 
         Task<bool> IsEmailRegisteredAsync(string email);
+
+        Task<PrivateUserDto?> TryGetPrivateUserInfoByClaimsAsync(ClaimsPrincipal userClaims);
     }
 }

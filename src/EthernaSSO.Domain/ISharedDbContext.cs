@@ -20,6 +20,6 @@ namespace Etherna.SSOServer.Domain
 {
     public interface ISharedDbContext : IDbContext
     {
-        ICollectionRepository<UserSharedInfo, string> UsersInfo { get; }
+        IRepository<UserSharedInfo, string> UsersInfo { get; }
     }
 }

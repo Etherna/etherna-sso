@@ -55,7 +55,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
 
         // Properties.
         public int CurrentPage { get; private set; }
-        public int MaxPage { get; private set; }
+        public long MaxPage { get; private set; }
         public string? Query { get; private set; }
         public List<RoleDto> Roles { get; } = new();
 

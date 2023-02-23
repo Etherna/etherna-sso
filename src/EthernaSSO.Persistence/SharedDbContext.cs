@@ -44,8 +44,8 @@ namespace Etherna.SSOServer.Persistence
 
         // Properties.
         //repositories
-        public ICollectionRepository<UserSharedInfo, string> UsersInfo { get; } = new DomainCollectionRepository<UserSharedInfo, string>(
-            new CollectionRepositoryOptions<UserSharedInfo>("usersInfo")
+        public IRepository<UserSharedInfo, string> UsersInfo { get; } = new DomainRepository<UserSharedInfo, string>(
+            new RepositoryOptions<UserSharedInfo>("usersInfo")
             {
                 IndexBuilders = new[]
                 {

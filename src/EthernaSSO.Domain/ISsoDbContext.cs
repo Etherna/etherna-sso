@@ -20,11 +20,11 @@ namespace Etherna.SSOServer.Domain
 {
     public interface ISsoDbContext : IDbContext
     {
-        ICollectionRepository<AlphaPassRequest, string> AlphaPassRequests { get; }
-        ICollectionRepository<DailyStats, string> DailyStats { get; }
-        ICollectionRepository<Invitation, string> Invitations { get; }
-        ICollectionRepository<Role, string> Roles { get; }
-        ICollectionRepository<UserBase, string> Users { get; }
-        ICollectionRepository<Web3LoginToken, string> Web3LoginTokens { get; }
+        IRepository<AlphaPassRequest, string> AlphaPassRequests { get; }
+        IRepository<DailyStats, string> DailyStats { get; }
+        IRepository<Invitation, string> Invitations { get; }
+        IRepository<Role, string> Roles { get; }
+        IRepository<UserBase, string> Users { get; }
+        IRepository<Web3LoginToken, string> Web3LoginTokens { get; }
     }
 }
