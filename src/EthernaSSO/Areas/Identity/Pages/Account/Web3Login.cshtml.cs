@@ -185,7 +185,6 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             {
                 InvitationCode = invitationCode,
             };
-            IsInvitationRequired = applicationSettings.RequireInvitation;
             return Page();
         }
 
@@ -253,8 +252,9 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         // Helpers.
         private void Initialize(string etherAddress, string signature, string? returnUrl)
         {
-            ReturnUrl = returnUrl ?? Url.Content("~/");
             EtherAddress = etherAddress;
+            IsInvitationRequired = applicationSettings.RequireInvitation;
+            ReturnUrl = returnUrl ?? Url.Content("~/");
             Signature = signature;
         }
     }
