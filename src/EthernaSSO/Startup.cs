@@ -418,6 +418,8 @@ namespace Etherna.SSOServer
             app.UseSwagger();
             app.UseSwaggerUI(options =>
             {
+                options.DocumentTitle = "Etherna SSO API";
+
                 // build a swagger endpoint for each discovered API version
                 foreach (var description in apiProvider.ApiVersionDescriptions)
                 {
