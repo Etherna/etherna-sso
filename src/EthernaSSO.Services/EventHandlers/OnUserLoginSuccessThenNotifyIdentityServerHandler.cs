@@ -12,9 +12,9 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Duende.IdentityServer.Services;
 using Etherna.DomainEvents;
 using Etherna.SSOServer.Domain.Events;
-using IdentityServer4.Services;
 using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Services.EventHandlers
@@ -36,12 +36,12 @@ namespace Etherna.SSOServer.Services.EventHandlers
         {
             await identityServerEventService.RaiseAsync(
                 @event.Provider is null ?
-                new IdentityServer4.Events.UserLoginSuccessEvent(
+                new Duende.IdentityServer.Events.UserLoginSuccessEvent(
                     @event.User.Username,
                     @event.User.Id,
                     @event.User.Username,
                     clientId: @event.ClientId) :
-                new IdentityServer4.Events.UserLoginSuccessEvent(
+                new Duende.IdentityServer.Events.UserLoginSuccessEvent(
                     @event.Provider,
                     @event.ProviderUserId,
                     @event.User.Id,

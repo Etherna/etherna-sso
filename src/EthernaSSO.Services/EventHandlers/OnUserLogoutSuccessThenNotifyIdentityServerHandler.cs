@@ -12,9 +12,9 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Duende.IdentityServer.Services;
 using Etherna.DomainEvents;
 using Etherna.SSOServer.Domain.Events;
-using IdentityServer4.Services;
 using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Services.EventHandlers
@@ -34,7 +34,7 @@ namespace Etherna.SSOServer.Services.EventHandlers
         // Methods.
         public override async Task HandleAsync(UserLogoutSuccessEvent @event)
         {
-            await identityServerEventService.RaiseAsync(new IdentityServer4.Events.UserLogoutSuccessEvent(
+            await identityServerEventService.RaiseAsync(new Duende.IdentityServer.Events.UserLogoutSuccessEvent(
                 @event.User?.Id,
                 @event.User?.Username));
         }

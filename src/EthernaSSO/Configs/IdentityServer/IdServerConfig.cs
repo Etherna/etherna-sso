@@ -12,10 +12,10 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Duende.IdentityServer;
+using Duende.IdentityServer.Models;
 using Etherna.ACR.Exceptions;
 using Etherna.Authentication;
-using IdentityServer4;
-using IdentityServer4.Models;
 using Microsoft.Extensions.Configuration;
 using MongoDB.Driver;
 using System;

@@ -12,7 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-using IdentityServer4.Stores;
+using Duende.IdentityServer.Stores;
 using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Extensions
