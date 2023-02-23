@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Duende.IdentityServer.Services;
 using Etherna.DomainEvents;
 using Etherna.SSOServer.Domain.Events;
 using Etherna.SSOServer.Domain.Helpers;
@@ -19,7 +20,6 @@ using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Extensions;
 using Etherna.SSOServer.Services.Domain;
 using Etherna.SSOServer.Services.Settings;
-using IdentityServer4.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;

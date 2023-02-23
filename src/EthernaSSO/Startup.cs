@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Duende.IdentityServer.Stores;
 using Etherna.ACR.Exceptions;
 using Etherna.ACR.Middlewares.DebugPages;
 using Etherna.ACR.Settings;
@@ -38,7 +39,6 @@ using Hangfire;
 using Hangfire.Mongo;
 using Hangfire.Mongo.Migration.Strategies;
 using Hangfire.Mongo.Migration.Strategies.Backup;
-using IdentityServer4.Stores;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -253,6 +253,7 @@ namespace Etherna.SSOServer
             var idServerConfig = new IdServerConfig(Configuration);
             var builder = services.AddIdentityServer(options =>
             {
+                options.LicenseKey = Configuration["IdServer:LicenseKey"]; //can be null in dev env
                 options.UserInteraction.ErrorUrl = "/Error";
             })
                 .AddInMemoryApiResources(idServerConfig.ApiResources)
@@ -260,23 +261,15 @@ namespace Etherna.SSOServer
                 .AddInMemoryClients(idServerConfig.Clients)
                 .AddInMemoryIdentityResources(idServerConfig.IdResources)
                 .AddAspNetIdentity<UserBase>();
-            if (Environment.IsDevelopment())
-            {
-                builder.AddDeveloperSigningCredential();
-            }
-            else
-            {
-#pragma warning disable CA2000 // Dispose objects before losing scope
-                builder.AddSigningCredential(new X509Certificate2(
-                    Configuration["SigningCredentialCertificate:Name"] ?? throw new ServiceConfigurationException(),
-                    Configuration["SigningCredentialCertificate:Password"] ?? throw new ServiceConfigurationException()));
-#pragma warning restore CA2000 // Dispose objects before losing scope
-            }
 
             services.AddSingleton<IPersistedGrantStore>(new PersistedGrantRepository(new DbContextOptions
             {
                 ConnectionString = Configuration["ConnectionStrings:DataProtectionDb"] ?? throw new ServiceConfigurationException()
             }, "persistedGrants"));
+            services.AddSingleton<ISigningKeyStore>(new SigningKeyRepository(new DbContextOptions
+            {
+                ConnectionString = Configuration["ConnectionStrings:DataProtectionDb"] ?? throw new ServiceConfigurationException()
+            }, "signingKeys"));
 
             // Configure Hangfire server.
             if (!Environment.IsStaging()) //don't start server in staging
