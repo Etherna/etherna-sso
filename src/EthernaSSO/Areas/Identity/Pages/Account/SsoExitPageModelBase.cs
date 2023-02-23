@@ -12,9 +12,9 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Duende.IdentityServer.Models;
+using Duende.IdentityServer.Stores;
 using Etherna.SSOServer.Extensions;
-using IdentityServer4.Models;
-using IdentityServer4.Stores;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System;

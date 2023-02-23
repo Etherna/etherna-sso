@@ -156,7 +156,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
                 {
                     case UserWeb2 userWeb2:
                         AccessFailedCount = userWeb2.AccessFailedCount;
-                        ExternalLoginProviders = userWeb2.Logins.Select(l => l.ProviderDisplayName);
+                        ExternalLoginProviders = userWeb2.Logins.Select(l => l.ProviderDisplayName ?? l.LoginProvider);
                         HasPassword = userWeb2.HasPassword;
                         break;
                     case UserWeb3 _: break;

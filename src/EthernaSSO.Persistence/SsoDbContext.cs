@@ -55,8 +55,8 @@ namespace Etherna.SSOServer.Persistence
 
         // Properties.
         //repositories
-        public ICollectionRepository<AlphaPassRequest, string> AlphaPassRequests { get; } = new DomainCollectionRepository<AlphaPassRequest, string>(
-            new CollectionRepositoryOptions<AlphaPassRequest>("alphaPassRequests")
+        public IRepository<AlphaPassRequest, string> AlphaPassRequests { get; } = new DomainRepository<AlphaPassRequest, string>(
+            new RepositoryOptions<AlphaPassRequest>("alphaPassRequests")
             {
                 IndexBuilders = new[]
                 {
@@ -69,9 +69,9 @@ namespace Etherna.SSOServer.Persistence
                      new CreateIndexOptions<AlphaPassRequest>())
                 }
             });
-        public ICollectionRepository<DailyStats, string> DailyStats { get; } = new DomainCollectionRepository<DailyStats, string>("dailyStats");
-        public ICollectionRepository<Invitation, string> Invitations { get; } = new DomainCollectionRepository<Invitation, string>(
-            new CollectionRepositoryOptions<Invitation>("invitations")
+        public IRepository<DailyStats, string> DailyStats { get; } = new DomainRepository<DailyStats, string>("dailyStats");
+        public IRepository<Invitation, string> Invitations { get; } = new DomainRepository<Invitation, string>(
+            new RepositoryOptions<Invitation>("invitations")
             {
                 IndexBuilders = new[]
                 {
@@ -79,8 +79,8 @@ namespace Etherna.SSOServer.Persistence
                      new CreateIndexOptions<Invitation> { Unique = true })
                 }
             });
-        public ICollectionRepository<Role, string> Roles { get; } = new DomainCollectionRepository<Role, string>(
-            new CollectionRepositoryOptions<Role>("roles")
+        public IRepository<Role, string> Roles { get; } = new DomainRepository<Role, string>(
+            new RepositoryOptions<Role>("roles")
             {
                 IndexBuilders = new[]
                 {
@@ -88,8 +88,8 @@ namespace Etherna.SSOServer.Persistence
                      new CreateIndexOptions<Role> { Unique = true })
                 }
             });
-        public ICollectionRepository<UserBase, string> Users { get; } = new DomainCollectionRepository<UserBase, string>(
-            new CollectionRepositoryOptions<UserBase>("users")
+        public IRepository<UserBase, string> Users { get; } = new DomainRepository<UserBase, string>(
+            new RepositoryOptions<UserBase>("users")
             {
                 IndexBuilders = new[]
                 {
@@ -124,8 +124,8 @@ namespace Etherna.SSOServer.Persistence
                      new CreateIndexOptions<UserBase> { Unique = true, Sparse = true }),
                 }
             });
-        public ICollectionRepository<Web3LoginToken, string> Web3LoginTokens { get; } = new DomainCollectionRepository<Web3LoginToken, string>(
-            new CollectionRepositoryOptions<Web3LoginToken>("web3LoginTokens")
+        public IRepository<Web3LoginToken, string> Web3LoginTokens { get; } = new DomainRepository<Web3LoginToken, string>(
+            new RepositoryOptions<Web3LoginToken>("web3LoginTokens")
             {
                 IndexBuilders = new[]
                 {

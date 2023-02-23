@@ -18,11 +18,11 @@ using Etherna.SSOServer.Domain.Models;
 
 namespace Etherna.SSOServer.Persistence.ModelMaps.Sso
 {
-    class Web3LoginTokenMap : IModelMapsCollector
+    internal sealed class Web3LoginTokenMap : IModelMapsCollector
     {
         public void Register(IDbContext dbContext)
         {
-            dbContext.SchemaRegistry.AddModelMapsSchema<Web3LoginToken>("150f4cdf-099a-4195-a145-45f1f9eda60c");
+            dbContext.MapRegistry.AddModelMap<Web3LoginToken>("150f4cdf-099a-4195-a145-45f1f9eda60c");
         }
     }
 }

@@ -48,7 +48,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             if (user == null)
                 return NotFound($"Unable to load user with ID '{userManager.GetUserId(User)}'.");
 
-            logger.DownloadedPersonalData(userManager.GetUserId(User));
+            logger.DownloadedPersonalData(userManager.GetUserId(User) ?? throw new InvalidOperationException());
 
             // Only include personal data for download
             var personalData = new Dictionary<string, object?>();

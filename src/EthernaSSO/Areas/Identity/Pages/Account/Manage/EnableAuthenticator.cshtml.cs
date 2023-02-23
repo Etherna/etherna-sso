@@ -125,7 +125,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
 
             if (await userManager.CountRecoveryCodesAsync(user) == 0)
             {
-                var recoveryCodes = await userManager.GenerateNewTwoFactorRecoveryCodesAsync(user, 10);
+                var recoveryCodes = await userManager.GenerateNewTwoFactorRecoveryCodesAsync(user, 10) ?? throw new InvalidOperationException();
                 RecoveryCodes = recoveryCodes.ToArray();
                 return RedirectToPage("./ShowRecoveryCodes");
             }
@@ -143,12 +143,12 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             if (string.IsNullOrEmpty(unformattedKey))
             {
                 await userManager.ResetAuthenticatorKeyAsync(user);
-                unformattedKey = await userManager.GetAuthenticatorKeyAsync(user);
+                unformattedKey = await userManager.GetAuthenticatorKeyAsync(user) ?? throw new InvalidOperationException();
             }
 
             SharedKey = FormatKey(unformattedKey);
 
-            var username = await userManager.GetUserNameAsync(user);
+            var username = await userManager.GetUserNameAsync(user) ?? throw new InvalidOperationException();
             AuthenticatorUri = GenerateQrCodeUri(applicationSettings.DisplayName, username, unformattedKey);
         }
 

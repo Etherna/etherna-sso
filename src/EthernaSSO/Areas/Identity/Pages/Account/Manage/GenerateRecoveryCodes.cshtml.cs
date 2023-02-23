@@ -82,7 +82,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
                 throw new InvalidOperationException($"Cannot generate recovery codes for user with ID '{userId}' as they do not have 2FA enabled.");
             }
 
-            var recoveryCodes = await userManager.GenerateNewTwoFactorRecoveryCodesAsync(user, 10);
+            var recoveryCodes = await userManager.GenerateNewTwoFactorRecoveryCodesAsync(user, 10) ?? throw new InvalidOperationException();
             RecoveryCodes = recoveryCodes.ToArray();
 
             logger.Generated2FARecoveryCodes(userId);

@@ -71,7 +71,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             if (!disable2faResult.Succeeded)
                 throw new InvalidOperationException($"Unexpected error occurred disabling 2FA for user with ID '{userManager.GetUserId(User)}'.");
 
-            logger.Disabled2FA(userManager.GetUserId(User));
+            logger.Disabled2FA(userManager.GetUserId(User) ?? throw new InvalidOperationException());
             StatusMessage = "2fa has been disabled. You can reenable 2fa when you setup an authenticator app";
             return RedirectToPage("./TwoFactorAuthentication");
         }

@@ -18,7 +18,7 @@ using System.Text.RegularExpressions;
 
 namespace Etherna.SSOServer.Domain.Helpers
 {
-    public static class UsernameHelper
+    public static partial class UsernameHelper
     {
         // Consts.
         public const string AllowedUsernameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._";
@@ -27,7 +27,7 @@ namespace Etherna.SSOServer.Domain.Helpers
 
         // Methods.
         public static bool IsValidUsername(string username) =>
-            Regex.IsMatch(username, UsernameRegex);
+            UsernameRegexHelper().IsMatch(username);
 
         public static string NormalizeUsername(string username)
         {
@@ -38,5 +38,9 @@ namespace Etherna.SSOServer.Domain.Helpers
 
             return username;
         }
+
+        // Helpers.
+        [GeneratedRegex(UsernameRegex)]
+        private static partial Regex UsernameRegexHelper();
     }
 }

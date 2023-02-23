@@ -18,11 +18,11 @@ using Etherna.SSOServer.Domain.Models.UserAgg;
 
 namespace Etherna.SSOServer.Persistence.ModelMaps.Shared
 {
-    class UserSharedInfoMap : IModelMapsCollector
+    internal sealed class UserSharedInfoMap : IModelMapsCollector
     {
         public void Register(IDbContext dbContext)
         {
-            dbContext.SchemaRegistry.AddModelMapsSchema<UserSharedInfo>("6d0d2ee1-6aa3-42ea-9833-ac592bfc6613", mm =>
+            dbContext.MapRegistry.AddModelMap<UserSharedInfo>("6d0d2ee1-6aa3-42ea-9833-ac592bfc6613", mm =>
             {
                 mm.AutoMap();
 

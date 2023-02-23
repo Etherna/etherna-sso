@@ -24,16 +24,16 @@ using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Persistence.Repositories
 {
-    public class DomainCollectionRepository<TModel, TKey> :
-        CollectionRepository<TModel, TKey>
+    public class DomainRepository<TModel, TKey> :
+        Repository<TModel, TKey>
         where TModel : EntityModelBase<TKey>
     {
         // Constructors and initialization.
-        public DomainCollectionRepository(string name)
+        public DomainRepository(string name)
             : base(name)
         { }
 
-        public DomainCollectionRepository(CollectionRepositoryOptions<TModel> options)
+        public DomainRepository(RepositoryOptions<TModel> options)
             : base(options)
         { }
 

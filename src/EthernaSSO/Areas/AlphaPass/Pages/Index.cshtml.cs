@@ -98,10 +98,7 @@ namespace Etherna.SSOServer.Areas.AlphaPass.Pages
                     email = normalizedEmail.ToLowerInvariant(),
                     secret = request.Secret
                 },
-                protocol: Request.Scheme);
-
-            if (callbackUrl is null)
-                throw new InvalidOperationException();
+                protocol: Request.Scheme) ?? throw new InvalidOperationException();
 
             // Send email.
             var emailBody = await razorViewRenderer.RenderViewToStringAsync(

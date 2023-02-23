@@ -12,15 +12,16 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Duende.IdentityServer.Services;
+using Duende.IdentityServer.Stores;
 using Etherna.ACR.Helpers;
 using Etherna.ACR.Services;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Services.Views.Emails;
-using IdentityServer4.Services;
-using IdentityServer4.Stores;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 
@@ -104,7 +105,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             }
 
             // Generate Totp code.
-            var user = await userManager.GetUserAsync(User);
+            var user = await userManager.GetUserAsync(User) ?? throw new InvalidOperationException();
             var code = await userManager.GenerateEmailConfirmationTokenAsync(user);
 
             // Send email.
@@ -130,7 +131,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 ModelState.AddModelError(string.Empty, "Code can't be empty.");
 
             // Validate code.
-            var user = await userManager.GetUserAsync(User);
+            var user = await userManager.GetUserAsync(User) ?? throw new InvalidOperationException();
             var result = await userManager.ConfirmEmailAsync(user, CodeInput.Code);
             if (!result.Succeeded)
                 ModelState.AddModelError(string.Empty, "Code is not valid.");

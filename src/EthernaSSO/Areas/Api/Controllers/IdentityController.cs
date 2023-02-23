@@ -18,6 +18,7 @@ using Etherna.SSOServer.Attributes;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Areas.Api.Controllers
@@ -46,8 +47,8 @@ namespace Etherna.SSOServer.Areas.Api.Controllers
         [Authorize]
         [SimpleExceptionFilter]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public Task<PrivateUserDto> GetCurrentUserAsync() =>
-            controllerService.GetPrivateUserInfoByClaimsAsync(User);
+        public async Task<PrivateUserDto> GetCurrentUserAsync() =>
+            await controllerService.TryGetPrivateUserInfoByClaimsAsync(User) ?? throw new InvalidOperationException();
 
         /// <summary>
         /// Get information about user by its ethereum address.

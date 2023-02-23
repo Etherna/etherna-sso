@@ -20,7 +20,7 @@ using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Services.Domain
 {
-    class Web3AuthnService : IWeb3AuthnService
+    internal sealed class Web3AuthnService : IWeb3AuthnService
     {
         // Fields.
         private readonly ISsoDbContext ssoDbContext;

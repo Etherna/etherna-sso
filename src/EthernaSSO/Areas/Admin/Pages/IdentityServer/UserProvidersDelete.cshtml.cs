@@ -42,7 +42,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
         public string LoginProvider { get; private set; } = default!;
 
         [Display(Name = "Provider display name")]
-        public string ProviderDisplayName { get; private set; } = default!;
+        public string? ProviderDisplayName { get; private set; } = default!;
 
         [Display(Name = "Provider key")]
         public string ProviderKey { get; private set; } = default!;

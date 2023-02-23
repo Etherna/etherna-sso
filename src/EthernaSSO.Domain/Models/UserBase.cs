@@ -110,7 +110,6 @@ namespace Etherna.SSOServer.Domain.Models
 
         public virtual UserBase? InvitedBy { get; protected set; }
         public virtual bool InvitedByAdmin { get; protected set; }
-        public virtual bool IsInvited => InvitedByAdmin || InvitedBy is not null;
         [PersonalData]
         public virtual DateTime LastLoginDateTime { get; protected set; }
         //public virtual bool LockoutEnabled => SharedInfo.LockoutEnabled;

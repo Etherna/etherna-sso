@@ -26,20 +26,14 @@ namespace Etherna.SSOServer.Configs.Identity
 {
     public class CustomUserValidator : IUserValidator<UserBase>
     {
-        // Fields.
-        private readonly ApplicationSettings applicationSettings;
-
         // Constructor.
         /// <summary>
         /// Creates a new instance of <see cref="UserValidator{User}"/>/
         /// </summary>
-        /// <param name="applicationSettings">Application settings</param>
         /// <param name="errors">The <see cref="IdentityErrorDescriber"/>Used to provider error messages</param>
         public CustomUserValidator(
-            IOptions<ApplicationSettings> applicationSettings,
             IdentityErrorDescriber? errors = null)
         {
-            this.applicationSettings = applicationSettings?.Value ?? throw new ArgumentNullException(nameof(applicationSettings));
             Describer = errors ?? new IdentityErrorDescriber();
         }
 
@@ -74,15 +68,6 @@ namespace Etherna.SSOServer.Configs.Identity
             if (user is UserWeb2 userWeb2)
                 ValidateWeb2Logins(userWeb2, errors);
 
-            // Validate invitation.
-            if (user.Id is null && //is registering
-                applicationSettings.RequireInvitation && !user.IsInvited)
-                errors.Add(new IdentityError
-                {
-                    Code = "RequiredInvitation",
-                    Description = "An invitation code is required"
-                });
-
             return errors.Count > 0 ? IdentityResult.Failed(errors.ToArray()) : IdentityResult.Success;
         }
 
@@ -116,7 +101,7 @@ namespace Etherna.SSOServer.Configs.Identity
 
         private async Task ValidateUsernameAsync(UserManager<UserBase> manager, UserBase user, ICollection<IdentityError> errors)
         {
-            var username = await manager.GetUserNameAsync(user);
+            var username = await manager.GetUserNameAsync(user) ?? throw new InvalidOperationException();
 
             //check validity
             if (!UsernameHelper.IsValidUsername(username))
