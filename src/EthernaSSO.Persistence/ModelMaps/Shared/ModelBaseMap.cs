@@ -21,7 +21,7 @@ using Etherna.SSOServer.Domain.Models;
 
 namespace Etherna.SSOServer.Persistence.ModelMaps.Shared
 {
-    class ModelBaseMap : IModelMapsCollector
+    internal sealed class ModelBaseMap : IModelMapsCollector
     {
         public void Register(IDbContext dbContext)
         {

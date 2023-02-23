@@ -101,10 +101,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
                         userId,
                         email = Input.NewEmail,
                         code
-                    });
-
-                if (callbackUrl is null)
-                    throw new InvalidOperationException();
+                    }) ?? throw new InvalidOperationException();
 
                 var emailBody = await razorViewRenderer.RenderViewToStringAsync(
                     "Views/Emails/ConfirmEmailChange.cshtml",

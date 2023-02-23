@@ -17,6 +17,7 @@ using Etherna.SSOServer.Domain.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Configs.MongODM
@@ -29,7 +30,7 @@ namespace Etherna.SSOServer.Configs.MongODM
                 return false;
             var userManager = context.RequestServices.GetService<UserManager<UserBase>>()!;
 
-            var user = await userManager.GetUserAsync(context?.User);
+            var user = await userManager.GetUserAsync(context.User) ?? throw new InvalidOperationException();
 
             return await userManager.IsInRoleAsync(user, Role.AdministratorName);
         }

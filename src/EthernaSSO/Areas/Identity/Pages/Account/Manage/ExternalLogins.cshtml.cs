@@ -96,8 +96,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             if (user == null)
                 return NotFound($"Unable to load user.");
 
-            var info = await signInManager.GetExternalLoginInfoAsync(user.Id);
-            if (info == null)
+            var info = await signInManager.GetExternalLoginInfoAsync(user.Id) ??
                 throw new InvalidOperationException($"Unexpected error occurred loading external login info for user with ID '{user.Id}'.");
 
             var result = await userManager.AddLoginAsync(user, info);

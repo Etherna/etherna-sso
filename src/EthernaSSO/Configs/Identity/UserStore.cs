@@ -120,22 +120,22 @@ namespace Etherna.SSOServer.Configs.Identity
 
         public void Dispose() { }
 
-        public Task<UserBase> FindByEmailAsync(string normalizedEmail, CancellationToken cancellationToken) =>
-            ssoDbContext.Users.QueryElementsAsync(elements =>
+        public async Task<UserBase?> FindByEmailAsync(string normalizedEmail, CancellationToken cancellationToken) =>
+            await ssoDbContext.Users.QueryElementsAsync(elements =>
                 elements.FirstOrDefaultAsync(u => u.NormalizedEmail == normalizedEmail));
 
-        public Task<UserBase> FindByIdAsync(string userId, CancellationToken cancellationToken) =>
+        public Task<UserBase?> FindByIdAsync(string userId, CancellationToken cancellationToken) =>
             //using try for avoid exception throwing inside Identity's userManager
             ssoDbContext.Users.TryFindOneAsync(userId, cancellationToken: cancellationToken)!;
 
-        public async Task<UserBase> FindByLoginAsync(string loginProvider, string providerKey, CancellationToken cancellationToken) =>
+        public async Task<UserBase?> FindByLoginAsync(string loginProvider, string providerKey, CancellationToken cancellationToken) =>
             await ssoDbContext.Users.QueryElementsAsync(users =>
                 users.OfType<UserWeb2>()
                      .FirstOrDefaultAsync(u => u.Logins.Any(
                          l => l.LoginProvider == loginProvider && l.ProviderKey == providerKey)));
 
-        public Task<UserBase> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken) =>
-            ssoDbContext.Users.QueryElementsAsync(elements =>
+        public async Task<UserBase?> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken) =>
+            await ssoDbContext.Users.QueryElementsAsync(elements =>
                 elements.FirstOrDefaultAsync(u => u.NormalizedUsername == normalizedUserName));
 
         public Task<int> GetAccessFailedCountAsync(UserBase user, CancellationToken cancellationToken)
@@ -217,12 +217,12 @@ namespace Etherna.SSOServer.Configs.Identity
             return Task.FromResult(user.NormalizedEmail);
         }
 
-        public Task<string> GetNormalizedUserNameAsync(UserBase user, CancellationToken cancellationToken)
+        public Task<string?> GetNormalizedUserNameAsync(UserBase user, CancellationToken cancellationToken)
         {
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
 
-            return Task.FromResult(user.NormalizedUsername);
+            return Task.FromResult<string?>(user.NormalizedUsername);
         }
 
         public Task<string?> GetPasswordHashAsync(UserBase user, CancellationToken cancellationToken)
@@ -257,12 +257,12 @@ namespace Etherna.SSOServer.Configs.Identity
             return Task.FromResult<IList<string>>(user.Roles.Select(r => r.Name).ToList());
         }
 
-        public Task<string> GetSecurityStampAsync(UserBase user, CancellationToken cancellationToken)
+        public Task<string?> GetSecurityStampAsync(UserBase user, CancellationToken cancellationToken)
         {
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
 
-            return Task.FromResult(user.SecurityStamp);
+            return Task.FromResult<string?>(user.SecurityStamp);
         }
 
         public Task<bool> GetTwoFactorEnabledAsync(UserBase user, CancellationToken cancellationToken)
@@ -281,12 +281,12 @@ namespace Etherna.SSOServer.Configs.Identity
             return Task.FromResult(user.Id);
         }
 
-        public Task<string> GetUserNameAsync(UserBase user, CancellationToken cancellationToken)
+        public Task<string?> GetUserNameAsync(UserBase user, CancellationToken cancellationToken)
         {
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
 
-            return Task.FromResult(user.Username ?? string.Empty); //Identity doesn't handle claims with null username
+            return Task.FromResult<string?>(user.Username);
         }
 
         public async Task<IList<UserBase>> GetUsersForClaimAsync(Claim claim, CancellationToken cancellationToken)
@@ -406,12 +406,16 @@ namespace Etherna.SSOServer.Configs.Identity
             return Task.CompletedTask;
         }
 
-        public Task SetEmailAsync(UserBase user, string email, CancellationToken cancellationToken)
+        public Task SetEmailAsync(UserBase user, string? email, CancellationToken cancellationToken)
         {
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
 
-            user.SetEmail(email);
+            if (email is null)
+                user.RemoveEmail();
+            else
+                user.SetEmail(email);
+
             return Task.CompletedTask;
         }
 
@@ -442,19 +446,19 @@ namespace Etherna.SSOServer.Configs.Identity
             sharedInfo.LockoutEnd = lockoutEnd;
         }
 
-        public Task SetNormalizedEmailAsync(UserBase user, string normalizedEmail, CancellationToken cancellationToken)
+        public Task SetNormalizedEmailAsync(UserBase user, string? normalizedEmail, CancellationToken cancellationToken)
         {
             //don't perform any action, because email normalization is already performed by domain
             return Task.CompletedTask;
         }
 
-        public Task SetNormalizedUserNameAsync(UserBase user, string normalizedName, CancellationToken cancellationToken)
+        public Task SetNormalizedUserNameAsync(UserBase user, string? normalizedName, CancellationToken cancellationToken)
         {
             //don't perform any action, because username normalization is already performed by domain
             return Task.CompletedTask;
         }
 
-        public Task SetPasswordHashAsync(UserBase user, string passwordHash, CancellationToken cancellationToken)
+        public Task SetPasswordHashAsync(UserBase user, string? passwordHash, CancellationToken cancellationToken)
         {
             if (user is not UserWeb2 userWeb2)
                 throw new ArgumentException("User is not a web2 account", nameof(user));
@@ -463,7 +467,7 @@ namespace Etherna.SSOServer.Configs.Identity
             return Task.CompletedTask;
         }
 
-        public Task SetPhoneNumberAsync(UserBase user, string phoneNumber, CancellationToken cancellationToken)
+        public Task SetPhoneNumberAsync(UserBase user, string? phoneNumber, CancellationToken cancellationToken)
         {
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
@@ -502,10 +506,12 @@ namespace Etherna.SSOServer.Configs.Identity
             return Task.CompletedTask;
         }
 
-        public Task SetUserNameAsync(UserBase user, string userName, CancellationToken cancellationToken)
+        public Task SetUserNameAsync(UserBase user, string? userName, CancellationToken cancellationToken)
         {
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
+            if (userName is null)
+                throw new ArgumentNullException(nameof(userName));
 
             user.SetUsername(userName);
             return Task.CompletedTask;

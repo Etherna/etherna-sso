@@ -18,7 +18,7 @@ using Etherna.SSOServer.Domain.Models.UserAgg;
 
 namespace Etherna.SSOServer.Persistence.ModelMaps.Sso
 {
-    class UserClaimMap : IModelMapsCollector
+    internal sealed class UserClaimMap : IModelMapsCollector
     {
         public void Register(IDbContext dbContext)
         {

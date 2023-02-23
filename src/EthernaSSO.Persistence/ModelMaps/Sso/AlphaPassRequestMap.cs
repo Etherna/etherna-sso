@@ -18,7 +18,7 @@ using Etherna.SSOServer.Domain.Models;
 
 namespace Etherna.SSOServer.Persistence.ModelMaps.Sso
 {
-    internal class AlphaPassRequestMap : IModelMapsCollector
+    internal sealed class AlphaPassRequestMap : IModelMapsCollector
     {
         public void Register(IDbContext dbContext)
         {

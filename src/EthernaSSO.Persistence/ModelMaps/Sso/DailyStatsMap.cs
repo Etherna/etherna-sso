@@ -18,7 +18,7 @@ using Etherna.SSOServer.Domain.Models;
 
 namespace Etherna.SSOServer.Persistence.ModelMaps.Sso
 {
-    class DailyStatsMap : IModelMapsCollector
+    internal sealed class DailyStatsMap : IModelMapsCollector
     {
         public void Register(IDbContext dbContext)
         {

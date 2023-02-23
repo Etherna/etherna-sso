@@ -19,7 +19,7 @@ using Etherna.SSOServer.Domain.Models;
 
 namespace Etherna.SSOServer.Persistence.ModelMaps.Sso
 {
-    class InvitationMap : IModelMapsCollector
+    internal sealed class InvitationMap : IModelMapsCollector
     {
         public void Register(IDbContext dbContext)
         {

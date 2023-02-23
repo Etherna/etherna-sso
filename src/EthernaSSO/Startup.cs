@@ -145,7 +145,7 @@ namespace Etherna.SSOServer
                 var knownNetworksConfig = Configuration.GetSection("ForwardedHeaders:KnownNetworks");
                 if (knownNetworksConfig.Exists())
                 {
-                    var networks = knownNetworksConfig.Get<string[]>().Select(address =>
+                    var networks = (knownNetworksConfig.Get<string[]>() ?? throw new ServiceConfigurationException()).Select(address =>
                     {
                         var parts = address.Split('/');
                         if (parts.Length != 2)
@@ -195,8 +195,8 @@ namespace Etherna.SSOServer
                 Configuration["Authentication:Google:ClientSecret"] is not null)
                 authBuilder.AddGoogle(options =>
                 {
-                    options.ClientId = Configuration["Authentication:Google:ClientId"];
-                    options.ClientSecret = Configuration["Authentication:Google:ClientSecret"];
+                    options.ClientId = Configuration["Authentication:Google:ClientId"]!;
+                    options.ClientSecret = Configuration["Authentication:Google:ClientSecret"]!;
                 });
 
             if (Configuration["Authentication:Twitter:ClientId"] is not null &&

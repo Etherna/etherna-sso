@@ -163,7 +163,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             }
 
             // Initialize page.
-            Initialize(info.ProviderDisplayName, returnUrl);
+            Initialize(info.ProviderDisplayName ?? info.LoginProvider, returnUrl);
 
             // Sign in the user with this external login provider if the user already has a login.
             var result = await signInManager.ExternalLoginSignInAsync(
@@ -203,7 +203,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             {
                 InvitationCode = invitationCode,
                 Username = info.Principal.HasClaim(c => c.Type == ClaimTypes.Name) ?
-                    info.Principal.FindFirstValue(ClaimTypes.Name) : ""
+                    info.Principal.FindFirstValue(ClaimTypes.Name)! : ""
             };
             Email = info.Principal.HasClaim(c => c.Type == ClaimTypes.Email) ?
                 info.Principal.FindFirstValue(ClaimTypes.Email) : null;
@@ -221,7 +221,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             }
 
             // Init page and validate.
-            Initialize(info.ProviderDisplayName, returnUrl);
+            Initialize(info.ProviderDisplayName ?? info.LoginProvider, returnUrl);
             if (!ModelState.IsValid)
                 return Page();
 

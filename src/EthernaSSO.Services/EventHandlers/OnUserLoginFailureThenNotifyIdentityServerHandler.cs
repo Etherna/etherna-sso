@@ -19,7 +19,7 @@ using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Services.EventHandlers
 {
-    class OnUserLoginFailureThenNotifyIdentityServerHandler : EventHandlerBase<UserLoginFailureEvent>
+    internal sealed class OnUserLoginFailureThenNotifyIdentityServerHandler : EventHandlerBase<UserLoginFailureEvent>
     {
         // Fields.
         private readonly IEventService identityServerEventService;

@@ -92,7 +92,7 @@ namespace Etherna.SSOServer
         {
             string assemblyName = Assembly.GetExecutingAssembly().GetName().Name!.ToLower(CultureInfo.InvariantCulture).Replace(".", "-", StringComparison.InvariantCulture);
             string envName = environment.ToLower(CultureInfo.InvariantCulture).Replace(".", "-", StringComparison.InvariantCulture);
-            return new ElasticsearchSinkOptions(configuration.GetSection("Elastic:Urls").Get<string[]>().Select(u => new Uri(u)))
+            return new ElasticsearchSinkOptions((configuration.GetSection("Elastic:Urls").Get<string[]>() ?? throw new ServiceConfigurationException()).Select(u => new Uri(u)))
             {
                 AutoRegisterTemplate = true,
                 IndexFormat = $"{assemblyName}-{envName}-{DateTime.UtcNow:yyyy-MM}"
