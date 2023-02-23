@@ -142,10 +142,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.Invitations
                         {
                             area = CommonConsts.IdentityArea,
                             invitationCode = invitations[i].Code
-                        });
-
-                    if (link is null)
-                        throw new InvalidOperationException();
+                        }) ?? throw new InvalidOperationException();
 
                     var emailBody = await razorViewRenderer.RenderViewToStringAsync(
                         "Views/Emails/AlphaPassLetter.cshtml",

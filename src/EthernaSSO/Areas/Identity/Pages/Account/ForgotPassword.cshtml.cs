@@ -78,10 +78,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 "/Account/ResetPassword",
                 pageHandler: null,
                 values: new { area = CommonConsts.IdentityArea, code },
-                protocol: Request.Scheme);
-
-            if (callbackUrl is null)
-                throw new InvalidOperationException();
+                protocol: Request.Scheme) ?? throw new InvalidOperationException();
 
             // Send email.
             var emailBody = await razorViewRenderer.RenderViewToStringAsync(

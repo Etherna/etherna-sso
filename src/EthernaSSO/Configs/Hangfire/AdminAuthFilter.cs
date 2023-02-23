@@ -16,6 +16,7 @@ using Etherna.SSOServer.Domain.Models;
 using Hangfire.Dashboard;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
+using System;
 
 namespace Etherna.SSOServer.Configs.Hangfire
 {
@@ -28,9 +29,9 @@ namespace Etherna.SSOServer.Configs.Hangfire
                 return false;
             var userManager = httpContext.RequestServices.GetService<UserManager<UserBase>>()!;
 
-            var getUserTask = userManager.GetUserAsync(httpContext?.User);
+            var getUserTask = userManager.GetUserAsync(httpContext.User);
             getUserTask.Wait();
-            var user = getUserTask.Result;
+            var user = getUserTask.Result ?? throw new InvalidOperationException();
 
             var isInRoleTask = userManager.IsInRoleAsync(user, Role.AdministratorName);
             isInRoleTask.Wait();

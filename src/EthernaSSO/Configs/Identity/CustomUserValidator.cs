@@ -101,7 +101,7 @@ namespace Etherna.SSOServer.Configs.Identity
 
         private async Task ValidateUsernameAsync(UserManager<UserBase> manager, UserBase user, ICollection<IdentityError> errors)
         {
-            var username = await manager.GetUserNameAsync(user);
+            var username = await manager.GetUserNameAsync(user) ?? throw new InvalidOperationException();
 
             //check validity
             if (!UsernameHelper.IsValidUsername(username))

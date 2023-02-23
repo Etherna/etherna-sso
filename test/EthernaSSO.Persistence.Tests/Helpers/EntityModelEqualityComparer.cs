@@ -19,7 +19,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Etherna.SSOServer.Persistence.Helpers
 {
-    internal class EntityModelEqualityComparer : IEqualityComparer<IEntityModel<string>?>
+    internal sealed class EntityModelEqualityComparer : IEqualityComparer<IEntityModel<string>?>
     {
         public static EntityModelEqualityComparer Instance { get; } = new EntityModelEqualityComparer();
 

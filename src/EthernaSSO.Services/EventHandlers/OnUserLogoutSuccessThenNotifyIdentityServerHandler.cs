@@ -19,7 +19,7 @@ using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Services.EventHandlers
 {
-    class OnUserLogoutSuccessThenNotifyIdentityServerHandler : EventHandlerBase<UserLogoutSuccessEvent>
+    internal sealed class OnUserLogoutSuccessThenNotifyIdentityServerHandler : EventHandlerBase<UserLogoutSuccessEvent>
     {
         // Fields.
         private readonly IEventService identityServerEventService;

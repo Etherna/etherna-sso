@@ -19,7 +19,7 @@ using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Services.EventHandlers
 {
-    class OnUserLoginSuccessThenUpdateLastLoginDateTimeHandler : EventHandlerBase<UserLoginSuccessEvent>
+    internal sealed class OnUserLoginSuccessThenUpdateLastLoginDateTimeHandler : EventHandlerBase<UserLoginSuccessEvent>
     {
         // Fields.
         private readonly ISsoDbContext ssoDbContext;

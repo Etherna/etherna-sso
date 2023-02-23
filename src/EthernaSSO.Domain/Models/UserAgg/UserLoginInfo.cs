@@ -20,7 +20,7 @@ namespace Etherna.SSOServer.Domain.Models.UserAgg
         public UserLoginInfo(
             string loginProvider,
             string providerKey,
-            string providerDisplayName)
+            string? providerDisplayName)
         {
             LoginProvider = loginProvider;
             ProviderKey = providerKey;
@@ -30,7 +30,7 @@ namespace Etherna.SSOServer.Domain.Models.UserAgg
 
         // Properties.
         public virtual string LoginProvider { get; protected set; } = default!;
-        public virtual string ProviderDisplayName { get; protected set; } = default!;
+        public virtual string? ProviderDisplayName { get; protected set; } = default!;
         public virtual string ProviderKey { get; protected set; } = default!;
 
         // Methods.
@@ -47,7 +47,7 @@ namespace Etherna.SSOServer.Domain.Models.UserAgg
 
         public override int GetHashCode() =>
             LoginProvider.GetHashCode() ^
-            ProviderDisplayName.GetHashCode() ^
+            ProviderDisplayName?.GetHashCode() ?? 0 ^
             ProviderKey.GetHashCode();
     }
 }

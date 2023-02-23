@@ -75,9 +75,10 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         public async Task<IActionResult> OnGetAsync(string? returnUrl = null)
         {
             // Ensure the user has gone through the username & password screen first.
-            var user = await signInManager.GetTwoFactorAuthenticationUserAsync();
-            if (user == null)
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
+            var user = await signInManager.GetTwoFactorAuthenticationUserAsync() ??
                 throw new InvalidOperationException($"Unable to load two-factor authentication user.");
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 
             ReturnUrl = returnUrl;
 
@@ -94,8 +95,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
             // Login.
             //check 2fa
-            var user = await signInManager.GetTwoFactorAuthenticationUserAsync();
-            if (user == null)
+            var user = await signInManager.GetTwoFactorAuthenticationUserAsync() ??
                 throw new InvalidOperationException($"Unable to load two-factor authentication user.");
 
             var authenticatorCode = Input.TwoFactorCode.Replace(" ", string.Empty, StringComparison.InvariantCulture)

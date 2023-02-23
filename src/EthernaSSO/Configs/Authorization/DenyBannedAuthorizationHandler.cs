@@ -41,7 +41,7 @@ namespace Etherna.SSOServer.Configs.Authorization
 
             if (context.User.Identity?.IsAuthenticated == true)
             {
-                var user = await userManager.GetUserAsync(context.User);
+                var user = await userManager.GetUserAsync(context.User) ?? throw new InvalidOperationException();
 
                 if (await userManager.IsLockedOutAsync(user))
                     context.Fail();

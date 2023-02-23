@@ -56,20 +56,20 @@ namespace Etherna.SSOServer.Configs.Identity
 
         public void Dispose() { }
 
-        public Task<Role> FindByIdAsync(string roleId, CancellationToken cancellationToken) =>
+        public Task<Role?> FindByIdAsync(string roleId, CancellationToken cancellationToken) =>
             //using try for avoid exception throwing inside Identity's userManager
             context.Roles.TryFindOneAsync(roleId, cancellationToken: cancellationToken)!;
 
-        public Task<Role> FindByNameAsync(string normalizedRoleName, CancellationToken cancellationToken) =>
-            context.Roles.QueryElementsAsync(elements =>
+        public async Task<Role?> FindByNameAsync(string normalizedRoleName, CancellationToken cancellationToken) =>
+            await context.Roles.QueryElementsAsync(elements =>
                 elements.FirstOrDefaultAsync(u => u.NormalizedName == normalizedRoleName));
 
-        public Task<string> GetNormalizedRoleNameAsync(Role role, CancellationToken cancellationToken)
+        public Task<string?> GetNormalizedRoleNameAsync(Role role, CancellationToken cancellationToken)
         {
             if (role is null)
                 throw new ArgumentNullException(nameof(role));
 
-            return Task.FromResult(role.NormalizedName);
+            return Task.FromResult<string?>(role.NormalizedName);
         }
 
         public Task<string> GetRoleIdAsync(Role role, CancellationToken cancellationToken)
@@ -80,24 +80,26 @@ namespace Etherna.SSOServer.Configs.Identity
             return Task.FromResult(role.Id);
         }
 
-        public Task<string> GetRoleNameAsync(Role role, CancellationToken cancellationToken)
+        public Task<string?> GetRoleNameAsync(Role role, CancellationToken cancellationToken)
         {
             if (role is null)
                 throw new ArgumentNullException(nameof(role));
 
-            return Task.FromResult(role.Name);
+            return Task.FromResult<string?>(role.Name);
         }
 
-        public Task SetNormalizedRoleNameAsync(Role role, string normalizedName, CancellationToken cancellationToken)
+        public Task SetNormalizedRoleNameAsync(Role role, string? normalizedName, CancellationToken cancellationToken)
         {
             //don't perform any action, because name normalization is already performed by domain
             return Task.CompletedTask;
         }
 
-        public Task SetRoleNameAsync(Role role, string roleName, CancellationToken cancellationToken)
+        public Task SetRoleNameAsync(Role role, string? roleName, CancellationToken cancellationToken)
         {
             if (role is null)
                 throw new ArgumentNullException(nameof(role));
+            if (roleName is null)
+                throw new ArgumentNullException(nameof(roleName));
 
             role.SetName(roleName);
             return Task.CompletedTask;

@@ -22,7 +22,7 @@ using Etherna.SSOServer.Domain.Models;
 
 namespace Etherna.SSOServer.Persistence.ModelMaps.Sso
 {
-    class UserMap : IModelMapsCollector
+    internal sealed class UserMap : IModelMapsCollector
     {
         public void Register(IDbContext dbContext)
         {
