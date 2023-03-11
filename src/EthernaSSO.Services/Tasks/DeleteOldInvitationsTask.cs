@@ -20,7 +20,7 @@ using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Services.Tasks
 {
-    public class DeleteOldInvitationsTask : IDeleteOldInvitationsTask
+    public sealed class DeleteOldInvitationsTask : IDeleteOldInvitationsTask
     {
         // Consts.
         public const string TaskId = "deleteOldInvitationsTask";
@@ -38,9 +38,7 @@ namespace Etherna.SSOServer.Services.Tasks
         // Methods.
         public Task RunAsync() =>
             ssoDbContext.Invitations.AccessToCollectionAsync(collection =>
-            {
-                return collection.DeleteManyAsync(
-                    Builders<Invitation>.Filter.Where(i => i.EndLife != null && i.EndLife < DateTime.UtcNow));
-            });
+                collection.DeleteManyAsync(
+                    Builders<Invitation>.Filter.Where(i => i.EndLife != null && i.EndLife < DateTime.UtcNow)));
     }
 }

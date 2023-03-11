@@ -432,17 +432,22 @@ namespace Etherna.SSOServer
             RecurringJob.AddOrUpdate<ICompileDailyStatsTask>(
                 CompileDailyStatsTask.TaskId,
                 task => task.RunAsync(),
-                "0 2 * * *"); //at 02:00 every day
+                Cron.Daily(2));
 
             RecurringJob.AddOrUpdate<IDeleteOldInvitationsTask>(
                 DeleteOldInvitationsTask.TaskId,
                 task => task.RunAsync(),
-                "0 5 * * *"); //at 05:00 every day
+                Cron.Daily(5));
 
             RecurringJob.AddOrUpdate<IProcessAlphaPassRequestsTask>(
                 ProcessAlphaPassRequestsTask.TaskId,
                 task => task.RunAsync(),
                 Cron.Hourly());
+
+            RecurringJob.AddOrUpdate<IWeb3LoginTokensCleanTask>(
+                Web3LoginTokensCleanTask.TaskId,
+                task => task.RunAsync(),
+                Cron.Daily(3));
 
             // Seed db.
             app.SeedDbContexts();
