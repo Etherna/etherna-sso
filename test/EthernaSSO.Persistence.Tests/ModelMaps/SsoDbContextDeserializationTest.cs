@@ -84,6 +84,28 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
             }
         }
 
+        public static IEnumerable<object[]> ApiKeyDeserializationTests
+        {
+            get
+            {
+                var tests = new List<DeserializationTestElement<ApiKey, SsoDbContext>>();
+
+                // "4c9f5ecd-37b7-425e-8cc4-96ec97ef443b" - v0.3.25
+                {
+                    var sourceDocument =
+                        @"{
+                            ""_id"" : ObjectId(""6328dcf4955896e143e25f4c""),
+                        }";
+
+                    var expectedDocumentMock = new Mock<ApiKey>();
+
+                    tests.Add(new(sourceDocument, expectedDocumentMock.Object));
+                }
+
+                return tests.Select(t => new object[] { t });
+            }
+        }
+
         public static IEnumerable<object[]> DailyStatsDeserializationTests
         {
             get
@@ -453,6 +475,28 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
             Assert.NotNull(result.Id);
             Assert.NotNull(result.NormalizedEmail);
             Assert.NotNull(result.Secret);
+        }
+
+        [Theory, MemberData(nameof(ApiKeyDeserializationTests))]
+        public void ApiKeyDeserialization(DeserializationTestElement<ApiKey, SsoDbContext> testElement)
+        {
+            if (testElement is null)
+                throw new ArgumentNullException(nameof(testElement));
+
+            // Arrange.
+            using var documentReader = new JsonReader(testElement.SourceDocument);
+            var modelMapSerializer = new ModelMapSerializer<ApiKey>(dbContext);
+            var deserializationContext = BsonDeserializationContext.CreateRoot(documentReader);
+            testElement.SetupAction(mongoDatabaseMock, dbContext);
+
+            // Action.
+            using var dbExecutionContext = new DbExecutionContextHandler(dbContext); //run into a db execution context
+            var result = modelMapSerializer.Deserialize(deserializationContext);
+
+            // Assert.
+            Assert.Equal(testElement.ExpectedModel.Id, result.Id);
+            Assert.Equal(testElement.ExpectedModel.CreationDateTime, result.CreationDateTime);
+            Assert.NotNull(result.Id);
         }
 
         [Theory, MemberData(nameof(DailyStatsDeserializationTests))]
