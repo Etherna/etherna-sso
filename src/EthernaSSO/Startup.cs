@@ -55,6 +55,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using Microsoft.Net.Http.Headers;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System;
 using System.Collections.Generic;
@@ -63,7 +64,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 
 namespace Etherna.SSOServer
@@ -136,6 +136,17 @@ namespace Etherna.SSOServer
                 }
                 options.Events.OnRedirectToAccessDenied = unauthorizedApiCallHandler;
                 options.Events.OnRedirectToLogin = unauthorizedApiCallHandler;
+
+                options.ForwardDefaultSelector = context =>
+                {
+                    //filter by auth type
+                    string authorization = context.Request.Headers[HeaderNames.Authorization]!;
+                    if (!string.IsNullOrEmpty(authorization) && authorization.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                        return JwtBearerDefaults.AuthenticationScheme;
+
+                    //otherwise always check for cookie auth
+                    return null;
+                };
             });
 
             services.Configure<ForwardedHeadersOptions>(options =>
@@ -210,7 +221,7 @@ namespace Etherna.SSOServer
             //add JWT
             authBuilder.AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
             {
-                options.Audience = "ethernaSsoServiceInteract";
+                options.Audience = "userApi";
                 options.Authority = Configuration["IdServer:SsoServer:BaseUrl"] ?? throw new ServiceConfigurationException();
 
                 if (bool.TryParse(Configuration["IdServer:SsoServer:AllowUnsafeConnection"], out var allowUnsafeConnection))

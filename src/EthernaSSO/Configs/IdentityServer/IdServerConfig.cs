@@ -360,10 +360,12 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                     IdentityServerConstants.StandardScopes.OpenId,
                     IdentityServerConstants.StandardScopes.Profile,
                     IdResourcesDef.EtherAccounts.Name,
+                    IdResourcesDef.Role.Name,
 
                     //resource
                     ApiScopesDef.UserInteractEthernaGateway.Name,
                     ApiScopesDef.UserInteractEthernaIndex.Name,
+                    ApiScopesDef.UserInteractEthernaSso.Name,
                 },
 
                 // Allow token refresh.
