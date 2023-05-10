@@ -190,23 +190,6 @@ namespace Etherna.SSOServer
             // Configure authentication.
             var authBuilder = services.AddAuthentication();
 
-            //add external login providers
-            if (Configuration["Authentication:Google:ClientId"] is not null &&
-                Configuration["Authentication:Google:ClientSecret"] is not null)
-                authBuilder.AddGoogle(options =>
-                {
-                    options.ClientId = Configuration["Authentication:Google:ClientId"]!;
-                    options.ClientSecret = Configuration["Authentication:Google:ClientSecret"]!;
-                });
-
-            if (Configuration["Authentication:Twitter:ClientId"] is not null &&
-                Configuration["Authentication:Twitter:ClientSecret"] is not null)
-                authBuilder.AddTwitter(options =>
-                {
-                    options.ConsumerKey = Configuration["Authentication:Twitter:ClientId"];
-                    options.ConsumerSecret = Configuration["Authentication:Twitter:ClientSecret"];
-                });
-
             //add JWT
             authBuilder.AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
             {
