@@ -89,15 +89,15 @@ namespace Etherna.SSOServer.Persistence.Repositories
             if (model is null)
                 throw new ArgumentNullException(nameof(model));
 
+            // Delete entity.
+            await base.DeleteAsync(model, cancellationToken);
+
             // Dispatch custom events.
             if (EventDispatcher != null)
             {
                 await EventDispatcher.DispatchAsync(model.Events);
                 model.ClearEvents();
             }
-
-            // Delete entity.
-            await base.DeleteAsync(model, cancellationToken);
 
             // Dispatch deleted event.
             if (EventDispatcher != null)
