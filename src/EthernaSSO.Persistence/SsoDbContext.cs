@@ -159,16 +159,17 @@ namespace Etherna.SSOServer.Persistence
         // Methods.
         public override async Task SaveChangesAsync(CancellationToken cancellationToken = default)
         {
+            var changedEntityModels = ChangedModelsList.OfType<EntityModelBase>().ToArray();
+
+            // Save changes.
+            await base.SaveChangesAsync(cancellationToken);
+
             // Dispatch events.
-            foreach (var model in ChangedModelsList.Where(m => m is EntityModelBase)
-                                                   .Select(m => (EntityModelBase)m)
-                                                   .ToArray())
+            foreach (var model in changedEntityModels)
             {
                 await EventDispatcher.DispatchAsync(model.Events);
                 model.ClearEvents();
             }
-
-            await base.SaveChangesAsync(cancellationToken);
         }
 
         // Protected methods.

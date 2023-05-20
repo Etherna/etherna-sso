@@ -25,7 +25,7 @@
 <div class="row">
     <div class="col-md-10">
         <h3>Web3</h3>
-        <p>Use an Ethereum wallet for login in a new full privacy oriented way!</p>
+        <p>Use an Ethereum wallet to login in a new full privacy oriented way!</p>
         <partial name="_Web3LoginPartial" for="Web3LoginPartialModel" />
         <hr />
     </div>
@@ -36,11 +36,8 @@
         <h3>Web2</h3>
         <p>Use an old login method for a classical experience. You will be able to upgrade later.</p>
     </div>
-    <hr />
     <div class="col-md-4">
         <form asp-route-returnUrl="@Model.ReturnUrl" method="post">
-            <h4>Create a new account...</h4>
-            <hr />
             <div asp-validation-summary="All" class="text-danger"></div>
             <div class="mb-3">
                 <label asp-for="Input.Username"></label>
@@ -83,7 +80,7 @@
             </div>
         </form>
     </div>
-    <div class="col-md-6 col-md-offset-2">
+    @*<div class="col-md-6 col-md-offset-2">
         <section>
             <h4>or use another service to register.</h4>
             <hr />
@@ -117,7 +114,7 @@
                 }
             }
         </section>
-    </div>
+    </div>*@
 </div>
 
 @section Scripts {

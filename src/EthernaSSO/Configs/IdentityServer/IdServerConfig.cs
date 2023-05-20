@@ -71,9 +71,9 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                 Name = "ether_accounts",
                 UserClaims = new List<string>()
                 {
-                    ClaimTypes.EtherAddress,
-                    ClaimTypes.EtherPreviousAddresses,
-                    ClaimTypes.IsWeb3Account
+                    EthernaClaimTypes.EtherAddress,
+                    EthernaClaimTypes.EtherPreviousAddresses,
+                    EthernaClaimTypes.IsWeb3Account
                 }
             };
             public static readonly IdentityResource Role = new()
@@ -82,7 +82,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                 Name = "role",
                 UserClaims = new List<string>()
                 {
-                    ClaimTypes.Role
+                    EthernaClaimTypes.Role
                 }
             };
         }
@@ -108,6 +108,10 @@ namespace Etherna.SSOServer.Configs.IdentityServer
         private readonly string ethernaIndex_Sso_Secret;
         private readonly string ethernaIndex_Webapp_ClientId;
         private readonly string ethernaIndex_Webapp_Secret;
+
+        private readonly string ethernaSso_BaseUrl;
+        private readonly string ethernaSso_Webapp_ClientId;
+        private readonly string ethernaSso_Webapp_Secret;
 
         private readonly string ethernaVideoImporter_BaseUrl;
         private readonly string ethernaVideoImporter_ClientId;
@@ -138,6 +142,10 @@ namespace Etherna.SSOServer.Configs.IdentityServer
             ethernaIndex_Sso_Secret = configuration["IdServer:Clients:EthernaIndex:Clients:SsoServer:Secret"] ?? throw new ServiceConfigurationException();
             ethernaIndex_Webapp_ClientId = configuration["IdServer:Clients:EthernaIndex:Clients:Webapp:ClientId"] ?? throw new ServiceConfigurationException();
             ethernaIndex_Webapp_Secret = configuration["IdServer:Clients:EthernaIndex:Clients:Webapp:Secret"] ?? throw new ServiceConfigurationException();
+
+            ethernaSso_BaseUrl = configuration["IdServer:SsoServer:BaseUrl"] ?? throw new ServiceConfigurationException();
+            ethernaSso_Webapp_ClientId = configuration["IdServer:SsoServer:Clients:Webapp:ClientId"] ?? throw new ServiceConfigurationException();
+            ethernaSso_Webapp_Secret = configuration["IdServer:SsoServer:Clients:Webapp:Secret"] ?? throw new ServiceConfigurationException();
 
             ethernaVideoImporter_BaseUrl = configuration["IdServer:Clients:EthernaVideoImporter:BaseUrl"] ?? throw new ServiceConfigurationException();
             ethernaVideoImporter_ClientId = configuration["IdServer:Clients:EthernaVideoImporter:ClientId"] ?? throw new ServiceConfigurationException();
@@ -321,6 +329,35 @@ namespace Etherna.SSOServer.Configs.IdentityServer
 
                 //where to redirect to after logout
                 PostLogoutRedirectUris = { $"{ethernaIndex_BaseUrl}/signout-callback-oidc" },
+
+                AlwaysIncludeUserClaimsInIdToken = true,
+                AllowedScopes =
+                {
+                    //identity
+                    IdentityServerConstants.StandardScopes.OpenId,
+                    IdentityServerConstants.StandardScopes.Profile,
+                    IdResourcesDef.EtherAccounts.Name,
+                    IdResourcesDef.Role.Name
+                },
+
+                // Allow token refresh.
+                AllowOfflineAccess = true
+            },
+
+            //sso (user login)
+            new Client
+            {
+                ClientId = ethernaSso_Webapp_ClientId,
+                ClientName = "Etherna SSO",
+                ClientSecrets = { new Secret(ethernaSso_Webapp_Secret.Sha256()) },
+
+                AllowedGrantTypes = GrantTypes.Code,
+
+                //where to redirect to after login
+                RedirectUris = { $"{ethernaSso_BaseUrl}/signin-oidc" },
+
+                //where to redirect to after logout
+                PostLogoutRedirectUris = { $"{ethernaSso_BaseUrl}/signout-callback-oidc" },
 
                 AlwaysIncludeUserClaimsInIdToken = true,
                 AllowedScopes =

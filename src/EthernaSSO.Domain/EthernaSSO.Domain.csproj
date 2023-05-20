@@ -13,11 +13,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Etherna.Authentication.AspNetCore" Version="0.3.1" />
     <PackageReference Include="Etherna.DomainEvents" Version="1.4.0" />
     <PackageReference Include="EthernaACR" Version="0.3.8" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.Etherna" Version="0.3.0-alpha.7" />
-    <PackageReference Include="MongODM.Core" Version="0.24.0-alpha.80" />
-    <PackageReference Include="Nethereum.Accounts" Version="4.13.0" />
+    <PackageReference Include="MongODM.Core" Version="0.24.0-alpha.89" />
+    <PackageReference Include="Nethereum.Accounts" Version="4.14.0" />
   </ItemGroup>
 
 </Project>
