@@ -30,11 +30,11 @@ namespace Etherna.SSOServer.Domain.Models
         // Consts.
         public static readonly IEnumerable<string> DomainManagedClaimNames = new[]
         {
-            ClaimTypes.EtherAddress,
-            ClaimTypes.EtherPreviousAddresses,
-            ClaimTypes.IsWeb3Account,
-            ClaimTypes.Role,
-            ClaimTypes.Username
+            EthernaClaimTypes.EtherAddress,
+            EthernaClaimTypes.EtherPreviousAddresses,
+            EthernaClaimTypes.IsWeb3Account,
+            EthernaClaimTypes.Role,
+            EthernaClaimTypes.Username
         };
 
         // Fields.
@@ -76,14 +76,14 @@ namespace Etherna.SSOServer.Domain.Models
             {
                 var claims = new List<UserClaim>
                 {
-                    new UserClaim(ClaimTypes.EtherAddress, EtherAddress),
-                    new UserClaim(ClaimTypes.EtherPreviousAddresses, JsonSerializer.Serialize(_etherPreviousAddresses)),
-                    new UserClaim(ClaimTypes.IsWeb3Account, (this is UserWeb3).ToString()),
-                    new UserClaim(ClaimTypes.Username, Username)
+                    new UserClaim(EthernaClaimTypes.EtherAddress, EtherAddress),
+                    new UserClaim(EthernaClaimTypes.EtherPreviousAddresses, JsonSerializer.Serialize(_etherPreviousAddresses)),
+                    new UserClaim(EthernaClaimTypes.IsWeb3Account, (this is UserWeb3).ToString()),
+                    new UserClaim(EthernaClaimTypes.Username, Username)
                 };
 
                 foreach (var role in _roles)
-                    claims.Add(new UserClaim(ClaimTypes.Role, role.NormalizedName));
+                    claims.Add(new UserClaim(EthernaClaimTypes.Role, role.NormalizedName));
 
                 return claims;
             }

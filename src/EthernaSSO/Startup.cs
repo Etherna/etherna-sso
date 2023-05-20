@@ -41,7 +41,7 @@ using Hangfire.Mongo.Migration.Strategies;
 using Hangfire.Mongo.Migration.Strategies.Backup;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Microsoft.AspNetCore.Builder;
@@ -55,6 +55,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using Microsoft.Net.Http.Headers;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System;
 using System.Collections.Generic;
@@ -63,7 +64,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 
 namespace Etherna.SSOServer
@@ -109,7 +109,9 @@ namespace Etherna.SSOServer
                 .AddRoles<Role>()
                 .AddRoleStore<RoleStore>()
                 .AddUserStore<UserStore>();
-            //replace default UserValidator with custom
+
+            //replace default implementations with customs
+            services.Replace(ServiceDescriptor.Scoped<UserManager<UserBase>, CustomUserManager>());
             services.Replace(ServiceDescriptor.Scoped<IUserValidator<UserBase>, CustomUserValidator>());
 
             services.ConfigureApplicationCookie(options =>
@@ -188,17 +190,71 @@ namespace Etherna.SSOServer
             services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
 
             // Configure authentication.
-            var authBuilder = services.AddAuthentication();
+            var allowUnsafeAuthorityConnection = false;
+            if (Configuration["IdServer:SsoServer:AllowUnsafeConnection"] is not null)
+                allowUnsafeAuthorityConnection = bool.Parse(Configuration["IdServer:SsoServer:AllowUnsafeConnection"]!);
 
-            //add JWT
-            authBuilder.AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
+            services.AddAuthentication(options =>
             {
-                options.Audience = "ethernaSsoServiceInteract";
-                options.Authority = Configuration["IdServer:SsoServer:BaseUrl"] ?? throw new ServiceConfigurationException();
+                options.DefaultAuthenticateScheme = CommonConsts.UserAuthenticationPolicyScheme;
+            })
 
-                if (bool.TryParse(Configuration["IdServer:SsoServer:AllowUnsafeConnection"], out var allowUnsafeConnection))
-                    options.RequireHttpsMetadata = !allowUnsafeConnection;
-            });
+                //users access
+                .AddJwtBearer(CommonConsts.UserAuthenticationJwtScheme, options =>
+                {
+                    options.Audience = "userApi";
+                    options.Authority = Configuration["IdServer:SsoServer:BaseUrl"] ?? throw new ServiceConfigurationException();
+
+                    options.RequireHttpsMetadata = !allowUnsafeAuthorityConnection;
+                })
+                .AddPolicyScheme(CommonConsts.UserAuthenticationPolicyScheme, CommonConsts.UserAuthenticationPolicyScheme, options =>
+                {
+                    //runs on each request
+                    options.ForwardDefaultSelector = context =>
+                    {
+                        //filter by auth type
+                        string? authorization = context.Request.Headers[HeaderNames.Authorization];
+                        if (!string.IsNullOrEmpty(authorization) && authorization.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                            return CommonConsts.UserAuthenticationJwtScheme;
+
+                        //otherwise always check with default cookie auth by Identity framework
+                        return IdentityConstants.ApplicationScheme;
+                    };
+                })
+                .AddEthernaOpenIdConnect(OpenIdConnectDefaults.AuthenticationScheme, options =>
+                {
+                    // Set properties.
+                    options.Authority = Configuration["IdServer:SsoServer:BaseUrl"] ?? throw new ServiceConfigurationException();
+                    options.ClientId = Configuration["IdServer:SsoServer:Clients:Webapp:ClientId"] ?? throw new ServiceConfigurationException();
+                    options.ClientSecret = Configuration["IdServer:SsoServer:Clients:Webapp:Secret"] ?? throw new ServiceConfigurationException();
+
+                    options.RequireHttpsMetadata = !allowUnsafeAuthorityConnection;
+                    options.ResponseType = "code";
+                    options.SaveTokens = true;
+
+                    options.Scope.Add("ether_accounts");
+                    options.Scope.Add("role");
+
+                    // Handle unauthorized call on api with 401 response. For users not logged in.
+                    options.Events.OnRedirectToIdentityProvider = context =>
+                    {
+                        if (context.Request.Path.StartsWithSegments("/api", StringComparison.InvariantCulture))
+                        {
+                            context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                            context.HandleResponse();
+                        }
+                        return Task.CompletedTask;
+                    };
+                })
+
+                //services access
+                .AddJwtBearer(CommonConsts.ServiceAuthenticationScheme, options =>
+                {
+                    options.Audience = "ethernaSsoServiceInteract";
+                    options.Authority = Configuration["IdServer:SsoServer:BaseUrl"] ?? throw new ServiceConfigurationException();
+
+                    options.RequireHttpsMetadata = !allowUnsafeAuthorityConnection;
+                });
 
             // Configure authorization.
             //policy and requirements
@@ -223,7 +279,7 @@ namespace Etherna.SSOServer
 
                 options.AddPolicy(CommonConsts.ServiceInteractApiScopePolicy, policy =>
                 {
-                    policy.AuthenticationSchemes = new List<string> { JwtBearerDefaults.AuthenticationScheme };
+                    policy.AuthenticationSchemes = new List<string> { CommonConsts.ServiceAuthenticationScheme };
                     policy.RequireAuthenticatedUser();
                     policy.RequireClaim("scope", "ethernaSso_userContactInfo_api");
                 });
@@ -380,8 +436,8 @@ namespace Etherna.SSOServer
 
             app.UseRouting();
 
-            app.UseIdentityServer();
             app.UseAuthentication();
+            app.UseIdentityServer();
             app.UseAuthorization();
 
             // Add Hangfire.

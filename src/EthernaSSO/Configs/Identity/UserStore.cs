@@ -254,7 +254,7 @@ namespace Etherna.SSOServer.Configs.Identity
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
 
-            return Task.FromResult<IList<string>>(user.Roles.Select(r => r.Name).ToList());
+            return Task.FromResult<IList<string>>(user.Roles.Select(r => r.NormalizedName).ToList());
         }
 
         public Task<string?> GetSecurityStampAsync(UserBase user, CancellationToken cancellationToken)
