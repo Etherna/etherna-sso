@@ -273,7 +273,7 @@ namespace Etherna.SSOServer
                 options.AddPolicy(CommonConsts.RequireAdministratorRolePolicy,
                      policy =>
                      {
-                         policy.RequireRole(Role.AdministratorName);
+                         policy.RequireRole(Role.NormalizeName(Role.AdministratorName));
                          policy.AddRequirements(new DenyBannedAuthorizationRequirement());
                      });
 
@@ -375,7 +375,7 @@ namespace Etherna.SSOServer
                     options.ConnectionString = Configuration["ConnectionStrings:SSOServerDb"] ?? throw new ServiceConfigurationException();
                     options.ParentFor<ISharedDbContext>();
                 })
-                
+
                 .AddDbContext<ISharedDbContext, SharedDbContext>(sp =>
                 {
                     var eventDispatcher = sp.GetRequiredService<IEventDispatcher>();

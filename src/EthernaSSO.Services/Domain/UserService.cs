@@ -112,29 +112,6 @@ namespace Etherna.SSOServer.Services.Domain
                     return (user, result);
                 });
 
-        public Task<(IEnumerable<(string key, string msg)> errors, UserWeb2? user)> RegisterWeb2UserAsync(
-            string username,
-            SSOServer.Domain.Models.UserAgg.UserLoginInfo loginInfo,
-            string? invitationCode) =>
-            RegisterUserHelperAsync(
-                username,
-                invitationCode,
-                async (invitedByUser, invitedByAdmin) =>
-                {
-                    // Generate managed key.
-                    var etherPrivateKey = GenerateEtherPrivateKey();
-                    var etherAddress = new Account(etherPrivateKey).Address;
-
-                    // Create shared info.
-                    var sharedInfo = new UserSharedInfo(etherAddress);
-                    await sharedDbContext.UsersInfo.CreateAsync(sharedInfo);
-
-                    // Create user.
-                    var user = new UserWeb2(username, invitedByUser, invitedByAdmin, etherPrivateKey, sharedInfo, loginInfo);
-                    var result = await UserManager.CreateAsync(user);
-                    return (user, result);
-                });
-
         public Task<(IEnumerable<(string key, string msg)> errors, UserWeb2? user)> RegisterWeb2UserByAdminAsync(
             string username,
             string password,
@@ -224,11 +201,11 @@ namespace Etherna.SSOServer.Services.Domain
                 }
 
                 return new PaginatedEnumerable<UserBase>(
-                    user is not null ? new[] { user } : Array.Empty<UserBase>(), 0, take, 0 );
+                    user is not null ? new[] { user } : Array.Empty<UserBase>(), 0, take, 0);
             }
 
             //try search by email
-            else if(EmailHelper.IsValidEmail(query))
+            else if (EmailHelper.IsValidEmail(query))
             {
                 var normalizedEmail = EmailHelper.NormalizeEmail(query);
 

@@ -49,7 +49,6 @@ namespace Etherna.SSOServer.Persistence.ModelMaps.Sso
                 // Set members to ignore if null.
                 mm.GetMemberMap(u => u.EtherLoginAddress).SetIgnoreIfNull(true);
                 mm.GetMemberMap(u => u.EtherManagedPrivateKey).SetIgnoreIfNull(true);
-                mm.GetMemberMap(u => u.Logins).SetIgnoreIfNull(true);
                 mm.GetMemberMap(u => u.PasswordHash).SetIgnoreIfNull(true);
             });
             dbContext.MapRegistry.AddModelMap<UserWeb3>("7d8804ab-217c-476a-a47f-977fe693fce3");
