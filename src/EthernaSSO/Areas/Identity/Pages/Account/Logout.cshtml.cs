@@ -77,7 +77,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 // if the user is not authenticated, then just show logged out page
                 showLogoutPrompt = false;
             }
-            else
+            else if (logoutId is not null)
             {
                 var context = await idServerInteractService.GetLogoutContextAsync(logoutId);
                 if (context?.ShowSignoutPrompt == false)
@@ -111,7 +111,9 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         // Helpers.
         private async Task<IActionResult> Logout()
         {
-            var context = await idServerInteractService.GetLogoutContextAsync(LogoutId);
+            var context = LogoutId is not null ?
+                await idServerInteractService.GetLogoutContextAsync(LogoutId) :
+                null;
 
             if (signInManager.IsSignedIn(User))
             {

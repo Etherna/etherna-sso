@@ -69,9 +69,9 @@ namespace Etherna.SSOServer.Configs.SystemStore
             return await cursor.ToListAsync();
         }
 
-        public Task<PersistedGrant> GetAsync(string key) =>
-            collection.AsQueryable()
-                      .SingleOrDefaultAsync(x => x.Key == key);
+        public async Task<PersistedGrant?> GetAsync(string key) =>
+            await collection.AsQueryable()
+                            .SingleOrDefaultAsync(x => x.Key == key);
 
         public Task RemoveAllAsync(PersistedGrantFilter filter)
         {
