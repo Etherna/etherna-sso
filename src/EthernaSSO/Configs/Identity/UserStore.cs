@@ -36,7 +36,6 @@ namespace Etherna.SSOServer.Configs.Identity
         IUserClaimStore<UserBase>,
         IUserEmailStore<UserBase>,
         IUserLockoutStore<UserBase>,
-        IUserLoginStore<UserBase>,
         IUserPasswordStore<UserBase>,
         IUserPhoneNumberStore<UserBase>,
         IUserRoleStore<UserBase>,
@@ -66,17 +65,6 @@ namespace Etherna.SSOServer.Configs.Identity
 
             foreach (var claim in claims.Select(c => new Domain.Models.UserAgg.UserClaim(c.Type, c.Value)))
                 user.AddClaim(claim);
-            return Task.CompletedTask;
-        }
-
-        public Task AddLoginAsync(UserBase user, UserLoginInfo login, CancellationToken cancellationToken)
-        {
-            if (user is not UserWeb2 userWeb2)
-                throw new ArgumentException("User is not a web2 account", nameof(user));
-            if (login is null)
-                throw new ArgumentNullException(nameof(login));
-
-            userWeb2.AddLogin(new Domain.Models.UserAgg.UserLoginInfo(login.LoginProvider, login.ProviderKey, login.ProviderDisplayName));
             return Task.CompletedTask;
         }
 
@@ -127,12 +115,6 @@ namespace Etherna.SSOServer.Configs.Identity
         public Task<UserBase?> FindByIdAsync(string userId, CancellationToken cancellationToken) =>
             //using try for avoid exception throwing inside Identity's userManager
             ssoDbContext.Users.TryFindOneAsync(userId, cancellationToken: cancellationToken)!;
-
-        public async Task<UserBase?> FindByLoginAsync(string loginProvider, string providerKey, CancellationToken cancellationToken) =>
-            await ssoDbContext.Users.QueryElementsAsync(users =>
-                users.OfType<UserWeb2>()
-                     .FirstOrDefaultAsync(u => u.Logins.Any(
-                         l => l.LoginProvider == loginProvider && l.ProviderKey == providerKey)));
 
         public async Task<UserBase?> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken) =>
             await ssoDbContext.Users.QueryElementsAsync(elements =>
@@ -197,16 +179,6 @@ namespace Etherna.SSOServer.Configs.Identity
             var sharedInfo = await userService.GetSharedUserInfoAsync(user);
 
             return sharedInfo.LockoutEnd;
-        }
-
-        public Task<IList<UserLoginInfo>> GetLoginsAsync(UserBase user, CancellationToken cancellationToken)
-        {
-            if (user is not UserWeb2 userWeb2)
-                throw new ArgumentException("User is not a web2 account", nameof(user));
-
-            return Task.FromResult<IList<UserLoginInfo>>(
-                userWeb2.Logins.Select(l => new UserLoginInfo(l.LoginProvider, l.ProviderKey, l.LoginProvider))
-                           .ToList());
         }
 
         public Task<string?> GetNormalizedEmailAsync(UserBase user, CancellationToken cancellationToken)
@@ -352,15 +324,6 @@ namespace Etherna.SSOServer.Configs.Identity
                 throw new ArgumentNullException(nameof(user));
 
             user.RemoveRole(roleName);
-            return Task.CompletedTask;
-        }
-
-        public Task RemoveLoginAsync(UserBase user, string loginProvider, string providerKey, CancellationToken cancellationToken)
-        {
-            if (user is not UserWeb2 userWeb2)
-                throw new ArgumentException("User is not a web2 account", nameof(user));
-
-            userWeb2.RemoveExternalLogin(loginProvider, providerKey);
             return Task.CompletedTask;
         }
 

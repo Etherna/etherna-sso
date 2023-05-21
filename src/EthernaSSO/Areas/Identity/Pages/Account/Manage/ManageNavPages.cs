@@ -25,7 +25,6 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
         public static string ChangePassword => "ChangePassword";
         public static string DownloadPersonalData => "DownloadPersonalData";
         public static string DeletePersonalData => "DeletePersonalData";
-        public static string ExternalLogins => "ExternalLogins";
         public static string Web3Login => "Web3Login";
         public static string PersonalData => "PersonalData";
         public static string TwoFactorAuthentication => "TwoFactorAuthentication";
@@ -55,14 +54,6 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             return PageNavClass(viewContext, ChangePassword);
         }
 
-        public static string? DownloadPersonalDataNavClass(ViewContext viewContext)
-        {
-            if (viewContext is null)
-                throw new ArgumentNullException(nameof(viewContext));
-
-            return PageNavClass(viewContext, DownloadPersonalData);
-        }
-
         public static string? DeletePersonalDataNavClass(ViewContext viewContext)
         {
             if (viewContext is null)
@@ -71,12 +62,12 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             return PageNavClass(viewContext, DeletePersonalData);
         }
 
-        public static string? ExternalLoginsNavClass(ViewContext viewContext)
+        public static string? DownloadPersonalDataNavClass(ViewContext viewContext)
         {
             if (viewContext is null)
                 throw new ArgumentNullException(nameof(viewContext));
 
-            return PageNavClass(viewContext, ExternalLogins);
+            return PageNavClass(viewContext, DownloadPersonalData);
         }
 
         public static string? Web3LoginNavClass(ViewContext viewContext)
@@ -103,6 +94,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             return PageNavClass(viewContext, TwoFactorAuthentication);
         }
 
+        // Helpers.
         private static string? PageNavClass(ViewContext viewContext, string page)
         {
             var activePage = viewContext.ViewData["ActivePage"] as string

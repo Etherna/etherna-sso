@@ -19,7 +19,6 @@ using Nethereum.Util;
 using Nethereum.Web3.Accounts;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Etherna.SSOServer.Domain.Models
 {
@@ -27,7 +26,6 @@ namespace Etherna.SSOServer.Domain.Models
     {
         // Fields.
         private Account? _etherManagedAccount;
-        private List<UserAgg.UserLoginInfo> _logins = new();
         private List<string> _twoFactorRecoveryCode = new();
 
         // Constructors.
@@ -36,18 +34,13 @@ namespace Etherna.SSOServer.Domain.Models
             UserBase? invitedBy,
             bool invitedByAdmin,
             string etherManagedPrivateKey,
-            UserSharedInfo sharedInfo,
-            UserAgg.UserLoginInfo? loginInfo = default)
+            UserSharedInfo sharedInfo)
             : base(username, invitedBy, invitedByAdmin, sharedInfo)
         {
             // Verify that private key generates correct ether address.
             var account = new Account(etherManagedPrivateKey);
             if (account.Address != sharedInfo.EtherAddress)
                 throw new ArgumentException("Ethereum managed private key doesn't generate same address of shared info");
-
-            // Initialize.
-            if (loginInfo is not null)
-                AddLogin(loginInfo);
 
             EtherManagedPrivateKey = etherManagedPrivateKey;
         }
@@ -58,19 +51,11 @@ namespace Etherna.SSOServer.Domain.Models
         public virtual string? AuthenticatorKey { get; set; }
         public virtual bool CanLoginWithEmail => NormalizedEmail != null && PasswordHash != null;
         public virtual bool CanLoginWithEtherAddress => EtherLoginAddress != null;
-        public virtual bool CanLoginWithExternalProvider => Logins.Any();
         public virtual bool CanLoginWithUsername => NormalizedUsername != null && PasswordHash != null;
         public virtual bool CanRemoveEtherLoginAddress =>
             CanLoginWithEtherAddress &&
                 (CanLoginWithEmail ||
-                 CanLoginWithExternalProvider ||
                  CanLoginWithUsername);
-        public virtual bool CanRemoveExternalLogin =>
-            CanLoginWithExternalProvider &&
-                (CanLoginWithEmail ||
-                 CanLoginWithEtherAddress ||
-                 CanLoginWithUsername ||
-                 Logins.Count() >= 2);
         public override string EtherAddress
         {
             get => EtherManagedAccount.Address;
@@ -81,12 +66,6 @@ namespace Etherna.SSOServer.Domain.Models
         [PersonalData]
         public virtual string? EtherLoginAddress { get; protected set; }
         public virtual bool HasPassword => !string.IsNullOrEmpty(PasswordHash);
-        [PersonalData]
-        public virtual IEnumerable<UserAgg.UserLoginInfo> Logins
-        {
-            get => _logins;
-            protected set => _logins = new List<UserAgg.UserLoginInfo>(value ?? Array.Empty<UserAgg.UserLoginInfo>());
-        }
         public virtual string? PasswordHash { get; set; }
         public virtual bool TwoFactorEnabled { get; set; }
         public virtual IEnumerable<string> TwoFactorRecoveryCodes
@@ -96,17 +75,6 @@ namespace Etherna.SSOServer.Domain.Models
         }
 
         // Methods.
-        [PropertyAlterer(nameof(Logins))]
-        public virtual bool AddLogin(UserAgg.UserLoginInfo userLoginInfo)
-        {
-            //avoid multiaccounting with same provider
-            if (Logins.Any(login => login.LoginProvider == userLoginInfo.ProviderKey))
-                return false;
-
-            _logins.Add(userLoginInfo);
-            return true;
-        }
-
         [PropertyAlterer(nameof(AccessFailedCount))]
         public virtual void IncrementAccessFailedCount() => AccessFailedCount++;
 
@@ -133,15 +101,6 @@ namespace Etherna.SSOServer.Domain.Models
             EtherLoginAddress = null;
 
             return true;
-        }
-
-        [PropertyAlterer(nameof(Logins))]
-        public virtual bool RemoveExternalLogin(string loginProvider, string providerKey)
-        {
-            if (!CanRemoveExternalLogin)
-                throw new InvalidOperationException();
-
-            return _logins.RemoveAll(l => l.LoginProvider == loginProvider && l.ProviderKey == providerKey) > 0;
         }
 
         [PropertyAlterer(nameof(AccessFailedCount))]

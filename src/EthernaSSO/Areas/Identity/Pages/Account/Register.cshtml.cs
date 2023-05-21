@@ -108,7 +108,6 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         [BindProperty]
         public InputModel Input { get; set; } = default!;
 
-        public List<AuthenticationScheme> ExternalLogins { get; } = new List<AuthenticationScheme>();
         public bool IsInvitationRequired { get; private set; }
         public string? ReturnUrl { get; private set; }
         public Web3LoginPartialModel Web3LoginPartialModel { get; private set; } = default!;
@@ -161,7 +160,6 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
 
             //load data
-            ExternalLogins.AddRange(await signInManager.GetExternalAuthenticationSchemesAsync());
             Input ??= new InputModel();
             Input.InvitationCode ??= invitationCode;
             IsInvitationRequired = applicationSettings.RequireInvitation;

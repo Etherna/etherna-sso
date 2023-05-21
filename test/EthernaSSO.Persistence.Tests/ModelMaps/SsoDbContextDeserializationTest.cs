@@ -321,10 +321,6 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
                     expectedDocumentMock.Setup(d => d.AuthenticatorKey).Returns("SVKPXJRGFOAJGSJZOUUUJSSZZTYBXDPL");
                     expectedDocumentMock.Setup(d => d.EtherManagedPrivateKey).Returns("e883fcbe10b59d63dc7f1bbed29dbd81f17a03fc65ea7d87461f45a6dfe76d0c");
                     expectedDocumentMock.Setup(d => d.EtherLoginAddress).Returns("0xfeF78523191CC15e287b3F7ABFbd0c3d621f053b");
-                    {
-                        var login = new UserLoginInfo("Twitter", "2777002738532021212", "Twitter");
-                        expectedDocumentMock.Setup(d => d.Logins).Returns(new[] { login });
-                    }
                     expectedDocumentMock.Setup(d => d.PasswordHash).Returns("AQAAAAEAACcQAAAAELAZKxcX4rTHtVo4ZBbpZdaxfsiB4xaOM/3mEO86iq8vdUPtglbwyk7qa2jDajBWUA==");
                     expectedDocumentMock.Setup(d => d.TwoFactorEnabled).Returns(true);
                     expectedDocumentMock.Setup(d => d.TwoFactorRecoveryCodes).Returns(new[] { "q56k5c6s", "l3rcwj6v", "8y9b5lqv" });
@@ -629,7 +625,6 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
                     Assert.Equal(expectedWeb2.AuthenticatorKey, resultWeb2.AuthenticatorKey);
                     Assert.Equal(expectedWeb2.EtherManagedPrivateKey, resultWeb2.EtherManagedPrivateKey);
                     Assert.Equal(expectedWeb2.EtherLoginAddress, resultWeb2.EtherLoginAddress);
-                    Assert.Equal(expectedWeb2.Logins, resultWeb2.Logins);
                     Assert.Equal(expectedWeb2.PasswordHash, resultWeb2.PasswordHash);
                     Assert.Equal(expectedWeb2.TwoFactorEnabled, resultWeb2.TwoFactorEnabled);
                     Assert.Equal(expectedWeb2.TwoFactorRecoveryCodes, resultWeb2.TwoFactorRecoveryCodes);
