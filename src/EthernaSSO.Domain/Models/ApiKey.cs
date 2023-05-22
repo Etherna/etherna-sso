@@ -1,10 +1,6 @@
-﻿using Etherna.MongoDB.Bson.Serialization.IdGenerators;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Domain.Models
 {
@@ -13,6 +9,8 @@ namespace Etherna.SSOServer.Domain.Models
         // Consts.
         public const int KeyLength = 64;
         public const string KeyValidChars = "0123456789" + "abcdefghijklmnopqrstuvwxyz" + "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        public const int LabelMaxLength = 25;
+        public const int MaxKeysPerUser = 10;
 
         // Static fields.
         private static readonly SHA256 sha256Encoder = SHA256.Create();
@@ -24,10 +22,17 @@ namespace Etherna.SSOServer.Domain.Models
             DateTime? endOfLife,
             UserBase owner)
         {
+            if (string.IsNullOrEmpty(plainKey))
+                throw new ArgumentException($"'{nameof(plainKey)}' cannot be null or empty.", nameof(plainKey));
+            if (string.IsNullOrWhiteSpace(label))
+                throw new ArgumentException($"'{nameof(label)}' cannot be null or whitespace.", nameof(label));
+            if (label.Length > LabelMaxLength)
+                throw new ArgumentException($"'{nameof(label)}' cannot be longer than {LabelMaxLength}.", nameof(label));
+
             EndOfLife = endOfLife;
             KeyHash = HashKey(plainKey);
             Label = label;
-            Owner = owner;
+            Owner = owner ?? throw new ArgumentNullException(nameof(owner));
         }
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         protected ApiKey() { }
@@ -35,7 +40,7 @@ namespace Etherna.SSOServer.Domain.Models
 
         // Properties.
         public virtual DateTime? EndOfLife { get; protected set; }
-        public virtual bool IsLive => EndOfLife is null || DateTime.UtcNow <= EndOfLife;
+        public virtual bool IsAlive => EndOfLife is null || DateTime.UtcNow <= EndOfLife;
         public virtual byte[] KeyHash { get; protected set; }
         public virtual string Label { get; protected set; }
         public virtual UserBase Owner { get; protected set; }
