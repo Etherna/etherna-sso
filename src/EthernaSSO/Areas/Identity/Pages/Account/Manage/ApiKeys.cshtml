@@ -13,6 +13,7 @@
 
 <div class="row">
     <div class="col-12">
+        <p><b>Use only with TRUSTED applications!</b></p>
         @if (Model.ApiKeys.Count < ApiKey.MaxKeysPerUser)
         {
             <a asp-page="ApiKeyCreate" class="btn btn-outline-primary mb-3 mt-3">+ New API Key</a>

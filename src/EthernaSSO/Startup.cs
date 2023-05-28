@@ -299,6 +299,7 @@ namespace Etherna.SSOServer
                 .AddInMemoryApiScopes(idServerConfig.ApiScopes)
                 .AddInMemoryClients(idServerConfig.Clients)
                 .AddInMemoryIdentityResources(idServerConfig.IdResources)
+                .AddResourceOwnerValidator<ApiKeyValidator>()
                 .AddAspNetIdentity<UserBase>();
 
             services.AddSingleton<IPersistedGrantStore>(new PersistedGrantRepository(new DbContextOptions

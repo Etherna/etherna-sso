@@ -90,7 +90,11 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
 
             await ssoDbContext.ApiKeys.CreateAsync(apiKey);
 
-            StatusMessage = $"Your new API Key is created! This is the only time it will be shown. Please save it securely.\n\n{PlainKey}";
+            StatusMessage = $"Your new API Key has been created! Please note, this is the only time it will be displayed." +
+                $" It's crucial that you store it in a secure location and do not share it." +
+                $" If you lose it or if it becomes exposed, others may gain unauthorized access to the service as you." +
+                $" If you believe your API Key has been compromised, immediately delete it and generate a new one." +
+                $"\n\n{PlainKey}";
             return Page();
         }
     }
