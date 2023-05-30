@@ -20,7 +20,7 @@ namespace Etherna.SSOServer.Extensions
 {
     /*
      * Always group similar log delegates by type, always use incremental event ids.
-     * Last event id is: 19
+     * Last event id is: 24
      */
     public static class LoggerExtensions
     {
@@ -38,6 +38,12 @@ namespace Etherna.SSOServer.Extensions
                 LogLevel.Information,
                 new EventId(11, nameof(AccountDeleted)),
                 "Account of user with ID '{UserId}' has been deleted by user with id {DeleterUserId}.");
+
+        private static readonly Action<ILogger, string, Exception> _apiKeyValidatedLoginAttempt =
+            LoggerMessage.Define<string>(
+                LogLevel.Information,
+                new EventId(24, nameof(ApiKeyValidatedLoginAttempt)),
+                "User with ID '{UserId}' provided valid api key during login attempt.");
 
         private static readonly Action<ILogger, string, Exception> _createdAccountWithPassword =
             LoggerMessage.Define<string>(
@@ -117,6 +123,12 @@ namespace Etherna.SSOServer.Extensions
                 new EventId(18, nameof(LoggedInWithWeb3)),
                 "User with ID '{UserId}' logged in with web3.");
 
+        private static readonly Action<ILogger, string, Exception> _noUserFoundMatchingUsername =
+            LoggerMessage.Define<string>(
+                LogLevel.Information,
+                new EventId(20, nameof(NoUserFoundMatchingUsername)),
+                "No user found matching username: {Username}");
+
         private static readonly Action<ILogger, string, Exception> _passwordChanged =
             LoggerMessage.Define<string>(
                 LogLevel.Information,
@@ -130,6 +142,18 @@ namespace Etherna.SSOServer.Extensions
                 "User with ID '{UserId}' has reset their authentication app key.");
 
         //*** WARNING LOGS ***
+        private static readonly Action<ILogger, string, Exception> _apiKeyDoesNotExistLoginAttempt =
+            LoggerMessage.Define<string>(
+                LogLevel.Warning,
+                new EventId(22, nameof(ApiKeyDoesNotExistLoginAttempt)),
+                "User with ID '{UserId}' failed login attempt because api key does not exist.");
+
+        private static readonly Action<ILogger, string, Exception> _apiKeyIsNotAliveLoginAttempt =
+            LoggerMessage.Define<string>(
+                LogLevel.Warning,
+                new EventId(23, nameof(ApiKeyIsNotAliveLoginAttempt)),
+                "User with ID '{UserId}' failed login attempt because api key is not alive.");
+
         private static readonly Action<ILogger, string, Exception> _invalid2FACodeAttempt =
             LoggerMessage.Define<string>(
                 LogLevel.Warning,
@@ -146,11 +170,26 @@ namespace Etherna.SSOServer.Extensions
             LoggerMessage.Define<string>(
                 LogLevel.Warning,
                 new EventId(4, nameof(LockedOutLoginAttempt)),
-                "User with ID '{UserId}' account locked out login attempt.");
+                "User with ID '{UserId}' failed login attempt because account is locked out.");
+
+        private static readonly Action<ILogger, string, Exception> _notAllowedSingInLoginAttempt =
+            LoggerMessage.Define<string>(
+                LogLevel.Warning,
+                new EventId(21, nameof(NotAllowedSingInLoginAttempt)),
+                "User with ID '{UserId}' failed login attempt because account is not allowed to sign in.");
 
         // Methods.
         public static void AccountDeleted(this ILogger logger, string userId, string deletedByUserId) =>
             _accountDeleted(logger, userId, deletedByUserId, null!);
+
+        public static void ApiKeyDoesNotExistLoginAttempt(this ILogger logger, string userId) =>
+            _apiKeyDoesNotExistLoginAttempt(logger, userId, null!);
+
+        public static void ApiKeyIsNotAliveLoginAttempt(this ILogger logger, string userId) =>
+            _apiKeyIsNotAliveLoginAttempt(logger, userId, null!);
+
+        public static void ApiKeyValidatedLoginAttempt(this ILogger logger, string userId) =>
+            _apiKeyValidatedLoginAttempt(logger, userId, null!);
 
         public static void CreatedAccountWithPassword(this ILogger logger, string userId) =>
             _createdAccountWithPassword(logger, userId, null!);
@@ -202,6 +241,12 @@ namespace Etherna.SSOServer.Extensions
 
         public static void LoggedInWithWeb3(this ILogger logger, string userId) =>
             _loggedInWithWeb3(logger, userId, null!);
+
+        public static void NotAllowedSingInLoginAttempt(this ILogger logger, string userId) =>
+            _notAllowedSingInLoginAttempt(logger, userId, null!);
+
+        public static void NoUserFoundMatchingUsername(this ILogger logger, string username) =>
+            _noUserFoundMatchingUsername(logger, username, null!);
 
         public static void PasswordChanged(this ILogger logger, string userId) =>
             _passwordChanged(logger, userId, null!);

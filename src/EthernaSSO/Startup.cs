@@ -13,6 +13,7 @@
 //   limitations under the License.
 
 using Duende.IdentityServer.Stores;
+using Duende.IdentityServer.Validation;
 using Etherna.ACR.Exceptions;
 using Etherna.ACR.Middlewares.DebugPages;
 using Etherna.ACR.Settings;
@@ -299,9 +300,12 @@ namespace Etherna.SSOServer
                 .AddInMemoryApiScopes(idServerConfig.ApiScopes)
                 .AddInMemoryClients(idServerConfig.Clients)
                 .AddInMemoryIdentityResources(idServerConfig.IdResources)
-                .AddResourceOwnerValidator<ApiKeyValidator>()
                 .AddAspNetIdentity<UserBase>();
 
+            //replace default implementations with customs
+            services.Replace(ServiceDescriptor.Transient<IResourceOwnerPasswordValidator, ApiKeyValidator>());
+
+            //add other custom services
             services.AddSingleton<IPersistedGrantStore>(new PersistedGrantRepository(new DbContextOptions
             {
                 ConnectionString = Configuration["ConnectionStrings:DataProtectionDb"] ?? throw new ServiceConfigurationException()
