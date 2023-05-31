@@ -46,6 +46,16 @@ namespace Etherna.SSOServer.Domain.Models
         public virtual UserBase Owner { get; protected set; }
 
         // Helpers.
+        public static string GetPrettyPrintedPlainKey(string plainKey, UserBase owner)
+        {
+            if (plainKey is null)
+                throw new ArgumentNullException(nameof(plainKey));
+            if (owner is null)
+                throw new ArgumentNullException(nameof(owner));
+
+            return $"{owner.Id}:{plainKey}";
+        }
+
         public static string GetRandomPlainKey()
         {
             var codeBuilder = new StringBuilder();

@@ -44,7 +44,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
         [BindProperty]
         public InputModel Input { get; set; } = default!;
 
-        public string? PlainKey { get; set; }
+        public string? PrettyPrintedPlainKey { get; set; }
         public string? StatusMessage { get; set; }
 
         // Methods.
@@ -85,8 +85,9 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             }
 
             // Create and show new key.
-            PlainKey = ApiKey.GetRandomPlainKey();
-            var apiKey = new ApiKey(PlainKey, Input.Label, Input.EndOfLife, user);
+            var plainKey = ApiKey.GetRandomPlainKey();
+            PrettyPrintedPlainKey = ApiKey.GetPrettyPrintedPlainKey(plainKey, user);
+            var apiKey = new ApiKey(plainKey, Input.Label, Input.EndOfLife, user);
 
             await ssoDbContext.ApiKeys.CreateAsync(apiKey);
 
@@ -94,7 +95,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
                 $" It's crucial that you store it in a secure location and do not share it." +
                 $" If you lose it or if it becomes exposed, others may gain unauthorized access to the service as you." +
                 $" If you believe your API Key has been compromised, immediately delete it and generate a new one." +
-                $"\n\n{PlainKey}";
+                $"\n\n{PrettyPrintedPlainKey}";
             return Page();
         }
     }

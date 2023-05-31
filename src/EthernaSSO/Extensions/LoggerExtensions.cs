@@ -20,7 +20,7 @@ namespace Etherna.SSOServer.Extensions
 {
     /*
      * Always group similar log delegates by type, always use incremental event ids.
-     * Last event id is: 24
+     * Last event id is: 25
      */
     public static class LoggerExtensions
     {
@@ -128,6 +128,12 @@ namespace Etherna.SSOServer.Extensions
                 LogLevel.Information,
                 new EventId(20, nameof(NoUserFoundMatchingUsername)),
                 "No user found matching username: {Username}");
+
+        private static readonly Action<ILogger, string, Exception> _noUserFoundWithId =
+            LoggerMessage.Define<string>(
+                LogLevel.Information,
+                new EventId(25, nameof(NoUserFoundWithId)),
+                "No user found with Id: {UserId}");
 
         private static readonly Action<ILogger, string, Exception> _passwordChanged =
             LoggerMessage.Define<string>(
@@ -247,6 +253,9 @@ namespace Etherna.SSOServer.Extensions
 
         public static void NoUserFoundMatchingUsername(this ILogger logger, string username) =>
             _noUserFoundMatchingUsername(logger, username, null!);
+
+        public static void NoUserFoundWithId(this ILogger logger, string userId) =>
+            _noUserFoundWithId(logger, userId, null!);
 
         public static void PasswordChanged(this ILogger logger, string userId) =>
             _passwordChanged(logger, userId, null!);
