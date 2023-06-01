@@ -84,6 +84,48 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
             }
         }
 
+        public static IEnumerable<object[]> ApiKeyDeserializationTests
+        {
+            get
+            {
+                var tests = new List<DeserializationTestElement<ApiKey, SsoDbContext>>();
+
+                // "4c9f5ecd-37b7-425e-8cc4-96ec97ef443b" - v0.3.25
+                {
+                    var sourceDocument =
+                        @"{
+                            ""_id"" : ObjectId(""6328dcf4955896e143e25f4c""),
+                            ""_m"" : ""4c9f5ecd-37b7-425e-8cc4-96ec97ef443b"",
+                            ""CreationDateTime"" : ISODate(""2023-05-31T15:40:27.853+0000""),
+                            ""EndOfLife"" : ISODate(""2024-05-31T15:40:27.853+0000""),
+                            ""KeyHash"" : BinData(0, ""z5RIUYPqGLvSK1enR5iJmTHQ3sz99cTjhOR0s+STBjs=""),
+                            ""Label"" : ""test"",
+                            ""Owner"" : {
+                                ""_m"" : ""a1976133-bb21-40af-b6de-3a0f7f7dc676"",
+                                ""_t"" : ""UserWeb2"",
+                                ""_id"" : ObjectId(""61cdeb676b35d8905b1d68cf"")
+                            }
+                        }";
+
+                    var expectedDocumentMock = new Mock<ApiKey>();
+                    expectedDocumentMock.Setup(k => k.Id).Returns("6328dcf4955896e143e25f4c");
+                    expectedDocumentMock.Setup(k => k.CreationDateTime).Returns(new DateTime(2023, 05, 31, 15, 40, 27, 853));
+                    expectedDocumentMock.Setup(k => k.EndOfLife).Returns(new DateTime(2024, 05, 31, 15, 40, 27, 853));
+                    expectedDocumentMock.Setup(k => k.KeyHash).Returns(new byte[] { 207, 148, 72, 81, 131, 234, 24, 187, 210, 43, 87, 167, 71, 152, 137, 153, 49, 208, 222, 204, 253, 245, 196, 227, 132, 228, 116, 179, 228, 147, 6, 59 });
+                    expectedDocumentMock.Setup(k => k.Label).Returns("test");
+                    {
+                        var userMock = new Mock<UserBase>();
+                        userMock.Setup(u => u.Id).Returns("61cdeb676b35d8905b1d68cf");
+                        expectedDocumentMock.Setup(d => d.Owner).Returns(userMock.Object);
+                    }
+
+                    tests.Add(new(sourceDocument, expectedDocumentMock.Object));
+                }
+
+                return tests.Select(t => new object[] { t });
+            }
+        }
+
         public static IEnumerable<object[]> DailyStatsDeserializationTests
         {
             get
@@ -449,6 +491,35 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
             Assert.NotNull(result.Id);
             Assert.NotNull(result.NormalizedEmail);
             Assert.NotNull(result.Secret);
+        }
+
+        [Theory, MemberData(nameof(ApiKeyDeserializationTests))]
+        public void ApiKeyDeserialization(DeserializationTestElement<ApiKey, SsoDbContext> testElement)
+        {
+            if (testElement is null)
+                throw new ArgumentNullException(nameof(testElement));
+
+            // Arrange.
+            using var documentReader = new JsonReader(testElement.SourceDocument);
+            var modelMapSerializer = new ModelMapSerializer<ApiKey>(dbContext);
+            var deserializationContext = BsonDeserializationContext.CreateRoot(documentReader);
+            testElement.SetupAction(mongoDatabaseMock, dbContext);
+
+            // Action.
+            using var dbExecutionContext = new DbExecutionContextHandler(dbContext); //run into a db execution context
+            var result = modelMapSerializer.Deserialize(deserializationContext);
+
+            // Assert.
+            Assert.Equal(testElement.ExpectedModel.Id, result.Id);
+            Assert.Equal(testElement.ExpectedModel.CreationDateTime, result.CreationDateTime);
+            Assert.Equal(testElement.ExpectedModel.EndOfLife, result.EndOfLife);
+            Assert.Equal(testElement.ExpectedModel.KeyHash, result.KeyHash);
+            Assert.Equal(testElement.ExpectedModel.Label, result.Label);
+            Assert.Equal(testElement.ExpectedModel.Owner, result.Owner, EntityModelEqualityComparer.Instance);
+            Assert.NotNull(result.Id);
+            Assert.NotNull(result.KeyHash);
+            Assert.NotNull(result.Label);
+            Assert.NotNull(result.Owner);
         }
 
         [Theory, MemberData(nameof(DailyStatsDeserializationTests))]

@@ -69,6 +69,15 @@ namespace Etherna.SSOServer.Persistence
                      new CreateIndexOptions<AlphaPassRequest>())
                 }
             });
+        public IRepository<ApiKey, string> ApiKeys { get; } = new DomainRepository<ApiKey, string>(
+            new RepositoryOptions<ApiKey>("apiKeys")
+            {
+                IndexBuilders = new[]
+                {
+                    (Builders<ApiKey>.IndexKeys.Ascending(k => k.KeyHash),
+                     new CreateIndexOptions<ApiKey> { Unique = true })
+                }
+            });
         public IRepository<DailyStats, string> DailyStats { get; } = new DomainRepository<DailyStats, string>("dailyStats");
         public IRepository<Invitation, string> Invitations { get; } = new DomainRepository<Invitation, string>(
             new RepositoryOptions<Invitation>("invitations")

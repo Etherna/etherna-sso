@@ -1,0 +1,46 @@
+﻿@page
+@model Etherna.SSOServer.Areas.Identity.Pages.Account.Manage.ApiKeyCreateModel
+@{
+    ViewData["Title"] = "New API Key";
+    ViewData["ActivePage"] = ManageNavPages.ApiKeys;
+}
+
+<h4>@ViewData["Title"]</h4>
+<partial name="_StatusMessage" for="StatusMessage" />
+
+<div class="row">
+    <div class="col-md-6">
+        @if (Model.PrettyPrintedPlainKey is null)
+        {
+            <form id="change-password-form" method="post">
+                <div asp-validation-summary="All" class="text-danger"></div>
+                <div class="mb-3">
+                    <label asp-for="Input.Label"></label>
+                    <input asp-for="Input.Label" class="form-control" />
+                    <span asp-validation-for="Input.Label" class="text-danger"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Input.EndOfLife"></label>
+                    <input asp-for="Input.EndOfLife" class="form-control" />
+                    <span asp-validation-for="Input.EndOfLife" class="text-danger"></span>
+                </div>
+                <button type="submit" class="btn btn-primary">Create</button>
+            </form>
+        }
+        else
+        {
+            <div class="mb-3">
+                <label asp-for="Input.Label"></label>
+                <input asp-for="Input.Label" disabled class="form-control" />
+            </div>
+            <div class="mb-3">
+                <label asp-for="Input.EndOfLife"></label>
+                <input asp-for="Input.EndOfLife" disabled class="form-control" />
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

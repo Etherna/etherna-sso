@@ -21,6 +21,7 @@ namespace Etherna.SSOServer.Domain
     public interface ISsoDbContext : IDbContext
     {
         IRepository<AlphaPassRequest, string> AlphaPassRequests { get; }
+        IRepository<ApiKey, string> ApiKeys { get; }
         IRepository<DailyStats, string> DailyStats { get; }
         IRepository<Invitation, string> Invitations { get; }
         IRepository<Role, string> Roles { get; }

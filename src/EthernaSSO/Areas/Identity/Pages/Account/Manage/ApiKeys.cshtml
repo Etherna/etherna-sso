@@ -1,0 +1,58 @@
+﻿@page
+@using Etherna.ACR.Pages.SharedModels;
+@model Etherna.SSOServer.Areas.Admin.Pages.IdentityServer.ApiKeysModel
+@{
+    ViewData["Title"] = "API Keys";
+}
+
+<div class="row">
+    <div class="col-12 mb-3 text-center mt-1">
+        <h2>@ViewData["Title"]</h2>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <p><b>Use only with TRUSTED applications!</b></p>
+        @if (Model.ApiKeys.Count < ApiKey.MaxKeysPerUser)
+        {
+            <a asp-page="ApiKeyCreate" class="btn btn-outline-primary mb-3 mt-3">+ New API Key</a>
+        }
+        <p>
+            Created @Model.ApiKeys.Count/@ApiKey.MaxKeysPerUser
+        </p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Creation date</th>
+                        <th>Label</th>
+                        <th>End of life</th>
+                        <th>Is Alive</th>
+                        <th></th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var key in Model.ApiKeys)
+                    {
+                        <tr>
+                            <td class="align-middle">@key.CreationDateTime</td>
+                            <td class="align-middle">@key.Label</td>
+                            <td class="align-middle">@key.EndOfLife</td>
+                            <td class="align-middle">@key.IsAlive</td>
+                            <td class="align-middle">
+                                <a class="btn btn-danger" asp-page="ApiKeyDelete" asp-route-id="@key.Id">X</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
