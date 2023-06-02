@@ -12,17 +12,14 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-using Etherna.MongODM.Core;
-using Etherna.MongODM.Core.Serialization;
-using Etherna.SSOServer.Domain.Models.UserAgg;
+using Hangfire;
+using System.Threading.Tasks;
 
-namespace Etherna.SSOServer.Persistence.ModelMaps.Sso
+namespace Etherna.SSOServer.Services.Tasks
 {
-    internal sealed class UserLoginInfoMap : IModelMapsCollector
+    public interface IWeb3LoginTokensCleanTask
     {
-        public void Register(IDbContext dbContext)
-        {
-            dbContext.MapRegistry.AddModelMap<UserLoginInfo>("6cec179b-807a-4ff9-977b-9314a60725a7");
-        }
+        [Queue(Queues.DOMAIN_MAINTENANCE)]
+        Task RunAsync();
     }
 }

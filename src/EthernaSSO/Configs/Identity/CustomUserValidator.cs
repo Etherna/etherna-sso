@@ -124,7 +124,6 @@ namespace Etherna.SSOServer.Configs.Identity
             var hasValidLogin =
                 user.CanLoginWithEmail ||
                 user.CanLoginWithEtherAddress ||
-                user.CanLoginWithExternalProvider ||
                 user.CanLoginWithUsername;
 
             if (!hasValidLogin)

@@ -20,8 +20,6 @@
 
     var etherPrevAddressesToString = Model.EtherPreviousAddresses.Any() ?
         Model.EtherPreviousAddresses.Aggregate((a, b) => a + '\n' + b) : "";
-    var externalLoginProvidersToString = Model.ExternalLoginProviders.Any() ?
-        Model.ExternalLoginProviders.Aggregate((a, b) => a + '\n' + b) : "";
 }
 
 <div class="row">
@@ -53,7 +51,6 @@
                 <a asp-page="UserRoles" asp-route-id="@Model.Input.Id" class="btn btn-outline-primary">Manage User Roles</a>
                 @if (!Model.IsWeb3)
                 {
-                    <a asp-page="UserProviders" asp-route-id="@Model.Input.Id" class="btn btn-outline-primary">Manage User External Providers</a>
                     <a asp-page="UserChangePassword" asp-route-id="@Model.Input.Id" class="btn btn-dark">Change Password</a>
                 }
                 <a asp-page="UserDelete" asp-route-id="@Model.Input.Id" class="btn btn-danger">Delete User</a>
@@ -172,16 +169,6 @@
                             <label asp-for="@Model.HasPassword" class="col-sm-3 col-form-label"></label>
                             <div class="col-sm-9">
                                 <input asp-for="@Model.HasPassword" disabled type="checkbox">
-                            </div>
-                        </div>
-
-                        <div class="mb-3 row">
-                            <label asp-for="@Model.ExternalLoginProviders" class="col-sm-3 col-form-label"></label>
-                            <div class="col-sm-9">
-                                <textarea type="text" disabled
-                                          asp-for="@externalLoginProvidersToString"
-                                          rows="@Math.Max(1, Model.ExternalLoginProviders.Count())"
-                                          class="form-control"></textarea>
                             </div>
                         </div>
 

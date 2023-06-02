@@ -38,7 +38,8 @@ namespace Etherna.SSOServer.Areas.Api.Controllers
             this.controllerService = controllerService;
         }
 
-        // Methods.
+        // GET.
+
         /// <summary>
         /// Get private information about current logged in user.
         /// </summary>

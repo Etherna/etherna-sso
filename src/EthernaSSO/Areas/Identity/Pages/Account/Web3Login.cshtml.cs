@@ -68,7 +68,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         private readonly ApplicationSettings applicationSettings;
         private readonly IEventDispatcher eventDispatcher;
         private readonly IIdentityServerInteractionService idServerInteractionService;
-        private readonly ILogger<ExternalLoginModel> logger;
+        private readonly ILogger<Web3LoginModel> logger;
         private readonly SignInManager<UserBase> signInManager;
         private readonly ISsoDbContext ssoDbContext;
         private readonly UserManager<UserBase> userManager;
@@ -81,7 +81,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             IClientStore clientStore,
             IEventDispatcher eventDispatcher,
             IIdentityServerInteractionService idServerInteractionService,
-            ILogger<ExternalLoginModel> logger,
+            ILogger<Web3LoginModel> logger,
             SignInManager<UserBase> signInManager,
             ISsoDbContext ssoDbContext,
             UserManager<UserBase> userManager,

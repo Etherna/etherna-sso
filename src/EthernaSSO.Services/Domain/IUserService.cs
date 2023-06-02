@@ -35,11 +35,6 @@ namespace Etherna.SSOServer.Services.Domain
             string password,
             string? invitationCode);
 
-        Task<(IEnumerable<(string key, string msg)> errors, UserWeb2? user)> RegisterWeb2UserAsync(
-            string username,
-            UserLoginInfo loginInfo,
-            string? invitationCode);
-
         Task<(IEnumerable<(string key, string msg)> errors, UserWeb2? user)> RegisterWeb2UserByAdminAsync(
             string username,
             string password,
@@ -50,7 +45,7 @@ namespace Etherna.SSOServer.Services.Domain
             string? phoneNumber,
             IEnumerable<Role> roles,
             bool twoFactorEnabled);
-        
+
         Task<(IEnumerable<(string key, string msg)> errors, UserWeb3? user)> RegisterWeb3UserAsync(
             string username,
             string etherAddress,
