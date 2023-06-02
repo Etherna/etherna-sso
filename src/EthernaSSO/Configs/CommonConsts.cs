@@ -25,5 +25,9 @@ namespace Etherna.SSOServer.Configs
 
         public const string RequireAdministratorRolePolicy = "RequireAdministratorRole";
         public const string ServiceInteractApiScopePolicy = "ServiceInteractApiScope";
+
+        public const string UserAuthenticationPolicyScheme = "userAuthnPolicyScheme";
+        public const string UserAuthenticationJwtScheme = "userAuthnJwtScheme";
+        public const string ServiceAuthenticationScheme = "serviceAuthnScheme";
     }
 }

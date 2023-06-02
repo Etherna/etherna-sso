@@ -20,16 +20,16 @@ using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Services.Tasks
 {
-    public sealed class DeleteOldInvitationsTask : IDeleteOldInvitationsTask
+    public sealed class Web3LoginTokensCleanTask : IWeb3LoginTokensCleanTask
     {
         // Consts.
-        public const string TaskId = "deleteOldInvitationsTask";
+        public const string TaskId = "web3LoginTokensCleanTask";
 
         // Fields.
         private readonly ISsoDbContext ssoDbContext;
 
         // Constructor.
-        public DeleteOldInvitationsTask(
+        public Web3LoginTokensCleanTask(
             ISsoDbContext ssoDbContext)
         {
             this.ssoDbContext = ssoDbContext;
@@ -37,8 +37,8 @@ namespace Etherna.SSOServer.Services.Tasks
 
         // Methods.
         public Task RunAsync() =>
-            ssoDbContext.Invitations.AccessToCollectionAsync(collection =>
+            ssoDbContext.Web3LoginTokens.AccessToCollectionAsync(collection =>
                 collection.DeleteManyAsync(
-                    Builders<Invitation>.Filter.Where(i => i.EndLife != null && i.EndLife < DateTime.UtcNow)));
+                    Builders<Web3LoginToken>.Filter.Where(t => t.CreationDateTime < DateTime.UtcNow - TimeSpan.FromDays(1))));
     }
 }

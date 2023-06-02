@@ -9,7 +9,7 @@ interface UIStore {
   errorAlert?: HTMLDivElement
   web3LoginView?: HTMLDivElement
   manageWeb3View?: HTMLDivElement
-  installMetamaskView?: HTMLDivElement
+  installWeb3WalletView?: HTMLDivElement
   // vars
   retriveAuthMessageUrl: string | null
   confirmSignatureUrl: string | null
@@ -28,13 +28,13 @@ function load() {
   store.errorAlert = document.querySelector("#manage-web3-login-alert")
   store.web3LoginView = document.querySelector("#web3-login")
   store.manageWeb3View = document.querySelector("#manage-web3-login")
-  store.installMetamaskView = document.querySelector("#install-metamask")
+  store.installWeb3WalletView = document.querySelector("#install-web3-wallet")
 
   if (typeof window.ethereum !== "undefined") {
     showEl(store.web3LoginView)
     showEl(store.manageWeb3View)
   } else {
-    showEl(store.installMetamaskView)
+    showEl(store.installWeb3WalletView)
   }
 
   store.web3LoginButton?.addEventListener("click", web3Signin)

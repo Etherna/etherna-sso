@@ -51,6 +51,7 @@ namespace Etherna.SSOServer.Services
             services.AddTransient<ICompileDailyStatsTask, CompileDailyStatsTask>();
             services.AddTransient<IDeleteOldInvitationsTask, DeleteOldInvitationsTask>();
             services.AddTransient<IProcessAlphaPassRequestsTask, ProcessAlphaPassRequestsTask>();
+            services.AddTransient<IWeb3LoginTokensCleanTask, Web3LoginTokensCleanTask>();
         }
     }
 }

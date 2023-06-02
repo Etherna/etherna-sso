@@ -13,19 +13,23 @@
 //   limitations under the License.
 
 using Etherna.MongODM.Core;
-using Etherna.MongODM.Core.Repositories;
+using Etherna.MongODM.Core.Extensions;
+using Etherna.MongODM.Core.Serialization;
 using Etherna.SSOServer.Domain.Models;
 
-namespace Etherna.SSOServer.Domain
+namespace Etherna.SSOServer.Persistence.ModelMaps.Sso
 {
-    public interface ISsoDbContext : IDbContext
+    internal sealed class ApiKeyMap : IModelMapsCollector
     {
-        IRepository<AlphaPassRequest, string> AlphaPassRequests { get; }
-        IRepository<ApiKey, string> ApiKeys { get; }
-        IRepository<DailyStats, string> DailyStats { get; }
-        IRepository<Invitation, string> Invitations { get; }
-        IRepository<Role, string> Roles { get; }
-        IRepository<UserBase, string> Users { get; }
-        IRepository<Web3LoginToken, string> Web3LoginTokens { get; }
+        public void Register(IDbContext dbContext)
+        {
+            dbContext.MapRegistry.AddModelMap<ApiKey>("4c9f5ecd-37b7-425e-8cc4-96ec97ef443b", mm =>
+            {
+                mm.AutoMap();
+
+                // Set members with custom serializers.
+                mm.SetMemberSerializer(k => k.Owner, UserMap.ReferenceSerializer(dbContext));
+            });
+        }
     }
 }

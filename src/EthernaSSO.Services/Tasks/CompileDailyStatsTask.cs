@@ -21,7 +21,7 @@ using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Services.Tasks
 {
-    public class CompileDailyStatsTask : ICompileDailyStatsTask
+    public sealed class CompileDailyStatsTask : ICompileDailyStatsTask
     {
         // Consts.
         public const string TaskId = "compileDailyStatsTask";

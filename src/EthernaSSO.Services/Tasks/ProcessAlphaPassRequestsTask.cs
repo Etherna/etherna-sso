@@ -29,7 +29,7 @@ using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Services.Tasks
 {
-    public class ProcessAlphaPassRequestsTask : IProcessAlphaPassRequestsTask
+    public sealed class ProcessAlphaPassRequestsTask : IProcessAlphaPassRequestsTask
     {
         // Consts.
         private readonly TimeSpan DefaultInvitationDuration = TimeSpan.FromDays(30);
