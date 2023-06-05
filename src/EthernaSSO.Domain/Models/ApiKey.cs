@@ -67,7 +67,7 @@ namespace Etherna.SSOServer.Domain.Models
             if (owner is null)
                 throw new ArgumentNullException(nameof(owner));
 
-            return $"{owner.Id}:{plainKey}";
+            return $"{owner.Id}.{plainKey}";
         }
 
         public static string GetRandomPlainKey()

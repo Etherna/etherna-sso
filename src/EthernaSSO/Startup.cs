@@ -293,6 +293,7 @@ namespace Etherna.SSOServer
             var idServerConfig = new IdServerConfig(Configuration);
             var builder = services.AddIdentityServer(options =>
             {
+                options.Authentication.CookieAuthenticationScheme = IdentityConstants.ApplicationScheme;
                 options.LicenseKey = Configuration["IdServer:LicenseKey"]; //can be null in dev env
                 options.UserInteraction.ErrorUrl = "/Error";
             })
