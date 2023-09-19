@@ -262,7 +262,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                 AllowedGrantTypes = GrantTypes.Code,
                     
                 //where to redirect to after login
-                RedirectUris = { $"{ethernaDapp_BaseUrl}/callback.html" },
+                RedirectUris = { $"{ethernaDapp_BaseUrl}/callback" },
 
                 //where to redirect to after logout
                 PostLogoutRedirectUris = { ethernaDapp_BaseUrl },
@@ -276,7 +276,13 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                     IdentityServerConstants.StandardScopes.OpenId,
                     IdentityServerConstants.StandardScopes.Profile,
                     IdResourcesDef.EtherAccounts.Name,
-                    IdResourcesDef.Role.Name
+                    IdResourcesDef.Role.Name,
+                    
+                    //resource
+                    ApiScopesDef.UserInteractEthernaCredit.Name,
+                    ApiScopesDef.UserInteractEthernaGateway.Name,
+                    ApiScopesDef.UserInteractEthernaIndex.Name,
+                    ApiScopesDef.UserInteractEthernaSso.Name
                 },
 
                 // Allow token refresh.

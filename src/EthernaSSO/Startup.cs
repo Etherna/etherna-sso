@@ -17,6 +17,7 @@ using Duende.IdentityServer.Validation;
 using Etherna.ACR.Exceptions;
 using Etherna.ACR.Middlewares.DebugPages;
 using Etherna.ACR.Settings;
+using Etherna.Authentication.AspNetCore;
 using Etherna.DomainEvents;
 using Etherna.MongODM;
 using Etherna.MongODM.AspNetCore.UI;

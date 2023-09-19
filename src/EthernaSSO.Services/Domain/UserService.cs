@@ -201,7 +201,7 @@ namespace Etherna.SSOServer.Services.Domain
                 }
 
                 return new PaginatedEnumerable<UserBase>(
-                    user is not null ? new[] { user } : Array.Empty<UserBase>(), 0, take, 0);
+                    user is not null ? new[] { user } : Array.Empty<UserBase>(), 1, take, 1);
             }
 
             //try search by email
