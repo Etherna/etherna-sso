@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Duende.IdentityServer.AspNetIdentity" Version="6.3.3" />
+    <PackageReference Include="Duende.IdentityServer.AspNetIdentity" Version="6.3.4" />
     <PackageReference Include="Etherna.DomainEvents.AspNetCore" Version="1.4.0" />
     <PackageReference Include="MongODM.Hangfire" Version="0.24.0-alpha.98" />
   </ItemGroup>
