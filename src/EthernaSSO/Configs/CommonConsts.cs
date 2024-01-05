@@ -18,13 +18,15 @@ namespace Etherna.SSOServer.Configs
     {
         public const string AdminArea = "Admin";
         public const string AlphaPassArea = "AlphaPass";
+        public const string ApiArea = "Api";
         public const string IdentityArea = "Identity";
 
         public const string DatabaseAdminPath = "/admin/db";
         public const string HangfireAdminPath = "/admin/hangfire";
 
-        public const string RequireAdministratorRolePolicy = "RequireAdministratorRole";
-        public const string ServiceInteractApiScopePolicy = "ServiceInteractApiScope";
+        public const string RequireAdministratorRolePolicy = "RequireAdministratorRolePolicy";
+        public const string ServiceInteractApiScopePolicy = "ServiceInteractApiScopePolicy";
+        public const string UserInteractApiScopePolicy = "UserInteractApiScopePolicy";
 
         public const string UserAuthenticationPolicyScheme = "userAuthnPolicyScheme";
         public const string UserAuthenticationJwtScheme = "userAuthnJwtScheme";

@@ -17,7 +17,6 @@ using Duende.IdentityServer.Models;
 using Etherna.ACR.Exceptions;
 using Etherna.Authentication;
 using Microsoft.Extensions.Configuration;
-using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,7 +26,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
     public class IdServerConfig
     {
         // Consts.
-        private static class ApiResourcesDef
+        public static class ApiResourcesDef
         {
             public static readonly ApiResource EthernaCreditServiceInteract = new("ethernaCreditServiceInteract", "Etherna Credit service interact")
             {
@@ -49,7 +48,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                 }
             };
         }
-        private static class ApiScopesDef //these can go in very details of client permissions
+        public static class ApiScopesDef //these can go in very details of client permissions
         {
             //credit service interaction scopes
             public static readonly ApiScope EthernaCreditServiceInteract = new("ethernaCredit_serviceInteract_api", "Etherna Credit service interact API");
@@ -63,7 +62,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
             public static readonly ApiScope UserInteractEthernaIndex = new("userApi.index", "Etherna Index user API");
             public static readonly ApiScope UserInteractEthernaSso = new("userApi.sso", "Etherna Sso user API");
         }
-        private static class IdResourcesDef
+        public static class IdResourcesDef
         {
             public static readonly IdentityResource EtherAccounts = new()
             {

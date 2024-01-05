@@ -45,7 +45,6 @@ namespace Etherna.SSOServer.Areas.Api.Controllers
         /// </summary>
         /// <response code="200">Current user information</response>
         [HttpGet]
-        [Authorize]
         [SimpleExceptionFilter]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<PrivateUserDto> GetCurrentUserAsync() =>
@@ -57,6 +56,7 @@ namespace Etherna.SSOServer.Areas.Api.Controllers
         /// <param name="etherAddress">User's ethereum address</param>
         /// <response code="200">User information</response>
         [HttpGet("address/{etherAddress}")]
+        [AllowAnonymous]
         [SimpleExceptionFilter]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -70,6 +70,7 @@ namespace Etherna.SSOServer.Areas.Api.Controllers
         /// <param name="email">User's email</param>
         /// <response code="200">True if email is registered, false otherwise</response>
         [HttpGet("email/{email}")]
+        [AllowAnonymous]
         [SimpleExceptionFilter]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -82,6 +83,7 @@ namespace Etherna.SSOServer.Areas.Api.Controllers
         /// <param name="username">User's username</param>
         /// <response code="200">User information</response>
         [HttpGet("username/{username}")]
+        [AllowAnonymous]
         [SimpleExceptionFilter]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
