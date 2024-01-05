@@ -24,8 +24,7 @@ namespace Etherna.SSOServer.Attributes
     {
         public override void OnException(ExceptionContext context)
         {
-            if (context is null)
-                throw new ArgumentNullException(nameof(context));
+            ArgumentNullException.ThrowIfNull(context, nameof(context));
 
             switch (context.Exception)
             {

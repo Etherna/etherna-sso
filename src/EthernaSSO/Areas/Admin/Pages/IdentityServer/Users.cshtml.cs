@@ -15,7 +15,6 @@
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Services.Domain;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using MongoDB.Driver.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,8 +29,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
         {
             public UserDto(UserBase user)
             {
-                if (user is null)
-                    throw new ArgumentNullException(nameof(user));
+                ArgumentNullException.ThrowIfNull(user, nameof(user));
 
                 Id = user.Id;
                 Email = user.Email;

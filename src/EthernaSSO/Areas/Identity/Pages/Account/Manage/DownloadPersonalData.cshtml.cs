@@ -57,7 +57,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             foreach (var p in personalDataProps)
                 personalData.Add(p.Name, p.GetValue(user));
 
-            Response.Headers.Add("Content-Disposition", "attachment; filename=PersonalData.json");
+            Response.Headers["Content-Disposition"] = "attachment; filename=PersonalData.json";
             return new FileContentResult(JsonSerializer.SerializeToUtf8Bytes(personalData), "application/json");
         }
     }

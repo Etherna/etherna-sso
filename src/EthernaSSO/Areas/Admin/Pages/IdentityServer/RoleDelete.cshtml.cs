@@ -44,8 +44,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
         // Methods.
         public async Task OnGetAsync(string id)
         {
-            if (id is null)
-                throw new ArgumentNullException(nameof(id));
+            ArgumentNullException.ThrowIfNull(id, nameof(id));
 
             Id = id;
             var role = await context.Roles.FindOneAsync(id);
@@ -54,8 +53,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
 
         public async Task<IActionResult> OnPostDeleteAsync(string id)
         {
-            if (id is null)
-                throw new ArgumentNullException(nameof(id));
+            ArgumentNullException.ThrowIfNull(id, nameof(id));
 
             var role = await context.Roles.FindOneAsync(id);
             var usersWithRole = await context.Users.QueryElementsAsync(elements =>

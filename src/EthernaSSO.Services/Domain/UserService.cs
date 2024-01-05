@@ -65,8 +65,7 @@ namespace Etherna.SSOServer.Services.Domain
         // Methods.
         public async Task DeleteAsync(UserBase user)
         {
-            if (user is null)
-                throw new ArgumentNullException(nameof(user));
+            ArgumentNullException.ThrowIfNull(user, nameof(user));
 
             await ssoDbContext.Users.DeleteAsync(user);
             await sharedDbContext.UsersInfo.DeleteAsync(user.SharedInfoId);
@@ -82,8 +81,7 @@ namespace Etherna.SSOServer.Services.Domain
 
         public async Task<UserSharedInfo> GetSharedUserInfoAsync(UserBase user)
         {
-            if (user is null)
-                throw new ArgumentNullException(nameof(user));
+            ArgumentNullException.ThrowIfNull(user, nameof(user));
 
             return await sharedDbContext.UsersInfo.FindOneAsync(user.SharedInfoId);
         }

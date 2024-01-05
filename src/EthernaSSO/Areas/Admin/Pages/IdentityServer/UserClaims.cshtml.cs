@@ -31,8 +31,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
         {
             public ClaimDto(UserClaim claim)
             {
-                if (claim is null)
-                    throw new ArgumentNullException(nameof(claim));
+                ArgumentNullException.ThrowIfNull(claim, nameof(claim));
 
                 Type = claim.Type;
                 Value = claim.Value;
@@ -73,8 +72,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
         // Methods.
         public async Task OnGetAsync(string id, int? p)
         {
-            if (id is null)
-                throw new ArgumentNullException(nameof(id));
+            ArgumentNullException.ThrowIfNull(id, nameof(id));
 
             await InitializeAsync(id, p ?? 0);
         }

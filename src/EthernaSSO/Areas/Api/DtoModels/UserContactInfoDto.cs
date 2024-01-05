@@ -22,8 +22,7 @@ namespace Etherna.SSOServer.Areas.Api.DtoModels
         // Constructor.
         public UserContactInfoDto(UserBase user)
         {
-            if (user is null)
-                throw new ArgumentNullException(nameof(user));
+            ArgumentNullException.ThrowIfNull(user, nameof(user));
 
             Email = user.Email;
             PhoneNumber = user.PhoneNumber;

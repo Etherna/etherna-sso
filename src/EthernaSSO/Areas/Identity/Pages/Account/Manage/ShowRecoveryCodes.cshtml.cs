@@ -32,7 +32,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
         // Methods.
         public IActionResult OnGet()
         {
-            if (RecoveryCodes == null || !RecoveryCodes.Any())
+            if (RecoveryCodes == null || RecoveryCodes.Length == 0)
             {
                 return RedirectToPage("./TwoFactorAuthentication");
             }

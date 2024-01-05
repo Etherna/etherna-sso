@@ -34,8 +34,7 @@ namespace Etherna.SSOServer.Extensions
             this IDataProtectionBuilder builder,
             DbContextOptions dbContextOptions)
         {
-            if (builder is null)
-                throw new System.ArgumentNullException(nameof(builder));
+            System.ArgumentNullException.ThrowIfNull(builder, nameof(builder));
 
             builder.Services.Configure<KeyManagementOptions>(options =>
             {

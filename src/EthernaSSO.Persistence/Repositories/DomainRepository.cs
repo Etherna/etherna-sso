@@ -43,8 +43,7 @@ namespace Etherna.SSOServer.Persistence.Repositories
         // Methods.
         public override async Task CreateAsync(IEnumerable<TModel> models, CancellationToken cancellationToken = default)
         {
-            if (models is null)
-                throw new ArgumentNullException(nameof(models));
+            ArgumentNullException.ThrowIfNull(models, nameof(models));
 
             // Create entity.
             await base.CreateAsync(models, cancellationToken);
@@ -66,8 +65,7 @@ namespace Etherna.SSOServer.Persistence.Repositories
 
         public override async Task CreateAsync(TModel model, CancellationToken cancellationToken = default)
         {
-            if (model is null)
-                throw new ArgumentNullException(nameof(model));
+            ArgumentNullException.ThrowIfNull(model, nameof(model));
 
             // Create entity.
             await base.CreateAsync(model, cancellationToken);
@@ -86,8 +84,7 @@ namespace Etherna.SSOServer.Persistence.Repositories
 
         public override async Task DeleteAsync(TModel model, CancellationToken cancellationToken = default)
         {
-            if (model is null)
-                throw new ArgumentNullException(nameof(model));
+            ArgumentNullException.ThrowIfNull(model, nameof(model));
 
             // Delete entity.
             await base.DeleteAsync(model, cancellationToken);

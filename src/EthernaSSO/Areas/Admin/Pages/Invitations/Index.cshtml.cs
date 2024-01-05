@@ -198,7 +198,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.Invitations
         private async Task InitializeAsync()
         {
             TotalAlive = await ssoDbContext.Invitations.QueryElementsAsync(invitations =>
-                invitations.Where(i => i.EndLife == null || i.EndLife > System.DateTime.UtcNow)
+                invitations.Where(i => i.EndLife == null || i.EndLife > DateTime.UtcNow)
                            .CountAsync());
         }
     }

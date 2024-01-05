@@ -40,8 +40,7 @@ namespace Etherna.SSOServer.Domain.Models
         [PropertyAlterer(nameof(NormalizedName))]
         public virtual void SetName(string name)
         {
-            if (name is null)
-                throw new ArgumentNullException(nameof(name));
+            ArgumentNullException.ThrowIfNull(name, nameof(name));
 
             if (Name != name)
             {
@@ -53,8 +52,7 @@ namespace Etherna.SSOServer.Domain.Models
         // Public static helpers.
         public static string NormalizeName(string name)
         {
-            if (name is null)
-                throw new ArgumentNullException(nameof(name));
+            ArgumentNullException.ThrowIfNull(name, nameof(name));
 
             name = name.ToUpper(CultureInfo.InvariantCulture); //to upper case
 

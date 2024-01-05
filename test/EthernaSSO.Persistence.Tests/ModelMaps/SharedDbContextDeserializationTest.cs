@@ -23,11 +23,13 @@ using Etherna.SSOServer.Persistence.Helpers;
 using Moq;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Xunit;
 
 namespace Etherna.SSOServer.Persistence.ModelMaps
 {
+    [SuppressMessage("Performance", "CA1861:Avoid constant arrays as arguments")]
     public class SharedDbContextDeserializationTest
     {
         // Fields.
@@ -85,8 +87,7 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
         [Theory, MemberData(nameof(UserSharedInfoDeserializationTests))]
         public void UserSharedInfoDeserialization(DeserializationTestElement<UserSharedInfo, SharedDbContext> testElement)
         {
-            if (testElement is null)
-                throw new ArgumentNullException(nameof(testElement));
+            ArgumentNullException.ThrowIfNull(testElement, nameof(testElement));
 
             // Setup.
             using var documentReader = new JsonReader(testElement.SourceDocument);

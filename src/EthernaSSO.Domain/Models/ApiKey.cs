@@ -62,10 +62,8 @@ namespace Etherna.SSOServer.Domain.Models
         // Helpers.
         public static string GetPrettyPrintedPlainKey(string plainKey, UserBase owner)
         {
-            if (plainKey is null)
-                throw new ArgumentNullException(nameof(plainKey));
-            if (owner is null)
-                throw new ArgumentNullException(nameof(owner));
+            ArgumentNullException.ThrowIfNull(plainKey, nameof(plainKey));
+            ArgumentNullException.ThrowIfNull(owner, nameof(owner));
 
             return $"{owner.Id}.{plainKey}";
         }

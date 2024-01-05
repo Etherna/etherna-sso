@@ -23,8 +23,7 @@ namespace Etherna.SSOServer.Areas.Api.DtoModels
         // Constructor.
         public PrivateUserDto(UserBase user)
         {
-            if (user is null)
-                throw new ArgumentNullException(nameof(user));
+            ArgumentNullException.ThrowIfNull(user, nameof(user));
 
             Email = user.Email;
             EtherAddress = user.EtherAddress;

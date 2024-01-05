@@ -44,8 +44,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
         // Methods.
         public async Task OnGetAsync(string id)
         {
-            if (id is null)
-                throw new ArgumentNullException(nameof(id));
+            ArgumentNullException.ThrowIfNull(id, nameof(id));
 
             var apiKey = await ssoDbContext.ApiKeys.FindOneAsync(id);
 

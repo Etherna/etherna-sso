@@ -53,10 +53,8 @@ namespace Etherna.SSOServer.Configs.Identity
         /// <returns>The <see cref="Task"/> that represents the asynchronous operation, containing the <see cref="IdentityResult"/> of the validation operation.</returns>
         public virtual async Task<IdentityResult> ValidateAsync(UserManager<UserBase> manager, UserBase user)
         {
-            if (manager == null)
-                throw new ArgumentNullException(nameof(manager));
-            if (user == null)
-                throw new ArgumentNullException(nameof(user));
+            ArgumentNullException.ThrowIfNull(manager, nameof(manager));
+            ArgumentNullException.ThrowIfNull(user, nameof(user));
 
             var errors = new List<IdentityError>();
 
@@ -99,7 +97,7 @@ namespace Etherna.SSOServer.Configs.Identity
             }
         }
 
-        private async Task ValidateUsernameAsync(UserManager<UserBase> manager, UserBase user, ICollection<IdentityError> errors)
+        private async Task ValidateUsernameAsync(UserManager<UserBase> manager, UserBase user, List<IdentityError> errors)
         {
             var username = await manager.GetUserNameAsync(user) ?? throw new InvalidOperationException();
 

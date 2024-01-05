@@ -24,9 +24,9 @@ using Etherna.MongODM.AspNetCore.UI;
 using Etherna.MongODM.Core.Options;
 using Etherna.SSOServer.Configs;
 using Etherna.SSOServer.Configs.Authorization;
-using Etherna.SSOServer.Configs.Hangfire;
 using Etherna.SSOServer.Configs.Identity;
 using Etherna.SSOServer.Configs.IdentityServer;
+using Etherna.SSOServer.Configs.MongODM;
 using Etherna.SSOServer.Configs.Swagger;
 using Etherna.SSOServer.Configs.SystemStore;
 using Etherna.SSOServer.Domain;
@@ -67,6 +67,8 @@ using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Threading.Tasks;
+using DashboardOptions = Etherna.MongODM.AspNetCore.UI.DashboardOptions;
+using IPNetwork = Microsoft.AspNetCore.HttpOverrides.IPNetwork;
 
 namespace Etherna.SSOServer
 {
@@ -393,9 +395,9 @@ namespace Etherna.SSOServer
                     options.ConnectionString = Configuration["ConnectionStrings:ServiceSharedDb"] ?? throw new ServiceConfigurationException();
                 });
 
-            services.AddMongODMAdminDashboard(new MongODM.AspNetCore.UI.DashboardOptions
+            services.AddMongODMAdminDashboard(new DashboardOptions
             {
-                AuthFilters = new[] { new Configs.MongODM.AdminAuthFilter() },
+                AuthFilters = new[] { new AdminAuthFilter() },
                 BasePath = CommonConsts.DatabaseAdminPath
             });
 
@@ -451,7 +453,7 @@ namespace Etherna.SSOServer
             app.UseHangfireDashboard(CommonConsts.HangfireAdminPath,
                 new Hangfire.DashboardOptions
                 {
-                    Authorization = new[] { new AdminAuthFilter() }
+                    Authorization = new[] { new Configs.Hangfire.AdminAuthFilter() }
                 });
 
             // Add Swagger.

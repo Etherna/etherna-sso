@@ -30,8 +30,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
         {
             public UserDto(UserBase user)
             {
-                if (user is null)
-                    throw new ArgumentNullException(nameof(user));
+                ArgumentNullException.ThrowIfNull(user, nameof(user));
 
                 Id = user.Id;
                 Email = user.Email;
@@ -72,8 +71,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
         // Methods.
         public async Task OnGetAsync(string id, int? p, string? q)
         {
-            if (id is null)
-                throw new ArgumentNullException(nameof(id));
+            ArgumentNullException.ThrowIfNull(id, nameof(id));
 
             CurrentPage = p ?? 0;
             Query = q ?? "";
