@@ -29,6 +29,7 @@ using Etherna.SSOServer.Configs.IdentityServer;
 using Etherna.SSOServer.Configs.MongODM;
 using Etherna.SSOServer.Configs.Swagger;
 using Etherna.SSOServer.Configs.SystemStore;
+using Etherna.SSOServer.Conventions;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Extensions;
@@ -68,6 +69,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using DashboardOptions = Etherna.MongODM.AspNetCore.UI.DashboardOptions;
 using IPNetwork = Microsoft.AspNetCore.HttpOverrides.IPNetwork;
@@ -237,7 +239,18 @@ namespace Etherna.SSOServer
 
                 options.Conventions.AuthorizeAreaPage(CommonConsts.IdentityArea, "/Account/Logout");
             });
-            services.AddControllers(); //used for APIs
+            services.AddControllers(options =>
+                {
+                    //api by default requires authentication with user interact policy
+                    options.Conventions.Add(
+                        new RouteTemplateAuthorizationConvention(
+                            CommonConsts.ApiArea,
+                            CommonConsts.UserInteractApiScopePolicy));
+                })
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                });
             services.AddApiVersioning(options =>
             {
                 options.ReportApiVersions = true;
@@ -337,11 +350,20 @@ namespace Etherna.SSOServer
 
                 //other policies
                 options.AddPolicy(CommonConsts.RequireAdministratorRolePolicy,
-                     policy =>
-                     {
-                         policy.RequireRole(Role.NormalizeName(Role.AdministratorName));
-                         policy.AddRequirements(new DenyBannedAuthorizationRequirement());
-                     });
+                    policy =>
+                    {
+                        policy.RequireAuthenticatedUser();
+                        policy.RequireRole(Role.NormalizeName(Role.AdministratorName));
+                        policy.AddRequirements(new DenyBannedAuthorizationRequirement());
+                    });
+                
+                options.AddPolicy(CommonConsts.UserInteractApiScopePolicy, policy =>
+                {
+                    policy.AuthenticationSchemes = new List<string> { CommonConsts.UserAuthenticationJwtScheme };
+                    policy.RequireAuthenticatedUser();
+                    policy.RequireClaim("scope", IdServerConfig.ApiScopesDef.UserInteractEthernaSso.Name);
+                    policy.AddRequirements(new DenyBannedAuthorizationRequirement());
+                });
 
                 options.AddPolicy(CommonConsts.ServiceInteractApiScopePolicy, policy =>
                 {
