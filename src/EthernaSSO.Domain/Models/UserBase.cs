@@ -49,8 +49,7 @@ namespace Etherna.SSOServer.Domain.Models
             bool invitedByAdmin,
             UserSharedInfo sharedInfo)
         {
-            if (sharedInfo is null)
-                throw new ArgumentNullException(nameof(sharedInfo));
+            ArgumentNullException.ThrowIfNull(sharedInfo, nameof(sharedInfo));
 
             SetUsername(username);
             InvitedBy = invitedBy;
@@ -140,8 +139,7 @@ namespace Etherna.SSOServer.Domain.Models
         [PropertyAlterer(nameof(Claims))]
         public virtual bool AddClaim(UserClaim claim)
         {
-            if (claim is null)
-                throw new ArgumentNullException(nameof(claim));
+            ArgumentNullException.ThrowIfNull(claim, nameof(claim));
 
             //keep default claims managed by model
             if (DomainManagedClaimNames.Contains(claim.Type))
@@ -179,8 +177,7 @@ namespace Etherna.SSOServer.Domain.Models
         [PropertyAlterer(nameof(Claims))]
         public virtual bool RemoveClaim(UserClaim claim)
         {
-            if (claim is null)
-                throw new ArgumentNullException(nameof(claim));
+            ArgumentNullException.ThrowIfNull(claim, nameof(claim));
 
             return RemoveClaim(claim.Type, claim.Value);
         }
@@ -188,10 +185,8 @@ namespace Etherna.SSOServer.Domain.Models
         [PropertyAlterer(nameof(Claims))]
         public virtual bool RemoveClaim(string type, string value)
         {
-            if (type is null)
-                throw new ArgumentNullException(nameof(type));
-            if (value is null)
-                throw new ArgumentNullException(nameof(value));
+            ArgumentNullException.ThrowIfNull(type, nameof(type));
+            ArgumentNullException.ThrowIfNull(value, nameof(value));
 
             var removed = _customClaims.RemoveAll(c => c.Type == type &&
                                                        c.Value == value);

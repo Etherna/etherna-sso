@@ -38,8 +38,7 @@ namespace Etherna.SSOServer.Configs.SystemStore
         // Constructor.
         public PersistedGrantRepository(DbContextOptions options, string name)
         {
-            if (options is null)
-                throw new ArgumentNullException(nameof(options));
+            ArgumentNullException.ThrowIfNull(options, nameof(options));
 
             // Register class map. (see: https://etherna.atlassian.net/browse/ESSO-140)
             BsonClassMap.RegisterClassMap<PersistedGrant>(cm =>
@@ -61,8 +60,7 @@ namespace Etherna.SSOServer.Configs.SystemStore
         // Methods.
         public async Task<IEnumerable<PersistedGrant>> GetAllAsync(PersistedGrantFilter filter)
         {
-            if (filter is null)
-                throw new ArgumentNullException(nameof(filter));
+            ArgumentNullException.ThrowIfNull(filter, nameof(filter));
             filter.Validate();
 
             var cursor = await collection.FindAsync(BuildMongoFilterHelper(filter));
@@ -75,8 +73,7 @@ namespace Etherna.SSOServer.Configs.SystemStore
 
         public Task RemoveAllAsync(PersistedGrantFilter filter)
         {
-            if (filter is null)
-                throw new ArgumentNullException(nameof(filter));
+            ArgumentNullException.ThrowIfNull(filter, nameof(filter));
             filter.Validate();
 
             return collection.DeleteManyAsync(BuildMongoFilterHelper(filter));

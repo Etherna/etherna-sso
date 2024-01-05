@@ -25,8 +25,7 @@ namespace Etherna.SSOServer.Pages
         // Properties.
         public void OnGet(string redirectUrl)
         {
-            if (redirectUrl is null)
-                throw new ArgumentNullException(nameof(redirectUrl));
+            ArgumentNullException.ThrowIfNull(redirectUrl, nameof(redirectUrl));
 
             RedirectUrl = redirectUrl;
         }

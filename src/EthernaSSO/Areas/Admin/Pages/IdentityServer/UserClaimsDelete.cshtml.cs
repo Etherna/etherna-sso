@@ -41,12 +41,9 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
         // Methods.
         public async Task OnGetAsync(string claimType, string claimValue, string userId)
         {
-            if (claimType is null)
-                throw new ArgumentNullException(nameof(claimType));
-            if (claimValue is null)
-                throw new ArgumentNullException(nameof(claimValue));
-            if (userId is null)
-                throw new ArgumentNullException(nameof(userId));
+            ArgumentNullException.ThrowIfNull(claimType, nameof(claimType));
+            ArgumentNullException.ThrowIfNull(claimValue, nameof(claimValue));
+            ArgumentNullException.ThrowIfNull(userId, nameof(userId));
 
             var user = await context.Users.FindOneAsync(userId);
 
@@ -58,12 +55,9 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
 
         public async Task<IActionResult> OnPostAsync(string claimType, string claimValue, string userId)
         {
-            if (claimType is null)
-                throw new ArgumentNullException(nameof(claimType));
-            if (claimValue is null)
-                throw new ArgumentNullException(nameof(claimValue));
-            if (userId is null)
-                throw new ArgumentNullException(nameof(userId));
+            ArgumentNullException.ThrowIfNull(claimType, nameof(claimType));
+            ArgumentNullException.ThrowIfNull(claimValue, nameof(claimValue));
+            ArgumentNullException.ThrowIfNull(userId, nameof(userId));
 
             var user = await context.Users.FindOneAsync(userId);
             user.RemoveClaim(claimType, claimValue);

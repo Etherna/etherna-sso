@@ -30,8 +30,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
         {
             public RoleDto(Role role)
             {
-                if (role is null)
-                    throw new ArgumentNullException(nameof(role));
+                ArgumentNullException.ThrowIfNull(role, nameof(role));
 
                 Id = role.Id;
                 Name = role.Name;
@@ -66,7 +65,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
             Query = q ?? "";
 
             var paginatedRoles = await context.Roles.QueryPaginatedElementsAsync(elements =>
-                elements.Where(r => r.NormalizedName.Contains(Query.ToUpperInvariant())),
+                elements.Where(r => r.NormalizedName.Contains(Query, StringComparison.InvariantCultureIgnoreCase)),
                 r => r.NormalizedName,
                 CurrentPage,
                 PageSize);

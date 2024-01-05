@@ -51,8 +51,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             // Methods.
             public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
             {
-                if (validationContext is null)
-                    throw new ArgumentNullException(nameof(validationContext));
+                ArgumentNullException.ThrowIfNull(validationContext, nameof(validationContext));
 
                 var appSettings = (IOptions<ApplicationSettings>)validationContext.GetService(typeof(IOptions<ApplicationSettings>))!;
                 if (appSettings.Value.RequireInvitation && string.IsNullOrWhiteSpace(InvitationCode))
@@ -89,8 +88,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             IWeb3AuthnService web3AuthnService)
             : base(clientStore)
         {
-            if (applicationSettings is null)
-                throw new ArgumentNullException(nameof(applicationSettings));
+            ArgumentNullException.ThrowIfNull(applicationSettings, nameof(applicationSettings));
 
             this.applicationSettings = applicationSettings.Value;
             this.eventDispatcher = eventDispatcher;

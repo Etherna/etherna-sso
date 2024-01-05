@@ -79,15 +79,8 @@ namespace Etherna.SSOServer.Domain.Models
         public virtual void IncrementAccessFailedCount() => AccessFailedCount++;
 
         [PropertyAlterer(nameof(TwoFactorRecoveryCodes))]
-        public virtual bool RedeemTwoFactorRecoveryCode(string code)
-        {
-            if (_twoFactorRecoveryCode.Contains(code))
-            {
-                _twoFactorRecoveryCode.Remove(code);
-                return true;
-            }
-            return false;
-        }
+        public virtual bool RedeemTwoFactorRecoveryCode(string code) =>
+            _twoFactorRecoveryCode.Remove(code);
 
         [PropertyAlterer(nameof(EtherLoginAddress))]
         public virtual bool RemoveEtherLoginAddress()

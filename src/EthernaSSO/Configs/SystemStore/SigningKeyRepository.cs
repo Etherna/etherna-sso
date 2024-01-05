@@ -32,8 +32,7 @@ namespace Etherna.SSOServer.Configs.SystemStore
         // Constructor.
         public SigningKeyRepository(DbContextOptions options, string name)
         {
-            if (options is null)
-                throw new ArgumentNullException(nameof(options));
+            ArgumentNullException.ThrowIfNull(options, nameof(options));
 
             // Register class map. (see: https://etherna.atlassian.net/browse/ESSO-140)
             BsonClassMap.RegisterClassMap<SerializedKey>(cm =>

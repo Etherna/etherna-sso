@@ -17,7 +17,6 @@ using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Domain.Models.UserAgg;
 using Etherna.SSOServer.Services.Domain;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System;
@@ -37,10 +36,8 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
             public InputModel() { }
             public InputModel(UserBase user, UserSharedInfo sharedInfo)
             {
-                if (user is null)
-                    throw new ArgumentNullException(nameof(user));
-                if (sharedInfo is null)
-                    throw new ArgumentNullException(nameof(sharedInfo));
+                ArgumentNullException.ThrowIfNull(user, nameof(user));
+                ArgumentNullException.ThrowIfNull(sharedInfo, nameof(sharedInfo));
 
                 Id = user.Id;
                 Email = user.Email;

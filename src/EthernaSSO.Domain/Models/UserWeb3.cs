@@ -32,8 +32,7 @@ namespace Etherna.SSOServer.Domain.Models
         }
         internal UserWeb3(UserWeb2 web2User)
         {
-            if (web2User is null)
-                throw new ArgumentNullException(nameof(web2User));
+            ArgumentNullException.ThrowIfNull(web2User, nameof(web2User));
             if (web2User.EtherLoginAddress is null)
                 throw new InvalidOperationException();
 
