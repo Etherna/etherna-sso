@@ -31,7 +31,7 @@ namespace Etherna.SSOServer.Areas.Api
 
             builder.ConfigureServices((context, services) => {
 
-                var currentType = typeof(Startup).GetTypeInfo();
+                var currentType = typeof(Program).GetTypeInfo();
                 var servicesNamespace = $"{currentType.Namespace}.{ServicesSubNamespace}";
 
                 // Register services.
