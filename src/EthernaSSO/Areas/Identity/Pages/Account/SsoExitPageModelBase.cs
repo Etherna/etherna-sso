@@ -50,7 +50,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                     //if the client is PKCE then we assume it's native, so this change in how to
                     //return the response is for better UX for the end user
                     HttpContext.Response.StatusCode = 200;
-                    HttpContext.Response.Headers["Location"] = "";
+                    HttpContext.Response.Headers.Location = "";
 
                     return RedirectToPage("/Redirect", new { redirectUrl = returnUrl });
                 }

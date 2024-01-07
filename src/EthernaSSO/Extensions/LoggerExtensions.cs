@@ -20,7 +20,7 @@ namespace Etherna.SSOServer.Extensions
 {
     /*
      * Always group similar log delegates by type, always use incremental event ids.
-     * Last event id is: 25
+     * Last event id is: 26
      */
     public static class LoggerExtensions
     {
@@ -141,6 +141,12 @@ namespace Etherna.SSOServer.Extensions
                 new EventId(10, nameof(PasswordChanged)),
                 "User with ID '{UserId}' changed its password successfully.");
 
+        private static readonly Action<ILogger, string, Exception> _refreshedLogin =
+            LoggerMessage.Define<string>(
+                LogLevel.Information,
+                new EventId(26, nameof(RefreshedLogin)),
+                "User with ID '{UserId}' refreshed login.");
+
         private static readonly Action<ILogger, string, Exception> _resetted2FAAuthApp =
             LoggerMessage.Define<string>(
                 LogLevel.Information,
@@ -259,6 +265,9 @@ namespace Etherna.SSOServer.Extensions
 
         public static void PasswordChanged(this ILogger logger, string userId) =>
             _passwordChanged(logger, userId, null!);
+
+        public static void RefreshedLogin(this ILogger logger, string userId) =>
+            _refreshedLogin(logger, userId, null!);
 
         public static void Resetted2FAAuthApp(this ILogger logger, string userId) =>
             _resetted2FAAuthApp(logger, userId, null!);
