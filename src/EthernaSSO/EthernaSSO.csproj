@@ -4,7 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>Etherna.SSOServer</RootNamespace>
 
-    <Authors>Etherna Sagl</Authors>
+    <Authors>Etherna Sa</Authors>
     <Description>Single Sign On server for Etherna services</Description>
 
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
