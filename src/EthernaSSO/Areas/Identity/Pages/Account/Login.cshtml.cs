@@ -81,14 +81,36 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         public Web3LoginPartialModel Web3LoginPartialModel { get; set; } = default!;
 
         // Methods.
-        public async Task OnGetAsync(string? invitationCode = null, string? returnUrl = null)
+        public async Task<IActionResult> OnGetAsync(string? invitationCode = null, string? returnUrl = null)
         {
             if (!string.IsNullOrEmpty(ErrorMessage))
             {
                 ModelState.AddModelError(string.Empty, ErrorMessage);
             }
-
+            
             await InitializeAsync(invitationCode, returnUrl);
+            
+            // Check if user is already authenticated.
+            if (signInManager.IsSignedIn(User))
+            {
+                var user = await userManager.GetUserAsync(User);
+                if (user is not null)
+                {
+                    var context = await idServerInteractionService.GetAuthorizationContextAsync(ReturnUrl);
+                    
+                    // Refresh login.
+                    await signInManager.RefreshSignInAsync(user);
+                    
+                    // Rise event and create log.
+                    await eventDispatcher.DispatchAsync(new UserRefreshLoginEvent(user, clientId: context?.Client?.ClientId));
+                    logger.RefreshedLogin(user.Id);
+
+                    // Identify redirect.
+                    return await ContextedRedirectAsync(context, ReturnUrl);
+                }
+            }
+
+            return Page();
         }
 
         public async Task<IActionResult> OnPostAsync(string? invitationCode = null, string? returnUrl = null)

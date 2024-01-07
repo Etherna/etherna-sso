@@ -1,4 +1,4 @@
-﻿// Copyright 2021-present Etherna Sa
+// Copyright 2021-present Etherna Sa
 // 
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -18,16 +18,12 @@ using System;
 
 namespace Etherna.SSOServer.Domain.Events
 {
-    public class UserLoginSuccessEvent(
+    public class UserRefreshLoginEvent(
         UserBase user,
-        string? clientId = null,
-        string? provider = null,
-        string? providerUserId = null)
+        string? clientId = null)
         : IDomainEvent
     {
         public string? ClientId { get; } = clientId;
-        public string? Provider { get; } = provider;
-        public string? ProviderUserId { get; } = providerUserId;
         public UserBase User { get; } = user ?? throw new ArgumentNullException(nameof(user));
     }
 }
