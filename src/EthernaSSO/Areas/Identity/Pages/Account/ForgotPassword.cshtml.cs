@@ -65,32 +65,50 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 return Page();
 
             var user = await userManager.FindByEmailAsync(Input.Email);
-            if (user == null)
+
+            switch (user)
             {
-                // Don't reveal that the user does not exist or is not confirmed
-                return RedirectToPage("./ForgotPasswordConfirmation");
+                case null:
+                    // Don't reveal that the user does not exist or is not confirmed.
+                    return RedirectToPage("./ForgotPasswordConfirmation");
+                
+                case UserWeb2 _:
+                    // Generate url.
+                    var code = await userManager.GeneratePasswordResetTokenAsync(user);
+                    code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+                    var callbackUrl = Url.Page(
+                        "/Account/ResetPassword",
+                        pageHandler: null,
+                        values: new { area = CommonConsts.IdentityArea, code },
+                        protocol: Request.Scheme) ?? throw new InvalidOperationException();
+
+                    // Send email.
+                    var web2EmailBody = await razorViewRenderer.RenderViewToStringAsync(
+                        "Views/Emails/ResetPassword.cshtml",
+                        new Services.Views.Emails.ResetPasswordModel(callbackUrl));
+
+                    await emailSender.SendEmailAsync(
+                        Input.Email,
+                        Services.Views.Emails.ResetPasswordModel.Title,
+                        web2EmailBody);
+
+                    return RedirectToPage("./ForgotPasswordConfirmation");
+                
+                case UserWeb3 userWeb3:
+                    // Send email.
+                    var web3EmailBody = await razorViewRenderer.RenderViewToStringAsync(
+                        "Views/Emails/ResetPasswordWeb3.cshtml",
+                        new Services.Views.Emails.ResetPasswordWeb3Model(userWeb3.EtherAddress));
+
+                    await emailSender.SendEmailAsync(
+                        Input.Email,
+                        Services.Views.Emails.ResetPasswordWeb3Model.Title,
+                        web3EmailBody);
+                    
+                    return RedirectToPage("./ForgotPasswordConfirmation");
+                
+                default: throw new InvalidOperationException();
             }
-
-            // Generate url.
-            var code = await userManager.GeneratePasswordResetTokenAsync(user);
-            code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-            var callbackUrl = Url.Page(
-                "/Account/ResetPassword",
-                pageHandler: null,
-                values: new { area = CommonConsts.IdentityArea, code },
-                protocol: Request.Scheme) ?? throw new InvalidOperationException();
-
-            // Send email.
-            var emailBody = await razorViewRenderer.RenderViewToStringAsync(
-                "Views/Emails/ResetPassword.cshtml",
-                new Services.Views.Emails.ResetPasswordModel(callbackUrl));
-
-            await emailSender.SendEmailAsync(
-                Input.Email,
-                Services.Views.Emails.ResetPasswordModel.Title,
-                emailBody);
-
-            return RedirectToPage("./ForgotPasswordConfirmation");
         }
     }
 }
