@@ -1,11 +1,11 @@
-﻿//   Copyright 2021-present Etherna Sagl
-//
+﻿// Copyright 2021-present Etherna Sa
+// 
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
 //   You may obtain a copy of the License at
-//
+// 
 //       http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 //   Unless required by applicable law or agreed to in writing, software
 //   distributed under the License is distributed on an "AS IS" BASIS,
 //   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -38,8 +38,7 @@ namespace Etherna.SSOServer.Persistence.Helpers
         [SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Need to keep objects after test construction")]
         public static void InitializeDbContextMock(DbContext dbContext, Mock<IMongoDatabase>? mongoDatabaseMock = null)
         {
-            if (dbContext is null)
-                throw new ArgumentNullException(nameof(dbContext));
+            ArgumentNullException.ThrowIfNull(dbContext, nameof(dbContext));
 
             // Setup dbcontext dependencies for initialization.
             Mock<IDbDependencies> dbDependenciesMock = new();
@@ -85,10 +84,8 @@ namespace Etherna.SSOServer.Persistence.Helpers
             IRepository<TModel, TKey> collection)
              where TModel : class, IEntityModel<TKey>
         {
-            if (mongoDatabaseMock is null)
-                throw new ArgumentNullException(nameof(mongoDatabaseMock));
-            if (collection is null)
-                throw new ArgumentNullException(nameof(collection));
+            ArgumentNullException.ThrowIfNull(mongoDatabaseMock, nameof(mongoDatabaseMock));
+            ArgumentNullException.ThrowIfNull(collection, nameof(collection));
 
             var collectionMock = new Mock<IMongoCollection<TModel>>();
 
@@ -102,8 +99,7 @@ namespace Etherna.SSOServer.Persistence.Helpers
             Mock<IMongoCollection<TModel>> collectionMock,
             Func<FilterDefinition<TModel>, IEnumerable<TModel>> modelSelector)
         {
-            if (collectionMock is null)
-                throw new ArgumentNullException(nameof(collectionMock));
+            ArgumentNullException.ThrowIfNull(collectionMock, nameof(collectionMock));
 
             // Setup collection.
             collectionMock.Setup(c => c.FindAsync(

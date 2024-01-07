@@ -1,11 +1,11 @@
-﻿//   Copyright 2021-present Etherna Sagl
-//
+﻿// Copyright 2021-present Etherna Sa
+// 
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
 //   You may obtain a copy of the License at
-//
+// 
 //       http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 //   Unless required by applicable law or agreed to in writing, software
 //   distributed under the License is distributed on an "AS IS" BASIS,
 //   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -81,14 +81,36 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         public Web3LoginPartialModel Web3LoginPartialModel { get; set; } = default!;
 
         // Methods.
-        public async Task OnGetAsync(string? invitationCode = null, string? returnUrl = null)
+        public async Task<IActionResult> OnGetAsync(string? invitationCode = null, string? returnUrl = null)
         {
             if (!string.IsNullOrEmpty(ErrorMessage))
             {
                 ModelState.AddModelError(string.Empty, ErrorMessage);
             }
-
+            
             await InitializeAsync(invitationCode, returnUrl);
+            
+            // Check if user is already authenticated.
+            if (signInManager.IsSignedIn(User))
+            {
+                var user = await userManager.GetUserAsync(User);
+                if (user is not null)
+                {
+                    var context = await idServerInteractionService.GetAuthorizationContextAsync(ReturnUrl);
+                    
+                    // Refresh login.
+                    await signInManager.RefreshSignInAsync(user);
+                    
+                    // Rise event and create log.
+                    await eventDispatcher.DispatchAsync(new UserRefreshLoginEvent(user, clientId: context?.Client?.ClientId));
+                    logger.RefreshedLogin(user.Id);
+
+                    // Identify redirect.
+                    return await ContextedRedirectAsync(context, ReturnUrl);
+                }
+            }
+
+            return Page();
         }
 
         public async Task<IActionResult> OnPostAsync(string? invitationCode = null, string? returnUrl = null)

@@ -1,11 +1,11 @@
-//   Copyright 2021-present Etherna Sagl
-//
+// Copyright 2021-present Etherna Sa
+// 
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
 //   You may obtain a copy of the License at
-//
+// 
 //       http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 //   Unless required by applicable law or agreed to in writing, software
 //   distributed under the License is distributed on an "AS IS" BASIS,
 //   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -48,16 +48,13 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
         private readonly UrlEncoder urlEncoder;
         private readonly UserManager<UserBase> userManager;
 
-        private const string AuthenticatorUriFormat = "otpauth://totp/{0}%20({1})?secret={2}&issuer={0}&digits=6";
-
         public EnableAuthenticatorModel(
             IOptions<ApplicationSettings> applicationSettings,
             ILogger<EnableAuthenticatorModel> logger,
             UrlEncoder urlEncoder,
             UserManager<UserBase> userManager)
         {
-            if (applicationSettings is null)
-                throw new ArgumentNullException(nameof(applicationSettings));
+            ArgumentNullException.ThrowIfNull(applicationSettings, nameof(applicationSettings));
 
             this.applicationSettings = applicationSettings.Value;
             this.logger = logger;
@@ -169,14 +166,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             return result.ToString().ToLowerInvariant();
         }
 
-        private string GenerateQrCodeUri(string serviceName, string username, string unformattedKey)
-        {
-            return string.Format(
-                CultureInfo.InvariantCulture,
-                AuthenticatorUriFormat,
-                urlEncoder.Encode(serviceName),
-                urlEncoder.Encode(username),
-                unformattedKey);
-        }
+        private string GenerateQrCodeUri(string serviceName, string username, string unformattedKey) =>
+            $"otpauth://totp/{urlEncoder.Encode(serviceName)}%20({urlEncoder.Encode(username)})?secret={unformattedKey}&issuer={urlEncoder.Encode(serviceName)}&digits=6";
     }
 }

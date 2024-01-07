@@ -1,11 +1,11 @@
-﻿//   Copyright 2021-present Etherna Sagl
-//
+﻿// Copyright 2021-present Etherna Sa
+// 
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
 //   You may obtain a copy of the License at
-//
+// 
 //       http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 //   Unless required by applicable law or agreed to in writing, software
 //   distributed under the License is distributed on an "AS IS" BASIS,
 //   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -63,8 +63,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             // Methods.
             public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
             {
-                if (validationContext is null)
-                    throw new ArgumentNullException(nameof(validationContext));
+                ArgumentNullException.ThrowIfNull(validationContext, nameof(validationContext));
 
                 var appSettings = (IOptions<ApplicationSettings>)validationContext.GetService(typeof(IOptions<ApplicationSettings>))!;
                 if (appSettings.Value.RequireInvitation && string.IsNullOrWhiteSpace(InvitationCode))
@@ -93,8 +92,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             SignInManager<UserBase> signInManager,
             IUserService userService)
         {
-            if (applicationSettings is null)
-                throw new ArgumentNullException(nameof(applicationSettings));
+            ArgumentNullException.ThrowIfNull(applicationSettings, nameof(applicationSettings));
 
             this.applicationSettings = applicationSettings.Value;
             this.eventDispatcher = eventDispatcher;

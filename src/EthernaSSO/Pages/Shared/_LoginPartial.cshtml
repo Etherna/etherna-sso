@@ -1,4 +1,4 @@
-﻿@*  *   Copyright 2021-present Etherna Sagl
+﻿@*  *   Copyright 2021-present Etherna Sa
     *
     *   Licensed under the Apache License, Version 2.0 (the "License");
     *   you may not use this file except in compliance with the License.
@@ -15,9 +15,7 @@
 
 @using Etherna.SSOServer.Configs
 @using Etherna.SSOServer.Domain.Models
-@using Microsoft.AspNetCore.Identity
 @inject SignInManager<UserBase> SignInManager
-@inject UserManager<UserBase> UserManager
 
 <ul class="navbar-nav">
     @if (SignInManager.IsSignedIn(User))

@@ -1,11 +1,11 @@
-﻿//   Copyright 2021-present Etherna Sagl
-//
+﻿// Copyright 2021-present Etherna Sa
+// 
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
 //   You may obtain a copy of the License at
-//
+// 
 //       http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 //   Unless required by applicable law or agreed to in writing, software
 //   distributed under the License is distributed on an "AS IS" BASIS,
 //   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -53,10 +53,8 @@ namespace Etherna.SSOServer.Configs.Identity
         /// <returns>The <see cref="Task"/> that represents the asynchronous operation, containing the <see cref="IdentityResult"/> of the validation operation.</returns>
         public virtual async Task<IdentityResult> ValidateAsync(UserManager<UserBase> manager, UserBase user)
         {
-            if (manager == null)
-                throw new ArgumentNullException(nameof(manager));
-            if (user == null)
-                throw new ArgumentNullException(nameof(user));
+            ArgumentNullException.ThrowIfNull(manager, nameof(manager));
+            ArgumentNullException.ThrowIfNull(user, nameof(user));
 
             var errors = new List<IdentityError>();
 
@@ -99,7 +97,7 @@ namespace Etherna.SSOServer.Configs.Identity
             }
         }
 
-        private async Task ValidateUsernameAsync(UserManager<UserBase> manager, UserBase user, ICollection<IdentityError> errors)
+        private async Task ValidateUsernameAsync(UserManager<UserBase> manager, UserBase user, List<IdentityError> errors)
         {
             var username = await manager.GetUserNameAsync(user) ?? throw new InvalidOperationException();
 

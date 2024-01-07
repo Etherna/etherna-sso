@@ -1,11 +1,11 @@
-﻿//   Copyright 2021-present Etherna Sagl
-//
+﻿// Copyright 2021-present Etherna Sa
+// 
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
 //   You may obtain a copy of the License at
-//
+// 
 //       http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 //   Unless required by applicable law or agreed to in writing, software
 //   distributed under the License is distributed on an "AS IS" BASIS,
 //   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,7 +17,6 @@ using Duende.IdentityServer.Models;
 using Etherna.ACR.Exceptions;
 using Etherna.Authentication;
 using Microsoft.Extensions.Configuration;
-using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,7 +26,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
     public class IdServerConfig
     {
         // Consts.
-        private static class ApiResourcesDef
+        public static class ApiResourcesDef
         {
             public static readonly ApiResource EthernaCreditServiceInteract = new("ethernaCreditServiceInteract", "Etherna Credit service interact")
             {
@@ -49,7 +48,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                 }
             };
         }
-        private static class ApiScopesDef //these can go in very details of client permissions
+        public static class ApiScopesDef //these can go in very details of client permissions
         {
             //credit service interaction scopes
             public static readonly ApiScope EthernaCreditServiceInteract = new("ethernaCredit_serviceInteract_api", "Etherna Credit service interact API");
@@ -63,7 +62,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
             public static readonly ApiScope UserInteractEthernaIndex = new("userApi.index", "Etherna Index user API");
             public static readonly ApiScope UserInteractEthernaSso = new("userApi.sso", "Etherna Sso user API");
         }
-        private static class IdResourcesDef
+        public static class IdResourcesDef
         {
             public static readonly IdentityResource EtherAccounts = new()
             {
@@ -121,8 +120,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
         // Constructor.
         public IdServerConfig(IConfiguration configuration)
         {
-            if (configuration is null)
-                throw new ArgumentNullException(nameof(configuration));
+            ArgumentNullException.ThrowIfNull(configuration, nameof(configuration));
 
             apiKey_ClientId = configuration["IdServer:Clients:ApiKey:ClientId"] ?? throw new ServiceConfigurationException();
 
