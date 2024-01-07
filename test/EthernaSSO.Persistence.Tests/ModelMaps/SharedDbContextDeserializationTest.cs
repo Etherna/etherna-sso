@@ -1,11 +1,11 @@
-﻿//   Copyright 2021-present Etherna Sagl
-//
+﻿// Copyright 2021-present Etherna Sa
+// 
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
 //   You may obtain a copy of the License at
-//
+// 
 //       http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 //   Unless required by applicable law or agreed to in writing, software
 //   distributed under the License is distributed on an "AS IS" BASIS,
 //   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,11 +23,13 @@ using Etherna.SSOServer.Persistence.Helpers;
 using Moq;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Xunit;
 
 namespace Etherna.SSOServer.Persistence.ModelMaps
 {
+    [SuppressMessage("Performance", "CA1861:Avoid constant arrays as arguments")]
     public class SharedDbContextDeserializationTest
     {
         // Fields.
@@ -85,8 +87,7 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
         [Theory, MemberData(nameof(UserSharedInfoDeserializationTests))]
         public void UserSharedInfoDeserialization(DeserializationTestElement<UserSharedInfo, SharedDbContext> testElement)
         {
-            if (testElement is null)
-                throw new ArgumentNullException(nameof(testElement));
+            ArgumentNullException.ThrowIfNull(testElement, nameof(testElement));
 
             // Setup.
             using var documentReader = new JsonReader(testElement.SourceDocument);

@@ -1,11 +1,11 @@
-﻿//   Copyright 2021-present Etherna Sagl
-//
+﻿// Copyright 2021-present Etherna Sa
+// 
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
 //   You may obtain a copy of the License at
-//
+// 
 //       http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 //   Unless required by applicable law or agreed to in writing, software
 //   distributed under the License is distributed on an "AS IS" BASIS,
 //   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -25,11 +25,13 @@ using Etherna.SSOServer.Persistence.Settings;
 using Moq;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Xunit;
 
 namespace Etherna.SSOServer.Persistence.ModelMaps
 {
+    [SuppressMessage("Performance", "CA1861:Avoid constant arrays as arguments")]
     public class SsoDbContextDeserializationTest
     {
         // Fields.
@@ -468,8 +470,7 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
         [Theory, MemberData(nameof(AlphaPassRequestDeserializationTests))]
         public void AlphaPassRequestDeserialization(DeserializationTestElement<AlphaPassRequest, SsoDbContext> testElement)
         {
-            if (testElement is null)
-                throw new ArgumentNullException(nameof(testElement));
+            ArgumentNullException.ThrowIfNull(testElement, nameof(testElement));
 
             // Arrange.
             using var documentReader = new JsonReader(testElement.SourceDocument);
@@ -496,8 +497,7 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
         [Theory, MemberData(nameof(ApiKeyDeserializationTests))]
         public void ApiKeyDeserialization(DeserializationTestElement<ApiKey, SsoDbContext> testElement)
         {
-            if (testElement is null)
-                throw new ArgumentNullException(nameof(testElement));
+            ArgumentNullException.ThrowIfNull(testElement, nameof(testElement));
 
             // Arrange.
             using var documentReader = new JsonReader(testElement.SourceDocument);
@@ -525,8 +525,7 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
         [Theory, MemberData(nameof(DailyStatsDeserializationTests))]
         public void DailyStatsDeserialization(DeserializationTestElement<DailyStats, SsoDbContext> testElement)
         {
-            if (testElement is null)
-                throw new ArgumentNullException(nameof(testElement));
+            ArgumentNullException.ThrowIfNull(testElement, nameof(testElement));
 
             // Arrange.
             using var documentReader = new JsonReader(testElement.SourceDocument);
@@ -550,8 +549,7 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
         [Theory, MemberData(nameof(InvitationDeserializationTests))]
         public void InvitationDeserialization(DeserializationTestElement<Invitation, SsoDbContext> testElement)
         {
-            if (testElement is null)
-                throw new ArgumentNullException(nameof(testElement));
+            ArgumentNullException.ThrowIfNull(testElement, nameof(testElement));
 
             // Arrange.
             using var documentReader = new JsonReader(testElement.SourceDocument);
@@ -578,8 +576,7 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
         [Theory, MemberData(nameof(RoleDeserializationTests))]
         public void RoleDeserialization(DeserializationTestElement<Role, SsoDbContext> testElement)
         {
-            if (testElement is null)
-                throw new ArgumentNullException(nameof(testElement));
+            ArgumentNullException.ThrowIfNull(testElement, nameof(testElement));
 
             // Arrange.
             using var documentReader = new JsonReader(testElement.SourceDocument);
@@ -604,8 +601,7 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
         [Theory, MemberData(nameof(UserDeserializationTests))]
         public void UserDeserialization(DeserializationTestElement<UserBase, SsoDbContext> testElement)
         {
-            if (testElement is null)
-                throw new ArgumentNullException(nameof(testElement));
+            ArgumentNullException.ThrowIfNull(testElement, nameof(testElement));
 
             // Arrange.
             using var documentReader = new JsonReader(testElement.SourceDocument);
@@ -665,8 +661,7 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
         [Theory, MemberData(nameof(Web3LoginTokenDeserializationTests))]
         public void Web3LoginTokenDeserialization(DeserializationTestElement<Web3LoginToken, SsoDbContext> testElement)
         {
-            if (testElement is null)
-                throw new ArgumentNullException(nameof(testElement));
+            ArgumentNullException.ThrowIfNull(testElement, nameof(testElement));
 
             // Arrange.
             using var documentReader = new JsonReader(testElement.SourceDocument);

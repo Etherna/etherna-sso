@@ -1,11 +1,11 @@
-﻿//   Copyright 2021-present Etherna Sagl
-//
+﻿// Copyright 2021-present Etherna Sa
+// 
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
 //   You may obtain a copy of the License at
-//
+// 
 //       http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 //   Unless required by applicable law or agreed to in writing, software
 //   distributed under the License is distributed on an "AS IS" BASIS,
 //   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -49,8 +49,7 @@ namespace Etherna.SSOServer.Domain.Models
             bool invitedByAdmin,
             UserSharedInfo sharedInfo)
         {
-            if (sharedInfo is null)
-                throw new ArgumentNullException(nameof(sharedInfo));
+            ArgumentNullException.ThrowIfNull(sharedInfo, nameof(sharedInfo));
 
             SetUsername(username);
             InvitedBy = invitedBy;
@@ -140,8 +139,7 @@ namespace Etherna.SSOServer.Domain.Models
         [PropertyAlterer(nameof(Claims))]
         public virtual bool AddClaim(UserClaim claim)
         {
-            if (claim is null)
-                throw new ArgumentNullException(nameof(claim));
+            ArgumentNullException.ThrowIfNull(claim, nameof(claim));
 
             //keep default claims managed by model
             if (DomainManagedClaimNames.Contains(claim.Type))
@@ -179,8 +177,7 @@ namespace Etherna.SSOServer.Domain.Models
         [PropertyAlterer(nameof(Claims))]
         public virtual bool RemoveClaim(UserClaim claim)
         {
-            if (claim is null)
-                throw new ArgumentNullException(nameof(claim));
+            ArgumentNullException.ThrowIfNull(claim, nameof(claim));
 
             return RemoveClaim(claim.Type, claim.Value);
         }
@@ -188,10 +185,8 @@ namespace Etherna.SSOServer.Domain.Models
         [PropertyAlterer(nameof(Claims))]
         public virtual bool RemoveClaim(string type, string value)
         {
-            if (type is null)
-                throw new ArgumentNullException(nameof(type));
-            if (value is null)
-                throw new ArgumentNullException(nameof(value));
+            ArgumentNullException.ThrowIfNull(type, nameof(type));
+            ArgumentNullException.ThrowIfNull(value, nameof(value));
 
             var removed = _customClaims.RemoveAll(c => c.Type == type &&
                                                        c.Value == value);
