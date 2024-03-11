@@ -15,6 +15,7 @@
 using Etherna.MongODM.Core.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Serilog;
 using System;
 using System.Collections.Generic;
 
@@ -25,7 +26,11 @@ namespace Etherna.SSOServer.Attributes
         public override void OnException(ExceptionContext context)
         {
             ArgumentNullException.ThrowIfNull(context, nameof(context));
+            
+            // Log exception.
+            Log.Warning(context.Exception, "API exception");
 
+            // Handle exception.
             switch (context.Exception)
             {
                 case ArgumentException _:

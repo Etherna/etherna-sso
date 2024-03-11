@@ -104,6 +104,9 @@ namespace Etherna.SSOServer.Configs.IdentityServer
         private readonly string ethernaGateway_Webapp_ClientId;
         private readonly string ethernaGateway_Webapp_Secret;
 
+        private readonly string ethernaGatewayCli_BaseUrl;
+        private readonly string ethernaGatewayCli_ClientId;
+
         private readonly string ethernaIndex_BaseUrl;
         private readonly string ethernaIndex_Sso_ClientId;
         private readonly string ethernaIndex_Sso_Secret;
@@ -138,6 +141,9 @@ namespace Etherna.SSOServer.Configs.IdentityServer
             ethernaGateway_Credit_Secret = configuration["IdServer:Clients:EthernaGateway:Clients:Credit:Secret"] ?? throw new ServiceConfigurationException();
             ethernaGateway_Webapp_ClientId = configuration["IdServer:Clients:EthernaGateway:Clients:Webapp:ClientId"] ?? throw new ServiceConfigurationException();
             ethernaGateway_Webapp_Secret = configuration["IdServer:Clients:EthernaGateway:Clients:Webapp:Secret"] ?? throw new ServiceConfigurationException();
+
+            ethernaGatewayCli_BaseUrl = configuration["IdServer:Clients:EthernaGatewayCli:BaseUrl"] ?? throw new ServiceConfigurationException();
+            ethernaGatewayCli_ClientId = configuration["IdServer:Clients:EthernaGatewayCli:ClientId"] ?? throw new ServiceConfigurationException();
 
             ethernaIndex_BaseUrl = configuration["IdServer:Clients:EthernaIndex:BaseUrl"] ?? throw new ServiceConfigurationException();
             ethernaIndex_Sso_ClientId = configuration["IdServer:Clients:EthernaIndex:Clients:SsoServer:ClientId"] ?? throw new ServiceConfigurationException();
@@ -333,6 +339,40 @@ namespace Etherna.SSOServer.Configs.IdentityServer
 
                 // Allow token refresh.
                 AllowOfflineAccess = true
+            },
+
+            //gateway cli
+            new Client
+            {
+                ClientId = ethernaGatewayCli_ClientId,
+                ClientName = "Etherna Gateway CLI",
+                RequireClientSecret = false,
+
+                AllowedGrantTypes = GrantTypes.Code,
+
+                //where to redirect to after login
+                RedirectUris = { ethernaGatewayCli_BaseUrl },
+
+                //where to redirect to after logout
+                PostLogoutRedirectUris = { ethernaGatewayCli_BaseUrl },
+
+                AllowedCorsOrigins = { ethernaGatewayCli_BaseUrl },
+
+                AlwaysIncludeUserClaimsInIdToken = true,
+                AllowedScopes =
+                {
+                    //identity
+                    IdentityServerConstants.StandardScopes.OpenId,
+                    IdentityServerConstants.StandardScopes.Profile,
+                    IdResourcesDef.EtherAccounts.Name,
+
+                    //resource
+                    ApiScopesDef.UserInteractEthernaGateway.Name,
+                },
+
+                // Allow token refresh.
+                AllowOfflineAccess = true,
+                RefreshTokenUsage = TokenUsage.OneTimeOnly //because client have not secret
             },
             
             //index (sso client)

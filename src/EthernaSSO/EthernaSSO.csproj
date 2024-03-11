@@ -20,16 +20,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="8.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="8.0.2" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning.ApiExplorer" Version="5.1.0" />
-    <PackageReference Include="Microsoft.TypeScript.MSBuild" Version="5.3.3"> <!--Installed only to hide warning-->
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="MongODM" Version="0.24.0-alpha.98" />
-    <PackageReference Include="MongODM.AspNetCore.UI" Version="0.24.0-alpha.98" />
-    <PackageReference Include="Serilog.AspNetCore" Version="8.0.0" />
+    <PackageReference Include="MongODM" Version="0.24.0-alpha.101" />
+    <PackageReference Include="MongODM.AspNetCore.UI" Version="0.24.0-alpha.101" />
+    <PackageReference Include="Serilog.AspNetCore" Version="8.0.1" />
     <PackageReference Include="Serilog.Enrichers.Environment" Version="2.3.0" />
     <PackageReference Include="Serilog.Exceptions" Version="8.4.0" />
     <PackageReference Include="Serilog.Sinks.Elasticsearch" Version="9.0.3" />
