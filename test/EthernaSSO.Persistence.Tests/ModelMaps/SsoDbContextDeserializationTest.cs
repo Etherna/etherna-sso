@@ -32,6 +32,7 @@ using Xunit;
 namespace Etherna.SSOServer.Persistence.ModelMaps
 {
     [SuppressMessage("Performance", "CA1861:Avoid constant arrays as arguments")]
+    [SuppressMessage("Design", "CA1001:Types that own disposable fields should be disposable")]
     public class SsoDbContextDeserializationTest
     {
         // Fields.
