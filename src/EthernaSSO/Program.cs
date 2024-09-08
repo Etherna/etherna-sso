@@ -14,6 +14,7 @@
 
 using Duende.IdentityServer.Stores;
 using Duende.IdentityServer.Validation;
+using Etherna.ACR.Conventions;
 using Etherna.ACR.Exceptions;
 using Etherna.ACR.Middlewares.DebugPages;
 using Etherna.ACR.Settings;
@@ -29,7 +30,6 @@ using Etherna.SSOServer.Configs.IdentityServer;
 using Etherna.SSOServer.Configs.MongODM;
 using Etherna.SSOServer.Configs.Swagger;
 using Etherna.SSOServer.Configs.SystemStore;
-using Etherna.SSOServer.Conventions;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Extensions;
