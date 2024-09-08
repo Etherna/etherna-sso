@@ -4,7 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>Etherna.SSOServer</RootNamespace>
 
-    <Authors>Etherna Sa</Authors>
+    <Authors>Etherna SA</Authors>
     <Description>Single Sign On server for Etherna services</Description>
 
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
@@ -35,6 +35,11 @@
     <ProjectReference Include="..\EthernaSSO.Domain\EthernaSSO.Domain.csproj" />
     <ProjectReference Include="..\EthernaSSO.Persistence\EthernaSSO.Persistence.csproj" />
     <ProjectReference Include="..\EthernaSSO.Services\EthernaSSO.Services.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\COPYING" />
+    <None Include="..\..\README.md" />
   </ItemGroup>
 
   <Target Name="DeleteDist" AfterTargets="Clean">
