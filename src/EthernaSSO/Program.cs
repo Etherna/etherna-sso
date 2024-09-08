@@ -341,11 +341,10 @@ namespace Etherna.SSOServer
             {
                 //default policy
                 options.DefaultPolicy = new AuthorizationPolicy(
-                    new IAuthorizationRequirement[]
-                    {
+                    [
                         new DenyAnonymousAuthorizationRequirement(),
                         new DenyBannedAuthorizationRequirement()
-                    },
+                    ],
                     Array.Empty<string>());
 
                 //other policies
@@ -425,6 +424,7 @@ namespace Etherna.SSOServer
             services.AddSwaggerGen(options =>
             {
                 options.SupportNonNullableReferenceTypes();
+                options.UseAllOfToExtendReferenceSchemas();
                 options.UseInlineDefinitionsForEnums();
 
                 //add a custom operation filter which sets default values
