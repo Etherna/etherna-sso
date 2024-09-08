@@ -5,7 +5,7 @@
     <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
     <RootNamespace>Etherna.SSOServer.Services</RootNamespace>
 
-    <Authors>Etherna Sa</Authors>
+    <Authors>Etherna SA</Authors>
 	  
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <Nullable>enable</Nullable>
