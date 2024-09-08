@@ -120,6 +120,10 @@ namespace Etherna.SSOServer.Configs.IdentityServer
         private readonly string ethernaVideoImporter_BaseUrl;
         private readonly string ethernaVideoImporter_ClientId;
 
+        private readonly string streamEth_BaseUrl;
+        private readonly string streamEth_Webapp_ClientId;
+        private readonly string streamEth_Webapp_Secret;
+
         // Constructor.
         public IdServerConfig(IConfiguration configuration)
         {
@@ -157,6 +161,10 @@ namespace Etherna.SSOServer.Configs.IdentityServer
 
             ethernaVideoImporter_BaseUrl = configuration["IdServer:Clients:EthernaVideoImporter:BaseUrl"] ?? throw new ServiceConfigurationException();
             ethernaVideoImporter_ClientId = configuration["IdServer:Clients:EthernaVideoImporter:ClientId"] ?? throw new ServiceConfigurationException();
+
+            streamEth_BaseUrl = configuration["IdServer:Clients:StreamEth:BaseUrl"] ?? throw new ServiceConfigurationException();
+            streamEth_Webapp_ClientId = configuration["IdServer:Clients:StreamEth:Webapp:ClientId"] ?? throw new ServiceConfigurationException();
+            streamEth_Webapp_Secret = configuration["IdServer:Clients:StreamEth:Webapp:Secret"] ?? throw new ServiceConfigurationException();
         }
 
         // Properties.
@@ -445,6 +453,39 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                     IdentityServerConstants.StandardScopes.Profile,
                     IdResourcesDef.EtherAccounts.Name,
                     IdResourcesDef.Role.Name
+                },
+
+                // Allow token refresh.
+                AllowOfflineAccess = true
+            },
+
+            //streameth
+            new Client
+            {
+                ClientId = streamEth_Webapp_ClientId,
+                ClientName = "StreamETH",
+                ClientSecrets = { new Secret(streamEth_Webapp_Secret.Sha256()) },
+
+                AllowedGrantTypes = GrantTypes.Code,
+
+                //where to redirect to after login
+                RedirectUris = { $"{streamEth_BaseUrl}/signin-oidc" },
+
+                //where to redirect to after logout
+                PostLogoutRedirectUris = { $"{streamEth_BaseUrl}/signout-callback-oidc" },
+
+                AlwaysIncludeUserClaimsInIdToken = true,
+                AllowedScopes =
+                {
+                    //identity
+                    IdentityServerConstants.StandardScopes.OpenId,
+                    IdentityServerConstants.StandardScopes.Profile,
+                    IdResourcesDef.EtherAccounts.Name,
+                    IdResourcesDef.Role.Name,
+                    
+                    //resource
+                    ApiScopesDef.UserInteractEthernaGateway.Name,
+                    ApiScopesDef.UserInteractEthernaIndex.Name
                 },
 
                 // Allow token refresh.
