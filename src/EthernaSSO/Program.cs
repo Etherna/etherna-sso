@@ -582,6 +582,8 @@ namespace Etherna.SSOServer
                     //identity
                     IdentityServerConstants.StandardScopes.OpenId,
                     IdentityServerConstants.StandardScopes.Profile,
+                    IdServerConfig.IdResourcesDef.EtherAccounts.Name,
+                    IdServerConfig.IdResourcesDef.Role.Name,
                     
                     //resource
                     IdServerConfig.ApiScopesDef.UserInteractEthernaSso.Name);

@@ -288,11 +288,14 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                 AllowedCorsOrigins = { ethernaCredit_BaseUrl },
                 RequirePkce = true,
                 
+                AlwaysIncludeUserClaimsInIdToken = true,
                 AllowedScopes =
                 {
                     //identity
                     IdentityServerConstants.StandardScopes.OpenId,
                     IdentityServerConstants.StandardScopes.Profile,
+                    IdResourcesDef.EtherAccounts.Name,
+                    IdResourcesDef.Role.Name,
                     
                     //resource
                     ApiScopesDef.UserInteractEthernaCredit.Name,
@@ -436,11 +439,14 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                 AllowedCorsOrigins = ethernaGateway_BaseUrls,
                 RequirePkce = true,
                 
+                AlwaysIncludeUserClaimsInIdToken = true,
                 AllowedScopes =
                 {
                     //identity
                     IdentityServerConstants.StandardScopes.OpenId,
                     IdentityServerConstants.StandardScopes.Profile,
+                    IdResourcesDef.EtherAccounts.Name,
+                    IdResourcesDef.Role.Name,
                     
                     //resource
                     ApiScopesDef.UserInteractEthernaGateway.Name,
@@ -512,11 +518,14 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                 AllowedCorsOrigins = { ethernaIndex_BaseUrl },
                 RequirePkce = true,
                 
+                AlwaysIncludeUserClaimsInIdToken = true,
                 AllowedScopes =
                 {
                     //identity
                     IdentityServerConstants.StandardScopes.OpenId,
                     IdentityServerConstants.StandardScopes.Profile,
+                    IdResourcesDef.EtherAccounts.Name,
+                    IdResourcesDef.Role.Name,
                     
                     //resource
                     ApiScopesDef.UserInteractEthernaIndex.Name,
@@ -570,11 +579,14 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                 AllowedCorsOrigins = { ethernaSso_BaseUrl },
                 RequirePkce = true,
                 
+                AlwaysIncludeUserClaimsInIdToken = true,
                 AllowedScopes =
                 {
                     //identity
                     IdentityServerConstants.StandardScopes.OpenId,
                     IdentityServerConstants.StandardScopes.Profile,
+                    IdResourcesDef.EtherAccounts.Name,
+                    IdResourcesDef.Role.Name,
                     
                     //resource
                     ApiScopesDef.UserInteractEthernaSso.Name,
