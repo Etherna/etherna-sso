@@ -85,6 +85,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                 }
             };
         }
+        private const string SwaggerRedirectUriPath = "/swagger/oauth2-redirect.html";
 
         // Fields.
         private readonly string apiKey_ClientId;
@@ -116,6 +117,8 @@ namespace Etherna.SSOServer.Configs.IdentityServer
         private readonly string ethernaSso_BaseUrl;
         private readonly string ethernaSso_Webapp_ClientId;
         private readonly string ethernaSso_Webapp_Secret;
+
+        private readonly string ethernaSsoSwagger_ClientId;
 
         private readonly string ethernaVideoImporter_BaseUrl;
         private readonly string ethernaVideoImporter_ClientId;
@@ -155,32 +158,34 @@ namespace Etherna.SSOServer.Configs.IdentityServer
             ethernaSso_Webapp_ClientId = configuration["IdServer:SsoServer:Clients:Webapp:ClientId"] ?? throw new ServiceConfigurationException();
             ethernaSso_Webapp_Secret = configuration["IdServer:SsoServer:Clients:Webapp:Secret"] ?? throw new ServiceConfigurationException();
 
+            ethernaSsoSwagger_ClientId = configuration["IdServer:Clients:EthernaSsoSwagger:ClientId"] ?? throw new ServiceConfigurationException();
+
             ethernaVideoImporter_BaseUrl = configuration["IdServer:Clients:EthernaVideoImporter:BaseUrl"] ?? throw new ServiceConfigurationException();
             ethernaVideoImporter_ClientId = configuration["IdServer:Clients:EthernaVideoImporter:ClientId"] ?? throw new ServiceConfigurationException();
         }
 
         // Properties.
-        public IEnumerable<ApiResource> ApiResources => new ApiResource[]
-        {
+        public IEnumerable<ApiResource> ApiResources =>
+        [
             ApiResourcesDef.EthernaCreditServiceInteract,
             ApiResourcesDef.EthernaSsoServiceInteract,
             ApiResourcesDef.EthernaUserApi
-        };
+        ];
 
-        public IEnumerable<ApiScope> ApiScopes => new ApiScope[]
-        {
+        public IEnumerable<ApiScope> ApiScopes =>
+        [
             ApiScopesDef.EthernaCreditServiceInteract,
             ApiScopesDef.EthernaSsoUserContactInfo,
             ApiScopesDef.UserInteractEthernaCredit,
             ApiScopesDef.UserInteractEthernaGateway,
             ApiScopesDef.UserInteractEthernaIndex,
             ApiScopesDef.UserInteractEthernaSso
-        };
+        ];
 
-        public IEnumerable<Client> Clients => new Client[]
-        {
+        public IEnumerable<Client> Clients =>
+        [
             //api key
-            new Client
+            new()
             {
                 ClientId = apiKey_ClientId,
                 ClientName = "Api Key client",
@@ -210,7 +215,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
             },
 
             //credit (sso client)
-            new Client
+            new()
             {
                 ClientId = ethernaCredit_Sso_ClientId,
                 ClientName = "EthernaCredit Sso client",
@@ -228,7 +233,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
             },
 
             //credit (user login)
-            new Client
+            new()
             {
                 ClientId = ethernaCredit_Webapp_ClientId,
                 ClientName = "Etherna Credit",
@@ -257,14 +262,14 @@ namespace Etherna.SSOServer.Configs.IdentityServer
             },
 
             //dapp
-            new Client
+            new()
             {
                 ClientId = ethernaDapp_ClientId,
                 ClientName = "Etherna Dapp",
                 RequireClientSecret = false,
 
                 AllowedGrantTypes = GrantTypes.Code,
-                    
+                
                 //where to redirect to after login
                 RedirectUris = { $"{ethernaDapp_BaseUrl}/callback" },
 
@@ -295,7 +300,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
             },
 
             //gateway (credit client)
-            new Client
+            new()
             {
                 ClientId = ethernaGateway_Credit_ClientId,
                 ClientName = "EthernaGateway Credit client",
@@ -313,7 +318,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
             },
                 
             //gateway (user login)
-            new Client
+            new()
             {
                 ClientId = ethernaGateway_Webapp_ClientId,
                 ClientName = "Etherna Gateway",
@@ -342,7 +347,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
             },
 
             //gateway cli
-            new Client
+            new()
             {
                 ClientId = ethernaGatewayCli_ClientId,
                 ClientName = "Etherna Gateway CLI",
@@ -376,7 +381,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
             },
             
             //index (sso client)
-            new Client
+            new()
             {
                 ClientId = ethernaIndex_Sso_ClientId,
                 ClientName = "EthernaIndex Sso client",
@@ -394,7 +399,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
             },
 
             //index (user login)
-            new Client
+            new()
             {
                 ClientId = ethernaIndex_Webapp_ClientId,
                 ClientName = "Etherna Index",
@@ -423,7 +428,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
             },
 
             //sso (user login)
-            new Client
+            new()
             {
                 ClientId = ethernaSso_Webapp_ClientId,
                 ClientName = "Etherna SSO",
@@ -450,9 +455,38 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                 // Allow token refresh.
                 AllowOfflineAccess = true
             },
+            
+            //sso (swagger)
+            new()
+            {
+                ClientId = ethernaSsoSwagger_ClientId,
+                ClientName = "Etherna SSO API Swagger",
+                RequireClientSecret = false,
+                
+                AllowedGrantTypes = GrantTypes.Code,
+                
+                //where to redirect to after login
+                RedirectUris = { $"{ethernaSso_BaseUrl}{SwaggerRedirectUriPath}" },
+                
+                AllowedCorsOrigins = { ethernaSso_BaseUrl },
+                RequirePkce = true,
+                
+                AllowedScopes =
+                {
+                    //identity
+                    IdentityServerConstants.StandardScopes.OpenId,
+                    IdentityServerConstants.StandardScopes.Profile,
+                    
+                    //resource
+                    ApiScopesDef.UserInteractEthernaSso.Name,
+                },
+                
+                AllowOfflineAccess = true,
+                RefreshTokenUsage = TokenUsage.OneTimeOnly //because client have not secret
+            },
 
             //video importer
-            new Client
+            new()
             {
                 ClientId = ethernaVideoImporter_ClientId,
                 ClientName = "Etherna Video Importer",
@@ -484,8 +518,8 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                 // Allow token refresh.
                 AllowOfflineAccess = true,
                 RefreshTokenUsage = TokenUsage.OneTimeOnly //because client have not secret
-            },
-        };
+            }
+        ];
 
         public IEnumerable<IdentityResource> IdResources => new IdentityResource[]
         {
