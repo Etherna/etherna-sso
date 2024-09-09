@@ -96,6 +96,8 @@ namespace Etherna.SSOServer.Configs.IdentityServer
         private readonly string ethernaCredit_Webapp_ClientId;
         private readonly string ethernaCredit_Webapp_Secret;
 
+        private readonly string ethernaCreditSwagger_ClientId;
+
         private readonly string ethernaDapp_BaseUrl;
         private readonly string ethernaDapp_ClientId;
 
@@ -108,11 +110,15 @@ namespace Etherna.SSOServer.Configs.IdentityServer
         private readonly string ethernaGatewayCli_BaseUrl;
         private readonly string ethernaGatewayCli_ClientId;
 
+        private readonly string ethernaGatewaySwagger_ClientId;
+
         private readonly string ethernaIndex_BaseUrl;
         private readonly string ethernaIndex_Sso_ClientId;
         private readonly string ethernaIndex_Sso_Secret;
         private readonly string ethernaIndex_Webapp_ClientId;
         private readonly string ethernaIndex_Webapp_Secret;
+
+        private readonly string ethernaIndexSwagger_ClientId;
 
         private readonly string ethernaSso_BaseUrl;
         private readonly string ethernaSso_Webapp_ClientId;
@@ -136,6 +142,8 @@ namespace Etherna.SSOServer.Configs.IdentityServer
             ethernaCredit_Webapp_ClientId = configuration["IdServer:Clients:EthernaCredit:Clients:Webapp:ClientId"] ?? throw new ServiceConfigurationException();
             ethernaCredit_Webapp_Secret = configuration["IdServer:Clients:EthernaCredit:Clients:Webapp:Secret"] ?? throw new ServiceConfigurationException();
 
+            ethernaCreditSwagger_ClientId = configuration["IdServer:Clients:EthernaCreditSwagger:ClientId"] ?? throw new ServiceConfigurationException();
+
             ethernaDapp_BaseUrl = configuration["IdServer:Clients:EthernaDapp:BaseUrl"] ?? throw new ServiceConfigurationException();
             ethernaDapp_ClientId = configuration["IdServer:Clients:EthernaDapp:ClientId"] ?? throw new ServiceConfigurationException();
 
@@ -148,11 +156,15 @@ namespace Etherna.SSOServer.Configs.IdentityServer
             ethernaGatewayCli_BaseUrl = configuration["IdServer:Clients:EthernaGatewayCli:BaseUrl"] ?? throw new ServiceConfigurationException();
             ethernaGatewayCli_ClientId = configuration["IdServer:Clients:EthernaGatewayCli:ClientId"] ?? throw new ServiceConfigurationException();
 
+            ethernaGatewaySwagger_ClientId = configuration["IdServer:Clients:EthernaGatewaySwagger:ClientId"] ?? throw new ServiceConfigurationException();
+
             ethernaIndex_BaseUrl = configuration["IdServer:Clients:EthernaIndex:BaseUrl"] ?? throw new ServiceConfigurationException();
             ethernaIndex_Sso_ClientId = configuration["IdServer:Clients:EthernaIndex:Clients:SsoServer:ClientId"] ?? throw new ServiceConfigurationException();
             ethernaIndex_Sso_Secret = configuration["IdServer:Clients:EthernaIndex:Clients:SsoServer:Secret"] ?? throw new ServiceConfigurationException();
             ethernaIndex_Webapp_ClientId = configuration["IdServer:Clients:EthernaIndex:Clients:Webapp:ClientId"] ?? throw new ServiceConfigurationException();
             ethernaIndex_Webapp_Secret = configuration["IdServer:Clients:EthernaIndex:Clients:Webapp:Secret"] ?? throw new ServiceConfigurationException();
+
+            ethernaIndexSwagger_ClientId = configuration["IdServer:Clients:EthernaIndexSwagger:ClientId"] ?? throw new ServiceConfigurationException();
 
             ethernaSso_BaseUrl = configuration["IdServer:SsoServer:BaseUrl"] ?? throw new ServiceConfigurationException();
             ethernaSso_Webapp_ClientId = configuration["IdServer:SsoServer:Clients:Webapp:ClientId"] ?? throw new ServiceConfigurationException();
@@ -259,6 +271,35 @@ namespace Etherna.SSOServer.Configs.IdentityServer
 
                 // Allow token refresh.
                 AllowOfflineAccess = true
+            },
+            
+            //credit swagger
+            new()
+            {
+                ClientId = ethernaCreditSwagger_ClientId,
+                ClientName = "Etherna Credit API Swagger",
+                RequireClientSecret = false,
+                
+                AllowedGrantTypes = GrantTypes.Code,
+                
+                //where to redirect to after login
+                RedirectUris = { $"{ethernaCredit_BaseUrl}{SwaggerRedirectUriPath}" },
+                
+                AllowedCorsOrigins = { ethernaCredit_BaseUrl },
+                RequirePkce = true,
+                
+                AllowedScopes =
+                {
+                    //identity
+                    IdentityServerConstants.StandardScopes.OpenId,
+                    IdentityServerConstants.StandardScopes.Profile,
+                    
+                    //resource
+                    ApiScopesDef.UserInteractEthernaCredit.Name,
+                },
+                
+                AllowOfflineAccess = true,
+                RefreshTokenUsage = TokenUsage.OneTimeOnly //because client have not secret
             },
 
             //dapp
@@ -380,6 +421,35 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                 RefreshTokenUsage = TokenUsage.OneTimeOnly //because client have not secret
             },
             
+            //gateway swagger
+            new()
+            {
+                ClientId = ethernaGatewaySwagger_ClientId,
+                ClientName = "Etherna Gateway API Swagger",
+                RequireClientSecret = false,
+                
+                AllowedGrantTypes = GrantTypes.Code,
+                
+                //where to redirect to after login
+                RedirectUris = ethernaGateway_BaseUrls.Select(url => $"{url}{SwaggerRedirectUriPath}").ToList(),
+                
+                AllowedCorsOrigins = ethernaGateway_BaseUrls,
+                RequirePkce = true,
+                
+                AllowedScopes =
+                {
+                    //identity
+                    IdentityServerConstants.StandardScopes.OpenId,
+                    IdentityServerConstants.StandardScopes.Profile,
+                    
+                    //resource
+                    ApiScopesDef.UserInteractEthernaGateway.Name,
+                },
+                
+                AllowOfflineAccess = true,
+                RefreshTokenUsage = TokenUsage.OneTimeOnly //because client have not secret
+            },
+            
             //index (sso client)
             new()
             {
@@ -426,6 +496,35 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                 // Allow token refresh.
                 AllowOfflineAccess = true
             },
+            
+            //index swagger
+            new()
+            {
+                ClientId = ethernaIndexSwagger_ClientId,
+                ClientName = "Etherna Index API Swagger",
+                RequireClientSecret = false,
+                
+                AllowedGrantTypes = GrantTypes.Code,
+                
+                //where to redirect to after login
+                RedirectUris = { $"{ethernaIndex_BaseUrl}{SwaggerRedirectUriPath}" },
+                
+                AllowedCorsOrigins = { ethernaIndex_BaseUrl },
+                RequirePkce = true,
+                
+                AllowedScopes =
+                {
+                    //identity
+                    IdentityServerConstants.StandardScopes.OpenId,
+                    IdentityServerConstants.StandardScopes.Profile,
+                    
+                    //resource
+                    ApiScopesDef.UserInteractEthernaIndex.Name,
+                },
+                
+                AllowOfflineAccess = true,
+                RefreshTokenUsage = TokenUsage.OneTimeOnly //because client have not secret
+            },
 
             //sso (user login)
             new()
@@ -456,7 +555,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                 AllowOfflineAccess = true
             },
             
-            //sso (swagger)
+            //sso swagger
             new()
             {
                 ClientId = ethernaSsoSwagger_ClientId,
