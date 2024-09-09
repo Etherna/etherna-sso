@@ -12,6 +12,7 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
+using Duende.IdentityServer;
 using Duende.IdentityServer.Stores;
 using Duende.IdentityServer.Validation;
 using Etherna.ACR.Conventions;
@@ -29,6 +30,7 @@ using Etherna.SSOServer.Configs.Identity;
 using Etherna.SSOServer.Configs.IdentityServer;
 using Etherna.SSOServer.Configs.MongODM;
 using Etherna.SSOServer.Configs.Swagger;
+using Etherna.SSOServer.Configs.Swagger.Filters;
 using Etherna.SSOServer.Configs.SystemStore;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
@@ -58,6 +60,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
+using Microsoft.OpenApi.Models;
 using Serilog;
 using Serilog.Exceptions;
 using Serilog.Sinks.Elasticsearch;
@@ -427,13 +430,32 @@ namespace Etherna.SSOServer
                 options.UseAllOfToExtendReferenceSchemas();
                 options.UseInlineDefinitionsForEnums();
 
-                //add a custom operation filter which sets default values
-                options.OperationFilter<SwaggerDefaultValues>();
+                //add a custom operation filters
+                options.OperationFilter<ApiMethodNeedsAuthFilter>();
+                options.OperationFilter<SwaggerDefaultValuesFilter>();
 
                 //integrate xml comments
                 var xmlFile = typeof(Program).GetTypeInfo().Assembly.GetName().Name + ".xml";
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 options.IncludeXmlComments(xmlPath);
+
+                var ssoBaseUrl = config["IdServer:SsoServer:BaseUrl"] ?? throw new ServiceConfigurationException();
+                var scheme = new OpenApiSecurityScheme
+                {
+                    In = ParameterLocation.Header,
+                    Name = "Authorization",
+                    Flows = new OpenApiOAuthFlows
+                    {
+                        AuthorizationCode = new OpenApiOAuthFlow
+                        {
+                            AuthorizationUrl = new Uri($"{ssoBaseUrl}/connect/authorize"),
+                            TokenUrl = new Uri($"{ssoBaseUrl}/connect/token")
+                        }
+                    },
+                    Type = SecuritySchemeType.OAuth2
+                };
+
+                options.AddSecurityDefinition("OAuth", scheme);
             });
 
             // Configure setting.
@@ -492,6 +514,7 @@ namespace Etherna.SSOServer
         private static void ConfigureApplication(WebApplication app)
         {
             var env = app.Environment;
+            var config = app.Configuration;
             var apiProvider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
 
             if (env.IsDevelopment())
@@ -553,6 +576,17 @@ namespace Etherna.SSOServer
                 {
                     options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", description.GroupName.ToUpperInvariant());
                 }
+                
+                options.OAuthClientId(config["IdServer:Clients:EthernaSsoSwagger:ClientId"] ?? throw new ServiceConfigurationException());
+                options.OAuthScopes(
+                    //identity
+                    IdentityServerConstants.StandardScopes.OpenId,
+                    IdentityServerConstants.StandardScopes.Profile,
+                    
+                    //resource
+                    IdServerConfig.ApiScopesDef.UserInteractEthernaSso.Name);
+                options.OAuthUsePkce();
+                options.EnablePersistAuthorization();
             });
 
             // Add endpoints.

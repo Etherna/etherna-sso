@@ -27,17 +27,8 @@ namespace Etherna.SSOServer.Areas.Api.Controllers
     [ApiVersion("0.3")]
     [Route("api/v{api-version:apiVersion}/[controller]")]
     [Authorize(CommonConsts.ServiceInteractApiScopePolicy)]
-    public class ServiceInteractController : ControllerBase
+    public class ServiceInteractController(IServiceInteractControllerService service) : ControllerBase
     {
-        // Fields.
-        private readonly IServiceInteractControllerService controllerService;
-
-        // Constructor.
-        public ServiceInteractController(IServiceInteractControllerService controllerService)
-        {
-            this.controllerService = controllerService;
-        }
-
         /// <summary>
         /// Get contact information about an user.
         /// </summary>
@@ -49,6 +40,6 @@ namespace Etherna.SSOServer.Areas.Api.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public Task<UserContactInfoDto> GetUserContactInfoAsync(string etherAddress) =>
-            controllerService.GetUserContactInfoAsync(etherAddress);
+            service.GetUserContactInfoAsync(etherAddress);
     }
 }
