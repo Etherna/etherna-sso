@@ -4,7 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>Etherna.SSOServer.Domain</RootNamespace>
 
-    <Authors>Etherna Sa</Authors>
+    <Authors>Etherna SA</Authors>
 
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <Nullable>enable</Nullable>
@@ -13,11 +13,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Etherna.Authentication.AspNetCore" Version="0.3.3" />
+    <PackageReference Include="Etherna.Authentication.AspNetCore" Version="0.4.0-alpha.29" />
     <PackageReference Include="Etherna.DomainEvents" Version="1.4.0" />
-    <PackageReference Include="EthernaACR" Version="0.3.10" />
-    <PackageReference Include="MongODM.Core" Version="0.24.0-alpha.101" />
-    <PackageReference Include="Nethereum.Accounts" Version="4.19.0" />
+    <PackageReference Include="EthernaACR" Version="0.4.0-alpha.60" />
+    <PackageReference Include="MongODM.Core" Version="0.24.0" />
+    <PackageReference Include="Nethereum.Accounts" Version="4.25.0" />
   </ItemGroup>
 
 </Project>

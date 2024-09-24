@@ -4,7 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>Etherna.SSOServer.Persistence</RootNamespace>
 
-    <Authors>Etherna Sa</Authors>
+    <Authors>Etherna SA</Authors>
 	  
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <Nullable>enable</Nullable>

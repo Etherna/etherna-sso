@@ -4,7 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>Etherna.SSOServer</RootNamespace>
 
-    <Authors>Etherna Sa</Authors>
+    <Authors>Etherna SA</Authors>
     <Description>Single Sign On server for Etherna services</Description>
 
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
@@ -20,22 +20,26 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.2" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="8.0.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.8" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning.ApiExplorer" Version="5.1.0" />
-    <PackageReference Include="MongODM" Version="0.24.0-alpha.101" />
-    <PackageReference Include="MongODM.AspNetCore.UI" Version="0.24.0-alpha.101" />
-    <PackageReference Include="Serilog.AspNetCore" Version="8.0.1" />
-    <PackageReference Include="Serilog.Enrichers.Environment" Version="2.3.0" />
+    <PackageReference Include="MongODM" Version="0.24.0" />
+    <PackageReference Include="MongODM.AspNetCore.UI" Version="0.24.0" />
+    <PackageReference Include="Serilog.AspNetCore" Version="8.0.2" />
+    <PackageReference Include="Serilog.Enrichers.Environment" Version="3.0.1" />
     <PackageReference Include="Serilog.Exceptions" Version="8.4.0" />
-    <PackageReference Include="Serilog.Sinks.Elasticsearch" Version="9.0.3" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+    <PackageReference Include="Serilog.Sinks.Elasticsearch" Version="10.0.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.8.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\EthernaSSO.Domain\EthernaSSO.Domain.csproj" />
     <ProjectReference Include="..\EthernaSSO.Persistence\EthernaSSO.Persistence.csproj" />
     <ProjectReference Include="..\EthernaSSO.Services\EthernaSSO.Services.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\COPYING" />
+    <None Include="..\..\README.md" />
   </ItemGroup>
 
   <Target Name="DeleteDist" AfterTargets="Clean">
