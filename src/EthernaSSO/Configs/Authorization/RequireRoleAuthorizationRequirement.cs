@@ -12,14 +12,13 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Authorization;
 
-namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
+namespace Etherna.SSOServer.Configs.Authorization
 {
-    public class IndexModel : PageModel
+    public class RequireRoleAuthorizationRequirement(string roleName)
+        : IAuthorizationRequirement
     {
-        public void OnGet()
-        {
-        }
+        public string RoleName { get; } = roleName;
     }
 }

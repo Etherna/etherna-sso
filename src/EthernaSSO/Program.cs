@@ -1,19 +1,21 @@
-// Copyright 2021-present Etherna Sa
+// Copyright 2021-present Etherna SA
+// This file is part of Etherna Sso.
 // 
-//   Licensed under the Apache License, Version 2.0 (the "License");
-//   you may not use this file except in compliance with the License.
-//   You may obtain a copy of the License at
+// Etherna Sso is free software: you can redistribute it and/or modify it under the terms of the
+// GNU Affero General Public License as published by the Free Software Foundation,
+// either version 3 of the License, or (at your option) any later version.
 // 
-//       http://www.apache.org/licenses/LICENSE-2.0
+// Etherna Sso is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+// without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// See the GNU Affero General Public License for more details.
 // 
-//   Unless required by applicable law or agreed to in writing, software
-//   distributed under the License is distributed on an "AS IS" BASIS,
-//   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//   See the License for the specific language governing permissions and
-//   limitations under the License.
+// You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
+// If not, see <https://www.gnu.org/licenses/>.
 
+using Duende.IdentityServer;
 using Duende.IdentityServer.Stores;
 using Duende.IdentityServer.Validation;
+using Etherna.ACR.Conventions;
 using Etherna.ACR.Exceptions;
 using Etherna.ACR.Middlewares.DebugPages;
 using Etherna.ACR.Settings;
@@ -28,8 +30,8 @@ using Etherna.SSOServer.Configs.Identity;
 using Etherna.SSOServer.Configs.IdentityServer;
 using Etherna.SSOServer.Configs.MongODM;
 using Etherna.SSOServer.Configs.Swagger;
+using Etherna.SSOServer.Configs.Swagger.Filters;
 using Etherna.SSOServer.Configs.SystemStore;
-using Etherna.SSOServer.Conventions;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Extensions;
@@ -58,6 +60,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
+using Microsoft.OpenApi.Models;
 using Serilog;
 using Serilog.Exceptions;
 using Serilog.Sinks.Elasticsearch;
@@ -341,11 +344,10 @@ namespace Etherna.SSOServer
             {
                 //default policy
                 options.DefaultPolicy = new AuthorizationPolicy(
-                    new IAuthorizationRequirement[]
-                    {
+                    [
                         new DenyAnonymousAuthorizationRequirement(),
                         new DenyBannedAuthorizationRequirement()
-                    },
+                    ],
                     Array.Empty<string>());
 
                 //other policies
@@ -353,8 +355,9 @@ namespace Etherna.SSOServer
                     policy =>
                     {
                         policy.RequireAuthenticatedUser();
-                        policy.RequireRole(Role.NormalizeName(Role.AdministratorName));
                         policy.AddRequirements(new DenyBannedAuthorizationRequirement());
+                        policy.AddRequirements(new RequireRoleAuthorizationRequirement(
+                            Role.NormalizeName(Role.AdministratorName)));
                     });
                 
                 options.AddPolicy(CommonConsts.UserInteractApiScopePolicy, policy =>
@@ -375,6 +378,7 @@ namespace Etherna.SSOServer
 
             //requirement handlers
             services.AddScoped<IAuthorizationHandler, DenyBannedAuthorizationHandler>();
+            services.AddScoped<IAuthorizationHandler, RequireRoleAuthorizationHandler>();
 
             // Configure IdentityServer.
             var idServerConfig = new IdServerConfig(config);
@@ -425,15 +429,35 @@ namespace Etherna.SSOServer
             services.AddSwaggerGen(options =>
             {
                 options.SupportNonNullableReferenceTypes();
+                options.UseAllOfToExtendReferenceSchemas();
                 options.UseInlineDefinitionsForEnums();
 
-                //add a custom operation filter which sets default values
-                options.OperationFilter<SwaggerDefaultValues>();
+                //add a custom operation filters
+                options.OperationFilter<ApiMethodNeedsAuthFilter>();
+                options.OperationFilter<SwaggerDefaultValuesFilter>();
 
                 //integrate xml comments
                 var xmlFile = typeof(Program).GetTypeInfo().Assembly.GetName().Name + ".xml";
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 options.IncludeXmlComments(xmlPath);
+
+                var ssoBaseUrl = config["IdServer:SsoServer:BaseUrl"] ?? throw new ServiceConfigurationException();
+                var scheme = new OpenApiSecurityScheme
+                {
+                    In = ParameterLocation.Header,
+                    Name = "Authorization",
+                    Flows = new OpenApiOAuthFlows
+                    {
+                        AuthorizationCode = new OpenApiOAuthFlow
+                        {
+                            AuthorizationUrl = new Uri($"{ssoBaseUrl}/connect/authorize"),
+                            TokenUrl = new Uri($"{ssoBaseUrl}/connect/token")
+                        }
+                    },
+                    Type = SecuritySchemeType.OAuth2
+                };
+
+                options.AddSecurityDefinition("OAuth", scheme);
             });
 
             // Configure setting.
@@ -492,6 +516,7 @@ namespace Etherna.SSOServer
         private static void ConfigureApplication(WebApplication app)
         {
             var env = app.Environment;
+            var config = app.Configuration;
             var apiProvider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
 
             if (env.IsDevelopment())
@@ -553,6 +578,19 @@ namespace Etherna.SSOServer
                 {
                     options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", description.GroupName.ToUpperInvariant());
                 }
+                
+                options.OAuthClientId(config["IdServer:Clients:EthernaSsoSwagger:ClientId"] ?? throw new ServiceConfigurationException());
+                options.OAuthScopes(
+                    //identity
+                    IdentityServerConstants.StandardScopes.OpenId,
+                    IdentityServerConstants.StandardScopes.Profile,
+                    IdServerConfig.IdResourcesDef.EtherAccounts.Name,
+                    IdServerConfig.IdResourcesDef.Role.Name,
+                    
+                    //resource
+                    IdServerConfig.ApiScopesDef.UserInteractEthernaSso.Name);
+                options.OAuthUsePkce();
+                options.EnablePersistAuthorization();
             });
 
             // Add endpoints.

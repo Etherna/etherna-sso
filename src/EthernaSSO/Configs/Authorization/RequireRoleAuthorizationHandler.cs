@@ -1,4 +1,4 @@
-﻿// Copyright 2021-present Etherna SA
+// Copyright 2021-present Etherna SA
 // This file is part of Etherna Sso.
 // 
 // Etherna Sso is free software: you can redistribute it and/or modify it under the terms of the
@@ -12,33 +12,33 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.SSOServer.Domain.Models;
+using Etherna.Authentication;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Configs.Authorization
 {
-    public class DenyBannedAuthorizationHandler(
-        UserManager<UserBase> userManager)
-        : AuthorizationHandler<DenyBannedAuthorizationRequirement>
+    public class RequireRoleAuthorizationHandler(
+        IEthernaOpenIdConnectClient ethernaOidcClient)
+        : AuthorizationHandler<RequireRoleAuthorizationRequirement>
     {
         // Methods.
         protected override async Task HandleRequirementAsync(
             AuthorizationHandlerContext context,
-            DenyBannedAuthorizationRequirement requirement)
+            RequireRoleAuthorizationRequirement requirement)
         {
             ArgumentNullException.ThrowIfNull(context, nameof(context));
+            ArgumentNullException.ThrowIfNull(requirement, nameof(requirement));
 
             if (context.User.Identity?.IsAuthenticated == true)
             {
-                var user = await userManager.GetUserAsync(context.User) ?? throw new InvalidOperationException();
-
-                if (await userManager.IsLockedOutAsync(user))
-                    context.Fail();
-                else
+                var roles = await ethernaOidcClient.TryGetRolesAsync();
+                if (roles?.Contains(requirement.RoleName) == true)
                     context.Succeed(requirement);
+                else
+                    context.Fail();
             }
         }
     }
