@@ -27,24 +27,12 @@ using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Areas.Api.Services
 {
-    public class IdentityControllerService : IIdentityControllerService
+    public class IdentityControllerService(
+        ISsoDbContext context,
+        UserManager<UserBase> userManager,
+        IUserService userService)
+        : IIdentityControllerService
     {
-        // Fields.
-        private readonly ISsoDbContext context;
-        private readonly UserManager<UserBase> userManager;
-        private readonly IUserService userService;
-
-        // Constructors.
-        public IdentityControllerService(
-            ISsoDbContext context,
-            UserManager<UserBase> userManager,
-            IUserService userService)
-        {
-            this.context = context;
-            this.userManager = userManager;
-            this.userService = userService;
-        }
-
         // Methods.
         public async Task<UserDto> GetUserByEtherAddressAsync(string etherAddress)
         {

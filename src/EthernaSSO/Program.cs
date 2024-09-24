@@ -355,8 +355,9 @@ namespace Etherna.SSOServer
                     policy =>
                     {
                         policy.RequireAuthenticatedUser();
-                        policy.RequireRole(Role.NormalizeName(Role.AdministratorName));
                         policy.AddRequirements(new DenyBannedAuthorizationRequirement());
+                        policy.AddRequirements(new RequireRoleAuthorizationRequirement(
+                            Role.NormalizeName(Role.AdministratorName)));
                     });
                 
                 options.AddPolicy(CommonConsts.UserInteractApiScopePolicy, policy =>
@@ -377,6 +378,7 @@ namespace Etherna.SSOServer
 
             //requirement handlers
             services.AddScoped<IAuthorizationHandler, DenyBannedAuthorizationHandler>();
+            services.AddScoped<IAuthorizationHandler, RequireRoleAuthorizationHandler>();
 
             // Configure IdentityServer.
             var idServerConfig = new IdServerConfig(config);

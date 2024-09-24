@@ -28,14 +28,14 @@ namespace Etherna.SSOServer.Domain.Models
     public abstract class UserBase : EntityModelBase<string>
     {
         // Consts.
-        public static readonly IEnumerable<string> DomainManagedClaimNames = new[]
-        {
+        public static readonly IEnumerable<string> DomainManagedClaimNames =
+        [
             EthernaClaimTypes.EtherAddress,
             EthernaClaimTypes.EtherPreviousAddresses,
             EthernaClaimTypes.IsWeb3Account,
-            EthernaClaimTypes.Role,
+            EthernaClaimTypes.Role_IdentityModel,
             EthernaClaimTypes.Username
-        };
+        ];
 
         // Fields.
         private readonly List<UserClaim> _customClaims = new();
@@ -82,7 +82,7 @@ namespace Etherna.SSOServer.Domain.Models
                 };
 
                 foreach (var role in _roles)
-                    claims.Add(new UserClaim(EthernaClaimTypes.Role, role.NormalizedName));
+                    claims.Add(new UserClaim(EthernaClaimTypes.Role_IdentityModel, role.NormalizedName));
 
                 return claims;
             }
