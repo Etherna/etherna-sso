@@ -79,10 +79,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
             {
                 DisplayName = "Role",
                 Name = "role",
-                UserClaims = new List<string>()
-                {
-                    EthernaClaimTypes.Role
-                }
+                UserClaims = [EthernaClaimTypes.Role_IdentityModel]
             };
         }
         private const string SwaggerRedirectUriPath = "/swagger/oauth2-redirect.html";
