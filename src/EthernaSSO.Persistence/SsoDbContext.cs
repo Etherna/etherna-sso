@@ -33,25 +33,14 @@ using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Persistence
 {
-    public class SsoDbContext : DbContext, IEventDispatcherDbContext, ISsoDbContext
+    public class SsoDbContext(
+        IEventDispatcher eventDispatcher,
+        SsoDbSeedSettings seedSettings,
+        IServiceProvider serviceProvider)
+        : DbContext, IEventDispatcherDbContext, ISsoDbContext
     {
         // Consts.
         private const string ModelMapsNamespace = "Etherna.SSOServer.Persistence.ModelMaps.Sso";
-
-        // Fields.
-        private readonly SsoDbSeedSettings seedSettings;
-        private readonly IServiceProvider serviceProvider;
-
-        // Constructor.
-        public SsoDbContext(
-            IEventDispatcher eventDispatcher,
-            SsoDbSeedSettings seedSettings,
-            IServiceProvider serviceProvider)
-        {
-            EventDispatcher = eventDispatcher;
-            this.seedSettings = seedSettings;
-            this.serviceProvider = serviceProvider;
-        }
 
         // Properties.
         //repositories
@@ -147,7 +136,7 @@ namespace Etherna.SSOServer.Persistence
         public override IEnumerable<DocumentMigration> DocumentMigrationList => Array.Empty<DocumentMigration>();
 
         //other properties
-        public IEventDispatcher EventDispatcher { get; }
+        public IEventDispatcher EventDispatcher { get; } = eventDispatcher;
 
         // Protected properties.
         protected override IEnumerable<IModelMapsCollector> ModelMapsCollectors =>
@@ -193,7 +182,7 @@ namespace Etherna.SSOServer.Persistence
                     true,
                     null,
                     null,
-                    new[] { adminRole },
+                    [adminRole],
                     false);
 
                 if (user is null)
