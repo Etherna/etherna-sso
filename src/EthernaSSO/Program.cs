@@ -413,13 +413,13 @@ namespace Etherna.SSOServer
                 //register hangfire server
                 services.AddHangfireServer(options =>
                 {
-                    options.Queues = new[]
-                    {
+                    options.Queues =
+                    [
                         Queues.DB_MAINTENANCE,
                         Queues.DOMAIN_MAINTENANCE,
                         Queues.STATS,
                         "default"
-                    };
+                    ];
                     options.WorkerCount = Environment.ProcessorCount * 2;
                 });
             }
