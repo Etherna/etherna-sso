@@ -22,8 +22,8 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.10" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning.ApiExplorer" Version="5.1.0" />
-    <PackageReference Include="MongODM" Version="0.24.0" />
-    <PackageReference Include="MongODM.AspNetCore.UI" Version="0.24.0" />
+    <PackageReference Include="MongODM" Version="0.25.0-alpha.4" />
+    <PackageReference Include="MongODM.AspNetCore.UI" Version="0.25.0-alpha.4" />
     <PackageReference Include="Serilog.AspNetCore" Version="8.0.3" />
     <PackageReference Include="Serilog.Enrichers.Environment" Version="3.0.1" />
     <PackageReference Include="Serilog.Exceptions" Version="8.4.0" />

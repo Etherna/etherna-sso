@@ -22,7 +22,7 @@ using Etherna.MongoDB.Driver.Linq;
 using Etherna.MongODM.Core.Options;
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Configs.SystemStore
@@ -36,6 +36,7 @@ namespace Etherna.SSOServer.Configs.SystemStore
         private readonly IMongoCollection<PersistedGrant> collection;
 
         // Constructor.
+        [SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope")]
         public PersistedGrantRepository(DbContextOptions options, string name)
         {
             ArgumentNullException.ThrowIfNull(options, nameof(options));
