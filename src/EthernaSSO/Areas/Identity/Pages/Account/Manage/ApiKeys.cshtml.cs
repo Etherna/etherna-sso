@@ -24,21 +24,11 @@ using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
 {
-    public class ApiKeysModel : PageModel
+    public class ApiKeysModel(
+        ISsoDbContext ssoDbContext,
+        UserManager<UserBase> userManager)
+        : PageModel
     {
-        // Fields.
-        private readonly ISsoDbContext ssoDbContext;
-        private readonly UserManager<UserBase> userManager;
-
-        // Constructor.
-        public ApiKeysModel(
-            ISsoDbContext ssoDbContext,
-            UserManager<UserBase> userManager)
-        {
-            this.ssoDbContext = ssoDbContext;
-            this.userManager = userManager;
-        }
-
         // Properties.
         public List<ApiKey> ApiKeys { get; } = new();
 
