@@ -76,6 +76,7 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using DashboardOptions = Etherna.MongODM.AspNetCore.UI.DashboardOptions;
 using IPNetwork = Microsoft.AspNetCore.HttpOverrides.IPNetwork;
+using SameSiteMode = Microsoft.AspNetCore.Http.SameSiteMode;
 
 namespace Etherna.SSOServer
 {
@@ -383,11 +384,12 @@ namespace Etherna.SSOServer
             // Configure IdentityServer.
             var idServerConfig = new IdServerConfig(config);
             services.AddIdentityServer(options =>
-            {
-                options.Authentication.CookieAuthenticationScheme = IdentityConstants.ApplicationScheme;
-                options.LicenseKey = config["IdServer:LicenseKey"]; //can be null in dev env
-                options.UserInteraction.ErrorUrl = "/Error";
-            })
+                {
+                    options.Authentication.CookieAuthenticationScheme = IdentityConstants.ApplicationScheme;
+                    options.Authentication.CookieSameSiteMode = SameSiteMode.Lax;
+                    options.LicenseKey = config["IdServer:LicenseKey"]; //can be null in dev env
+                    options.UserInteraction.ErrorUrl = "/Error";
+                })
                 .AddInMemoryApiResources(idServerConfig.ApiResources)
                 .AddInMemoryApiScopes(idServerConfig.ApiScopes)
                 .AddInMemoryClients(idServerConfig.Clients)
