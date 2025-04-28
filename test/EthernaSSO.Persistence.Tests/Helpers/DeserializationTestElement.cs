@@ -19,6 +19,7 @@ using System;
 
 namespace Etherna.SSOServer.Persistence.Helpers
 {
+#pragma warning disable CA1515
     public class DeserializationTestElement<TModel, TDbContext>
         where TDbContext : IDbContext
     {
@@ -40,4 +41,5 @@ namespace Etherna.SSOServer.Persistence.Helpers
         public TModel ExpectedModel { get; }
         public Action<Mock<IMongoDatabase>, TDbContext> SetupAction { get; }
     }
+#pragma warning restore CA1515
 }

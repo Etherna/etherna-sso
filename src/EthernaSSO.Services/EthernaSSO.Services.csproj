@@ -18,8 +18,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Duende.IdentityServer.AspNetIdentity" Version="7.0.7" />
-    <PackageReference Include="Etherna.DomainEvents.AspNetCore" Version="1.4.0" />
+    <PackageReference Include="Duende.IdentityServer.AspNetIdentity" Version="7.2.1" />
+    <PackageReference Include="Etherna.DomainEvents.AspNetCore" Version="1.5.0" />
     <PackageReference Include="MongODM.Hangfire" Version="0.24.0" />
   </ItemGroup>
 
