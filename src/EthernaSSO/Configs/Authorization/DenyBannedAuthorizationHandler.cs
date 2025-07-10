@@ -20,7 +20,7 @@ using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Configs.Authorization
 {
-    public class DenyBannedAuthorizationHandler(
+    internal sealed class DenyBannedAuthorizationHandler(
         UserManager<UserBase> userManager)
         : AuthorizationHandler<DenyBannedAuthorizationRequirement>
     {

@@ -17,7 +17,7 @@ using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Extensions
 {
-    public static class ClientStoreExtensions
+    internal static class ClientStoreExtensions
     {
         /// <summary>
         /// Determines whether the client is configured to use PKCE.

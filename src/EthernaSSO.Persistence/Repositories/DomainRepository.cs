@@ -14,6 +14,7 @@
 
 using Etherna.DomainEvents;
 using Etherna.DomainEvents.Events;
+using Etherna.MongoDB.Driver;
 using Etherna.MongODM.Core.Repositories;
 using Etherna.SSOServer.Domain.Models;
 using System;
@@ -82,12 +83,15 @@ namespace Etherna.SSOServer.Persistence.Repositories
             }
         }
 
-        public override async Task DeleteAsync(TModel model, CancellationToken cancellationToken = default)
+        public override async Task DeleteAsync(
+            TModel model,
+            FilterDefinition<TModel>[]? additionalFilters = null,
+            CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(model, nameof(model));
 
             // Delete entity.
-            await base.DeleteAsync(model, cancellationToken);
+            await base.DeleteAsync(model, additionalFilters, cancellationToken);
 
             // Dispatch custom events.
             if (EventDispatcher != null)

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
     <RootNamespace>Etherna.SSOServer.Services</RootNamespace>
 
@@ -18,9 +18,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Duende.IdentityServer.AspNetIdentity" Version="7.2.1" />
+    <PackageReference Include="Duende.IdentityServer.AspNetIdentity" Version="7.2.4" />
     <PackageReference Include="Etherna.DomainEvents.AspNetCore" Version="1.5.0" />
-    <PackageReference Include="MongODM.Hangfire" Version="0.25.0-alpha.4" />
+    <PackageReference Include="MongODM.Hangfire" Version="0.25.0-alpha.34" />
   </ItemGroup>
 
   <ItemGroup>

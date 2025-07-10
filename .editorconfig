@@ -38,6 +38,9 @@ dotnet_diagnostic.CA1307.severity = none    # Not required, and MongoDB queries 
 # CA1308: Normalize strings to uppercase
 dotnet_diagnostic.CA1308.severity = none    # I choose if use upper or lower case
 
+# CA1515: Consider making public types internal
+dotnet_diagnostic.CA1515.severity = none    # Tests and MVC components requires to be public
+
 # CA1707: Identifiers should not contain underscores
 dotnet_diagnostic.CA1707.severity = none    # I like underscores into constants name
 

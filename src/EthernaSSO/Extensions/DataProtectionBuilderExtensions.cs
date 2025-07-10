@@ -20,7 +20,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Etherna.SSOServer.Extensions
 {
-    public static class DataProtectionBuilderExtensions
+    internal static class DataProtectionBuilderExtensions
     {
         private const string KeyCollectionName = "dataProtectionKeys";
 

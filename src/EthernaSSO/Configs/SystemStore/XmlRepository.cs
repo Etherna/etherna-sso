@@ -25,6 +25,7 @@ using System.Xml.Linq;
 
 namespace Etherna.SSOServer.Configs.SystemStore
 {
+#pragma warning disable CA2000
     public class XmlRepository : IXmlRepository
     {
         // Fields.
@@ -69,4 +70,5 @@ namespace Etherna.SSOServer.Configs.SystemStore
             collection.InsertOne(bsonDoc);
         }
     }
+#pragma warning restore CA2000
 }
