@@ -31,7 +31,7 @@ namespace Etherna.SSOServer.Configs.Identity
     /// <summary>
     /// A facade for <see cref="UserBase"/> used by Asp.Net Identity framework.
     /// </summary>
-    public sealed class UserStore :
+    internal sealed class UserStore :
         IUserAuthenticatorKeyStore<UserBase>,
         IUserClaimStore<UserBase>,
         IUserEmailStore<UserBase>,
