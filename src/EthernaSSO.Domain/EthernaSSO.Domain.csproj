@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <RootNamespace>Etherna.SSOServer.Domain</RootNamespace>
 
     <Authors>Etherna SA</Authors>
@@ -13,12 +13,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Etherna.Authentication.AspNetCore" Version="0.4.0-alpha.29" />
+    <PackageReference Include="Etherna.Authentication.AspNetCore" Version="0.4.0-alpha.41" />
     <PackageReference Include="Etherna.DomainEvents" Version="1.5.0" />
-    <PackageReference Include="EthernaACR" Version="0.4.0-alpha.60" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="8.0.15" />
-    <PackageReference Include="MongODM.Core" Version="0.24.0" />
-    <PackageReference Include="Nethereum.Accounts" Version="4.29.0" />
+    <PackageReference Include="EthernaACR" Version="0.4.0-alpha.64" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="9.0.9" />
+    <PackageReference Include="MongODM.Core" Version="0.25.0-alpha.48" />
+    <PackageReference Include="Nethereum.Accounts" Version="5.0.0" />
   </ItemGroup>
 
 </Project>

@@ -546,7 +546,11 @@ namespace Etherna.SSOServer
                 }
                 else
                 {
-                    builder.WithOrigins("https://etherna.io")
+                    builder.WithOrigins(
+                            "https://etherna.io",
+                            "https://credit.etherna.io",
+                            "https://gateway.etherna.io",
+                            "https://index.etherna.io")
                            .AllowAnyHeader()
                            .AllowAnyMethod()
                            .AllowCredentials();
@@ -566,7 +570,7 @@ namespace Etherna.SSOServer
             app.UseHangfireDashboard(CommonConsts.HangfireAdminPath,
                 new Hangfire.DashboardOptions
                 {
-                    Authorization = new[] { new Configs.Hangfire.AdminAuthFilter() }
+                    Authorization = [new Configs.Hangfire.AdminAuthFilter()]
                 });
 
             // Add Swagger.

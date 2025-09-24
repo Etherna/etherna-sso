@@ -21,7 +21,7 @@ using System.Collections.Generic;
 
 namespace Etherna.SSOServer.Attributes
 {
-    public sealed class HideUnauthorizedExceptionFilterAttribute : ExceptionFilterAttribute
+    internal sealed class HideUnauthorizedExceptionFilterAttribute : ExceptionFilterAttribute
     {
         public override void OnException(ExceptionContext context)
         {

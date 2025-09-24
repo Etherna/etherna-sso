@@ -68,7 +68,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
             {
                 DisplayName = "Ether accounts",
                 Name = "ether_accounts",
-                UserClaims = new List<string>()
+                UserClaims = new List<string>
                 {
                     EthernaClaimTypes.EtherAddress,
                     EthernaClaimTypes.EtherPreviousAddresses,
@@ -629,12 +629,12 @@ namespace Etherna.SSOServer.Configs.IdentityServer
             }
         ];
 
-        public IEnumerable<IdentityResource> IdResources => new IdentityResource[]
-        {
+        public IEnumerable<IdentityResource> IdResources =>
+        [
             new IdentityResources.OpenId(),
             new IdentityResources.Profile(),
             IdResourcesDef.EtherAccounts,
             IdResourcesDef.Role
-        };
+        ];
     }
 }
