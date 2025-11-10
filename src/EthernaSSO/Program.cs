@@ -1,14 +1,14 @@
 // Copyright 2021-present Etherna SA
 // This file is part of Etherna Sso.
-// 
+//
 // Etherna Sso is free software: you can redistribute it and/or modify it under the terms of the
 // GNU Affero General Public License as published by the Free Software Foundation,
 // either version 3 of the License, or (at your option) any later version.
-// 
+//
 // Etherna Sso is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
 // without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU Affero General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
@@ -130,7 +130,7 @@ namespace Etherna.SSOServer
                 IndexFormat = $"{assemblyName}-{envName}-{DateTime.UtcNow:yyyy-MM}"
             };
         }
-        
+
         private static void ConfigureLogging()
         {
             var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? throw new ServiceConfigurationException();
@@ -210,6 +210,11 @@ namespace Etherna.SSOServer
                 }
                 options.Events.OnRedirectToAccessDenied = unauthorizedApiCallHandler;
                 options.Events.OnRedirectToLogin = unauthorizedApiCallHandler;
+            });
+
+            services.Configure<CookiePolicyOptions>(options =>
+            {
+                options.MinimumSameSitePolicy = Microsoft.AspNetCore.Http.SameSiteMode.Lax;
             });
 
             services.Configure<ForwardedHeadersOptions>(options =>
@@ -360,7 +365,7 @@ namespace Etherna.SSOServer
                         policy.AddRequirements(new RequireRoleAuthorizationRequirement(
                             Role.NormalizeName(Role.AdministratorName)));
                     });
-                
+
                 options.AddPolicy(CommonConsts.UserInteractApiScopePolicy, policy =>
                 {
                     policy.AuthenticationSchemes = new List<string> { CommonConsts.UserAuthenticationJwtScheme };
@@ -384,12 +389,12 @@ namespace Etherna.SSOServer
             // Configure IdentityServer.
             var idServerConfig = new IdServerConfig(config);
             services.AddIdentityServer(options =>
-                {
-                    options.Authentication.CookieAuthenticationScheme = IdentityConstants.ApplicationScheme;
-                    options.Authentication.CookieSameSiteMode = SameSiteMode.Lax;
-                    options.LicenseKey = config["IdServer:LicenseKey"]; //can be null in dev env
-                    options.UserInteraction.ErrorUrl = "/Error";
-                })
+            {
+                options.Authentication.CookieAuthenticationScheme = IdentityConstants.ApplicationScheme;
+                options.Authentication.CookieSameSiteMode = Microsoft.AspNetCore.Http.SameSiteMode.Lax;
+                options.LicenseKey = config["IdServer:LicenseKey"]; //can be null in dev env
+                options.UserInteraction.ErrorUrl = "/Error";
+            })
                 .AddInMemoryApiResources(idServerConfig.ApiResources)
                 .AddInMemoryApiScopes(idServerConfig.ApiScopes)
                 .AddInMemoryClients(idServerConfig.Clients)
@@ -562,6 +567,7 @@ namespace Etherna.SSOServer
 
             app.UseRouting();
 
+            app.UseCookiePolicy();
             app.UseAuthentication();
             app.UseIdentityServer();
             app.UseAuthorization();
@@ -584,7 +590,7 @@ namespace Etherna.SSOServer
                 {
                     options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", description.GroupName.ToUpperInvariant());
                 }
-                
+
                 options.OAuthClientId(config["IdServer:Clients:EthernaSsoSwagger:ClientId"] ?? throw new ServiceConfigurationException());
                 options.OAuthScopes(
                     //identity
@@ -592,7 +598,7 @@ namespace Etherna.SSOServer
                     IdentityServerConstants.StandardScopes.Profile,
                     IdServerConfig.IdResourcesDef.EtherAccounts.Name,
                     IdServerConfig.IdResourcesDef.Role.Name,
-                    
+
                     //resource
                     IdServerConfig.ApiScopesDef.UserInteractEthernaSso.Name);
                 options.OAuthUsePkce();
