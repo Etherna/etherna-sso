@@ -50,6 +50,7 @@ using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
@@ -191,6 +192,9 @@ namespace Etherna.SSOServer
                 // Cookie settings.
                 options.Cookie.HttpOnly = true;
                 options.Cookie.Name = config["Application:CompactName"] ?? throw new ServiceConfigurationException();
+                options.Cookie.SecurePolicy = env.IsDevelopment()
+                    ? CookieSecurePolicy.None
+                    : CookieSecurePolicy.Always;
                 options.ExpireTimeSpan = TimeSpan.FromDays(30);
 
                 options.LoginPath = "/Identity/Account/Login";
@@ -210,6 +214,14 @@ namespace Etherna.SSOServer
                 }
                 options.Events.OnRedirectToAccessDenied = unauthorizedApiCallHandler;
                 options.Events.OnRedirectToLogin = unauthorizedApiCallHandler;
+            });
+
+            services.Configure<CookiePolicyOptions>(options =>
+            {
+                options.MinimumSameSitePolicy = SameSiteMode.Lax;
+                options.Secure = env.IsDevelopment()
+                    ? CookieSecurePolicy.None
+                    : CookieSecurePolicy.Always;
             });
 
             services.Configure<ForwardedHeadersOptions>(options =>
@@ -562,6 +574,7 @@ namespace Etherna.SSOServer
 
             app.UseRouting();
 
+            app.UseCookiePolicy();
             app.UseAuthentication();
             app.UseIdentityServer();
             app.UseAuthorization();
