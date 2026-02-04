@@ -15,7 +15,7 @@
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace Etherna.SSOServer.Configs.Swagger
@@ -48,7 +48,7 @@ namespace Etherna.SSOServer.Configs.Swagger
 
         static OpenApiInfo CreateInfoForApiVersion(ApiVersionDescription description)
         {
-            var info = new OpenApiInfo()
+            var info = new OpenApiInfo
             {
                 Title = "Etherna SSO API",
                 Version = description.ApiVersion.ToString(),

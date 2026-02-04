@@ -13,11 +13,11 @@
 // If not, see <https://www.gnu.org/licenses/>.
 
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
-using Microsoft.OpenApi.Any;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System;
 using System.Linq;
+using System.Text.Json.Nodes;
 
 namespace Etherna.SSOServer.Configs.Swagger.Filters
 {
@@ -35,8 +35,8 @@ namespace Etherna.SSOServer.Configs.Swagger.Filters
         /// <param name="context">The current operation filter context.</param>
         public void Apply(OpenApiOperation operation, OperationFilterContext context)
         {
-            ArgumentNullException.ThrowIfNull(context, nameof(context));
-            ArgumentNullException.ThrowIfNull(operation, nameof(operation));
+            ArgumentNullException.ThrowIfNull(context);
+            ArgumentNullException.ThrowIfNull(operation);
 
             var apiDescription = context.ApiDescription;
 
@@ -49,16 +49,16 @@ namespace Etherna.SSOServer.Configs.Swagger.Filters
 
             // REF: https://github.com/domaindrivendev/Swashbuckle.AspNetCore/issues/412
             // REF: https://github.com/domaindrivendev/Swashbuckle.AspNetCore/pull/413
-            foreach (var parameter in operation.Parameters)
+            foreach (var parameter in operation.Parameters.OfType<OpenApiParameter>())
             {
                 var description = apiDescription.ParameterDescriptions.First(p => p.Name == parameter.Name);
 
                 parameter.Description ??= description.ModelMetadata.Description;
-
+                parameter.Schema ??= new OpenApiSchema();
+                
                 if (parameter.Schema.Default == null && description.DefaultValue != null)
-                {
-                    parameter.Schema.Default = new OpenApiString(description.DefaultValue.ToString());
-                }
+                    if (parameter.Schema is OpenApiSchema concreteSchema)
+                        concreteSchema.Default = JsonValue.Create(description.DefaultValue.ToString());
 
                 parameter.Required |= description.IsRequired;
             }

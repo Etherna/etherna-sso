@@ -13,10 +13,9 @@
 // If not, see <https://www.gnu.org/licenses/>.
 
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace Etherna.SSOServer.Configs.Swagger.Filters
@@ -25,8 +24,8 @@ namespace Etherna.SSOServer.Configs.Swagger.Filters
     {
         public void Apply(OpenApiOperation operation, OperationFilterContext context)
         {
-            ArgumentNullException.ThrowIfNull(operation, nameof(operation));
-            ArgumentNullException.ThrowIfNull(context, nameof(context));
+            ArgumentNullException.ThrowIfNull(operation);
+            ArgumentNullException.ThrowIfNull(context);
 
             var methodAttributes = context.MethodInfo.GetCustomAttributes(true);
             
@@ -41,11 +40,8 @@ namespace Etherna.SSOServer.Configs.Swagger.Filters
             [
                 new OpenApiSecurityRequirement
                 {{
-                    new OpenApiSecurityScheme
-                    {
-                        Reference = new OpenApiReference { Id = "OAuth", Type = ReferenceType.SecurityScheme }
-                    },
-                    new List<string>()
+                    new OpenApiSecuritySchemeReference("OAuth"),
+                    []
                 }}
             ];
         }
