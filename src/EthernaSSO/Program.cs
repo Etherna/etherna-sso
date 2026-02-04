@@ -54,14 +54,13 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using Serilog;
 using Serilog.Exceptions;
 using Serilog.Sinks.Elasticsearch;
@@ -76,7 +75,7 @@ using System.Reflection;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using DashboardOptions = Etherna.MongODM.AspNetCore.UI.DashboardOptions;
-using IPNetwork = Microsoft.AspNetCore.HttpOverrides.IPNetwork;
+using IPNetwork = System.Net.IPNetwork;
 using SameSiteMode = Microsoft.AspNetCore.Http.SameSiteMode;
 
 namespace Etherna.SSOServer
@@ -243,7 +242,7 @@ namespace Etherna.SSOServer
                     });
 
                     foreach (var network in networks)
-                        options.KnownNetworks.Add(network);
+                        options.KnownIPNetworks.Add(network);
                 }
             });
 
@@ -281,8 +280,6 @@ namespace Etherna.SSOServer
                 // can also be used to control the format of the API version in route templates
                 options.SubstituteApiVersionInUrl = true;
             });
-
-            services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
 
             // Configure authentication.
             var allowUnsafeAuthorityConnection = false;
