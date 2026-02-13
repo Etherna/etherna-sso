@@ -35,7 +35,7 @@ namespace Etherna.SSOServer.Configs.SystemStore
         [SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope")]
         public SigningKeyRepository(DbContextOptions options, string name)
         {
-            ArgumentNullException.ThrowIfNull(options, nameof(options));
+            ArgumentNullException.ThrowIfNull(options);
 
             // Register class map. (see: https://etherna.atlassian.net/browse/ESSO-140)
             BsonClassMap.RegisterClassMap<SerializedKey>(cm =>

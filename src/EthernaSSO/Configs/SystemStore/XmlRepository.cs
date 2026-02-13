@@ -26,7 +26,7 @@ using System.Xml.Linq;
 namespace Etherna.SSOServer.Configs.SystemStore
 {
 #pragma warning disable CA2000
-    public class XmlRepository : IXmlRepository
+    internal sealed class XmlRepository : IXmlRepository
     {
         // Fields.
         private readonly IMongoCollection<BsonDocument> collection;
@@ -34,7 +34,7 @@ namespace Etherna.SSOServer.Configs.SystemStore
         // Constructors.
         public XmlRepository(DbContextOptions options, string name)
         {
-            ArgumentNullException.ThrowIfNull(options, nameof(options));
+            ArgumentNullException.ThrowIfNull(options);
 
             // Initialize MongoDB driver.
             var client = new MongoClient(options.ConnectionString);
@@ -60,7 +60,7 @@ namespace Etherna.SSOServer.Configs.SystemStore
 
         public void StoreElement(XElement element, string friendlyName)
         {
-            ArgumentNullException.ThrowIfNull(element, nameof(element));
+            ArgumentNullException.ThrowIfNull(element);
 
             //remove all comments. Json doesn't support it, but Json.NET serialize them anyway
             element.DescendantNodes().Where(x => x.NodeType == XmlNodeType.Comment).Remove();
