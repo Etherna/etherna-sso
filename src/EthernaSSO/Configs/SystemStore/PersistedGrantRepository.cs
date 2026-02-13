@@ -27,11 +27,8 @@ using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Configs.SystemStore
 {
-    public class PersistedGrantRepository : IPersistedGrantStore
+    internal sealed class PersistedGrantRepository : IPersistedGrantStore
     {
-        // Consts.
-        public const string KeyIndexName = "keys_unique";
-
         // Fields.
         private readonly IMongoCollection<PersistedGrant> collection;
 
@@ -39,7 +36,7 @@ namespace Etherna.SSOServer.Configs.SystemStore
         [SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope")]
         public PersistedGrantRepository(DbContextOptions options, string name)
         {
-            ArgumentNullException.ThrowIfNull(options, nameof(options));
+            ArgumentNullException.ThrowIfNull(options);
 
             // Register class map. (see: https://etherna.atlassian.net/browse/ESSO-140)
             BsonClassMap.RegisterClassMap<PersistedGrant>(cm =>
@@ -61,7 +58,7 @@ namespace Etherna.SSOServer.Configs.SystemStore
         // Methods.
         public async Task<IEnumerable<PersistedGrant>> GetAllAsync(PersistedGrantFilter filter)
         {
-            ArgumentNullException.ThrowIfNull(filter, nameof(filter));
+            ArgumentNullException.ThrowIfNull(filter);
             filter.Validate();
 
             var cursor = await collection.FindAsync(BuildMongoFilterHelper(filter));
@@ -74,7 +71,7 @@ namespace Etherna.SSOServer.Configs.SystemStore
 
         public Task RemoveAllAsync(PersistedGrantFilter filter)
         {
-            ArgumentNullException.ThrowIfNull(filter, nameof(filter));
+            ArgumentNullException.ThrowIfNull(filter);
             filter.Validate();
 
             return collection.DeleteManyAsync(BuildMongoFilterHelper(filter));
@@ -87,7 +84,7 @@ namespace Etherna.SSOServer.Configs.SystemStore
             collection.ReplaceOneAsync(x => x.Key == grant.Key, grant, new ReplaceOptions { IsUpsert = true });
 
         // Helpers.
-        private FilterDefinition<PersistedGrant> BuildMongoFilterHelper(PersistedGrantFilter sourceFilter)
+        private static FilterDefinition<PersistedGrant> BuildMongoFilterHelper(PersistedGrantFilter sourceFilter)
         {
             var fieldFilters = new List<FilterDefinition<PersistedGrant>>();
 

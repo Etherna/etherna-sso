@@ -387,6 +387,7 @@ namespace Etherna.SSOServer
                     options.LicenseKey = config["IdServer:LicenseKey"]; //can be null in dev env
                     options.UserInteraction.ErrorUrl = "/Error";
                 })
+                .AddServerSideSessions()
                 .AddInMemoryApiResources(idServerConfig.ApiResources)
                 .AddInMemoryApiScopes(idServerConfig.ApiScopes)
                 .AddInMemoryClients(idServerConfig.Clients)
@@ -401,6 +402,10 @@ namespace Etherna.SSOServer
             {
                 ConnectionString = config["ConnectionStrings:DataProtectionDb"] ?? throw new ServiceConfigurationException()
             }, "persistedGrants"));
+            services.AddSingleton<IServerSideSessionStore>(new ServerSideSessionRepository(new DbContextOptions
+            {
+                ConnectionString = config["ConnectionStrings:DataProtectionDb"] ?? throw new ServiceConfigurationException()
+            }, "serverSideSessions"));
             services.AddSingleton<ISigningKeyStore>(new SigningKeyRepository(new DbContextOptions
             {
                 ConnectionString = config["ConnectionStrings:DataProtectionDb"] ?? throw new ServiceConfigurationException()
