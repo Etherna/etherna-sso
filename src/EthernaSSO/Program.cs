@@ -402,6 +402,10 @@ namespace Etherna.SSOServer
             {
                 ConnectionString = config["ConnectionStrings:DataProtectionDb"] ?? throw new ServiceConfigurationException()
             }, "persistedGrants"));
+            services.AddSingleton<IPushedAuthorizationRequestStore>(new PushedAuthorizationRequestRepository(new DbContextOptions
+            {
+                ConnectionString = config["ConnectionStrings:DataProtectionDb"] ?? throw new ServiceConfigurationException()
+            }, "pushedAuthorizationRequests"));
             services.AddSingleton<IServerSideSessionStore>(new ServerSideSessionRepository(new DbContextOptions
             {
                 ConnectionString = config["ConnectionStrings:DataProtectionDb"] ?? throw new ServiceConfigurationException()
