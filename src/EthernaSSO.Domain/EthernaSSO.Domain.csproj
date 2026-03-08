@@ -13,7 +13,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Etherna.Authentication.AspNetCore" Version="0.4.0-alpha.48" />
+    <PackageReference Include="Etherna.Authentication.AspNetCore" Version="0.4.0-alpha.50" />
     <PackageReference Include="Etherna.DomainEvents" Version="1.5.0" />
     <PackageReference Include="EthernaACR" Version="0.4.0-alpha.66" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="10.0.2" />
