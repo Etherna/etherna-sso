@@ -29,8 +29,8 @@ namespace Etherna.SSOServer.Configs.Authorization
             AuthorizationHandlerContext context,
             RequireRoleAuthorizationRequirement requirement)
         {
-            ArgumentNullException.ThrowIfNull(context, nameof(context));
-            ArgumentNullException.ThrowIfNull(requirement, nameof(requirement));
+            ArgumentNullException.ThrowIfNull(context);
+            ArgumentNullException.ThrowIfNull(requirement);
 
             if (context.User.Identity?.IsAuthenticated == true)
             {
