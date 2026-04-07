@@ -93,6 +93,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
         private readonly string ethernaCredit_Webapp_ClientId;
         private readonly string ethernaCredit_Webapp_Secret;
 
+        private readonly string ethernaCreditScalar_ClientId;
         private readonly string ethernaCreditSwagger_ClientId;
 
         private readonly string ethernaDapp_BaseUrl;
@@ -139,6 +140,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
             ethernaCredit_Webapp_ClientId = configuration["IdServer:Clients:EthernaCredit:Clients:Webapp:ClientId"] ?? throw new ServiceConfigurationException();
             ethernaCredit_Webapp_Secret = configuration["IdServer:Clients:EthernaCredit:Clients:Webapp:Secret"] ?? throw new ServiceConfigurationException();
 
+            ethernaCreditScalar_ClientId = configuration["IdServer:Clients:EthernaCreditScalar:ClientId"] ?? throw new ServiceConfigurationException();
             ethernaCreditSwagger_ClientId = configuration["IdServer:Clients:EthernaCreditSwagger:ClientId"] ?? throw new ServiceConfigurationException();
 
             ethernaDapp_BaseUrl = configuration["IdServer:Clients:EthernaDapp:BaseUrl"] ?? throw new ServiceConfigurationException();
@@ -270,7 +272,39 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                 AllowOfflineAccess = true
             },
             
-            //credit swagger
+            //credit scalar
+            new()
+            {
+                ClientId = ethernaCreditScalar_ClientId,
+                ClientName = "Etherna Credit API Scalar",
+                RequireClientSecret = false,
+                
+                AllowedGrantTypes = GrantTypes.Code,
+                
+                //where to redirect to after login
+                RedirectUris = { $"{ethernaCredit_BaseUrl}/scalar/credit03" },
+                
+                AllowedCorsOrigins = { ethernaCredit_BaseUrl },
+                RequirePkce = true,
+                
+                AlwaysIncludeUserClaimsInIdToken = true,
+                AllowedScopes =
+                {
+                    //identity
+                    IdentityServerConstants.StandardScopes.OpenId,
+                    IdentityServerConstants.StandardScopes.Profile,
+                    IdResourcesDef.EtherAccounts.Name,
+                    IdResourcesDef.Role.Name,
+                    
+                    //resource
+                    ApiScopesDef.UserInteractEthernaCredit.Name
+                },
+                
+                AllowOfflineAccess = true,
+                RefreshTokenUsage = TokenUsage.OneTimeOnly //because client have not secret
+            },
+            
+            //credit swagger (deprecated)
             new()
             {
                 ClientId = ethernaCreditSwagger_ClientId,
