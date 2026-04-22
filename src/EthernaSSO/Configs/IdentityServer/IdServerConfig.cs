@@ -108,6 +108,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
         private readonly string ethernaGatewayCli_BaseUrl;
         private readonly string ethernaGatewayCli_ClientId;
 
+        private readonly string ethernaGatewayScalar_ClientId;
         private readonly string ethernaGatewaySwagger_ClientId;
 
         private readonly string ethernaIndex_BaseUrl;
@@ -116,12 +117,14 @@ namespace Etherna.SSOServer.Configs.IdentityServer
         private readonly string ethernaIndex_Webapp_ClientId;
         private readonly string ethernaIndex_Webapp_Secret;
 
+        private readonly string ethernaIndexScalar_ClientId;
         private readonly string ethernaIndexSwagger_ClientId;
 
         private readonly string ethernaSso_BaseUrl;
         private readonly string ethernaSso_Webapp_ClientId;
         private readonly string ethernaSso_Webapp_Secret;
 
+        private readonly string ethernaSsoScalar_ClientId;
         private readonly string ethernaSsoSwagger_ClientId;
 
         private readonly string ethernaVideoImporter_BaseUrl;
@@ -155,6 +158,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
             ethernaGatewayCli_BaseUrl = configuration["IdServer:Clients:EthernaGatewayCli:BaseUrl"] ?? throw new ServiceConfigurationException();
             ethernaGatewayCli_ClientId = configuration["IdServer:Clients:EthernaGatewayCli:ClientId"] ?? throw new ServiceConfigurationException();
 
+            ethernaGatewayScalar_ClientId = configuration["IdServer:Clients:EthernaGatewayScalar:ClientId"] ?? throw new ServiceConfigurationException();
             ethernaGatewaySwagger_ClientId = configuration["IdServer:Clients:EthernaGatewaySwagger:ClientId"] ?? throw new ServiceConfigurationException();
 
             ethernaIndex_BaseUrl = configuration["IdServer:Clients:EthernaIndex:BaseUrl"] ?? throw new ServiceConfigurationException();
@@ -163,12 +167,14 @@ namespace Etherna.SSOServer.Configs.IdentityServer
             ethernaIndex_Webapp_ClientId = configuration["IdServer:Clients:EthernaIndex:Clients:Webapp:ClientId"] ?? throw new ServiceConfigurationException();
             ethernaIndex_Webapp_Secret = configuration["IdServer:Clients:EthernaIndex:Clients:Webapp:Secret"] ?? throw new ServiceConfigurationException();
 
+            ethernaIndexScalar_ClientId = configuration["IdServer:Clients:EthernaIndexScalar:ClientId"] ?? throw new ServiceConfigurationException();
             ethernaIndexSwagger_ClientId = configuration["IdServer:Clients:EthernaIndexSwagger:ClientId"] ?? throw new ServiceConfigurationException();
 
             ethernaSso_BaseUrl = configuration["IdServer:SsoServer:BaseUrl"] ?? throw new ServiceConfigurationException();
             ethernaSso_Webapp_ClientId = configuration["IdServer:SsoServer:Clients:Webapp:ClientId"] ?? throw new ServiceConfigurationException();
             ethernaSso_Webapp_Secret = configuration["IdServer:SsoServer:Clients:Webapp:Secret"] ?? throw new ServiceConfigurationException();
 
+            ethernaSsoScalar_ClientId = configuration["IdServer:Clients:EthernaSsoScalar:ClientId"] ?? throw new ServiceConfigurationException();
             ethernaSsoSwagger_ClientId = configuration["IdServer:Clients:EthernaSsoSwagger:ClientId"] ?? throw new ServiceConfigurationException();
 
             ethernaVideoImporter_BaseUrl = configuration["IdServer:Clients:EthernaVideoImporter:BaseUrl"] ?? throw new ServiceConfigurationException();
@@ -455,6 +461,44 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                 RefreshTokenUsage = TokenUsage.OneTimeOnly //because client have not secret
             },
             
+            //gateway scalar
+            new()
+            {
+                ClientId = ethernaGatewayScalar_ClientId,
+                ClientName = "Etherna Gateway API Scalar",
+                RequireClientSecret = false,
+                
+                AllowedGrantTypes = GrantTypes.Code,
+                
+                //where to redirect to after login
+                RedirectUris = ethernaGateway_BaseUrls.SelectMany(url =>
+                    new[]
+                    {
+                        $"{url}/scalar/swarm",
+                        $"{url}/scalar/swarmv1",
+                        $"{url}/scalar/gateway03"
+                    }).ToList(),
+                
+                AllowedCorsOrigins = ethernaGateway_BaseUrls,
+                RequirePkce = true,
+                
+                AlwaysIncludeUserClaimsInIdToken = true,
+                AllowedScopes =
+                {
+                    //identity
+                    IdentityServerConstants.StandardScopes.OpenId,
+                    IdentityServerConstants.StandardScopes.Profile,
+                    IdResourcesDef.EtherAccounts.Name,
+                    IdResourcesDef.Role.Name,
+                    
+                    //resource
+                    ApiScopesDef.UserInteractEthernaGateway.Name,
+                },
+                
+                AllowOfflineAccess = true,
+                RefreshTokenUsage = TokenUsage.OneTimeOnly //because client have not secret
+            },
+            
             //gateway swagger
             new()
             {
@@ -534,6 +578,38 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                 AllowOfflineAccess = true
             },
             
+            //index scalar
+            new()
+            {
+                ClientId = ethernaIndexScalar_ClientId,
+                ClientName = "Etherna Index API Scalar",
+                RequireClientSecret = false,
+                
+                AllowedGrantTypes = GrantTypes.Code,
+                
+                //where to redirect to after login
+                RedirectUris = { $"{ethernaIndex_BaseUrl}/scalar/index03" },
+                
+                AllowedCorsOrigins = { ethernaIndex_BaseUrl },
+                RequirePkce = true,
+                
+                AlwaysIncludeUserClaimsInIdToken = true,
+                AllowedScopes =
+                {
+                    //identity
+                    IdentityServerConstants.StandardScopes.OpenId,
+                    IdentityServerConstants.StandardScopes.Profile,
+                    IdResourcesDef.EtherAccounts.Name,
+                    IdResourcesDef.Role.Name,
+                    
+                    //resource
+                    ApiScopesDef.UserInteractEthernaIndex.Name,
+                },
+                
+                AllowOfflineAccess = true,
+                RefreshTokenUsage = TokenUsage.OneTimeOnly //because client have not secret
+            },
+            
             //index swagger
             new()
             {
@@ -593,6 +669,38 @@ namespace Etherna.SSOServer.Configs.IdentityServer
 
                 // Allow token refresh.
                 AllowOfflineAccess = true
+            },
+            
+            //sso scalar
+            new()
+            {
+                ClientId = ethernaSsoScalar_ClientId,
+                ClientName = "Etherna SSO API Scalar",
+                RequireClientSecret = false,
+                
+                AllowedGrantTypes = GrantTypes.Code,
+                
+                //where to redirect to after login
+                RedirectUris = { $"{ethernaSso_BaseUrl}/scalar/sso03" },
+                
+                AllowedCorsOrigins = { ethernaSso_BaseUrl },
+                RequirePkce = true,
+                
+                AlwaysIncludeUserClaimsInIdToken = true,
+                AllowedScopes =
+                {
+                    //identity
+                    IdentityServerConstants.StandardScopes.OpenId,
+                    IdentityServerConstants.StandardScopes.Profile,
+                    IdResourcesDef.EtherAccounts.Name,
+                    IdResourcesDef.Role.Name,
+                    
+                    //resource
+                    ApiScopesDef.UserInteractEthernaSso.Name,
+                },
+                
+                AllowOfflineAccess = true,
+                RefreshTokenUsage = TokenUsage.OneTimeOnly //because client have not secret
             },
             
             //sso swagger
