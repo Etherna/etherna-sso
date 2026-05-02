@@ -29,7 +29,7 @@ namespace Etherna.SSOServer.Configs.Authorization
             AuthorizationHandlerContext context,
             DenyBannedAuthorizationRequirement requirement)
         {
-            ArgumentNullException.ThrowIfNull(context, nameof(context));
+            ArgumentNullException.ThrowIfNull(context);
 
             if (context.User.Identity?.IsAuthenticated == true)
             {

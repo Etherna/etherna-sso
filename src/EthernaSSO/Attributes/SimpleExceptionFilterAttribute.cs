@@ -25,7 +25,7 @@ namespace Etherna.SSOServer.Attributes
     {
         public override void OnException(ExceptionContext context)
         {
-            ArgumentNullException.ThrowIfNull(context, nameof(context));
+            ArgumentNullException.ThrowIfNull(context);
             
             // Log exception.
             Log.Warning(context.Exception, "API exception");

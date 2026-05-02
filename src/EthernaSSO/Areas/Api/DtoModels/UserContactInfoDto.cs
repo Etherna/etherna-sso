@@ -22,7 +22,7 @@ namespace Etherna.SSOServer.Areas.Api.DtoModels
         // Constructor.
         public UserContactInfoDto(UserBase user)
         {
-            ArgumentNullException.ThrowIfNull(user, nameof(user));
+            ArgumentNullException.ThrowIfNull(user);
 
             Email = user.Email;
             PhoneNumber = user.PhoneNumber;

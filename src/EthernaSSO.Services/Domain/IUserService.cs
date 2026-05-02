@@ -12,6 +12,7 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
+using Etherna.BeeNet.Models;
 using Etherna.MongODM.Core.Repositories;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Domain.Models.UserAgg;
@@ -26,7 +27,7 @@ namespace Etherna.SSOServer.Services.Domain
     {
         Task DeleteAsync(UserBase user);
 
-        Task<UserBase> FindUserByAddressAsync(string etherAddress);
+        Task<UserBase> FindUserByAddressAsync(EthAddress etherAddress);
 
         Task<UserSharedInfo> GetSharedUserInfoAsync(UserBase user);
 
@@ -39,7 +40,7 @@ namespace Etherna.SSOServer.Services.Domain
             string username,
             string password,
             string? email,
-            string? etherLoginAddress,
+            EthAddress? etherLoginAddress,
             bool lockoutEnabled,
             DateTimeOffset? lockoutEnd,
             string? phoneNumber,
@@ -48,7 +49,7 @@ namespace Etherna.SSOServer.Services.Domain
 
         Task<(IEnumerable<(string key, string msg)> errors, UserWeb3? user)> RegisterWeb3UserAsync(
             string username,
-            string etherAddress,
+            EthAddress etherAddress,
             string? invitationCode);
 
         Task<PaginatedEnumerable<UserBase>> SearchPaginatedUsersByQueryAsync<TOrderKey>(

@@ -62,25 +62,25 @@ namespace Etherna.SSOServer.Configs.Identity
 
         public async Task<Role?> FindByNameAsync(string normalizedRoleName, CancellationToken cancellationToken) =>
             await context.Roles.QueryElementsAsync(elements =>
-                elements.FirstOrDefaultAsync(u => u.NormalizedName == normalizedRoleName));
+                elements.FirstOrDefaultAsync(u => u.NormalizedName == normalizedRoleName, cancellationToken: cancellationToken));
 
         public Task<string?> GetNormalizedRoleNameAsync(Role role, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(role, nameof(role));
+            ArgumentNullException.ThrowIfNull(role);
 
             return Task.FromResult<string?>(role.NormalizedName);
         }
 
         public Task<string> GetRoleIdAsync(Role role, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(role, nameof(role));
+            ArgumentNullException.ThrowIfNull(role);
 
             return Task.FromResult(role.Id);
         }
 
         public Task<string?> GetRoleNameAsync(Role role, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(role, nameof(role));
+            ArgumentNullException.ThrowIfNull(role);
 
             return Task.FromResult<string?>(role.Name);
         }
@@ -93,8 +93,8 @@ namespace Etherna.SSOServer.Configs.Identity
 
         public Task SetRoleNameAsync(Role role, string? roleName, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(role, nameof(role));
-            ArgumentNullException.ThrowIfNull(roleName, nameof(roleName));
+            ArgumentNullException.ThrowIfNull(role);
+            ArgumentNullException.ThrowIfNull(roleName);
 
             role.SetName(roleName);
             return Task.CompletedTask;

@@ -12,13 +12,13 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
+using Etherna.BeeNet.Models;
 using Etherna.MongODM.Core.Attributes;
 using Etherna.SSOServer.Domain.Models.UserAgg;
 using Microsoft.AspNetCore.Identity;
-using Nethereum.Util;
-using Nethereum.Web3.Accounts;
 using System;
 using System.Collections.Generic;
+using Account = Nethereum.Web3.Accounts.Account;
 
 namespace Etherna.SSOServer.Domain.Models
 {
@@ -56,22 +56,22 @@ namespace Etherna.SSOServer.Domain.Models
             CanLoginWithEtherAddress &&
                 (CanLoginWithEmail ||
                  CanLoginWithUsername);
-        public override string EtherAddress
+        public override EthAddress EtherAddress
         {
             get => EtherManagedAccount.Address;
             protected set { } //disable set for managed account
         }
         public virtual Account EtherManagedAccount => _etherManagedAccount ??= new Account(EtherManagedPrivateKey);
-        public virtual string EtherManagedPrivateKey { get; protected set; } = default!;
+        public virtual string EtherManagedPrivateKey { get; protected set; } = null!;
         [PersonalData]
-        public virtual string? EtherLoginAddress { get; protected set; }
+        public virtual EthAddress? EtherLoginAddress { get; set; }
         public virtual bool HasPassword => !string.IsNullOrEmpty(PasswordHash);
         public virtual string? PasswordHash { get; set; }
         public virtual bool TwoFactorEnabled { get; set; }
         public virtual IEnumerable<string> TwoFactorRecoveryCodes
         {
             get => _twoFactorRecoveryCode;
-            set => _twoFactorRecoveryCode = new List<string>(value ?? Array.Empty<string>());
+            set => _twoFactorRecoveryCode = new List<string>(value ?? []);
         }
 
         // Methods.
@@ -98,14 +98,5 @@ namespace Etherna.SSOServer.Domain.Models
 
         [PropertyAlterer(nameof(AccessFailedCount))]
         public virtual void ResetAccessFailedCount() => AccessFailedCount = 0;
-
-        [PropertyAlterer(nameof(EtherLoginAddress))]
-        public virtual void SetEtherLoginAddress(string address)
-        {
-            if (!address.IsValidEthereumAddressHexFormat())
-                throw new ArgumentException("The value is not a valid address", nameof(address));
-
-            EtherLoginAddress = address.ConvertToEthereumChecksumAddress();
-        }
     }
 }

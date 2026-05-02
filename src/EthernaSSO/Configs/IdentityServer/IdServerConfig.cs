@@ -133,7 +133,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
         // Constructor.
         public IdServerConfig(IConfiguration configuration)
         {
-            ArgumentNullException.ThrowIfNull(configuration, nameof(configuration));
+            ArgumentNullException.ThrowIfNull(configuration);
 
             apiKey_ClientId = configuration["IdServer:Clients:ApiKey:ClientId"] ?? throw new ServiceConfigurationException();
 

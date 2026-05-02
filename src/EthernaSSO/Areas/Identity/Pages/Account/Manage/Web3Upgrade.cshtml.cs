@@ -12,6 +12,7 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
+using Etherna.BeeNet.Models;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Services.Domain;
@@ -23,30 +24,14 @@ using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
 {
-    public class Web3UpgradeModel : PageModel
+    public class Web3UpgradeModel(
+        //SignInManager<UserBase> signInManager,
+        //ISsoDbContext ssoDbContext,
+        //UserManager<UserBase> userManager,
+        //IUserService userService,
+        IWeb3AuthnService web3AuthnService)
+        : PageModel
     {
-        // Fields.
-        //private readonly SignInManager<UserBase> signInManager;
-        //private readonly ISsoDbContext ssoDbContext;
-        //private readonly UserManager<UserBase> userManager;
-        //private readonly IUserService userService;
-        private readonly IWeb3AuthnService web3AuthnService;
-
-        // Constructor.
-        public Web3UpgradeModel(
-            //SignInManager<UserBase> signInManager,
-            //ISsoDbContext ssoDbContext,
-            //UserManager<UserBase> userManager,
-            //IUserService userService,
-            IWeb3AuthnService web3AuthnService)
-        {
-            //this.signInManager = signInManager;
-            //this.ssoDbContext = ssoDbContext;
-            //this.userManager = userManager;
-            //this.userService = userService;
-            this.web3AuthnService = web3AuthnService;
-        }
-
         // Properties.
         public bool RequirePassword { get; set; }
         [TempData]
@@ -56,11 +41,11 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
         public void OnGet()
         { }
 
-        public async Task<IActionResult> OnGetRetriveAuthMessageAsync(string etherAddress) =>
-            new JsonResult(await web3AuthnService.RetriveAuthnMessageAsync(etherAddress));
+        public async Task<IActionResult> OnGetRetrieveAuthMessageAsync(EthAddress etherAddress) =>
+            new JsonResult(await web3AuthnService.RetrieveAuthnMessageAsync(etherAddress));
 
 #pragma warning disable IDE0060 // Remove unused parameter
-        public Task<IActionResult> OnGetUpgradeWeb3Async(string etherAddress, string signature)
+        public Task<IActionResult> OnGetUpgradeWeb3Async(EthAddress etherAddress, string signature)
 #pragma warning restore IDE0060 // Remove unused parameter
         {
             // Temporary disabled (see: https://etherna.atlassian.net/browse/ESSO-165)

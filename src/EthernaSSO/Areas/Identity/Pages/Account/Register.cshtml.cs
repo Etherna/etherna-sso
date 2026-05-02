@@ -44,7 +44,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             [Required]
             [RegularExpression(UsernameHelper.UsernameRegex, ErrorMessage = UsernameHelper.UsernameValidationErrorMessage)]
             [Display(Name = "Username")]
-            public string Username { get; set; } = default!;
+            public string Username { get; set; } = null!;
 
             [Display(Name = "Invitation code")]
             public string? InvitationCode { get; set; }
@@ -53,24 +53,24 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
             [DataType(DataType.Password)]
             [Display(Name = "Password")]
-            public string Password { get; set; } = default!;
+            public string Password { get; set; } = null!;
 
             [DataType(DataType.Password)]
             [Display(Name = "Confirm password")]
             [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
-            public string ConfirmPassword { get; set; } = default!;
+            public string ConfirmPassword { get; set; } = null!;
 
             // Methods.
             public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
             {
-                ArgumentNullException.ThrowIfNull(validationContext, nameof(validationContext));
+                ArgumentNullException.ThrowIfNull(validationContext);
 
                 var appSettings = (IOptions<ApplicationSettings>)validationContext.GetService(typeof(IOptions<ApplicationSettings>))!;
                 if (appSettings.Value.RequireInvitation && string.IsNullOrWhiteSpace(InvitationCode))
                 {
                     yield return new ValidationResult(
                         "Invitation code is required",
-                        new[] { nameof(InvitationCode) });
+                        [nameof(InvitationCode)]);
                 }
             }
         }
@@ -92,7 +92,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             SignInManager<UserBase> signInManager,
             IUserService userService)
         {
-            ArgumentNullException.ThrowIfNull(applicationSettings, nameof(applicationSettings));
+            ArgumentNullException.ThrowIfNull(applicationSettings);
 
             this.applicationSettings = applicationSettings.Value;
             this.eventDispatcher = eventDispatcher;
@@ -104,11 +104,11 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
         // Properties.
         [BindProperty]
-        public InputModel Input { get; set; } = default!;
+        public InputModel Input { get; set; } = null!;
 
         public bool IsInvitationRequired { get; private set; }
         public string? ReturnUrl { get; private set; }
-        public Web3LoginPartialModel Web3LoginPartialModel { get; private set; } = default!;
+        public Web3LoginPartialModel Web3LoginPartialModel { get; private set; } = null!;
 
         // Methods.
         public async Task OnGetAsync(string? invitationCode, string? returnUrl = null) =>

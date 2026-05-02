@@ -11,12 +11,12 @@ interface UIStore {
   manageWeb3View?: HTMLDivElement
   installWeb3WalletView?: HTMLDivElement
   // vars
-  retriveAuthMessageUrl: string | null
+  retrieveAuthMessageUrl: string | null
   confirmSignatureUrl: string | null
 }
 
 const store: UIStore = {
-  retriveAuthMessageUrl: window.retriveAuthMessageUrl,
+  retrieveAuthMessageUrl: window.retrieveAuthMessageUrl,
   confirmSignatureUrl: window.confirmSignatureUrl
 }
 
@@ -101,7 +101,7 @@ async function getSignMsg(accounts: string[]) {
   if (!accounts || !accounts.length) throw new Error("Unlock you wallet and try again.")
 
   const address = utils.getAddress(accounts[0])
-  const msgUrl = store.retriveAuthMessageUrl + `&etherAddress=${address}`
+  const msgUrl = store.retrieveAuthMessageUrl + `&etherAddress=${address}`
 
   setBtnDisabled(store.web3LoginButton, true)
   setBtnDisabled(store.confirmWeb3LoginButton, true)

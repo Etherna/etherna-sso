@@ -12,6 +12,7 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
+using Etherna.BeeNet.Models;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models;
@@ -36,8 +37,8 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
             public InputModel() { }
             public InputModel(UserBase user, UserSharedInfo sharedInfo)
             {
-                ArgumentNullException.ThrowIfNull(user, nameof(user));
-                ArgumentNullException.ThrowIfNull(sharedInfo, nameof(sharedInfo));
+                ArgumentNullException.ThrowIfNull(user);
+                ArgumentNullException.ThrowIfNull(sharedInfo);
 
                 Id = user.Id;
                 Email = user.Email;
@@ -64,7 +65,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
             public string? Email { get; set; }
 
             [Display(Name = "Ethereum login address")]
-            public string? EtherLoginAddress { get; set; }
+            public EthAddress? EtherLoginAddress { get; set; }
 
             [Display(Name = "Lockout enabled")]
             public bool LockoutEnabled { get; set; } = true;
@@ -110,16 +111,16 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
         public int AccessFailedCount { get; private set; }
 
         [Display(Name = "Ethereum address")]
-        public string? EtherAddress { get; private set; }
+        public EthAddress? EtherAddress { get; private set; }
 
         [Display(Name = "Previous ethereum addresses")]
-        public IEnumerable<string> EtherPreviousAddresses { get; private set; } = Array.Empty<string>();
+        public IEnumerable<EthAddress> EtherPreviousAddresses { get; private set; } = [];
 
         [Display(Name = "Has password")]
         public bool HasPassword { get; private set; }
 
         [BindProperty]
-        public InputModel Input { get; set; } = default!;
+        public InputModel Input { get; set; } = null!;
 
         public bool IsWeb3 { get; private set; }
 
@@ -211,10 +212,10 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
                 {
                     case UserWeb2 userWeb2:
 
-                        if (string.IsNullOrWhiteSpace(Input.EtherLoginAddress))
+                        if (!Input.EtherLoginAddress.HasValue)
                             userWeb2.RemoveEtherLoginAddress();
                         else if (userWeb2.EtherLoginAddress != Input.EtherLoginAddress)
-                            userWeb2.SetEtherLoginAddress(Input.EtherLoginAddress);
+                            userWeb2.EtherLoginAddress = Input.EtherLoginAddress;
 
                         userWeb2.TwoFactorEnabled = Input.TwoFactorEnabled;
 

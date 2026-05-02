@@ -32,7 +32,7 @@ namespace Etherna.SSOServer.Domain.Models
         }
         internal UserWeb3(UserWeb2 web2User)
         {
-            ArgumentNullException.ThrowIfNull(web2User, nameof(web2User));
+            ArgumentNullException.ThrowIfNull(web2User);
             if (web2User.EtherLoginAddress is null)
                 throw new InvalidOperationException();
 
@@ -40,7 +40,7 @@ namespace Etherna.SSOServer.Domain.Models
             Claims = web2User.Claims;
             CreationDateTime = web2User.CreationDateTime;
             Email = web2User.Email;
-            EtherAddress = web2User.EtherLoginAddress;
+            EtherAddress = web2User.EtherLoginAddress.Value;
             EtherPreviousAddresses = web2User.EtherPreviousAddresses.Append(web2User.EtherAddress);
             InvitedBy = web2User.InvitedBy;
             InvitedByAdmin = web2User.InvitedByAdmin;

@@ -320,7 +320,7 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
                     });
                     expectedDocumentMock.Setup(d => d.Email).Returns("asdfg@sas.so");
                     expectedDocumentMock.Setup(d => d.EtherAddress).Returns("0xDe87768A7B118aAA23Cd3552E4AD34B8F4566Bde");
-                    expectedDocumentMock.Setup(d => d.EtherPreviousAddresses).Returns(new[] { "0xd6cEd4963410D5B99a90510Fe2DcAED517EAa03C" });
+                    expectedDocumentMock.Setup(d => d.EtherPreviousAddresses).Returns(["0xd6cEd4963410D5B99a90510Fe2DcAED517EAa03C"]);
                     {
                         var userMock = new Mock<UserWeb2>();
                         userMock.Setup(u => u.Id).Returns("61cd0b616b33d8785b9d34cf");
@@ -409,7 +409,7 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
                     });
                     expectedDocumentMock.Setup(d => d.Email).Returns("asdfg@sas.so");
                     expectedDocumentMock.Setup(d => d.EtherAddress).Returns("0xDe87768A7B118aAA23Cd3552E4AD34B8F4566Bde");
-                    expectedDocumentMock.Setup(d => d.EtherPreviousAddresses).Returns(new[] { "0xd6cEd4963410D5B99a90510Fe2DcAED517EAa03C" });
+                    expectedDocumentMock.Setup(d => d.EtherPreviousAddresses).Returns(["0xd6cEd4963410D5B99a90510Fe2DcAED517EAa03C"]);
                     {
                         var userMock = new Mock<UserWeb2>();
                         userMock.Setup(u => u.Id).Returns("61cd0b616b33d8785b9d34cf");
@@ -451,14 +451,14 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
                             ""_m"" : ""150f4cdf-099a-4195-a145-45f1f9eda60c"",
                             ""CreationDateTime"" : ISODate(""2022-03-11T14:33:31.567+0000""),
                             ""Code"" : ""Vu6pBdFzjm"",
-                            ""EtherAddress"" : ""0x75691aD5s48d8f7A9f13a0Eab1B89E19eDFcA4d9""
+                            ""EtherAddress"" : ""0x75691aD5a48d8f7A9f13a0Eab1B89E19eDFcA4d9""
                         }";
 
                     var expectedDocumentMock = new Mock<Web3LoginToken>();
                     expectedDocumentMock.Setup(d => d.Id).Returns("622b5dbb7101122b1d9f0e7d");
                     expectedDocumentMock.Setup(d => d.CreationDateTime).Returns(new DateTime(2022, 03, 11, 14, 33, 31, 567));
                     expectedDocumentMock.Setup(d => d.Code).Returns("Vu6pBdFzjm");
-                    expectedDocumentMock.Setup(d => d.EtherAddress).Returns("0x75691aD5s48d8f7A9f13a0Eab1B89E19eDFcA4d9");
+                    expectedDocumentMock.Setup(d => d.EtherAddress).Returns("0x75691aD5a48d8f7A9f13a0Eab1B89E19eDFcA4d9");
 
                     tests.Add(new(sourceDocument, expectedDocumentMock.Object));
                 }
@@ -471,7 +471,7 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
         [Theory, MemberData(nameof(AlphaPassRequestDeserializationTests))]
         public void AlphaPassRequestDeserialization(DeserializationTestElement<AlphaPassRequest, SsoDbContext> testElement)
         {
-            ArgumentNullException.ThrowIfNull(testElement, nameof(testElement));
+            ArgumentNullException.ThrowIfNull(testElement);
 
             // Arrange.
             using var documentReader = new JsonReader(testElement.SourceDocument);
@@ -498,7 +498,7 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
         [Theory, MemberData(nameof(ApiKeyDeserializationTests))]
         public void ApiKeyDeserialization(DeserializationTestElement<ApiKey, SsoDbContext> testElement)
         {
-            ArgumentNullException.ThrowIfNull(testElement, nameof(testElement));
+            ArgumentNullException.ThrowIfNull(testElement);
 
             // Arrange.
             using var documentReader = new JsonReader(testElement.SourceDocument);
@@ -526,7 +526,7 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
         [Theory, MemberData(nameof(DailyStatsDeserializationTests))]
         public void DailyStatsDeserialization(DeserializationTestElement<DailyStats, SsoDbContext> testElement)
         {
-            ArgumentNullException.ThrowIfNull(testElement, nameof(testElement));
+            ArgumentNullException.ThrowIfNull(testElement);
 
             // Arrange.
             using var documentReader = new JsonReader(testElement.SourceDocument);
@@ -550,7 +550,7 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
         [Theory, MemberData(nameof(InvitationDeserializationTests))]
         public void InvitationDeserialization(DeserializationTestElement<Invitation, SsoDbContext> testElement)
         {
-            ArgumentNullException.ThrowIfNull(testElement, nameof(testElement));
+            ArgumentNullException.ThrowIfNull(testElement);
 
             // Arrange.
             using var documentReader = new JsonReader(testElement.SourceDocument);
@@ -577,7 +577,7 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
         [Theory, MemberData(nameof(RoleDeserializationTests))]
         public void RoleDeserialization(DeserializationTestElement<Role, SsoDbContext> testElement)
         {
-            ArgumentNullException.ThrowIfNull(testElement, nameof(testElement));
+            ArgumentNullException.ThrowIfNull(testElement);
 
             // Arrange.
             using var documentReader = new JsonReader(testElement.SourceDocument);
@@ -602,7 +602,7 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
         [Theory, MemberData(nameof(UserDeserializationTests))]
         public void UserDeserialization(DeserializationTestElement<UserBase, SsoDbContext> testElement)
         {
-            ArgumentNullException.ThrowIfNull(testElement, nameof(testElement));
+            ArgumentNullException.ThrowIfNull(testElement);
 
             // Arrange.
             using var documentReader = new JsonReader(testElement.SourceDocument);
@@ -632,7 +632,6 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
             Assert.Equal(testElement.ExpectedModel.SharedInfoId, result.SharedInfoId);
             Assert.Equal(testElement.ExpectedModel.Username, result.Username);
             Assert.NotNull(result.Id);
-            Assert.NotNull(result.EtherAddress);
             Assert.NotNull(result.EtherPreviousAddresses);
             Assert.NotNull(result.NormalizedUsername);
             Assert.NotNull(result.Roles);
@@ -662,7 +661,7 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
         [Theory, MemberData(nameof(Web3LoginTokenDeserializationTests))]
         public void Web3LoginTokenDeserialization(DeserializationTestElement<Web3LoginToken, SsoDbContext> testElement)
         {
-            ArgumentNullException.ThrowIfNull(testElement, nameof(testElement));
+            ArgumentNullException.ThrowIfNull(testElement);
 
             // Arrange.
             using var documentReader = new JsonReader(testElement.SourceDocument);
@@ -681,7 +680,6 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
             Assert.Equal(testElement.ExpectedModel.EtherAddress, result.EtherAddress);
             Assert.NotNull(result.Id);
             Assert.NotNull(result.Code);
-            Assert.NotNull(result.EtherAddress);
         }
     }
 }

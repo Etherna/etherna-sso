@@ -31,8 +31,8 @@ namespace Etherna.SSOServer.Domain.Models
         protected Role() { }
 
         // Properties.
-        public virtual string Name { get; protected set; } = default!;
-        public virtual string NormalizedName { get; protected set; } = default!;
+        public virtual string Name { get; protected set; } = null!;
+        public virtual string NormalizedName { get; protected set; } = null!;
 
         // Methods.
 
@@ -40,7 +40,7 @@ namespace Etherna.SSOServer.Domain.Models
         [PropertyAlterer(nameof(NormalizedName))]
         public virtual void SetName(string name)
         {
-            ArgumentNullException.ThrowIfNull(name, nameof(name));
+            ArgumentNullException.ThrowIfNull(name);
 
             if (Name != name)
             {
@@ -52,7 +52,7 @@ namespace Etherna.SSOServer.Domain.Models
         // Public static helpers.
         public static string NormalizeName(string name)
         {
-            ArgumentNullException.ThrowIfNull(name, nameof(name));
+            ArgumentNullException.ThrowIfNull(name);
 
             name = name.ToUpper(CultureInfo.InvariantCulture); //to upper case
 

@@ -46,7 +46,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
 
         public async Task ValidateAsync(ResourceOwnerPasswordValidationContext context)
         {
-            ArgumentNullException.ThrowIfNull(context, nameof(context));
+            ArgumentNullException.ThrowIfNull(context);
 
             /*
              * The ROPC base protocol requires to pass fields "username" and "password" during authentication.

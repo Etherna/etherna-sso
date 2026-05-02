@@ -60,7 +60,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
         // Methods.
         public async Task<IActionResult> OnGetAsync(string id)
         {
-            ArgumentNullException.ThrowIfNull(id, nameof(id));
+            ArgumentNullException.ThrowIfNull(id);
 
             Id = id;
             var user = await context.Users.FindOneAsync(id);

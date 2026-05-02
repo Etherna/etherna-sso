@@ -31,7 +31,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
         {
             public RoleDto(Role role)
             {
-                ArgumentNullException.ThrowIfNull(role, nameof(role));
+                ArgumentNullException.ThrowIfNull(role);
 
                 Id = role.Id;
                 Name = role.Name;
@@ -66,7 +66,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
         // Methods.
         public async Task OnGetAsync(string id, int? p)
         {
-            ArgumentNullException.ThrowIfNull(id, nameof(id));
+            ArgumentNullException.ThrowIfNull(id);
 
             var roles = await context.Roles.QueryElementsAsync(elements =>
                 elements.ToListAsync());

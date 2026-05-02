@@ -12,6 +12,7 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
+using Etherna.BeeNet.Models;
 using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Services.Domain
@@ -19,7 +20,7 @@ namespace Etherna.SSOServer.Services.Domain
     public interface IWeb3AuthnService
     {
         string ComposeAuthMessage(string code);
-        Task<string> RetriveAuthnMessageAsync(string etherAddress);
-        bool VerifySignature(string authCode, string etherAccount, string signature);
+        Task<string> RetrieveAuthnMessageAsync(EthAddress etherAddress);
+        bool VerifySignature(string authCode, EthAddress etherAccount, string signature);
     }
 }

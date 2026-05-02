@@ -13,37 +13,36 @@
 // If not, see <https://www.gnu.org/licenses/>.
 
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.OpenApi;
 using Microsoft.OpenApi;
-using Swashbuckle.AspNetCore.SwaggerGen;
 using System;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace Etherna.SSOServer.Configs.Swagger.Filters
+namespace Etherna.SSOServer.Configs.OpenApi
 {
-    public class ApiMethodNeedsAuthFilter : IOperationFilter
+    public sealed class ApiMethodNeedsAuthOperationTransformer : IOpenApiOperationTransformer
     {
-        public void Apply(OpenApiOperation operation, OperationFilterContext context)
+        public Task TransformAsync(
+            OpenApiOperation operation,
+            OpenApiOperationTransformerContext context,
+            CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(operation);
             ArgumentNullException.ThrowIfNull(context);
-
-            var methodAttributes = context.MethodInfo.GetCustomAttributes(true);
             
             // Check if allow anonymous.
-            if (methodAttributes.OfType<AllowAnonymousAttribute>().Any() ||
-                (context.MethodInfo.DeclaringType != null &&
-                 context.MethodInfo.DeclaringType.GetCustomAttributes(true).OfType<AllowAnonymousAttribute>().Any()))
-                return;
+            if (context.Description.ActionDescriptor.EndpointMetadata.OfType<AllowAnonymousAttribute>().Any())
+                return Task.CompletedTask;
             
             // Otherwise, require authentication by default.
             operation.Security =
             [
                 new OpenApiSecurityRequirement
-                {{
-                    new OpenApiSecuritySchemeReference("OAuth"),
-                    []
-                }}
+                    {{ new OpenApiSecuritySchemeReference("OAuth"), [ ] }}
             ];
+            return Task.CompletedTask;
         }
     }
 }

@@ -13,8 +13,8 @@
 // If not, see <https://www.gnu.org/licenses/>.
 
 using Etherna.ACR.Helpers;
+using Etherna.BeeNet.Models;
 using Etherna.MongoDB.Bson;
-using Etherna.MongoDB.Driver.Linq;
 using Etherna.MongODM.Core.Exceptions;
 using Etherna.MongODM.Core.Repositories;
 using Etherna.SSOServer.Domain;
@@ -26,16 +26,20 @@ using Microsoft.Extensions.DependencyInjection;
 using Nethereum.Hex.HexConvertors.Extensions;
 using Nethereum.Signer;
 using Nethereum.Util;
-using Nethereum.Web3.Accounts;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+using Account = Nethereum.Web3.Accounts.Account;
 
 namespace Etherna.SSOServer.Services.Domain
 {
-    public class UserService : IUserService
+    public class UserService(
+        IServiceProvider serviceProvider,
+        ISharedDbContext sharedDbContext,
+        ISsoDbContext ssoDbContext)
+        : IUserService
     {
         // Consts.
         public const string DuplicateEmailErrorKey = "DuplicateEmail";
@@ -43,21 +47,7 @@ namespace Etherna.SSOServer.Services.Domain
         public const string InvalidValidationErrorKey = "InvalidInvitation";
 
         // Fields.
-        private readonly IServiceProvider serviceProvider;
-        private readonly ISharedDbContext sharedDbContext;
-        private readonly ISsoDbContext ssoDbContext;
         private UserManager<UserBase>? _userManager;
-
-        // Constructor.
-        public UserService(
-            IServiceProvider serviceProvider,
-            ISharedDbContext sharedDbContext,
-            ISsoDbContext ssoDbContext)
-        {
-            this.serviceProvider = serviceProvider;
-            this.sharedDbContext = sharedDbContext;
-            this.ssoDbContext = ssoDbContext;
-        }
 
         // Private properties.
         private UserManager<UserBase> UserManager => _userManager ??= serviceProvider.GetRequiredService<UserManager<UserBase>>();
@@ -65,23 +55,20 @@ namespace Etherna.SSOServer.Services.Domain
         // Methods.
         public async Task DeleteAsync(UserBase user)
         {
-            ArgumentNullException.ThrowIfNull(user, nameof(user));
+            ArgumentNullException.ThrowIfNull(user);
 
             await ssoDbContext.Users.DeleteAsync(user);
             await sharedDbContext.UsersInfo.DeleteAsync(user.SharedInfoId);
         }
 
-        public Task<UserBase> FindUserByAddressAsync(string etherAddress)
-        {
-            etherAddress = etherAddress.ConvertToEthereumChecksumAddress();
-            return ssoDbContext.Users.FindOneAsync(
+        public Task<UserBase> FindUserByAddressAsync(EthAddress etherAddress) =>
+            ssoDbContext.Users.FindOneAsync(
                 u => u.EtherAddress == etherAddress ||
-                u.EtherPreviousAddresses.Contains(etherAddress));
-        }
+                     u.EtherPreviousAddresses.Contains(etherAddress));
 
         public async Task<UserSharedInfo> GetSharedUserInfoAsync(UserBase user)
         {
-            ArgumentNullException.ThrowIfNull(user, nameof(user));
+            ArgumentNullException.ThrowIfNull(user);
 
             return await sharedDbContext.UsersInfo.FindOneAsync(user.SharedInfoId);
         }
@@ -114,7 +101,7 @@ namespace Etherna.SSOServer.Services.Domain
             string username,
             string password,
             string? email,
-            string? etherLoginAddress,
+            EthAddress? etherLoginAddress,
             bool lockoutEnabled,
             DateTimeOffset? lockoutEnd,
             string? phoneNumber,
@@ -143,8 +130,8 @@ namespace Etherna.SSOServer.Services.Domain
                     if (email is not null)
                         user.SetEmail(email);
                     user.SetPhoneNumber(phoneNumber);
-                    if (!string.IsNullOrWhiteSpace(etherLoginAddress))
-                        user.SetEtherLoginAddress(etherLoginAddress);
+                    if (etherLoginAddress.HasValue)
+                        user.EtherLoginAddress = etherLoginAddress;
                     foreach (var role in roles)
                         user.AddRole(role);
                     user.TwoFactorEnabled = twoFactorEnabled;
@@ -155,7 +142,7 @@ namespace Etherna.SSOServer.Services.Domain
 
         public Task<(IEnumerable<(string key, string msg)> errors, UserWeb3? user)> RegisterWeb3UserAsync(
             string username,
-            string etherAddress,
+            EthAddress etherAddress,
             string? invitationCode) =>
             RegisterUserHelperAsync(
                 username,

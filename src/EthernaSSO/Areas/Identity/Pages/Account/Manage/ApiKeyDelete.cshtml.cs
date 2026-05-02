@@ -21,30 +21,20 @@ using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
 {
-    public class ApiKeyDeleteModel : PageModel
+    public class ApiKeyDeleteModel(ISsoDbContext ssoDbContext) : PageModel
     {
-        // Fields.
-        private readonly ISsoDbContext ssoDbContext;
-
-        // Constructor.
-        public ApiKeyDeleteModel(
-            ISsoDbContext ssoDbContext)
-        {
-            this.ssoDbContext = ssoDbContext;
-        }
-
         // Properties.
-        public string Id { get; private set; } = default!;
+        public string Id { get; private set; } = null!;
 
         [Display(Name = "End of life")]
         public DateTime? EndOfLife { get; private set; }
 
-        public string Label { get; private set; } = default!;
+        public string Label { get; private set; } = null!;
 
         // Methods.
         public async Task OnGetAsync(string id)
         {
-            ArgumentNullException.ThrowIfNull(id, nameof(id));
+            ArgumentNullException.ThrowIfNull(id);
 
             var apiKey = await ssoDbContext.ApiKeys.FindOneAsync(id);
 

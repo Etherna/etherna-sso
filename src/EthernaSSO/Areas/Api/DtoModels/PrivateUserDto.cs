@@ -12,6 +12,7 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
+using Etherna.BeeNet.Models;
 using Etherna.SSOServer.Domain.Models;
 using System;
 using System.Collections.Generic;
@@ -23,7 +24,7 @@ namespace Etherna.SSOServer.Areas.Api.DtoModels
         // Constructor.
         public PrivateUserDto(UserBase user)
         {
-            ArgumentNullException.ThrowIfNull(user, nameof(user));
+            ArgumentNullException.ThrowIfNull(user);
 
             Email = user.Email;
             EtherAddress = user.EtherAddress;
@@ -49,10 +50,10 @@ namespace Etherna.SSOServer.Areas.Api.DtoModels
         // Properties.
         public string AccountType { get; }
         public string? Email { get; }
-        public string EtherAddress { get; }
+        public EthAddress EtherAddress { get; }
         public string? EtherManagedPrivateKey { get; }
-        public IEnumerable<string> EtherPreviousAddresses { get; }
-        public string? EtherLoginAddress { get; }
+        public IEnumerable<EthAddress> EtherPreviousAddresses { get; }
+        public EthAddress? EtherLoginAddress { get; }
         public string? PhoneNumber { get; }
         public string? Username { get; }
     }

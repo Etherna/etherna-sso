@@ -32,8 +32,8 @@ namespace Etherna.SSOServer.Domain.Models.UserAgg
         protected UserClaim() { }
 
         // Properties.
-        public virtual string Type { get; protected set; } = default!;
-        public virtual string Value { get; protected set; } = default!;
+        public virtual string Type { get; protected set; } = null!;
+        public virtual string Value { get; protected set; } = null!;
 
         // Methods.
         public override bool Equals(object? obj)

@@ -12,25 +12,24 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Duende.IdentityServer;
 using Duende.IdentityServer.Stores;
 using Duende.IdentityServer.Validation;
-using Etherna.ACR.Conventions;
 using Etherna.ACR.Exceptions;
 using Etherna.ACR.Middlewares.DebugPages;
 using Etherna.ACR.Settings;
 using Etherna.Authentication.AspNetCore;
+using Etherna.BeeNet.JsonConverters;
 using Etherna.DomainEvents;
 using Etherna.MongODM;
 using Etherna.MongODM.AspNetCore.UI;
 using Etherna.MongODM.Core.Options;
+using Etherna.SSOServer.Areas.Api;
 using Etherna.SSOServer.Configs;
 using Etherna.SSOServer.Configs.Authorization;
 using Etherna.SSOServer.Configs.Identity;
 using Etherna.SSOServer.Configs.IdentityServer;
 using Etherna.SSOServer.Configs.MongODM;
-using Etherna.SSOServer.Configs.Swagger;
-using Etherna.SSOServer.Configs.Swagger.Filters;
+using Etherna.SSOServer.Configs.OpenApi;
 using Etherna.SSOServer.Configs.SystemStore;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
@@ -53,30 +52,29 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
-using Microsoft.OpenApi;
+using Scalar.AspNetCore;
 using Serilog;
 using Serilog.Exceptions;
 using Serilog.Sinks.Elasticsearch;
-using Swashbuckle.AspNetCore.SwaggerGen;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using DashboardOptions = Etherna.MongODM.AspNetCore.UI.DashboardOptions;
 using IPNetwork = System.Net.IPNetwork;
 using SameSiteMode = Microsoft.AspNetCore.Http.SameSiteMode;
+using ServiceDescriptor = Microsoft.Extensions.DependencyInjection.ServiceDescriptor;
 
 namespace Etherna.SSOServer
 {
@@ -166,17 +164,17 @@ namespace Etherna.SSOServer
                 });
 
             services.AddIdentity<UserBase, Role>(options =>
-            {
-                options.Password.RequiredLength = 6;
-                options.Password.RequireDigit = true;
-                options.Password.RequireLowercase = true;
-                options.Password.RequireUppercase = true;
-                options.Password.RequireNonAlphanumeric = false;
+                {
+                    options.Password.RequiredLength = 6;
+                    options.Password.RequireDigit = true;
+                    options.Password.RequireLowercase = true;
+                    options.Password.RequireUppercase = true;
+                    options.Password.RequireNonAlphanumeric = false;
 
-                options.Tokens.EmailConfirmationTokenProvider = TokenOptions.DefaultEmailProvider; //totp code
+                    options.Tokens.EmailConfirmationTokenProvider = TokenOptions.DefaultEmailProvider; //totp code
 
-                options.User.RequireUniqueEmail = true;
-            })
+                    options.User.RequireUniqueEmail = true;
+                })
                 .AddDefaultTokenProviders()
                 .AddRoles<Role>()
                 .AddRoleStore<RoleStore>()
@@ -247,6 +245,19 @@ namespace Etherna.SSOServer
             });
 
             services.AddCors();
+            services.AddOpenApi("Sso03", options =>
+            {
+                options.AddDocumentTransformer(new SsoDocumentTransformer(
+                    config["IdServer:SsoServer:BaseUrl"] ?? throw new ServiceConfigurationException()));
+                options.AddDocumentTransformer<MetadataFilterDocumentTransformer<SsoApiMarker>>();
+
+                options.AddOperationTransformer<ApiMethodNeedsAuthOperationTransformer>();
+                options.AddOperationTransformer<DeprecatedOperationTransformer>();
+                options.AddOperationTransformer<RemoveDefaultResponse200OperationTransformer>();
+                options.AddOperationTransformer<SsoOperationTransformer>();
+                
+                options.AddSchemaTransformer(new SwarmModelsSchemaTransformer());
+            });
             services.AddRazorPages(options =>
             {
                 options.Conventions.AuthorizeAreaFolder(CommonConsts.AdminArea, "/", CommonConsts.RequireAdministratorRolePolicy);
@@ -254,31 +265,12 @@ namespace Etherna.SSOServer
 
                 options.Conventions.AuthorizeAreaPage(CommonConsts.IdentityArea, "/Account/Logout");
             });
-            services.AddControllers(options =>
-                {
-                    //api by default requires authentication with user interact policy
-                    options.Conventions.Add(
-                        new RouteTemplateAuthorizationConvention(
-                            CommonConsts.ApiArea,
-                            CommonConsts.UserInteractApiScopePolicy));
-                })
-                .AddJsonOptions(options =>
-                {
-                    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-                });
-            services.AddApiVersioning(options =>
+            services.ConfigureHttpJsonOptions(options =>
             {
-                options.ReportApiVersions = true;
-            });
-            services.AddVersionedApiExplorer(options =>
-            {
-                // add the versioned api explorer, which also adds IApiVersionDescriptionProvider service
-                // note: the specified format code will format the version as "'v'major[.minor][-status]"
-                options.GroupNameFormat = "'v'VVV";
+                options.SerializerOptions.Converters.Add(new EthAddressJsonConverter());
+                options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
 
-                // note: this option is only necessary when versioning by url segment. the SubstitutionFormat
-                // can also be used to control the format of the API version in route templates
-                options.SubstituteApiVersionInUrl = true;
+                options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
             });
 
             // Configure authentication.
@@ -358,7 +350,7 @@ namespace Etherna.SSOServer
                         new DenyAnonymousAuthorizationRequirement(),
                         new DenyBannedAuthorizationRequirement()
                     ],
-                    Array.Empty<string>());
+                    []);
 
                 //other policies
                 options.AddPolicy(CommonConsts.RequireAdministratorRolePolicy,
@@ -444,46 +436,13 @@ namespace Etherna.SSOServer
                 });
             }
 
-            // Configure Swagger services.
-            services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
-            services.AddSwaggerGen(options =>
-            {
-                options.SupportNonNullableReferenceTypes();
-                options.UseAllOfToExtendReferenceSchemas();
-                options.UseInlineDefinitionsForEnums();
-
-                //add a custom operation filters
-                options.OperationFilter<ApiMethodNeedsAuthFilter>();
-                options.OperationFilter<SwaggerDefaultValuesFilter>();
-
-                //integrate xml comments
-                var xmlFile = typeof(Program).GetTypeInfo().Assembly.GetName().Name + ".xml";
-                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-                options.IncludeXmlComments(xmlPath);
-
-                var ssoBaseUrl = config["IdServer:SsoServer:BaseUrl"] ?? throw new ServiceConfigurationException();
-                var scheme = new OpenApiSecurityScheme
-                {
-                    In = ParameterLocation.Header,
-                    Name = "Authorization",
-                    Flows = new OpenApiOAuthFlows
-                    {
-                        AuthorizationCode = new OpenApiOAuthFlow
-                        {
-                            AuthorizationUrl = new Uri($"{ssoBaseUrl}/connect/authorize"),
-                            TokenUrl = new Uri($"{ssoBaseUrl}/connect/token")
-                        }
-                    },
-                    Type = SecuritySchemeType.OAuth2
-                };
-
-                options.AddSecurityDefinition("OAuth", scheme);
-            });
-
             // Configure setting.
             services.Configure<ApplicationSettings>(config.GetSection("Application") ?? throw new ServiceConfigurationException());
             services.Configure<EmailSettings>(config.GetSection("Email") ?? throw new ServiceConfigurationException());
             services.Configure<SsoDbSeedSettings>(config.GetSection("DbSeed") ?? throw new ServiceConfigurationException());
+            
+            // Configure api handler.
+            services.AddScoped<ISsoApiHandler, SsoApiHandler>();
 
             // Configure persistence.
             services.AddMongODMWithHangfire(configureHangfireOptions: options =>
@@ -535,9 +494,8 @@ namespace Etherna.SSOServer
 
         private static void ConfigureApplication(WebApplication app)
         {
-            var env = app.Environment;
             var config = app.Configuration;
-            var apiProvider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
+            var env = app.Environment;
 
             if (env.IsDevelopment())
             {
@@ -585,6 +543,12 @@ namespace Etherna.SSOServer
             app.UseIdentityServer();
             app.UseAuthorization();
 
+            // Add api and pages.
+            app.MapOpenApi();
+            app.MapRazorPages();
+
+            app.MapSsoApi();
+
             // Add Hangfire.
             app.UseHangfireDashboard(CommonConsts.HangfireAdminPath,
                 new Hangfire.DashboardOptions
@@ -592,35 +556,23 @@ namespace Etherna.SSOServer
                     Authorization = [new Configs.Hangfire.AdminAuthFilter()]
                 });
 
-            // Add Swagger.
-            app.UseSwagger();
-            app.UseSwaggerUI(options =>
+            // Add Scalar API Reference.
+            app.MapScalarApiReference((options, httpContext) =>
             {
-                options.DocumentTitle = "Etherna SSO API";
-
-                // build a swagger endpoint for each discovered API version
-                foreach (var description in apiProvider.ApiVersionDescriptions)
-                {
-                    options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", description.GroupName.ToUpperInvariant());
-                }
-                
-                options.OAuthClientId(config["IdServer:Clients:EthernaSsoSwagger:ClientId"] ?? throw new ServiceConfigurationException());
-                options.OAuthScopes(
-                    //identity
-                    IdentityServerConstants.StandardScopes.OpenId,
-                    IdentityServerConstants.StandardScopes.Profile,
-                    IdServerConfig.IdResourcesDef.EtherAccounts.Name,
-                    IdServerConfig.IdResourcesDef.Role.Name,
-                    
-                    //resource
-                    IdServerConfig.ApiScopesDef.UserInteractEthernaSso.Name);
-                options.OAuthUsePkce();
-                options.EnablePersistAuthorization();
+                options.WithTitle("Etherna Sso API")
+                    .WithOpenApiRoutePattern("/openapi/sso03.json")
+                    .DisableAgent()
+                    .HideClientButton()
+                    .HideDeveloperTools()
+                    .AddPreferredSecuritySchemes("OAuth")
+                    .AddAuthorizationCodeFlow("OAuth", flow =>
+                    {
+                        flow.ClientId = config["IdServer:Clients:EthernaSsoScalar:ClientId"] ?? throw new ServiceConfigurationException();
+                        flow.RedirectUri = $"{httpContext.Request.Scheme}://{httpContext.Request.Host}/scalar/sso03";
+                        flow.Pkce = Pkce.Sha256;
+                        flow.SelectedScopes = ["openid", "profile", "ether_accounts", "role", "userApi.sso"];
+                    });
             });
-
-            // Add endpoints.
-            app.MapControllers();
-            app.MapRazorPages();
 
             // Register cron tasks.
             RecurringJob.AddOrUpdate<ICompileDailyStatsTask>(

@@ -12,7 +12,6 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.MongoDB.Driver.Linq;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -30,7 +29,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
         {
             public RoleDto(Role role)
             {
-                ArgumentNullException.ThrowIfNull(role, nameof(role));
+                ArgumentNullException.ThrowIfNull(role);
 
                 Id = role.Id;
                 Name = role.Name;

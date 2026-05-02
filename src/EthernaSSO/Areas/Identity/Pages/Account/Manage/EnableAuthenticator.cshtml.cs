@@ -54,7 +54,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             UrlEncoder urlEncoder,
             UserManager<UserBase> userManager)
         {
-            ArgumentNullException.ThrowIfNull(applicationSettings, nameof(applicationSettings));
+            ArgumentNullException.ThrowIfNull(applicationSettings);
 
             this.applicationSettings = applicationSettings.Value;
             this.logger = logger;
@@ -62,20 +62,20 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             this.userManager = userManager;
         }
 
-        public string AuthenticatorUri { get; set; } = default!;
+        public string AuthenticatorUri { get; set; } = null!;
 
 #pragma warning disable CA1819 // Properties should not return arrays
         [TempData]
-        public string[] RecoveryCodes { get; set; } = default!;
+        public string[] RecoveryCodes { get; set; } = null!;
 #pragma warning restore CA1819 // Properties should not return arrays
 
-        public string SharedKey { get; set; } = default!;
+        public string SharedKey { get; set; } = null!;
 
         [TempData]
         public string? StatusMessage { get; set; }
 
         [BindProperty]
-        public InputModel Input { get; set; } = default!;
+        public InputModel Input { get; set; } = null!;
 
         // Methods.
         public async Task<IActionResult> OnGetAsync()
