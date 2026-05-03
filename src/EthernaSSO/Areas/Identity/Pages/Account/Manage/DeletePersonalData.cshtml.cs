@@ -12,6 +12,7 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
+using Etherna.BeeNet.Models;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Extensions;
@@ -20,7 +21,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
-using Nethereum.Util;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
@@ -34,7 +34,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
         {
             [Required]
             [DataType(DataType.Password)]
-            public string Password { get; set; } = default!;
+            public string Password { get; set; } = null!;
         }
 
         // Fields.
@@ -61,7 +61,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
 
         // Properties.
         [BindProperty]
-        public InputModel Input { get; set; } = default!;
+        public InputModel Input { get; set; } = null!;
         public bool IsWeb3User { get; set; }
         public bool RequirePassword { get; set; }
         [TempData]
@@ -82,10 +82,10 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             return Page();
         }
 
-        public async Task<IActionResult> OnGetRetriveAuthMessageAsync(string etherAddress) =>
-            new JsonResult(await web3AuthnService.RetriveAuthnMessageAsync(etherAddress));
+        public async Task<IActionResult> OnGetRetrieveAuthMessageAsync(EthAddress etherAddress) =>
+            new JsonResult(await web3AuthnService.RetrieveAuthnMessageAsync(etherAddress));
 
-        public async Task<IActionResult> OnGetDeleteWeb3Async(string etherAddress, string signature)
+        public async Task<IActionResult> OnGetDeleteWeb3Async(EthAddress etherAddress, string signature)
         {
             // Verify signature.
             //get token
@@ -112,7 +112,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             if (await userManager.GetUserAsync(User) is not UserWeb3 user)
                 return NotFound($"Unable to load user with ID '{userManager.GetUserId(User)}'.");
 
-            if (!user.EtherAddress.IsTheSameAddress(etherAddress))
+            if (user.EtherAddress != etherAddress)
             {
                 StatusMessage = $"Signing address is different than user's Ethereum address";
                 return RedirectToPage();

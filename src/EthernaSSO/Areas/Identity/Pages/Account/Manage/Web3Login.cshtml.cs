@@ -12,44 +12,29 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
+using Etherna.BeeNet.Models;
 using Etherna.MongoDB.Driver;
-using Etherna.MongoDB.Driver.Linq;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Services.Domain;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Nethereum.Util;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
 {
-    public class Web3LoginModel : PageModel
+    public class Web3LoginModel(
+        SignInManager<UserBase> signInManager,
+        ISsoDbContext ssoDbContext,
+        UserManager<UserBase> userManager,
+        IWeb3AuthnService web3AuthnService)
+        : PageModel
     {
-        // Fields.
-        private readonly SignInManager<UserBase> signInManager;
-        private readonly ISsoDbContext ssoDbContext;
-        private readonly UserManager<UserBase> userManager;
-        private readonly IWeb3AuthnService web3AuthnService;
-
-        // Constructor.
-        public Web3LoginModel(
-            SignInManager<UserBase> signInManager,
-            ISsoDbContext ssoDbContext,
-            UserManager<UserBase> userManager,
-            IWeb3AuthnService web3AuthnService)
-        {
-            this.signInManager = signInManager;
-            this.ssoDbContext = ssoDbContext;
-            this.userManager = userManager;
-            this.web3AuthnService = web3AuthnService;
-        }
-
         // Properties.
         [Display(Name = "Ethereum login address")]
-        public string? EtherLoginAddress { get; private set; }
+        public EthAddress? EtherLoginAddress { get; private set; }
 
         public bool ShowRemoveButton { get; set; }
 
@@ -68,10 +53,10 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             return Page();
         }
 
-        public async Task<IActionResult> OnGetRetriveAuthMessageAsync(string etherAddress) =>
-            new JsonResult(await web3AuthnService.RetriveAuthnMessageAsync(etherAddress));
+        public async Task<IActionResult> OnGetRetrieveAuthMessageAsync(EthAddress etherAddress) =>
+            new JsonResult(await web3AuthnService.RetrieveAuthnMessageAsync(etherAddress));
 
-        public async Task<IActionResult> OnGetConfirmSignature(string etherAddress, string signature)
+        public async Task<IActionResult> OnGetConfirmSignature(EthAddress etherAddress, string signature)
         {
             // Verify signature.
             //get token
@@ -98,7 +83,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             if (await userManager.GetUserAsync(User) is not UserWeb2 user)
                 return NotFound($"Unable to load user with ID '{userManager.GetUserId(User)}'.");
 
-            if (!user.EtherLoginAddress.IsTheSameAddress(etherAddress))
+            if (user.EtherLoginAddress != etherAddress)
             {
                 //check for uniqueness
                 var cursor = await ssoDbContext.Users.FindAsync<UserBase>(Builders<UserBase>.Filter.Or(
@@ -111,7 +96,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
                 }
 
                 //set address
-                user.SetEtherLoginAddress(etherAddress);
+                user.EtherLoginAddress = etherAddress;
                 await ssoDbContext.SaveChangesAsync();
             }
 

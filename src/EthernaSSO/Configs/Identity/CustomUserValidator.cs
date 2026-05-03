@@ -53,8 +53,8 @@ namespace Etherna.SSOServer.Configs.Identity
         /// <returns>The <see cref="Task"/> that represents the asynchronous operation, containing the <see cref="IdentityResult"/> of the validation operation.</returns>
         public virtual async Task<IdentityResult> ValidateAsync(UserManager<UserBase> manager, UserBase user)
         {
-            ArgumentNullException.ThrowIfNull(manager, nameof(manager));
-            ArgumentNullException.ThrowIfNull(user, nameof(user));
+            ArgumentNullException.ThrowIfNull(manager);
+            ArgumentNullException.ThrowIfNull(user);
 
             var errors = new List<IdentityError>();
 

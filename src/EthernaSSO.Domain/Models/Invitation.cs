@@ -31,8 +31,8 @@ namespace Etherna.SSOServer.Domain.Models
         protected Invitation() { }
 
         // Properties.
-        public virtual string Code { get; protected set; } = default!;
-        public virtual UserBase? Emitter { get; protected set; } = default!;
+        public virtual string Code { get; protected set; } = null!;
+        public virtual UserBase? Emitter { get; protected set; }
         public virtual DateTime? EndLife { get; protected set; }
         public virtual bool IsAlive => EndLife is null || DateTime.UtcNow < EndLife;
         public virtual bool IsFromAdmin { get; protected set; }

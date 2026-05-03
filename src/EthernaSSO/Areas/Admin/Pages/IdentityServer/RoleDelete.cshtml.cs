@@ -12,7 +12,6 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.MongoDB.Driver;
 using Etherna.MongoDB.Driver.Linq;
 using Etherna.SSOServer.Domain;
 using Microsoft.AspNetCore.Mvc;
@@ -36,15 +35,15 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
         }
 
         // Properties.
-        public string Id { get; private set; } = default!;
+        public string Id { get; private set; } = null!;
 
         [Display(Name = "Role name")]
-        public string Name { get; private set; } = default!;
+        public string Name { get; private set; } = null!;
 
         // Methods.
         public async Task OnGetAsync(string id)
         {
-            ArgumentNullException.ThrowIfNull(id, nameof(id));
+            ArgumentNullException.ThrowIfNull(id);
 
             Id = id;
             var role = await context.Roles.FindOneAsync(id);
@@ -53,7 +52,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
 
         public async Task<IActionResult> OnPostDeleteAsync(string id)
         {
-            ArgumentNullException.ThrowIfNull(id, nameof(id));
+            ArgumentNullException.ThrowIfNull(id);
 
             var role = await context.Roles.FindOneAsync(id);
             var usersWithRole = await context.Users.QueryElementsAsync(elements =>

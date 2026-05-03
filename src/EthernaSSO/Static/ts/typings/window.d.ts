@@ -19,7 +19,7 @@ declare global {
       isSquarelink?: boolean
       isAuthereum?: boolean
     }
-    retriveAuthMessageUrl?: string | null
+    retrieveAuthMessageUrl?: string | null
     confirmSignatureUrl?: string | null
   }
 }

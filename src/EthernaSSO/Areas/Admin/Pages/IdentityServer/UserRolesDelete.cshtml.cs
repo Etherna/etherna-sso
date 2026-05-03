@@ -41,8 +41,8 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
         // Methods.
         public async Task OnGetAsync(string roleId, string userId)
         {
-            ArgumentNullException.ThrowIfNull(roleId, nameof(roleId));
-            ArgumentNullException.ThrowIfNull(userId, nameof(userId));
+            ArgumentNullException.ThrowIfNull(roleId);
+            ArgumentNullException.ThrowIfNull(userId);
 
             RoleId = roleId;
             var role = await context.Roles.FindOneAsync(roleId);
@@ -55,8 +55,8 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
 
         public async Task<IActionResult> OnPostDeleteAsync(string roleId, string userId)
         {
-            ArgumentNullException.ThrowIfNull(roleId, nameof(roleId));
-            ArgumentNullException.ThrowIfNull(userId, nameof(userId));
+            ArgumentNullException.ThrowIfNull(roleId);
+            ArgumentNullException.ThrowIfNull(userId);
 
             var role = await context.Roles.FindOneAsync(roleId);
             var user = await context.Users.FindOneAsync(userId);

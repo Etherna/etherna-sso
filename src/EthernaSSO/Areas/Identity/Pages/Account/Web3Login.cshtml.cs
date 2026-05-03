@@ -14,6 +14,7 @@
 
 using Duende.IdentityServer.Services;
 using Duende.IdentityServer.Stores;
+using Etherna.BeeNet.Models;
 using Etherna.DomainEvents;
 using Etherna.MongoDB.Driver;
 using Etherna.SSOServer.Domain;
@@ -46,12 +47,12 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             [Required]
             [RegularExpression(UsernameHelper.UsernameRegex, ErrorMessage = UsernameHelper.UsernameValidationErrorMessage)]
             [Display(Name = "Username")]
-            public string Username { get; set; } = default!;
+            public string Username { get; set; } = null!;
 
             // Methods.
             public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
             {
-                ArgumentNullException.ThrowIfNull(validationContext, nameof(validationContext));
+                ArgumentNullException.ThrowIfNull(validationContext);
 
                 var appSettings = (IOptions<ApplicationSettings>)validationContext.GetService(typeof(IOptions<ApplicationSettings>))!;
                 if (appSettings.Value.RequireInvitation && string.IsNullOrWhiteSpace(InvitationCode))
@@ -88,7 +89,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             IWeb3AuthnService web3AuthnService)
             : base(clientStore)
         {
-            ArgumentNullException.ThrowIfNull(applicationSettings, nameof(applicationSettings));
+            ArgumentNullException.ThrowIfNull(applicationSettings);
 
             this.applicationSettings = applicationSettings.Value;
             this.eventDispatcher = eventDispatcher;
@@ -109,7 +110,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         public InputModel Input { get; set; } = default!;
 
         public bool DuplicateUsername { get; private set; }
-        public string? EtherAddress { get; private set; }
+        public EthAddress? EtherAddress { get; private set; }
         public bool IsInvitationRequired { get; private set; }
         public string? ReturnUrl { get; private set; }
         public string? Signature { get; private set; }
@@ -118,10 +119,10 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         public IActionResult OnGet() =>
             RedirectToPage("./Login");
 
-        public async Task<IActionResult> OnGetRetriveAuthMessageAsync(string etherAddress) =>
-            new JsonResult(await web3AuthnService.RetriveAuthnMessageAsync(etherAddress));
+        public async Task<IActionResult> OnGetRetrieveAuthMessageAsync(EthAddress etherAddress) =>
+            new JsonResult(await web3AuthnService.RetrieveAuthnMessageAsync(etherAddress));
 
-        public async Task<IActionResult> OnGetConfirmSignature(string etherAddress, string signature, string? invitationCode, string? returnUrl)
+        public async Task<IActionResult> OnGetConfirmSignature(EthAddress etherAddress, string signature, string? invitationCode, string? returnUrl)
         {
             // Verify signature.
             //get token
@@ -171,7 +172,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                     user,
                     clientId: context?.Client?.ClientId,
                     provider: "web3",
-                    providerUserId: etherAddress));
+                    providerUserId: etherAddress.ToString()));
                 logger.LoggedInWithWeb3(user.Id);
 
                 // Identify redirect.
@@ -248,7 +249,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         }
 
         // Helpers.
-        private void Initialize(string etherAddress, string signature, string? returnUrl)
+        private void Initialize(EthAddress etherAddress, string signature, string? returnUrl)
         {
             EtherAddress = etherAddress;
             IsInvitationRequired = applicationSettings.RequireInvitation;

@@ -12,6 +12,7 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
+using Etherna.BeeNet.Models;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Services.Domain;
@@ -30,7 +31,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
         {
             public UserDto(UserBase user)
             {
-                ArgumentNullException.ThrowIfNull(user, nameof(user));
+                ArgumentNullException.ThrowIfNull(user);
 
                 Id = user.Id;
                 Email = user.Email;
@@ -40,7 +41,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
 
             public string Id { get; }
             public string? Email { get; }
-            public string EtherAddress { get; }
+            public EthAddress EtherAddress { get; }
             public string Username { get; }
         }
 
@@ -71,7 +72,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
         // Methods.
         public async Task OnGetAsync(string id, int? p, string? q)
         {
-            ArgumentNullException.ThrowIfNull(id, nameof(id));
+            ArgumentNullException.ThrowIfNull(id);
 
             CurrentPage = p ?? 0;
             Query = q ?? "";

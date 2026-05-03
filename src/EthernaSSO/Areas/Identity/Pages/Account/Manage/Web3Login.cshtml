@@ -19,7 +19,7 @@
     ViewData["Title"] = "Manage web3 Login";
     ViewData["ActivePage"] = ManageNavPages.Web3Login;
 
-    var retriveAuthMessageUrl = Url.Page("Web3Login", "RetriveAuthMessage");
+    var retrieveAuthMessageUrl = Url.Page("Web3Login", "RetrieveAuthMessage");
     var confirmSignatureUrl = Url.Page("Web3Login", "ConfirmSignature");
 }
 
@@ -58,7 +58,7 @@
 </div>
 
 <script type="text/javascript">
-    window.retriveAuthMessageUrl = '@Html.Raw(retriveAuthMessageUrl)';
+    window.retrieveAuthMessageUrl = '@Html.Raw(retrieveAuthMessageUrl)';
     window.confirmSignatureUrl = '@Html.Raw(confirmSignatureUrl)';
 </script>
 <script src="~/dist/js/etherna-web3-signin.js" asp-append-version="true"></script>

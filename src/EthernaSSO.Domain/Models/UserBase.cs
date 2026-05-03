@@ -14,6 +14,7 @@
 
 using Etherna.ACR.Helpers;
 using Etherna.Authentication;
+using Etherna.BeeNet.Models;
 using Etherna.MongODM.Core.Attributes;
 using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models.UserAgg;
@@ -39,7 +40,7 @@ namespace Etherna.SSOServer.Domain.Models
 
         // Fields.
         private readonly List<UserClaim> _customClaims = new();
-        private List<string> _etherPreviousAddresses = new();
+        private List<EthAddress> _etherPreviousAddresses = new();
         private List<Role> _roles = new();
 
         // Constructors.
@@ -49,7 +50,7 @@ namespace Etherna.SSOServer.Domain.Models
             bool invitedByAdmin,
             UserSharedInfo sharedInfo)
         {
-            ArgumentNullException.ThrowIfNull(sharedInfo, nameof(sharedInfo));
+            ArgumentNullException.ThrowIfNull(sharedInfo);
 
             SetUsername(username);
             InvitedBy = invitedBy;
@@ -65,7 +66,7 @@ namespace Etherna.SSOServer.Domain.Models
             protected set
             {
                 _customClaims.Clear();
-                foreach (var claim in value ?? Array.Empty<UserClaim>())
+                foreach (var claim in value ?? [])
                     AddClaim(claim);
             }
         }
@@ -75,10 +76,10 @@ namespace Etherna.SSOServer.Domain.Models
             {
                 var claims = new List<UserClaim>
                 {
-                    new UserClaim(EthernaClaimTypes.EtherAddress, EtherAddress),
-                    new UserClaim(EthernaClaimTypes.EtherPreviousAddresses, JsonSerializer.Serialize(_etherPreviousAddresses)),
-                    new UserClaim(EthernaClaimTypes.IsWeb3Account, (this is UserWeb3).ToString()),
-                    new UserClaim(EthernaClaimTypes.Username, Username)
+                    new(EthernaClaimTypes.EtherAddress, EtherAddress.ToString()),
+                    new(EthernaClaimTypes.EtherPreviousAddresses, JsonSerializer.Serialize(_etherPreviousAddresses)),
+                    new(EthernaClaimTypes.IsWeb3Account, (this is UserWeb3).ToString()),
+                    new(EthernaClaimTypes.Username, Username)
                 };
 
                 foreach (var role in _roles)
@@ -93,16 +94,16 @@ namespace Etherna.SSOServer.Domain.Models
 
         [PersonalData]
         /* Keep until SharedInfo can't be encapsulated. */
-        public virtual string EtherAddress { get; protected set; } = default!;
+        public virtual EthAddress EtherAddress { get; protected set; } = default!;
         //[PersonalData]
         //public virtual string EtherAddress => SharedInfo.EtherAddress;
 
         [PersonalData]
         /* Keep until SharedInfo can't be encapsulated. */
-        public virtual IEnumerable<string> EtherPreviousAddresses
+        public virtual IEnumerable<EthAddress> EtherPreviousAddresses
         {
             get => _etherPreviousAddresses;
-            protected set => _etherPreviousAddresses = new List<string>(value ?? Array.Empty<string>());
+            protected set => _etherPreviousAddresses = new List<EthAddress>(value ?? []);
         }
         //[PersonalData]
         //public virtual IEnumerable<string> EtherPreviousAddresses => SharedInfo.EtherPreviousAddresses;
@@ -121,25 +122,25 @@ namespace Etherna.SSOServer.Domain.Models
         public virtual IEnumerable<Role> Roles
         {
             get => _roles;
-            protected set => _roles = new List<Role>(value ?? Array.Empty<Role>());
+            protected set => _roles = new List<Role>(value ?? []);
         }
-        public virtual string SecurityStamp { get; set; } = default!;
+        public virtual string SecurityStamp { get; set; } = null!;
 
         /* SharedInfo is encapsulable with resolution of https://etherna.atlassian.net/browse/MODM-101.
          * With encapsulation we can expose also EtherAddress and EtherPreviousAddresses properties
          * pointing to SharedInfo internal property, and avoid data duplication.
          */
         //protected abstract SharedUserInfo SharedInfo { get; set; }
-        public virtual string SharedInfoId { get; protected set; } = default!;
+        public virtual string SharedInfoId { get; protected set; } = null!;
 
         [PersonalData]
-        public virtual string Username { get; protected set; } = default!;
+        public virtual string Username { get; protected set; } = null!;
 
         // Methods.
         [PropertyAlterer(nameof(Claims))]
         public virtual bool AddClaim(UserClaim claim)
         {
-            ArgumentNullException.ThrowIfNull(claim, nameof(claim));
+            ArgumentNullException.ThrowIfNull(claim);
 
             //keep default claims managed by model
             if (DomainManagedClaimNames.Contains(claim.Type))
@@ -177,7 +178,7 @@ namespace Etherna.SSOServer.Domain.Models
         [PropertyAlterer(nameof(Claims))]
         public virtual bool RemoveClaim(UserClaim claim)
         {
-            ArgumentNullException.ThrowIfNull(claim, nameof(claim));
+            ArgumentNullException.ThrowIfNull(claim);
 
             return RemoveClaim(claim.Type, claim.Value);
         }
@@ -185,8 +186,8 @@ namespace Etherna.SSOServer.Domain.Models
         [PropertyAlterer(nameof(Claims))]
         public virtual bool RemoveClaim(string type, string value)
         {
-            ArgumentNullException.ThrowIfNull(type, nameof(type));
-            ArgumentNullException.ThrowIfNull(value, nameof(value));
+            ArgumentNullException.ThrowIfNull(type);
+            ArgumentNullException.ThrowIfNull(value);
 
             var removed = _customClaims.RemoveAll(c => c.Type == type &&
                                                        c.Value == value);

@@ -19,7 +19,7 @@
     ViewData["Title"] = "Delete Personal Data";
     ViewData["ActivePage"] = ManageNavPages.PersonalData;
 
-    var retriveAuthMessageUrl = Url.Page("DeletePersonalData", "RetriveAuthMessage");
+    var retrieveAuthMessageUrl = Url.Page("DeletePersonalData", "RetrieveAuthMessage");
     var confirmSignatureUrl = Url.Page("DeletePersonalData", "DeleteWeb3");
 }
 
@@ -67,7 +67,7 @@
 @if (Model.IsWeb3User)
 {
     <script type="text/javascript">
-        window.retriveAuthMessageUrl = '@Html.Raw(retriveAuthMessageUrl)';
+        window.retrieveAuthMessageUrl = '@Html.Raw(retrieveAuthMessageUrl)';
         window.confirmSignatureUrl = '@Html.Raw(confirmSignatureUrl)';
     </script>
     <script src="~/dist/js/etherna-web3-signin.js" asp-append-version="true"></script>

@@ -12,6 +12,7 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
+using Etherna.BeeNet.Models;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Services.Domain;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -22,14 +23,14 @@ using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
 {
-    public class UsersModel : PageModel
+    public class UsersModel(IUserService userService) : PageModel
     {
         // Models.
         public class UserDto
         {
             public UserDto(UserBase user)
             {
-                ArgumentNullException.ThrowIfNull(user, nameof(user));
+                ArgumentNullException.ThrowIfNull(user);
 
                 Id = user.Id;
                 Email = user.Email;
@@ -39,22 +40,12 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
 
             public string Id { get; }
             public string? Email { get; }
-            public string EtherAddress { get; }
+            public EthAddress EtherAddress { get; }
             public string Username { get; }
         }
 
         // Consts.
         private const int PageSize = 20;
-
-        // Fields.
-        private readonly IUserService userService;
-
-        // Constructor.
-        public UsersModel(
-            IUserService userService)
-        {
-            this.userService = userService;
-        }
 
         // Properties.
         public int CurrentPage { get; private set; }

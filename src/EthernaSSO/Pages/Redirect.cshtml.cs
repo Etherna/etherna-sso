@@ -20,12 +20,12 @@ namespace Etherna.SSOServer.Pages
     public class RedirectModel : PageModel
     {
         // Methods.
-        public string RedirectUrl { get; private set; } = default!;
+        public string RedirectUrl { get; private set; } = null!;
 
         // Properties.
         public void OnGet(string redirectUrl)
         {
-            ArgumentNullException.ThrowIfNull(redirectUrl, nameof(redirectUrl));
+            ArgumentNullException.ThrowIfNull(redirectUrl);
 
             RedirectUrl = redirectUrl;
         }

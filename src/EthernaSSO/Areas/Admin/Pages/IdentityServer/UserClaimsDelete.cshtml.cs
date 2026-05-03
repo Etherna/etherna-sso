@@ -20,30 +20,20 @@ using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
 {
-    public class UserClaimsDeleteModel : PageModel
+    public class UserClaimsDeleteModel(ISsoDbContext context) : PageModel
     {
-        // Fields.
-        private readonly ISsoDbContext context;
-
-        // Constructor.
-        public UserClaimsDeleteModel(
-            ISsoDbContext context)
-        {
-            this.context = context;
-        }
-
         // Properties.
-        public string ClaimType { get; private set; } = default!;
-        public string ClaimValue { get; private set; } = default!;
-        public string UserId { get; private set; } = default!;
-        public string Username { get; private set; } = default!;
+        public string ClaimType { get; private set; } = null!;
+        public string ClaimValue { get; private set; } = null!;
+        public string UserId { get; private set; } = null!;
+        public string Username { get; private set; } = null!;
 
         // Methods.
         public async Task OnGetAsync(string claimType, string claimValue, string userId)
         {
-            ArgumentNullException.ThrowIfNull(claimType, nameof(claimType));
-            ArgumentNullException.ThrowIfNull(claimValue, nameof(claimValue));
-            ArgumentNullException.ThrowIfNull(userId, nameof(userId));
+            ArgumentNullException.ThrowIfNull(claimType);
+            ArgumentNullException.ThrowIfNull(claimValue);
+            ArgumentNullException.ThrowIfNull(userId);
 
             var user = await context.Users.FindOneAsync(userId);
 
@@ -55,9 +45,9 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
 
         public async Task<IActionResult> OnPostAsync(string claimType, string claimValue, string userId)
         {
-            ArgumentNullException.ThrowIfNull(claimType, nameof(claimType));
-            ArgumentNullException.ThrowIfNull(claimValue, nameof(claimValue));
-            ArgumentNullException.ThrowIfNull(userId, nameof(userId));
+            ArgumentNullException.ThrowIfNull(claimType);
+            ArgumentNullException.ThrowIfNull(claimValue);
+            ArgumentNullException.ThrowIfNull(userId);
 
             var user = await context.Users.FindOneAsync(userId);
             user.RemoveClaim(claimType, claimValue);

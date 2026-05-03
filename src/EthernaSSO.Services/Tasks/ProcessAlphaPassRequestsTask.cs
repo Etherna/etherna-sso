@@ -53,7 +53,7 @@ namespace Etherna.SSOServer.Services.Tasks
             IRazorViewRenderer razorViewRenderer,
             IServiceProvider serviceProvider)
         {
-            ArgumentNullException.ThrowIfNull(applicationSettings, nameof(applicationSettings));
+            ArgumentNullException.ThrowIfNull(applicationSettings);
 
             this.applicationSettings = applicationSettings.Value;
             this.dbContext = dbContext;

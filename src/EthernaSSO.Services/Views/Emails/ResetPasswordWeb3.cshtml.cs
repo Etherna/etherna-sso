@@ -12,14 +12,16 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
+using Etherna.BeeNet.Models;
+
 namespace Etherna.SSOServer.Services.Views.Emails
 {
-    public class ResetPasswordWeb3Model(string address)
+    public class ResetPasswordWeb3Model(EthAddress address)
     {
         // Consts.
         public const string Title = "Etherna - Reset password";
         
         // Properties.
-        public string Address { get; } = address;
+        public EthAddress Address { get; } = address;
     }
 }

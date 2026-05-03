@@ -1,4 +1,4 @@
-﻿// Copyright 2021-present Etherna SA
+// Copyright 2021-present Etherna SA
 // This file is part of Etherna Sso.
 // 
 // Etherna Sso is free software: you can redistribute it and/or modify it under the terms of the
@@ -12,20 +12,19 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.SSOServer.Areas.Api.DtoModels;
-using System.Security.Claims;
-using System.Threading.Tasks;
+using Etherna.BeeNet.Models;
+using Etherna.MongODM.Core;
+using Etherna.MongODM.Core.Serialization;
+using Etherna.SSOServer.Persistence.Serializers;
 
-namespace Etherna.SSOServer.Areas.Api.Services
+namespace Etherna.SSOServer.Persistence.ModelMaps.Sso
 {
-    public interface IIdentityControllerService
+    internal sealed class BeeNetMap : IModelMapsCollector
     {
-        Task<UserDto> GetUserByEtherAddressAsync(string etherAddress);
-
-        Task<UserDto> GetUserByUsernameAsync(string username);
-
-        Task<bool> IsEmailRegisteredAsync(string email);
-
-        Task<PrivateUserDto?> TryGetPrivateUserInfoByClaimsAsync(ClaimsPrincipal userClaims);
+        public void Register(IDbContext dbContext)
+        {
+            dbContext.MapRegistry.AddCustomSerializerMap<EthAddress>( //v0.4.0
+                new EthAddressSerializer());
+        }
     }
 }

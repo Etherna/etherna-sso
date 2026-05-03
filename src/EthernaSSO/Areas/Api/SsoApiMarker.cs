@@ -1,4 +1,4 @@
-﻿// Copyright 2021-present Etherna SA
+// Copyright 2021-present Etherna SA
 // This file is part of Etherna Sso.
 // 
 // Etherna Sso is free software: you can redistribute it and/or modify it under the terms of the
@@ -12,13 +12,10 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.SSOServer.Areas.Api.DtoModels;
-using System.Threading.Tasks;
-
-namespace Etherna.SSOServer.Areas.Api.Services
+namespace Etherna.SSOServer.Areas.Api
 {
-    public interface IServiceInteractControllerService
+    internal sealed class SsoApiMarker
     {
-        Task<UserContactInfoDto> GetUserContactInfoAsync(string etherAddress);
+        
     }
 }
