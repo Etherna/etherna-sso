@@ -12,10 +12,66 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
+using Etherna.ACR.Helpers;
+using Etherna.BeeNet.Models;
+using Etherna.MongoDB.Driver.Linq;
+using Etherna.SSOServer.Areas.Api.DtoModels;
+using Etherna.SSOServer.Domain;
+using Etherna.SSOServer.Domain.Helpers;
+using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Services.Domain;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
+using System;
+using System.Threading.Tasks;
+
 namespace Etherna.SSOServer.Areas.Api
 {
-    internal sealed class SsoApiHandler : ISsoApiHandler
+    internal sealed class SsoApiHandler(
+        ISsoDbContext context,
+        IHttpContextAccessor httpContextAccessor,
+        UserManager<UserBase> userManager,
+        IUserService userService)
+        : ISsoApiHandler
     {
-        
+        // Methods.
+        public Task<IResult> GetCurrentUserPrivateInfoAsync() =>
+            ExceptionHandler.RunAsync(async () =>
+            {
+                var user = await userManager.GetUserAsync(httpContextAccessor.HttpContext!.User);
+                if (user is null)
+                    throw new InvalidOperationException();
+                return Results.Json(new PrivateUserDto(user));
+            });
+
+        public Task<IResult> GetUserByEtherAddressAsync(EthAddress etherAddress) =>
+            ExceptionHandler.RunAsync(async () =>
+            {
+                var user = await userService.FindUserByAddressAsync(etherAddress);
+                return Results.Json(new UserDto(user));
+            });
+
+        public Task<IResult> GetUserByUsernameAsync(string username) =>
+            ExceptionHandler.RunAsync(async () =>
+            {
+                username = UsernameHelper.NormalizeUsername(username);
+                var user = await context.Users.FindOneAsync(u => u.NormalizedUsername == username);
+                return Results.Json(new UserDto(user));
+            });
+
+        public Task<IResult> GetUserContactInfoAsync(EthAddress etherAddress) =>
+            ExceptionHandler.RunAsync(async () =>
+            {
+                var user = await userService.FindUserByAddressAsync(etherAddress);
+                return Results.Json(new UserContactInfoDto(user));
+            });
+
+        public Task<IResult> IsEmailRegisteredAsync(string email) =>
+            ExceptionHandler.RunAsync(async () =>
+            {
+                var result = await context.Users.QueryElementsAsync(
+                    users => users.AnyAsync(u => u.NormalizedEmail == EmailHelper.NormalizeEmail(email)));
+                return Results.Json(result);
+            });
     }
 }
