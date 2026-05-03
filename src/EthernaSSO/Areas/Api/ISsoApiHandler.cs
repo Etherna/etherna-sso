@@ -12,10 +12,18 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
+using Etherna.BeeNet.Models;
+using Microsoft.AspNetCore.Http;
+using System.Threading.Tasks;
+
 namespace Etherna.SSOServer.Areas.Api
 {
     internal interface ISsoApiHandler
     {
-        
+        Task<IResult> GetCurrentUserPrivateInfoAsync();
+        Task<IResult> GetUserByEtherAddressAsync(EthAddress etherAddress);
+        Task<IResult> GetUserByUsernameAsync(string username);
+        Task<IResult> GetUserContactInfoAsync(EthAddress etherAddress);
+        Task<IResult> IsEmailRegisteredAsync(string email);
     }
 }

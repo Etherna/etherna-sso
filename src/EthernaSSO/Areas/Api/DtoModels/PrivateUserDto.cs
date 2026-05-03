@@ -55,6 +55,6 @@ namespace Etherna.SSOServer.Areas.Api.DtoModels
         public IEnumerable<EthAddress> EtherPreviousAddresses { get; }
         public EthAddress? EtherLoginAddress { get; }
         public string? PhoneNumber { get; }
-        public string? Username { get; }
+        public string Username { get; }
     }
 }

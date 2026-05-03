@@ -256,7 +256,9 @@ namespace Etherna.SSOServer
                 options.AddOperationTransformer<RemoveDefaultResponse200OperationTransformer>();
                 options.AddOperationTransformer<SsoOperationTransformer>();
                 
-                options.AddSchemaTransformer(new SwarmModelsSchemaTransformer());
+                options.AddSchemaTransformer<SwarmModelsSchemaTransformer>();
+                options.AddSchemaTransformer<NullableReferenceTypesSchemaTransformer>();
+                options.AddDocumentTransformer<NullableStructDocumentTransformer>();
             });
             services.AddRazorPages(options =>
             {
@@ -484,7 +486,7 @@ namespace Etherna.SSOServer
 
             services.AddMongODMAdminDashboard(new DashboardOptions
             {
-                AuthFilters = new[] { new AdminAuthFilter() },
+                AuthFilters = [new AdminAuthFilter()],
                 BasePath = CommonConsts.DatabaseAdminPath
             });
 
