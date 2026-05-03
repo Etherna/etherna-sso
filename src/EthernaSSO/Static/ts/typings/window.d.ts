@@ -1,11 +1,11 @@
-import { providers } from "ethers"
+import { Eip1193Provider } from "ethers"
 
 export { }
 
 declare global {
   interface Window {
     web3?: {
-      currentProvider: providers.ExternalProvider
+      currentProvider: Eip1193Provider
     }
     ethereum?: {
       autoRefreshOnNetworkChange: boolean
