@@ -26,7 +26,8 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
         // Properties.
         public string Id { get; private set; } = null!;
 
-        [Display(Name = "End of life")]
+        [Display(Name = "End of life (UTC)")]
+        [DisplayFormat(DataFormatString = "{0:dd/MM/yyyy HH:mm:ss}", ApplyFormatInEditMode = true)]
         public DateTime? EndOfLife { get; private set; }
 
         public string Label { get; private set; } = null!;

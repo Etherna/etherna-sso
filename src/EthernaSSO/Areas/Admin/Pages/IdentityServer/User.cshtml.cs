@@ -44,7 +44,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
                 Email = user.Email;
                 PhoneNumber = user.PhoneNumber;
                 LockoutEnabled = sharedInfo.LockoutEnabled;
-                LockoutEnd = sharedInfo.LockoutEnd;
+                LockoutEnd = sharedInfo.LockoutEnd?.UtcDateTime;
                 Username = user.Username;
 
                 switch (user)
@@ -70,8 +70,8 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
             [Display(Name = "Lockout enabled")]
             public bool LockoutEnabled { get; set; } = true;
 
-            [Display(Name = "Lockout end")]
-            public DateTimeOffset? LockoutEnd { get; set; }
+            [Display(Name = "Lockout end (UTC)")]
+            public DateTime? LockoutEnd { get; set; }
 
             [Display(Name = "New user password")]
             public string? NewUserPassword { get; set; }
@@ -125,6 +125,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
         public bool IsWeb3 { get; private set; }
 
         [Display(Name = "Last login date/time (UTC)")]
+        [DisplayFormat(DataFormatString = "{0:dd/MM/yyyy HH:mm:ss}", ApplyFormatInEditMode = true)]
         public DateTime? LastLoginDateTime { get; private set; }
 
         [Display(Name = "Phone number confirmed")]
@@ -178,7 +179,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
                     Input.Email,
                     Input.EtherLoginAddress,
                     Input.LockoutEnabled,
-                    Input.LockoutEnd,
+                    Input.LockoutEnd.HasValue ? new DateTimeOffset(DateTime.SpecifyKind(Input.LockoutEnd.Value, DateTimeKind.Utc)) : null,
                     Input.PhoneNumber,
                     Array.Empty<Role>(),
                     Input.TwoFactorEnabled);
@@ -230,7 +231,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
                 await userService.UpdateLockoutStatusAsync(
                     user,
                     Input.LockoutEnabled,
-                    Input.LockoutEnd);
+                    Input.LockoutEnd.HasValue ? new DateTimeOffset(DateTime.SpecifyKind(Input.LockoutEnd.Value, DateTimeKind.Utc)) : null);
             }
 
             return RedirectToPage(new { user.Id });

@@ -37,7 +37,8 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             public string Label { get; set; } = default!;
 
             [DataType(DataType.DateTime)]
-            [Display(Name = "End of life (optional)")]
+            [Display(Name = "End of life (optional, UTC)")]
+            [DisplayFormat(DataFormatString = "{0:dd/MM/yyyy HH:mm:ss}", ApplyFormatInEditMode = true)]
             public DateTime? EndOfLife { get; set; }
         }
 
@@ -92,7 +93,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
 
             //valid date
             if (Input.EndOfLife is not null &&
-                Input.EndOfLife < DateTime.Now)
+                Input.EndOfLife < DateTime.UtcNow)
             {
                 StatusMessage = $"Error: selected End of Life is already passed";
                 return Page();

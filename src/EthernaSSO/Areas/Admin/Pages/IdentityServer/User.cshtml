@@ -148,16 +148,17 @@
                         </div>
                     </div>
 
-                    @* Use "26/09/2021 19:27:53 +02:00" format, or ISO 8601-1:2019: https://docs.microsoft.com/en-us/dotnet/standard/datetime/system-text-json-support *@
+                    @* Date/time is always in UTC, format: dd/MM/yyyy HH:mm:ss *@
                     <div class="mb-3 row">
                         <label asp-for="Input.LockoutEnd" class="col-sm-3 col-form-label"></label>
                         <div class="col-sm-9">
-                            <div class="input-group date">
-                                <input asp-for="Input.LockoutEnd" type="text" class="form-control" id="lockoutend-picker" autocomplete="off">
-                                <div class="input-group-text" data-target="#lockoutend-picker" data-toggle="datetimepicker">
-                                    <i class="fa fa-calendar"></i>
-                                </div>
-                            </div>
+                            <input type="text"
+                                   name="Input.LockoutEnd"
+                                   id="lockoutend-picker"
+                                   class="form-control"
+                                   value="@(Model.Input.LockoutEnd?.ToString("yyyy-MM-ddTHH:mm:ss") ?? "")"
+                                   autocomplete="off">
+                            <span asp-validation-for="Input.LockoutEnd" class="text-danger"></span>
                         </div>
                     </div>
 
@@ -209,14 +210,3 @@
         </div>
     </div>
 </form>
-
-@section scripts
-{
-    <script type="text/javascript">
-        $(function () {
-            $('#lockoutend-picker').datetimepicker({
-                format: 'd/m/Y H:i:s P'
-            });
-        });
-    </script>
-}
