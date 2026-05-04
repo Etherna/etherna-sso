@@ -13,10 +13,13 @@
 // If not, see <https://www.gnu.org/licenses/>.
 
 using Etherna.BeeNet.Models;
+using Etherna.MongoDB.Bson;
+using Etherna.MongoDB.Bson.Serialization.Serializers;
 using Etherna.MongODM.Core;
 using Etherna.MongODM.Core.Serialization;
 using Etherna.SSOServer.Domain.Models.UserAgg;
 using Etherna.SSOServer.Persistence.Serializers;
+using System;
 
 namespace Etherna.SSOServer.Persistence.ModelMaps.Shared
 {
@@ -32,7 +35,9 @@ namespace Etherna.SSOServer.Persistence.ModelMaps.Shared
                 mm.AutoMap();
 
                 // Set members to ignore if null or default.
-                mm.GetMemberMap(u => u.LockoutEnd).SetIgnoreIfNull(true);
+                mm.GetMemberMap(u => u.LockoutEnd)
+                    .SetSerializer(new NullableSerializer<DateTimeOffset>(new DateTimeOffsetSerializer(BsonType.DateTime)))
+                    .SetIgnoreIfNull(true);
             });
         }
     }
