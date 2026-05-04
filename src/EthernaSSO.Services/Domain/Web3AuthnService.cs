@@ -24,7 +24,7 @@ namespace Etherna.SSOServer.Services.Domain
     {
         // Methods.
         public string ComposeAuthMessage(string code) =>
-            $"Sign this message for verify your address with Etherna! Code: {code}";
+            $"Sign this message to verify your address with Etherna! Code: {code}";
 
         public async Task<string> RetrieveAuthnMessageAsync(EthAddress etherAddress)
         {
