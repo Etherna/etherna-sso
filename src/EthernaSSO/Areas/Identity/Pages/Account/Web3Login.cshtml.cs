@@ -23,7 +23,7 @@ using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Extensions;
 using Etherna.SSOServer.Services.Domain;
-using Etherna.SSOServer.Services.Settings;
+using Etherna.SSOServer.Services.Options;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -54,7 +54,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             {
                 ArgumentNullException.ThrowIfNull(validationContext);
 
-                var appSettings = (IOptions<ApplicationSettings>)validationContext.GetService(typeof(IOptions<ApplicationSettings>))!;
+                var appSettings = (IOptions<ApplicationOptions>)validationContext.GetService(typeof(IOptions<ApplicationOptions>))!;
                 if (appSettings.Value.RequireInvitation && string.IsNullOrWhiteSpace(InvitationCode))
                 {
                     yield return new ValidationResult(
@@ -65,7 +65,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         }
 
         // Fields.
-        private readonly ApplicationSettings applicationSettings;
+        private readonly ApplicationOptions applicationOptions;
         private readonly IEventDispatcher eventDispatcher;
         private readonly IIdentityServerInteractionService idServerInteractionService;
         private readonly ILogger<Web3LoginModel> logger;
@@ -77,7 +77,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
         // Constructor.
         public Web3LoginModel(
-            IOptions<ApplicationSettings> applicationSettings,
+            IOptions<ApplicationOptions> applicationSettings,
             IClientStore clientStore,
             IEventDispatcher eventDispatcher,
             IIdentityServerInteractionService idServerInteractionService,
@@ -91,7 +91,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         {
             ArgumentNullException.ThrowIfNull(applicationSettings);
 
-            this.applicationSettings = applicationSettings.Value;
+            this.applicationOptions = applicationSettings.Value;
             this.eventDispatcher = eventDispatcher;
             this.idServerInteractionService = idServerInteractionService;
             this.logger = logger;
@@ -252,7 +252,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         private void Initialize(EthAddress etherAddress, string signature, string? returnUrl)
         {
             EtherAddress = etherAddress;
-            IsInvitationRequired = applicationSettings.RequireInvitation;
+            IsInvitationRequired = applicationOptions.RequireInvitation;
             ReturnUrl = returnUrl ?? Url.Content("~/");
             Signature = signature;
         }

@@ -12,7 +12,6 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.ACR.Helpers;
 using Etherna.BeeNet.Models;
 using Etherna.MongoDB.Bson;
 using Etherna.MongODM.Core.Exceptions;

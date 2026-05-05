@@ -19,7 +19,7 @@ using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Extensions;
 using Etherna.SSOServer.Services.Domain;
-using Etherna.SSOServer.Services.Settings;
+using Etherna.SSOServer.Services.Options;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -65,7 +65,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             {
                 ArgumentNullException.ThrowIfNull(validationContext);
 
-                var appSettings = (IOptions<ApplicationSettings>)validationContext.GetService(typeof(IOptions<ApplicationSettings>))!;
+                var appSettings = (IOptions<ApplicationOptions>)validationContext.GetService(typeof(IOptions<ApplicationOptions>))!;
                 if (appSettings.Value.RequireInvitation && string.IsNullOrWhiteSpace(InvitationCode))
                 {
                     yield return new ValidationResult(
@@ -76,7 +76,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         }
 
         // Fields.
-        private readonly ApplicationSettings applicationSettings;
+        private readonly ApplicationOptions applicationOptions;
         private readonly IEventDispatcher eventDispatcher;
         private readonly IIdentityServerInteractionService idServerInteractService;
         private readonly ILogger<RegisterModel> logger;
@@ -85,7 +85,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
         // Constructor.
         public RegisterModel(
-            IOptions<ApplicationSettings> applicationSettings,
+            IOptions<ApplicationOptions> applicationSettings,
             IEventDispatcher eventDispatcher,
             IIdentityServerInteractionService idServerInteractService,
             ILogger<RegisterModel> logger,
@@ -94,7 +94,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         {
             ArgumentNullException.ThrowIfNull(applicationSettings);
 
-            this.applicationSettings = applicationSettings.Value;
+            this.applicationOptions = applicationSettings.Value;
             this.eventDispatcher = eventDispatcher;
             this.idServerInteractService = idServerInteractService;
             this.logger = logger;
@@ -160,7 +160,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             //load data
             Input ??= new InputModel();
             Input.InvitationCode ??= invitationCode;
-            IsInvitationRequired = applicationSettings.RequireInvitation;
+            IsInvitationRequired = applicationOptions.RequireInvitation;
             ReturnUrl = returnUrl ?? Url.Content("~/");
 
             //init partial view models

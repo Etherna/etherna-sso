@@ -14,7 +14,6 @@
 
 using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models;
-using Etherna.SSOServer.Services.Settings;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using System;

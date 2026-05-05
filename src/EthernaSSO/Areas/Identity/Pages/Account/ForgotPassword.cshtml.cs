@@ -12,9 +12,10 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.ACR.Services;
 using Etherna.SSOServer.Configs;
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Services.Domain;
+using Etherna.SSOServer.Services.Views.Emails;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -98,11 +99,11 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                     // Send email.
                     var web3EmailBody = await razorViewRenderer.RenderViewToStringAsync(
                         "Views/Emails/ResetPasswordWeb3.cshtml",
-                        new Services.Views.Emails.ResetPasswordWeb3Model(userWeb3.EtherAddress));
+                        new ResetPasswordWeb3Model(userWeb3.EtherAddress));
 
                     await emailSender.SendEmailAsync(
                         Input.Email,
-                        Services.Views.Emails.ResetPasswordWeb3Model.Title,
+                        ResetPasswordWeb3Model.Title,
                         web3EmailBody);
                     
                     return RedirectToPage("./ForgotPasswordConfirmation");

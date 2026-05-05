@@ -12,7 +12,6 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.ACR;
 using Etherna.DomainEvents;
 using Etherna.DomainEvents.AspNetCore;
 using Etherna.SSOServer.Services.Domain;
@@ -30,9 +29,6 @@ namespace Etherna.SSOServer.Services
 
         public static void AddDomainServices(this IServiceCollection services)
         {
-            // Dependencies.
-            services.AddEthernaServicesSharedLibrary();
-
             // Events.
             //register handlers in Ioc
             var eventHandlerTypes = from t in typeof(ServiceCollectionExtensions).GetTypeInfo().Assembly.GetTypes()
@@ -44,6 +40,8 @@ namespace Etherna.SSOServer.Services
 
             // Register services.
             //domain
+            services.AddScoped<IEmailSender, EmailSender>();
+            services.AddScoped<IRazorViewRenderer, RazorViewRenderer>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IWeb3AuthnService, Web3AuthnService>();
 

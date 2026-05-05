@@ -14,7 +14,7 @@
 
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Extensions;
-using Etherna.SSOServer.Services.Settings;
+using Etherna.SSOServer.Services.Options;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -43,20 +43,20 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
         }
 
         // Fields.
-        private readonly ApplicationSettings applicationSettings;
+        private readonly ApplicationOptions applicationOptions;
         private readonly ILogger<EnableAuthenticatorModel> logger;
         private readonly UrlEncoder urlEncoder;
         private readonly UserManager<UserBase> userManager;
 
         public EnableAuthenticatorModel(
-            IOptions<ApplicationSettings> applicationSettings,
+            IOptions<ApplicationOptions> applicationSettings,
             ILogger<EnableAuthenticatorModel> logger,
             UrlEncoder urlEncoder,
             UserManager<UserBase> userManager)
         {
             ArgumentNullException.ThrowIfNull(applicationSettings);
 
-            this.applicationSettings = applicationSettings.Value;
+            this.applicationOptions = applicationSettings.Value;
             this.logger = logger;
             this.urlEncoder = urlEncoder;
             this.userManager = userManager;
@@ -146,7 +146,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             SharedKey = FormatKey(unformattedKey);
 
             var username = await userManager.GetUserNameAsync(user) ?? throw new InvalidOperationException();
-            AuthenticatorUri = GenerateQrCodeUri(applicationSettings.DisplayName, username, unformattedKey);
+            AuthenticatorUri = GenerateQrCodeUri(applicationOptions.DisplayName, username, unformattedKey);
         }
 
         private string FormatKey(string unformattedKey)

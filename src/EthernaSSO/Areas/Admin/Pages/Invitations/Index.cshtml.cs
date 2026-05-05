@@ -12,12 +12,12 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.ACR.Helpers;
-using Etherna.ACR.Services;
 using Etherna.MongoDB.Driver.Linq;
 using Etherna.SSOServer.Configs;
 using Etherna.SSOServer.Domain;
+using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Services.Domain;
 using Etherna.SSOServer.Services.Views.Emails;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -30,7 +30,12 @@ using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Areas.Admin.Pages.Invitations
 {
-    public class IndexModel : PageModel
+    public class IndexModel(
+        IEmailSender emailSender,
+        IRazorViewRenderer razorViewRenderer,
+        ISsoDbContext ssoDbContext,
+        UserManager<UserBase> userManager)
+        : PageModel
     {
         // Consts.
         private readonly TimeSpan DefaultInvitationDuration = TimeSpan.FromDays(30);
@@ -43,25 +48,6 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.Invitations
 
             [Display(Name = "New invitation email and name receivers. Format <email>[;<name>]")]
             public string? EmailAndNameReceivers { get; set; }
-        }
-
-        // Fields.
-        private readonly IEmailSender emailSender;
-        private readonly IRazorViewRenderer razorViewRenderer;
-        private readonly ISsoDbContext ssoDbContext;
-        private readonly UserManager<UserBase> userManager;
-
-        // Constructor.
-        public IndexModel(
-            IEmailSender emailSender,
-            IRazorViewRenderer razorViewRenderer,
-            ISsoDbContext ssoDbContext,
-            UserManager<UserBase> userManager)
-        {
-            this.emailSender = emailSender;
-            this.razorViewRenderer = razorViewRenderer;
-            this.ssoDbContext = ssoDbContext;
-            this.userManager = userManager;
         }
 
         // Properties.
