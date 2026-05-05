@@ -13,7 +13,7 @@
 // If not, see <https://www.gnu.org/licenses/>.
 
 using Etherna.SSOServer.Domain.Models;
-using Etherna.SSOServer.Extensions;
+using Etherna.SSOServer.Services.Extensions;
 using Etherna.SSOServer.Services.Options;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -22,7 +22,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.ComponentModel.DataAnnotations;
-using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.Encodings.Web;

@@ -17,7 +17,7 @@ using Duende.IdentityServer.Stores;
 using Etherna.DomainEvents;
 using Etherna.SSOServer.Domain.Events;
 using Etherna.SSOServer.Domain.Models;
-using Etherna.SSOServer.Extensions;
+using Etherna.SSOServer.Services.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;

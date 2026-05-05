@@ -16,12 +16,14 @@ using Etherna.MongoDB.Driver.Linq;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Services.Domain;
+using Etherna.SSOServer.Services.Extensions;
 using Etherna.SSOServer.Services.Options;
 using Etherna.SSOServer.Services.Views.Emails;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.Linq;
@@ -42,6 +44,7 @@ namespace Etherna.SSOServer.Services.Tasks
         private readonly ApplicationOptions applicationOptions;
         private readonly ISsoDbContext dbContext;
         private readonly IEmailSender emailSender;
+        private readonly ILogger<ProcessAlphaPassRequestsTask> logger;
         private readonly IRazorViewRenderer razorViewRenderer;
         private readonly IServiceProvider serviceProvider;
 
@@ -50,6 +53,7 @@ namespace Etherna.SSOServer.Services.Tasks
             IOptions<ApplicationOptions> applicationSettings,
             ISsoDbContext dbContext,
             IEmailSender emailSender,
+            ILogger<ProcessAlphaPassRequestsTask> logger,
             IRazorViewRenderer razorViewRenderer,
             IServiceProvider serviceProvider)
         {
@@ -58,6 +62,7 @@ namespace Etherna.SSOServer.Services.Tasks
             this.applicationOptions = applicationSettings.Value;
             this.dbContext = dbContext;
             this.emailSender = emailSender;
+            this.logger = logger;
             this.razorViewRenderer = razorViewRenderer;
             this.serviceProvider = serviceProvider;
         }
@@ -115,6 +120,8 @@ namespace Etherna.SSOServer.Services.Tasks
             }
 
             await dbContext.SaveChangesAsync();
+
+            logger.AlphaPassRequestsProcessed(requests.Count);
         }
     }
 }

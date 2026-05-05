@@ -15,8 +15,8 @@
 using Etherna.BeeNet.Models;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
-using Etherna.SSOServer.Extensions;
 using Etherna.SSOServer.Services.Domain;
+using Etherna.SSOServer.Services.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
