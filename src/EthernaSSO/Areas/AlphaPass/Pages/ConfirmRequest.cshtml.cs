@@ -12,26 +12,16 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.ACR.Helpers;
 using Etherna.SSOServer.Domain;
+using Etherna.SSOServer.Domain.Helpers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Areas.AlphaPass.Pages
 {
-    public class ConfirmRequestModel : PageModel
+    public class ConfirmRequestModel(ISsoDbContext dbContext) : PageModel
     {
-        // Fields.
-        private readonly ISsoDbContext dbContext;
-
-        // Constructor.
-        public ConfirmRequestModel(
-            ISsoDbContext dbContext)
-        {
-            this.dbContext = dbContext;
-        }
-
         // Properties.
         [TempData]
         public string? StatusMessage { get; set; }

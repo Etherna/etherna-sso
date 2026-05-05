@@ -14,9 +14,6 @@
 
 using Duende.IdentityServer.Stores;
 using Duende.IdentityServer.Validation;
-using Etherna.ACR.Exceptions;
-using Etherna.ACR.Middlewares.DebugPages;
-using Etherna.ACR.Settings;
 using Etherna.Authentication.AspNetCore;
 using Etherna.BeeNet.JsonConverters;
 using Etherna.DomainEvents;
@@ -33,11 +30,13 @@ using Etherna.SSOServer.Configs.OpenApi;
 using Etherna.SSOServer.Configs.SystemStore;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Exceptions;
 using Etherna.SSOServer.Extensions;
+using Etherna.SSOServer.Middlewares.DebugPages;
 using Etherna.SSOServer.Persistence;
 using Etherna.SSOServer.Persistence.Settings;
 using Etherna.SSOServer.Services;
-using Etherna.SSOServer.Services.Settings;
+using Etherna.SSOServer.Services.Options;
 using Etherna.SSOServer.Services.Tasks;
 using Hangfire;
 using Hangfire.Mongo;
@@ -439,8 +438,8 @@ namespace Etherna.SSOServer
             }
 
             // Configure setting.
-            services.Configure<ApplicationSettings>(config.GetSection("Application") ?? throw new ServiceConfigurationException());
-            services.Configure<EmailSettings>(config.GetSection("Email") ?? throw new ServiceConfigurationException());
+            services.Configure<ApplicationOptions>(config.GetSection("Application") ?? throw new ServiceConfigurationException());
+            services.Configure<EmailOptions>(config.GetSection("Email") ?? throw new ServiceConfigurationException());
             services.Configure<SsoDbSeedSettings>(config.GetSection("DbSeed") ?? throw new ServiceConfigurationException());
             
             // Configure api handler.
@@ -503,7 +502,7 @@ namespace Etherna.SSOServer
             {
                 app.UseDeveloperExceptionPage();
                 app.UseForwardedHeaders();
-                app.UseEthernaAcrDebugPages();
+                app.UseEthernaDebugPages();
             }
             else
             {

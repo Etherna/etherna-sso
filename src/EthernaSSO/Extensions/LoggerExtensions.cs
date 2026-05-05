@@ -20,7 +20,7 @@ namespace Etherna.SSOServer.Extensions
 {
     /*
      * Always group similar log delegates by type, always use incremental event ids.
-     * Last event id is: 26
+     * Last event id is: 27
      */
     public static class LoggerExtensions
     {
@@ -31,6 +31,13 @@ namespace Etherna.SSOServer.Extensions
                 LogLevel.Debug,
                 new EventId(0, nameof(ExternalClaims)),
                 "External claims: {Claims}");
+        
+        //*** ERROR LOGS ***
+        private static readonly Action<ILogger, string, Exception> _requestError =
+            LoggerMessage.Define<string>(
+                LogLevel.Error,
+                new EventId(27, nameof(RequestError)),
+                "Request {RequestId} threw error");
 
         //*** INFORMATION LOGS ***
         private static readonly Action<ILogger, string, string, Exception> _accountDeleted =
@@ -268,6 +275,9 @@ namespace Etherna.SSOServer.Extensions
 
         public static void RefreshedLogin(this ILogger logger, string userId) =>
             _refreshedLogin(logger, userId, null!);
+        
+        public static void RequestError(this ILogger logger, string requestId) =>
+            _requestError(logger, requestId, null!);
 
         public static void Resetted2FAAuthApp(this ILogger logger, string userId) =>
             _resetted2FAAuthApp(logger, userId, null!);

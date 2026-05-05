@@ -14,8 +14,8 @@
 
 using Duende.IdentityServer;
 using Duende.IdentityServer.Models;
-using Etherna.ACR.Exceptions;
 using Etherna.Authentication;
+using Etherna.SSOServer.Exceptions;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;

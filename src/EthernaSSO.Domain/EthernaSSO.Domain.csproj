@@ -16,7 +16,6 @@
     <PackageReference Include="Bee.Net.Core" Version="0.6.0-alpha.16" />
     <PackageReference Include="Etherna.Authentication.AspNetCore" Version="0.4.0-alpha.50" />
     <PackageReference Include="Etherna.DomainEvents" Version="1.5.0" />
-    <PackageReference Include="EthernaACR" Version="0.4.0-alpha.66" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="10.0.7" />
     <PackageReference Include="MongODM.Core" Version="0.25.0-alpha.54" />
     <PackageReference Include="Nethereum.Accounts" Version="6.1.0" />

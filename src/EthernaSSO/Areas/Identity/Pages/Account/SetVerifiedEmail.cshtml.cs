@@ -14,10 +14,10 @@
 
 using Duende.IdentityServer.Services;
 using Duende.IdentityServer.Stores;
-using Etherna.ACR.Helpers;
-using Etherna.ACR.Services;
 using Etherna.SSOServer.Domain;
+using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Services.Domain;
 using Etherna.SSOServer.Services.Views.Emails;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -27,52 +27,35 @@ using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 {
-    public class SetVerifiedEmailModel : SsoExitPageModelBase
+    public class SetVerifiedEmailModel(
+        IEmailSender emailSender,
+        IClientStore clientStore,
+        ISsoDbContext context,
+        IIdentityServerInteractionService idServerInteractionService,
+        IRazorViewRenderer razorViewRenderer,
+        UserManager<UserBase> userManager)
+        : SsoExitPageModelBase(clientStore)
     {
         // Models.
         public class CodeInputModel
         {
             [Required]
-            public string Code { get; set; } = default!;
+            public string Code { get; set; } = null!;
         }
         public class EmailInputModel
         {
             [EmailAddress]
             [Display(Name = "Email (optional)")]
             [Required]
-            public string Email { get; set; } = default!;
-        }
-
-        // Fields.
-        private readonly IEmailSender emailSender;
-        private readonly ISsoDbContext context;
-        private readonly IIdentityServerInteractionService idServerInteractionService;
-        private readonly IRazorViewRenderer razorViewRenderer;
-        private readonly UserManager<UserBase> userManager;
-
-        // Constructors.
-        public SetVerifiedEmailModel(
-            IEmailSender emailSender,
-            IClientStore clientStore,
-            ISsoDbContext context,
-            IIdentityServerInteractionService idServerInteractionService,
-            IRazorViewRenderer razorViewRenderer,
-            UserManager<UserBase> userManager)
-            : base(clientStore)
-        {
-            this.emailSender = emailSender;
-            this.context = context;
-            this.idServerInteractionService = idServerInteractionService;
-            this.razorViewRenderer = razorViewRenderer;
-            this.userManager = userManager;
+            public string Email { get; set; } = null!;
         }
 
         // Properties.
         [BindProperty]
-        public CodeInputModel CodeInput { get; set; } = default!;
+        public CodeInputModel CodeInput { get; set; } = null!;
 
         [BindProperty]
-        public EmailInputModel EmailInput { get; set; } = default!;
+        public EmailInputModel EmailInput { get; set; } = null!;
 
         public bool IsCodeSent { get; private set; }
         public bool IsWeb3 { get; private set; }

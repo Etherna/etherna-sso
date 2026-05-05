@@ -12,12 +12,12 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
-namespace Etherna.SSOServer.Services.Settings
+namespace Etherna.SSOServer.Services.Options
 {
-    public class ApplicationSettings
+    public class ApplicationOptions
     {
         // Properties.
-        public string DisplayName { get; set; } = default!;
+        public string DisplayName { get; set; } = null!;
         public bool EnableAlphaPassEmission { get; set; }
         public bool RequireInvitation { get; set; }
     }

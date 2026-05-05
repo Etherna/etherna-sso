@@ -12,11 +12,11 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.ACR.Services;
 using Etherna.MongoDB.Driver.Linq;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
-using Etherna.SSOServer.Services.Settings;
+using Etherna.SSOServer.Services.Domain;
+using Etherna.SSOServer.Services.Options;
 using Etherna.SSOServer.Services.Views.Emails;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -39,7 +39,7 @@ namespace Etherna.SSOServer.Services.Tasks
         public const string TaskId = "processAlphaPassRequestsTask";
 
         // Fields.
-        private readonly ApplicationSettings applicationSettings;
+        private readonly ApplicationOptions applicationOptions;
         private readonly ISsoDbContext dbContext;
         private readonly IEmailSender emailSender;
         private readonly IRazorViewRenderer razorViewRenderer;
@@ -47,7 +47,7 @@ namespace Etherna.SSOServer.Services.Tasks
 
         // Constructor.
         public ProcessAlphaPassRequestsTask(
-            IOptions<ApplicationSettings> applicationSettings,
+            IOptions<ApplicationOptions> applicationSettings,
             ISsoDbContext dbContext,
             IEmailSender emailSender,
             IRazorViewRenderer razorViewRenderer,
@@ -55,7 +55,7 @@ namespace Etherna.SSOServer.Services.Tasks
         {
             ArgumentNullException.ThrowIfNull(applicationSettings);
 
-            this.applicationSettings = applicationSettings.Value;
+            this.applicationOptions = applicationSettings.Value;
             this.dbContext = dbContext;
             this.emailSender = emailSender;
             this.razorViewRenderer = razorViewRenderer;
@@ -66,7 +66,7 @@ namespace Etherna.SSOServer.Services.Tasks
         public async Task RunAsync()
         {
             // Disable alpha pass emission if required.
-            if (!applicationSettings.EnableAlphaPassEmission)
+            if (!applicationOptions.EnableAlphaPassEmission)
                 return;
 
             // Create an action context. Required for view rendering.

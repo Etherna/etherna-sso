@@ -1,0 +1,38 @@
+﻿@model Etherna.SSOServer.Pages.SharedModels.PageSelectorModel
+
+@if (Model.MaxPage > Model.FirstPage)
+{
+    <div align="center">
+        @if (Model.CurrentPage >= Model.FirstPage + 2)
+        {
+            <a asp-all-route-data="@(new Dictionary<string, string>(Model.RouteData) { { Model.PageParamName, Model.FirstPage.ToString() } })">@Model.FirstPage</a>
+
+            @if (Model.CurrentPage >= Model.FirstPage + 3)
+            {
+                <span> ... </span>
+            }
+        }
+
+        @if (Model.CurrentPage > Model.FirstPage)
+        {
+            <a asp-all-route-data="@(new Dictionary<string, string>(Model.RouteData) { { Model.PageParamName, (Model.CurrentPage - 1).ToString() } })">@(Model.CurrentPage - 1)</a>
+        }
+
+        <b>@Model.CurrentPage</b>
+
+        @if (Model.CurrentPage < Model.MaxPage)
+        {
+            <a asp-all-route-data="@(new Dictionary<string, string>(Model.RouteData) { { Model.PageParamName, (Model.CurrentPage + 1).ToString() } })">@(Model.CurrentPage + 1)</a>
+        }
+
+        @if (Model.CurrentPage <= Model.MaxPage - 2)
+        {
+            @if (Model.CurrentPage <= Model.MaxPage - 3)
+            {
+                <span> ... </span>
+            }
+
+            <a asp-all-route-data="@(new Dictionary<string, string>(Model.RouteData) { { Model.PageParamName, Model.MaxPage.ToString() } })">@Model.MaxPage</a>
+        }
+    </div>
+}

@@ -12,11 +12,12 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.ACR.Helpers;
-using Etherna.ACR.Services;
 using Etherna.SSOServer.Configs;
 using Etherna.SSOServer.Domain;
+using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Services.Domain;
+using Etherna.SSOServer.Services.Views.Emails;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System;
@@ -25,35 +26,23 @@ using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Areas.AlphaPass.Pages
 {
-    public class IndexModel : PageModel
+    public class IndexModel(
+        ISsoDbContext dbContext,
+        IEmailSender emailSender,
+        IRazorViewRenderer razorViewRenderer)
+        : PageModel
     {
         // Models.
         public class InputModel
         {
             [Required]
             [EmailAddress]
-            public string Email { get; set; } = default!;
-        }
-
-        // Fields.
-        private readonly ISsoDbContext dbContext;
-        private readonly IEmailSender emailSender;
-        private readonly IRazorViewRenderer razorViewRenderer;
-
-        // Constructor.
-        public IndexModel(
-            ISsoDbContext dbContext,
-            IEmailSender emailSender,
-            IRazorViewRenderer razorViewRenderer)
-        {
-            this.dbContext = dbContext;
-            this.emailSender = emailSender;
-            this.razorViewRenderer = razorViewRenderer;
+            public string Email { get; set; } = null!;
         }
 
         // Properties.
         [BindProperty]
-        public InputModel Input { get; set; } = default!;
+        public InputModel Input { get; set; } = null!;
 
         [TempData]
         public string? StatusMessage { get; set; }
@@ -103,11 +92,11 @@ namespace Etherna.SSOServer.Areas.AlphaPass.Pages
             // Send email.
             var emailBody = await razorViewRenderer.RenderViewToStringAsync(
                 "Views/Emails/AlphaPassRequestEmailConfirmation.cshtml",
-                new Services.Views.Emails.AlphaPassRequestEmailConfirmationModel(callbackUrl));
+                new AlphaPassRequestEmailConfirmationModel(callbackUrl));
 
             await emailSender.SendEmailAsync(
                 Input.Email,
-                Services.Views.Emails.AlphaPassRequestEmailConfirmationModel.Title,
+                AlphaPassRequestEmailConfirmationModel.Title,
                 emailBody);
 
             // Confirm.
