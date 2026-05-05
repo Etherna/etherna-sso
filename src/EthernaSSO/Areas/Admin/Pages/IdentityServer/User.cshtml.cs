@@ -115,6 +115,10 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
 
         public bool IsWeb3 { get; private set; }
 
+        [Display(Name = "User registration (UTC)")]
+        [DisplayFormat(DataFormatString = "{0:dd/MM/yyyy HH:mm:ss}", ApplyFormatInEditMode = true)]
+        public DateTime? CreationDateTime { get; private set; }
+
         [Display(Name = "Last login date/time (UTC)")]
         [DisplayFormat(DataFormatString = "{0:dd/MM/yyyy HH:mm:ss}", ApplyFormatInEditMode = true)]
         public DateTime? LastLoginDateTime { get; private set; }
@@ -135,6 +139,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
                 EtherAddress = user.EtherAddress;
                 EtherPreviousAddresses = user.EtherPreviousAddresses;
                 Input = new InputModel(user, sharedInfo);
+                CreationDateTime = user.CreationDateTime;
                 IsWeb3 = user is UserWeb3;
                 LastLoginDateTime = user.LastLoginDateTime;
                 PhoneNumberConfirmed = user.PhoneNumberConfirmed;
