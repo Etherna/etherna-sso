@@ -1,4 +1,4 @@
-﻿// Copyright 2021-present Etherna SA
+// Copyright 2021-present Etherna SA
 // This file is part of Etherna Sso.
 // 
 // Etherna Sso is free software: you can redistribute it and/or modify it under the terms of the
@@ -16,11 +16,11 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 
-namespace Etherna.SSOServer.Extensions
+namespace Etherna.SSOServer.Services.Extensions
 {
     /*
      * Always group similar log delegates by type, always use incremental event ids.
-     * Last event id is: 27
+     * Last event id is: 32
      */
     public static class LoggerExtensions
     {
@@ -46,6 +46,12 @@ namespace Etherna.SSOServer.Extensions
                 new EventId(11, nameof(AccountDeleted)),
                 "Account of user with ID '{UserId}' has been deleted by user with id {DeleterUserId}.");
 
+        private static readonly Action<ILogger, int, Exception> _alphaPassRequestsProcessed =
+            LoggerMessage.Define<int>(
+                LogLevel.Information,
+                new EventId(28, nameof(AlphaPassRequestsProcessed)),
+                "Processed {Count} alpha pass request(s).");
+
         private static readonly Action<ILogger, string, Exception> _apiKeyValidatedLoginAttempt =
             LoggerMessage.Define<string>(
                 LogLevel.Information,
@@ -70,6 +76,24 @@ namespace Etherna.SSOServer.Extensions
                 new EventId(19, nameof(CreatedAccountWithWeb3)),
                 "User with ID '{UserId}' created a web3 account.");
 
+        private static readonly Action<ILogger, int, int, int, int, Exception> _dailyStatsCompiled =
+            LoggerMessage.Define<int, int, int, int>(
+                LogLevel.Information,
+                new EventId(29, nameof(DailyStatsCompiled)),
+                "Daily stats compiled: {Active30d} active (30d), {Active60d} active (60d), {Active180d} active (180d), {TotalUsers} total.");
+
+        private static readonly Action<ILogger, long, Exception> _deletedExpiredInvitations =
+            LoggerMessage.Define<long>(
+                LogLevel.Information,
+                new EventId(30, nameof(DeletedExpiredInvitations)),
+                "Deleted {Count} expired invitations.");
+
+        private static readonly Action<ILogger, long, Exception> _deletedExpiredWeb3LoginTokens =
+            LoggerMessage.Define<long>(
+                LogLevel.Information,
+                new EventId(31, nameof(DeletedExpiredWeb3LoginTokens)),
+                "Deleted {Count} expired web3 login tokens.");
+
         private static readonly Action<ILogger, string, Exception> _disabled2FA =
             LoggerMessage.Define<string>(
                 LogLevel.Information,
@@ -87,6 +111,12 @@ namespace Etherna.SSOServer.Extensions
                 LogLevel.Information,
                 new EventId(14, nameof(Enabled2FAWithAuthApp)),
                 "User with ID '{UserId}' has enabled 2FA with an authenticator app.");
+
+        private static readonly Action<ILogger, string, string, Exception> _emailSent =
+            LoggerMessage.Define<string, string>(
+                LogLevel.Information,
+                new EventId(32, nameof(EmailSent)),
+                "Email sent to '{Email}' with subject '{Subject}'.");
 
         private static readonly Action<ILogger, string, Exception> _generated2FARecoveryCodes =
             LoggerMessage.Define<string>(
@@ -201,6 +231,9 @@ namespace Etherna.SSOServer.Extensions
         public static void AccountDeleted(this ILogger logger, string userId, string deletedByUserId) =>
             _accountDeleted(logger, userId, deletedByUserId, null!);
 
+        public static void AlphaPassRequestsProcessed(this ILogger logger, int count) =>
+            _alphaPassRequestsProcessed(logger, count, null!);
+
         public static void ApiKeyDoesNotExistLoginAttempt(this ILogger logger, string userId) =>
             _apiKeyDoesNotExistLoginAttempt(logger, userId, null!);
 
@@ -219,11 +252,23 @@ namespace Etherna.SSOServer.Extensions
         public static void CreatedAccountWithWeb3(this ILogger logger, string userId) =>
             _createdAccountWithWeb3(logger, userId, null!);
 
+        public static void DailyStatsCompiled(this ILogger logger, int active30d, int active60d, int active180d, int totalUsers) =>
+            _dailyStatsCompiled(logger, active30d, active60d, active180d, totalUsers, null!);
+
+        public static void DeletedExpiredInvitations(this ILogger logger, long count) =>
+            _deletedExpiredInvitations(logger, count, null!);
+
+        public static void DeletedExpiredWeb3LoginTokens(this ILogger logger, long count) =>
+            _deletedExpiredWeb3LoginTokens(logger, count, null!);
+
         public static void Disabled2FA(this ILogger logger, string userId) =>
             _disabled2FA(logger, userId, null!);
 
         public static void DownloadedPersonalData(this ILogger logger, string userId) =>
             _downloadedPersonalData(logger, userId, null!);
+
+        public static void EmailSent(this ILogger logger, string email, string subject) =>
+            _emailSent(logger, email, subject, null!);
 
         public static void Enabled2FAWithAuthApp(this ILogger logger, string userId) =>
             _enabled2FAWithAuthApp(logger, userId, null!);

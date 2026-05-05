@@ -12,7 +12,7 @@
 // You should have received a copy of the GNU Lesser General Public License along with Etherna ACR.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.SSOServer.Extensions;
+using Etherna.SSOServer.Services.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;

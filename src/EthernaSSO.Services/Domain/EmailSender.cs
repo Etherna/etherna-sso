@@ -13,7 +13,9 @@
 // If not, see <https://www.gnu.org/licenses/>.
 
 using Etherna.SSOServer.Domain.Helpers;
+using Etherna.SSOServer.Services.Extensions;
 using Etherna.SSOServer.Services.Options;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SendGrid;
 using SendGrid.Helpers.Mail;
@@ -27,13 +29,17 @@ namespace Etherna.SSOServer.Services.Domain
     public sealed class EmailSender : IEmailSender
     {
         // Fields.
+        private readonly ILogger<EmailSender> logger;
         private readonly EmailOptions options;
 
         // Constructor.
-        public EmailSender(IOptions<EmailOptions> opts)
+        public EmailSender(
+            ILogger<EmailSender> logger,
+            IOptions<EmailOptions> opts)
         {
             ArgumentNullException.ThrowIfNull(opts);
 
+            this.logger = logger;
             options = opts.Value;
         }
 
@@ -72,6 +78,8 @@ namespace Etherna.SSOServer.Services.Domain
             };
 
             await client.SendMailAsync(mail);
+
+            logger.EmailSent(email, subject);
         }
 
         private async Task<Response> SendgridSendEmailAsync(string email, string subject, string message)
@@ -91,7 +99,11 @@ namespace Etherna.SSOServer.Services.Domain
                 plainTextContent,
                 htmlContent);
 
-            return await client.SendEmailAsync(mail);
+            var response = await client.SendEmailAsync(mail);
+
+            logger.EmailSent(email, subject);
+
+            return response;
         }
     }
 }

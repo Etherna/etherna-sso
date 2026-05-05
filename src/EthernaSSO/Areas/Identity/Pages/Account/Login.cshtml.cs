@@ -17,16 +17,16 @@ using Duende.IdentityServer.Stores;
 using Etherna.DomainEvents;
 using Etherna.SSOServer.Domain.Events;
 using Etherna.SSOServer.Domain.Models;
-using Etherna.SSOServer.Extensions;
+using Etherna.SSOServer.Services.Extensions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
+using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
 
 namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 {
@@ -137,7 +137,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             //validate login
             var result = user is UserWeb2 ? //if user is not UserWeb2, fail password login
                 await signInManager.PasswordSignInAsync(user, Input.Password, true, lockoutOnFailure: true) :
-                Microsoft.AspNetCore.Identity.SignInResult.Failed;
+                SignInResult.Failed;
 
             if (result.Succeeded)
             {

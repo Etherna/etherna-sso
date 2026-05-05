@@ -16,7 +16,7 @@ using Duende.IdentityServer.Models;
 using Duende.IdentityServer.Validation;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
-using Etherna.SSOServer.Extensions;
+using Etherna.SSOServer.Services.Extensions;
 using IdentityModel;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;

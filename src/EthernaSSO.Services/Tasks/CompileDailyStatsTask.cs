@@ -15,46 +15,43 @@
 using Etherna.MongoDB.Driver.Linq;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Services.Extensions;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Services.Tasks
 {
-    public sealed class CompileDailyStatsTask : ICompileDailyStatsTask
+    public sealed class CompileDailyStatsTask(
+        ILogger<CompileDailyStatsTask> logger,
+        ISsoDbContext ssoDbContext)
+        : ICompileDailyStatsTask
     {
         // Consts.
         public const string TaskId = "compileDailyStatsTask";
 
-        // Fields.
-        private readonly ISsoDbContext ssoDbContext;
-
-        // Constructor.
-        public CompileDailyStatsTask(ISsoDbContext ssoDbContext)
-        {
-            this.ssoDbContext = ssoDbContext;
-        }
-
         // Methods.
         public async Task RunAsync()
         {
-            var stats = new DailyStats(
-                await ssoDbContext.Users.QueryElementsAsync(users =>
-                    users.Where(u => u.LastLoginDateTime >= DateTime.UtcNow - TimeSpan.FromDays(30))
-                         .CountAsync()),
+            var active30d = await ssoDbContext.Users.QueryElementsAsync(users =>
+                users.Where(u => u.LastLoginDateTime >= DateTime.UtcNow - TimeSpan.FromDays(30))
+                     .CountAsync());
 
-                await ssoDbContext.Users.QueryElementsAsync(users =>
-                    users.Where(u => u.LastLoginDateTime >= DateTime.UtcNow - TimeSpan.FromDays(60))
-                         .CountAsync()),
+            var active60d = await ssoDbContext.Users.QueryElementsAsync(users =>
+                users.Where(u => u.LastLoginDateTime >= DateTime.UtcNow - TimeSpan.FromDays(60))
+                     .CountAsync());
 
-                await ssoDbContext.Users.QueryElementsAsync(users =>
-                    users.Where(u => u.LastLoginDateTime >= DateTime.UtcNow - TimeSpan.FromDays(180))
-                         .CountAsync()),
+            var active180d = await ssoDbContext.Users.QueryElementsAsync(users =>
+                users.Where(u => u.LastLoginDateTime >= DateTime.UtcNow - TimeSpan.FromDays(180))
+                     .CountAsync());
 
-                await ssoDbContext.Users.QueryElementsAsync(users =>
-                    users.CountAsync()));
+            var totalUsers = await ssoDbContext.Users.QueryElementsAsync(users =>
+                users.CountAsync());
 
-            await ssoDbContext.DailyStats.CreateAsync(stats);
+            await ssoDbContext.DailyStats.CreateAsync(new DailyStats(active30d, active60d, active180d, totalUsers));
+
+            logger.DailyStatsCompiled(active30d, active60d, active180d, totalUsers);
         }
     }
 }
