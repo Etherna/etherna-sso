@@ -14,18 +14,14 @@
 
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Helpers;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
+using Etherna.SSOServer.Models;
+using Etherna.SSOServer.Pages;
 using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Areas.AlphaPass.Pages
 {
-    public class ConfirmRequestModel(ISsoDbContext dbContext) : PageModel
+    public class ConfirmRequestModel(ISsoDbContext dbContext) : StatusMessagePageModel
     {
-        // Properties.
-        [TempData]
-        public string? StatusMessage { get; set; }
-
         // Get.
 
         public async Task OnGetAsync(string email, string secret)
@@ -36,7 +32,7 @@ namespace Etherna.SSOServer.Areas.AlphaPass.Pages
             if (request is null ||
                 request.Secret != secret)
             {
-                StatusMessage = "Error: provided data is not correct";
+                StatusMessage = new StatusMessage("Error: provided data is not correct", StatusMessageType.Error);
                 return;
             }
 
@@ -44,7 +40,7 @@ namespace Etherna.SSOServer.Areas.AlphaPass.Pages
             request.ConfirmEmail(secret);
             await dbContext.SaveChangesAsync();
 
-            StatusMessage = "Thank you, your email has been verified! You will receive an Etherna Alpha Pass when available.";
+            StatusMessage = new StatusMessage("Thank you, your email has been verified! You will receive an Etherna Alpha Pass when available.");
         }
     }
 }

@@ -12,22 +12,18 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
+using Etherna.SSOServer.Pages;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
-using System.Linq;
 
 namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
 {
-    public class ShowRecoveryCodesModel : PageModel
+    public class ShowRecoveryCodesModel : StatusMessagePageModel
     {
         // Properties.
 #pragma warning disable CA1819 // Properties should not return arrays
         [TempData]
-        public string[] RecoveryCodes { get; set; } = default!; //array required by [TempData]
+        public string[] RecoveryCodes { get; set; } = null!; //array required by [TempData]
 #pragma warning restore CA1819 // Properties should not return arrays
-
-        [TempData]
-        public string? StatusMessage { get; set; }
 
         // Methods.
         public IActionResult OnGet()

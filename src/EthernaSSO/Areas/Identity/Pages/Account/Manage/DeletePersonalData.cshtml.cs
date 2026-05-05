@@ -15,11 +15,12 @@
 using Etherna.BeeNet.Models;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Models;
+using Etherna.SSOServer.Pages;
 using Etherna.SSOServer.Services.Domain;
 using Etherna.SSOServer.Services.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 using System;
 using System.ComponentModel.DataAnnotations;
@@ -27,7 +28,7 @@ using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
 {
-    public class DeletePersonalDataModel : PageModel
+    public class DeletePersonalDataModel : StatusMessagePageModel
     {
         // Model.
         public class InputModel
@@ -64,8 +65,6 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
         public InputModel Input { get; set; } = null!;
         public bool IsWeb3User { get; set; }
         public bool RequirePassword { get; set; }
-        [TempData]
-        public string? StatusMessage { get; set; }
 
         // Methods.
         public async Task<IActionResult> OnGet()
@@ -92,7 +91,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             var token = await ssoDbContext.Web3LoginTokens.TryFindOneAsync(t => t.EtherAddress == etherAddress);
             if (token is null)
             {
-                StatusMessage = $"Web3 authentication code for {etherAddress} address not found";
+                StatusMessage = new StatusMessage($"Web3 authentication code for {etherAddress} address not found", StatusMessageType.Error);
                 return RedirectToPage();
             }
 
@@ -101,7 +100,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
 
             if (!verifiedSignature)
             {
-                StatusMessage = $"Invalid signature for web3 authentication";
+                StatusMessage = new StatusMessage($"Invalid signature for web3 authentication", StatusMessageType.Error);
                 return RedirectToPage();
             }
 
@@ -114,7 +113,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
 
             if (user.EtherAddress != etherAddress)
             {
-                StatusMessage = $"Signing address is different than user's Ethereum address";
+                StatusMessage = new StatusMessage($"Signing address is different than user's Ethereum address", StatusMessageType.Error);
                 return RedirectToPage();
             }
 

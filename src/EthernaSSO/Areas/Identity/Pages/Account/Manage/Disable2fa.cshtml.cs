@@ -13,38 +13,23 @@
 // If not, see <https://www.gnu.org/licenses/>.
 
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Models;
+using Etherna.SSOServer.Pages;
 using Etherna.SSOServer.Services.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
 {
-    public class Disable2faModel : PageModel
+    public class Disable2faModel(
+        ILogger<Disable2faModel> logger,
+        SignInManager<UserBase> signInManager,
+        UserManager<UserBase> userManager)
+        : StatusMessagePageModel
     {
-        // Fields.
-        private readonly ILogger<Disable2faModel> logger;
-        private readonly SignInManager<UserBase> signInManager;
-        private readonly UserManager<UserBase> userManager;
-
-        // Constructor.
-        public Disable2faModel(
-            ILogger<Disable2faModel> logger,
-            SignInManager<UserBase> signInManager,
-            UserManager<UserBase> userManager)
-        {
-            this.logger = logger;
-            this.signInManager = signInManager;
-            this.userManager = userManager;
-        }
-
-        // Properties.
-        [TempData]
-        public string? StatusMessage { get; set; }
-
         // Methods.
         public async Task<IActionResult> OnGet()
         {
@@ -72,7 +57,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
                 throw new InvalidOperationException($"Unexpected error occurred disabling 2FA for user with ID '{userManager.GetUserId(User)}'.");
 
             logger.Disabled2FA(userManager.GetUserId(User) ?? throw new InvalidOperationException());
-            StatusMessage = "2fa has been disabled. You can reenable 2fa when you setup an authenticator app";
+            StatusMessage = new StatusMessage("2fa has been disabled. You can reenable 2fa when you setup an authenticator app");
             return RedirectToPage("./TwoFactorAuthentication");
         }
     }

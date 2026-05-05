@@ -14,6 +14,7 @@
 
 using Etherna.BeeNet.Models;
 using Etherna.SSOServer.Domain;
+using Etherna.SSOServer.Models;
 using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Domain.Models.UserAgg;
@@ -28,7 +29,10 @@ using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
 {
-    public class UserModel : PageModel
+    public class UserModel(
+        ISsoDbContext context,
+        IUserService userService)
+        : PageModel
     {
         // Model.
         public class InputModel : IValidatableObject
@@ -93,19 +97,6 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
             }
         }
 
-        // Fields.
-        private readonly ISsoDbContext context;
-        private readonly IUserService userService;
-
-        // Constructor.
-        public UserModel(
-            ISsoDbContext context,
-            IUserService userService)
-        {
-            this.context = context;
-            this.userService = userService;
-        }
-
         // Properties.
         [Display(Name = "Access failed count")]
         public int AccessFailedCount { get; private set; }
@@ -131,7 +122,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
         [Display(Name = "Phone number confirmed")]
         public bool PhoneNumberConfirmed { get; private set; }
 
-        public string? StatusMessage { get; set; }
+        public StatusMessage? StatusMessage { get; set; }
 
         // Methods.
         public async Task OnGetAsync(string? id)
@@ -181,13 +172,13 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
                     Input.LockoutEnabled,
                     Input.LockoutEnd.HasValue ? new DateTimeOffset(DateTime.SpecifyKind(Input.LockoutEnd.Value, DateTimeKind.Utc)) : null,
                     Input.PhoneNumber,
-                    Array.Empty<Role>(),
+                    [],
                     Input.TwoFactorEnabled);
 
                 // Report errors.
                 if (newUser is null)
                 {
-                    StatusMessage = "Error: " + string.Join("\n", errors.Select(e => e.msg));
+                    StatusMessage = new StatusMessage("Error: " + string.Join("\n", errors.Select(e => e.msg)), StatusMessageType.Error);
                     return Page();
                 }
 

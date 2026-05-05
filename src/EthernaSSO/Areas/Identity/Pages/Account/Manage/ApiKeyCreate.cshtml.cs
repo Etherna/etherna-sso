@@ -12,10 +12,10 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.MongoDB.Driver;
 using Etherna.MongoDB.Driver.Linq;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -26,7 +26,10 @@ using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
 {
-    public class ApiKeyCreateModel : PageModel
+    public class ApiKeyCreateModel(
+        ISsoDbContext ssoDbContext,
+        UserManager<UserBase> userManager)
+        : PageModel
     {
         // Models.
         public class InputModel
@@ -34,7 +37,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             [DataType(DataType.Text)]
             [Display(Name = "Label")]
             [StringLength(maximumLength: ApiKey.LabelMaxLength, MinimumLength = 1)]
-            public string Label { get; set; } = default!;
+            public string Label { get; set; } = null!;
 
             [DataType(DataType.DateTime)]
             [Display(Name = "End of life (optional, UTC)")]
@@ -42,25 +45,12 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             public DateTime? EndOfLife { get; set; }
         }
 
-        // Fields.
-        private readonly ISsoDbContext ssoDbContext;
-        private readonly UserManager<UserBase> userManager;
-
-        // Constructor.
-        public ApiKeyCreateModel(
-            ISsoDbContext ssoDbContext,
-            UserManager<UserBase> userManager)
-        {
-            this.ssoDbContext = ssoDbContext;
-            this.userManager = userManager;
-        }
-
         // Properties.
         [BindProperty]
-        public InputModel Input { get; set; } = default!;
+        public InputModel Input { get; set; } = null!;
 
         public string? PrettyPrintedPlainKey { get; set; }
-        public string? StatusMessage { get; set; }
+        public StatusMessage? StatusMessage { get; set; }
 
         // Methods.
         public async Task<IActionResult> OnPostAsync()
@@ -80,14 +70,14 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             //max limit
             if (prevKeys.Count >= ApiKey.MaxKeysPerUser)
             {
-                StatusMessage = "Error: max number of keys has been reached";
+                StatusMessage = new StatusMessage("Error: max number of keys has been reached", StatusMessageType.Error);
                 return Page();
             }
 
             //duplicate label
             if (prevKeys.Any(k => k.Label == Input.Label))
             {
-                StatusMessage = $"Error: key with label {Input.Label} already exists";
+                StatusMessage = new StatusMessage($"Error: key with label {Input.Label} already exists", StatusMessageType.Error);
                 return Page();
             }
 
@@ -95,7 +85,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             if (Input.EndOfLife is not null &&
                 Input.EndOfLife < DateTime.UtcNow)
             {
-                StatusMessage = $"Error: selected End of Life is already passed";
+                StatusMessage = new StatusMessage($"Error: selected End of Life is already passed", StatusMessageType.Error);
                 return Page();
             }
 
@@ -106,11 +96,13 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
 
             await ssoDbContext.ApiKeys.CreateAsync(apiKey);
 
-            StatusMessage = $"Your new API Key has been created! Please note, this is the only time it will be displayed." +
+            StatusMessage = new StatusMessage(
+                $"Your new API Key has been created! Please note, this is the only time it will be displayed." +
                 $" It's crucial that you store it in a secure location and do not share it." +
                 $" If you lose it or if it becomes exposed, others may gain unauthorized access to the service as you." +
                 $" If you believe your API Key has been compromised, immediately delete it and generate a new one." +
-                $"\n\n{PrettyPrintedPlainKey}";
+                $"\n\n{PrettyPrintedPlainKey}",
+                StatusMessageType.Warning);
             return Page();
         }
     }

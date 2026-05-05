@@ -13,17 +13,18 @@
 // If not, see <https://www.gnu.org/licenses/>.
 
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Models;
+using Etherna.SSOServer.Pages;
 using Etherna.SSOServer.Services.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
 {
-    public class ChangePasswordModel : PageModel
+    public class ChangePasswordModel : StatusMessagePageModel
     {
         // Models.
         public class InputModel
@@ -64,9 +65,6 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
         // Properties.
         [BindProperty]
         public InputModel Input { get; set; } = default!;
-
-        [TempData]
-        public string? StatusMessage { get; set; }
 
         // Methods.
         public async Task<IActionResult> OnGetAsync()
@@ -111,7 +109,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
 
             await signInManager.RefreshSignInAsync(user);
             logger.PasswordChanged(user.Id);
-            StatusMessage = "Your password has been changed.";
+            StatusMessage = new StatusMessage("Your password has been changed.");
 
             return RedirectToPage();
         }

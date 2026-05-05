@@ -13,13 +13,10 @@
 // If not, see <https://www.gnu.org/licenses/>.
 
 using Etherna.BeeNet.Models;
-using Etherna.SSOServer.Domain;
-using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Models;
+using Etherna.SSOServer.Pages;
 using Etherna.SSOServer.Services.Domain;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
-using Nethereum.Util;
 using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
@@ -30,12 +27,10 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
         //UserManager<UserBase> userManager,
         //IUserService userService,
         IWeb3AuthnService web3AuthnService)
-        : PageModel
+        : StatusMessagePageModel
     {
         // Properties.
         public bool RequirePassword { get; set; }
-        [TempData]
-        public string? StatusMessage { get; set; }
 
         // Methods.
         public void OnGet()
@@ -49,7 +44,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
 #pragma warning restore IDE0060 // Remove unused parameter
         {
             // Temporary disabled (see: https://etherna.atlassian.net/browse/ESSO-165)
-            StatusMessage = $"Error, this function is temporary disabled";
+            StatusMessage = new StatusMessage("Error, this function is temporary disabled", StatusMessageType.Error);
             return Task.FromResult<IActionResult>(RedirectToPage());
 
             //// Verify signature.

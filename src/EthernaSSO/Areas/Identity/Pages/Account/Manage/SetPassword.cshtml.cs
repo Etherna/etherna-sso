@@ -13,15 +13,16 @@
 // If not, see <https://www.gnu.org/licenses/>.
 
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Models;
+using Etherna.SSOServer.Pages;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
 {
-    public class SetPasswordModel : PageModel
+    public class SetPasswordModel : StatusMessagePageModel
     {
         // Models.
         public class InputModel
@@ -54,9 +55,6 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
         // Properties.
         [BindProperty]
         public InputModel Input { get; set; } = default!;
-
-        [TempData]
-        public string? StatusMessage { get; set; }
 
         // Methods.
         public async Task<IActionResult> OnGetAsync()
@@ -101,7 +99,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             }
 
             await _signInManager.RefreshSignInAsync(user);
-            StatusMessage = "Your password has been set.";
+            StatusMessage = new StatusMessage("Your password has been set.");
 
             return RedirectToPage();
         }
