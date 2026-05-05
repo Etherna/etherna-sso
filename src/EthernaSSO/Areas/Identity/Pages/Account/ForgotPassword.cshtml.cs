@@ -80,7 +80,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                     var callbackUrl = Url.Page(
                         "/Account/ResetPassword",
                         pageHandler: null,
-                        values: new { area = CommonConsts.IdentityArea, code },
+                        values: new { area = CommonConsts.IdentityArea, code, email = Input.Email },
                         protocol: Request.Scheme) ?? throw new InvalidOperationException();
 
                     // Send email.
