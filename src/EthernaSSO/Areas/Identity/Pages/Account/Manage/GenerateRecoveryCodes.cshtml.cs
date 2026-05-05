@@ -13,10 +13,11 @@
 // If not, see <https://www.gnu.org/licenses/>.
 
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Models;
+using Etherna.SSOServer.Pages;
 using Etherna.SSOServer.Services.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
@@ -24,7 +25,7 @@ using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
 {
-    public class GenerateRecoveryCodesModel : PageModel
+    public class GenerateRecoveryCodesModel : StatusMessagePageModel
     {
         // Fields.
         private readonly ILogger<GenerateRecoveryCodesModel> logger;
@@ -44,9 +45,6 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
         [TempData]
         public string[]? RecoveryCodes { get; set; }
 #pragma warning restore CA1819 // Properties should not return arrays
-
-        [TempData]
-        public string? StatusMessage { get; set; }
 
         // Methods.
         public async Task<IActionResult> OnGetAsync()
@@ -86,7 +84,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             RecoveryCodes = recoveryCodes.ToArray();
 
             logger.Generated2FARecoveryCodes(userId);
-            StatusMessage = "You have generated new recovery codes.";
+            StatusMessage = new StatusMessage("You have generated new recovery codes.");
             return RedirectToPage("./ShowRecoveryCodes");
         }
     }

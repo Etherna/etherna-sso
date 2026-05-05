@@ -1,16 +1,17 @@
-﻿@using Ganss.Xss;
+@using Etherna.SSOServer.Models
+@using Ganss.Xss;
 
-@model string
-@{
-    var htmlSanitizer = new HtmlSanitizer();
-    var htmlMessage = htmlSanitizer.Sanitize(
-        (Model ?? "").Replace("\n", "<br>"));
-}
-
-@if (!String.IsNullOrEmpty(Model))
+@model StatusMessage?
+@if (Model is not null && !string.IsNullOrEmpty(Model.Text))
 {
-    var statusMessageClass = htmlMessage.StartsWith("Error") ? "danger" : "success";
-    <div class="alert alert-@statusMessageClass alert-dismissible fade show" role="alert">
+    var alertClass = Model.Type switch
+    {
+        StatusMessageType.Error   => "danger",
+        StatusMessageType.Warning => "warning",
+        _                         => "success"
+    };
+    var htmlMessage = new HtmlSanitizer().Sanitize(Model.Text.Replace("\n", "<br>"));
+    <div class="alert alert-@alertClass alert-dismissible fade show" role="alert">
         @Html.Raw(htmlMessage)
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>

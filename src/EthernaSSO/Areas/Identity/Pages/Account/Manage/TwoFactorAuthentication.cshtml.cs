@@ -13,36 +13,24 @@
 // If not, see <https://www.gnu.org/licenses/>.
 
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Models;
+using Etherna.SSOServer.Pages;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
 {
-    public class TwoFactorAuthenticationModel : PageModel
+    public class TwoFactorAuthenticationModel(
+        UserManager<UserBase> userManager,
+        SignInManager<UserBase> signInManager)
+        : StatusMessagePageModel
     {
-        // Fields.
-        private readonly UserManager<UserBase> userManager;
-        private readonly SignInManager<UserBase> signInManager;
-
-        // Constructor.
-        public TwoFactorAuthenticationModel(
-            UserManager<UserBase> userManager,
-            SignInManager<UserBase> signInManager)
-        {
-            this.userManager = userManager;
-            this.signInManager = signInManager;
-        }
-
         // Properties.
         public bool HasAuthenticator { get; set; }
         public bool Is2faEnabled { get; set; }
         public bool IsMachineRemembered { get; set; }
         public int RecoveryCodesLeft { get; set; }
-
-        [TempData]
-        public string? StatusMessage { get; set; }
 
         // Methods.
         public async Task<IActionResult> OnGet()
@@ -70,7 +58,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             }
 
             await signInManager.ForgetTwoFactorClientAsync();
-            StatusMessage = "The current browser has been forgotten. When you login again from this browser you will be prompted for your 2fa code.";
+            StatusMessage = new StatusMessage("The current browser has been forgotten. When you login again from this browser you will be prompted for your 2fa code.");
             return RedirectToPage();
         }
     }

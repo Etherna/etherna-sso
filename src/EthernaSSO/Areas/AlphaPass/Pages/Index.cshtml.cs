@@ -16,10 +16,11 @@ using Etherna.SSOServer.Configs;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Models;
+using Etherna.SSOServer.Pages;
 using Etherna.SSOServer.Services.Domain;
 using Etherna.SSOServer.Services.Views.Emails;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
@@ -30,7 +31,7 @@ namespace Etherna.SSOServer.Areas.AlphaPass.Pages
         ISsoDbContext dbContext,
         IEmailSender emailSender,
         IRazorViewRenderer razorViewRenderer)
-        : PageModel
+        : StatusMessagePageModel
     {
         // Models.
         public class InputModel
@@ -43,9 +44,6 @@ namespace Etherna.SSOServer.Areas.AlphaPass.Pages
         // Properties.
         [BindProperty]
         public InputModel Input { get; set; } = null!;
-
-        [TempData]
-        public string? StatusMessage { get; set; }
 
         // Methods.
         public async Task<IActionResult> OnPostAsync()
@@ -63,7 +61,7 @@ namespace Etherna.SSOServer.Areas.AlphaPass.Pages
                 //if already enqueued, return error
                 if (prevRequest.IsEmailConfirmed)
                 {
-                    StatusMessage = "An Alpha Pass has already been requested with this email";
+                    StatusMessage = new StatusMessage("An Alpha Pass has already been requested with this email", StatusMessageType.Warning);
                     return Page();
                 }
 
@@ -100,7 +98,7 @@ namespace Etherna.SSOServer.Areas.AlphaPass.Pages
                 emailBody);
 
             // Confirm.
-            StatusMessage = "A confirmation message has been sent to you. Please verify your email";
+            StatusMessage = new StatusMessage("A confirmation message has been sent to you. Please verify your email");
             return Page();
         }
     }

@@ -13,11 +13,12 @@
 // If not, see <https://www.gnu.org/licenses/>.
 
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Models;
+using Etherna.SSOServer.Pages;
 using Etherna.SSOServer.Services.Extensions;
 using Etherna.SSOServer.Services.Options;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
@@ -29,7 +30,7 @@ using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
 {
-    public class EnableAuthenticatorModel : PageModel
+    public class EnableAuthenticatorModel : StatusMessagePageModel
     {
         // Models.
         public class InputModel
@@ -69,9 +70,6 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
 #pragma warning restore CA1819 // Properties should not return arrays
 
         public string SharedKey { get; set; } = null!;
-
-        [TempData]
-        public string? StatusMessage { get; set; }
 
         [BindProperty]
         public InputModel Input { get; set; } = null!;
@@ -117,7 +115,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             var userId = await userManager.GetUserIdAsync(user);
             logger.Enabled2FAWithAuthApp(userId);
 
-            StatusMessage = "Your authenticator app has been verified.";
+            StatusMessage = new StatusMessage("Your authenticator app has been verified.");
 
             if (await userManager.CountRecoveryCodesAsync(user) == 0)
             {

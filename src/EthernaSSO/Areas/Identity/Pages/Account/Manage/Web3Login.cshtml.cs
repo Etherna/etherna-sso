@@ -16,10 +16,11 @@ using Etherna.BeeNet.Models;
 using Etherna.MongoDB.Driver;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Models;
+using Etherna.SSOServer.Pages;
 using Etherna.SSOServer.Services.Domain;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 
@@ -30,16 +31,13 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
         ISsoDbContext ssoDbContext,
         UserManager<UserBase> userManager,
         IWeb3AuthnService web3AuthnService)
-        : PageModel
+        : StatusMessagePageModel
     {
         // Properties.
         [Display(Name = "Ethereum login address")]
         public EthAddress? EtherLoginAddress { get; private set; }
 
         public bool ShowRemoveButton { get; set; }
-
-        [TempData]
-        public string? StatusMessage { get; set; }
 
         // Methods.
         public async Task<IActionResult> OnGetAsync()
@@ -63,7 +61,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             var token = await ssoDbContext.Web3LoginTokens.TryFindOneAsync(t => t.EtherAddress == etherAddress);
             if (token is null)
             {
-                StatusMessage = $"Web3 authentication code for {etherAddress} address not found";
+                StatusMessage = new StatusMessage($"Web3 authentication code for {etherAddress} address not found", StatusMessageType.Error);
                 return RedirectToPage();
             }
 
@@ -72,7 +70,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
 
             if (!verifiedSignature)
             {
-                StatusMessage = $"Invalid signature for web3 authentication";
+                StatusMessage = new StatusMessage($"Invalid signature for web3 authentication", StatusMessageType.Error);
                 return RedirectToPage();
             }
 
@@ -91,7 +89,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
                     Builders<UserBase>.Filter.Eq("EtherLoginAddress", etherAddress)));  //UserWeb2
                 if (await cursor.AnyAsync())
                 {
-                    StatusMessage = $"Can't assign Web3 login. It has already been used with another account.";
+                    StatusMessage = new StatusMessage($"Can't assign Web3 login. It has already been used with another account.", StatusMessageType.Error);
                     return RedirectToPage();
                 }
 
@@ -100,7 +98,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
                 await ssoDbContext.SaveChangesAsync();
             }
 
-            StatusMessage = $"Web3 login has been updated";
+            StatusMessage = new StatusMessage($"Web3 login has been updated");
             return RedirectToPage();
         }
 
@@ -113,7 +111,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             await ssoDbContext.SaveChangesAsync();
 
             await signInManager.RefreshSignInAsync(user);
-            StatusMessage = "Web3 login was removed.";
+            StatusMessage = new StatusMessage("Web3 login was removed.");
 
             return RedirectToPage();
         }

@@ -13,37 +13,22 @@
 // If not, see <https://www.gnu.org/licenses/>.
 
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Models;
+using Etherna.SSOServer.Pages;
 using Etherna.SSOServer.Services.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
 {
-    public class ResetAuthenticatorModel : PageModel
+    public class ResetAuthenticatorModel(
+        ILogger<ResetAuthenticatorModel> logger,
+        SignInManager<UserBase> signInManager,
+        UserManager<UserBase> userManager)
+        : StatusMessagePageModel
     {
-        // Fields.
-        private readonly ILogger<ResetAuthenticatorModel> logger;
-        private readonly SignInManager<UserBase> signInManager;
-        private readonly UserManager<UserBase> userManager;
-
-        // Constructor.
-        public ResetAuthenticatorModel(
-            ILogger<ResetAuthenticatorModel> logger,
-            SignInManager<UserBase> signInManager,
-            UserManager<UserBase> userManager)
-        {
-            this.logger = logger;
-            this.signInManager = signInManager;
-            this.userManager = userManager;
-        }
-
-        // Properties.
-        [TempData]
-        public string? StatusMessage { get; set; }
-
         // Methods.
         public async Task<IActionResult> OnGet()
         {
@@ -69,7 +54,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             logger.Resetted2FAAuthApp(user.Id);
 
             await signInManager.RefreshSignInAsync(user);
-            StatusMessage = "Your authenticator app key has been reset, you will need to configure your authenticator app using the new key.";
+            StatusMessage = new StatusMessage("Your authenticator app key has been reset, you will need to configure your authenticator app using the new key.");
 
             return RedirectToPage("./EnableAuthenticator");
         }

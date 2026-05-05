@@ -93,7 +93,7 @@ namespace Etherna.SSOServer.Domain.Models
 
         [PersonalData]
         /* Keep until SharedInfo can't be encapsulated. */
-        public virtual EthAddress EtherAddress { get; protected set; } = default!;
+        public virtual EthAddress EtherAddress { get; protected set; }
         //[PersonalData]
         //public virtual string EtherAddress => SharedInfo.EtherAddress;
 
@@ -102,7 +102,7 @@ namespace Etherna.SSOServer.Domain.Models
         public virtual IEnumerable<EthAddress> EtherPreviousAddresses
         {
             get => _etherPreviousAddresses;
-            protected set => _etherPreviousAddresses = new List<EthAddress>(value ?? []);
+            protected set => _etherPreviousAddresses = [..value ?? []];
         }
         //[PersonalData]
         //public virtual IEnumerable<string> EtherPreviousAddresses => SharedInfo.EtherPreviousAddresses;
@@ -114,14 +114,14 @@ namespace Etherna.SSOServer.Domain.Models
         //public virtual bool LockoutEnabled => SharedInfo.LockoutEnabled;
         //public virtual DateTimeOffset? LockoutEnd => SharedInfo.LockoutEnd;
         public virtual string? NormalizedEmail { get; protected set; }
-        public virtual string NormalizedUsername { get; protected set; } = default!;
+        public virtual string NormalizedUsername { get; protected set; } = null!;
         [PersonalData]
         public virtual string? PhoneNumber { get; protected set; }
         public virtual bool PhoneNumberConfirmed { get; protected set; }
         public virtual IEnumerable<Role> Roles
         {
             get => _roles;
-            protected set => _roles = new List<Role>(value ?? []);
+            protected set => _roles = [..value ?? []];
         }
         public virtual string SecurityStamp { get; set; } = null!;
 

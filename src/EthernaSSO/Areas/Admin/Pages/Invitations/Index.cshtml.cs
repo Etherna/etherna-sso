@@ -15,6 +15,7 @@
 using Etherna.MongoDB.Driver.Linq;
 using Etherna.SSOServer.Configs;
 using Etherna.SSOServer.Domain;
+using Etherna.SSOServer.Models;
 using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Services.Domain;
@@ -52,18 +53,18 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.Invitations
 
         // Properties.
         [Display(Name = "Failed invitations")]
-        public List<string> FailedInvitations { get; } = new List<string>();
+        public List<string> FailedInvitations { get; } = [];
 
         [Display(Name = "New generated invitations")]
-        public List<Invitation> GeneratedInvitations { get; } = new List<Invitation>();
+        public List<Invitation> GeneratedInvitations { get; } = [];
 
         [BindProperty]
-        public InputModel Input { get; set; } = default!;
+        public InputModel Input { get; set; } = null!;
 
         [Display(Name = "Total alive invites")]
         public int TotalAlive { get; set; }
 
-        public string? StatusMessage { get; set; }
+        public StatusMessage? StatusMessage { get; set; }
 
         // Methods.
         public Task OnGetAsync() =>
@@ -81,7 +82,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.Invitations
             // Generate invitations.
             GeneratedInvitations.AddRange(await GenerateInvitationsAsync(Input.Quantity));
 
-            StatusMessage = $"{Input.Quantity} invitations generated";
+            StatusMessage = new StatusMessage($"{Input.Quantity} invitations generated");
             await InitializeAsync();
             return Page();
         }
@@ -162,7 +163,9 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.Invitations
 #pragma warning restore CA1031 // Do not catch general exception types
             }
 
-            StatusMessage = $"{invitations.Length} invitations generated. {GeneratedInvitations.Count} succeeded to send, {FailedInvitations.Count} failed.";
+            StatusMessage = new StatusMessage(
+                $"{invitations.Length} invitations generated. {GeneratedInvitations.Count} succeeded to send, {FailedInvitations.Count} failed.",
+                FailedInvitations.Count > 0 ? StatusMessageType.Warning : StatusMessageType.Success);
             await InitializeAsync();
             return Page();
         }
