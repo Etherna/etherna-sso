@@ -51,23 +51,23 @@ namespace Etherna.SSOServer.Configs.IdentityServer
         public static class ApiScopesDef //these can go in very details of client permissions
         {
             //credit service interaction scopes
-            public static readonly ApiScope EthernaCreditServiceInteract = new("ethernaCredit_serviceInteract_api", "Etherna Credit service interact API");
+            public static readonly ApiScope EthernaCreditServiceInteract = new(EthernaScopes.EthernaCreditServiceInteract, "Etherna Credit service interact API");
 
             //sso service interaction scopes
-            public static readonly ApiScope EthernaSsoUserContactInfo = new("ethernaSso_userContactInfo_api", "Etherna SSO user contatct info API");
+            public static readonly ApiScope EthernaSsoUserContactInfo = new(EthernaScopes.EthernaSsoUserContactInfo, "Etherna SSO user contatct info API");
 
             //global user interaction scopes
-            public static readonly ApiScope UserInteractEthernaCredit = new("userApi.credit", "Etherna Credit user API");
-            public static readonly ApiScope UserInteractEthernaGateway = new("userApi.gateway", "Etherna Gateway user API");
-            public static readonly ApiScope UserInteractEthernaIndex = new("userApi.index", "Etherna Index user API");
-            public static readonly ApiScope UserInteractEthernaSso = new("userApi.sso", "Etherna Sso user API");
+            public static readonly ApiScope UserInteractEthernaCredit = new(EthernaScopes.UserApiCredit, "Etherna Credit user API");
+            public static readonly ApiScope UserInteractEthernaGateway = new(EthernaScopes.UserApiGateway, "Etherna Gateway user API");
+            public static readonly ApiScope UserInteractEthernaIndex = new(EthernaScopes.UserApiIndex, "Etherna Index user API");
+            public static readonly ApiScope UserInteractEthernaSso = new(EthernaScopes.UserApiSso, "Etherna Sso user API");
         }
         public static class IdResourcesDef
         {
             public static readonly IdentityResource EtherAccounts = new()
             {
                 DisplayName = "Ether accounts",
-                Name = "ether_accounts",
+                Name = EthernaScopes.EtherAccounts,
                 UserClaims = new List<string>
                 {
                     EthernaClaimTypes.EtherAddress,
@@ -78,7 +78,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
             public static readonly IdentityResource Role = new()
             {
                 DisplayName = "Role",
-                Name = "role",
+                Name = EthernaScopes.Role,
                 UserClaims = [EthernaClaimTypes.Role_IdentityModel]
             };
         }
