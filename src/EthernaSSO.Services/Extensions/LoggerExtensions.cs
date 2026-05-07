@@ -20,7 +20,7 @@ namespace Etherna.SSOServer.Services.Extensions
 {
     /*
      * Always group similar log delegates by type, always use incremental event ids.
-     * Last event id is: 32
+     * Last event id is: 41
      */
     public static class LoggerExtensions
     {
@@ -57,6 +57,60 @@ namespace Etherna.SSOServer.Services.Extensions
                 LogLevel.Information,
                 new EventId(24, nameof(ApiKeyValidatedLoginAttempt)),
                 "User with ID '{UserId}' provided valid api key during login attempt.");
+
+        private static readonly Action<ILogger, string, string, Exception> _clientAppCreated =
+            LoggerMessage.Define<string, string>(
+                LogLevel.Information,
+                new EventId(33, nameof(ClientAppCreated)),
+                "User with ID '{UserId}' created client app with client ID '{ClientId}'.");
+
+        private static readonly Action<ILogger, string, string, Exception> _clientAppCreatedByAdmin =
+            LoggerMessage.Define<string, string>(
+                LogLevel.Information,
+                new EventId(38, nameof(ClientAppCreatedByAdmin)),
+                "Admin with ID '{UserId}' created client app with client ID '{ClientId}'.");
+
+        private static readonly Action<ILogger, string, string, Exception> _clientAppDeleted =
+            LoggerMessage.Define<string, string>(
+                LogLevel.Information,
+                new EventId(35, nameof(ClientAppDeleted)),
+                "User with ID '{UserId}' deleted client app with client ID '{ClientId}'.");
+
+        private static readonly Action<ILogger, string, string, Exception> _clientAppDeletedByAdmin =
+            LoggerMessage.Define<string, string>(
+                LogLevel.Information,
+                new EventId(40, nameof(ClientAppDeletedByAdmin)),
+                "Admin with ID '{UserId}' deleted client app with client ID '{ClientId}'.");
+
+        private static readonly Action<ILogger, string, string, Exception> _clientAppSecretAdded =
+            LoggerMessage.Define<string, string>(
+                LogLevel.Information,
+                new EventId(36, nameof(ClientAppSecretAdded)),
+                "User with ID '{UserId}' added a secret to client app with client ID '{ClientId}'.");
+
+        private static readonly Action<ILogger, string, string, Exception> _clientAppSecretAddedByAdmin =
+            LoggerMessage.Define<string, string>(
+                LogLevel.Information,
+                new EventId(41, nameof(ClientAppSecretAddedByAdmin)),
+                "Admin with ID '{UserId}' added a secret to client app with client ID '{ClientId}'.");
+
+        private static readonly Action<ILogger, string, string, Exception> _clientAppSecretDeleted =
+            LoggerMessage.Define<string, string>(
+                LogLevel.Information,
+                new EventId(37, nameof(ClientAppSecretDeleted)),
+                "User with ID '{UserId}' deleted a secret from client app with client ID '{ClientId}'.");
+
+        private static readonly Action<ILogger, string, string, Exception> _clientAppUpdated =
+            LoggerMessage.Define<string, string>(
+                LogLevel.Information,
+                new EventId(34, nameof(ClientAppUpdated)),
+                "User with ID '{UserId}' updated client app with client ID '{ClientId}'.");
+
+        private static readonly Action<ILogger, string, string, Exception> _clientAppUpdatedByAdmin =
+            LoggerMessage.Define<string, string>(
+                LogLevel.Information,
+                new EventId(39, nameof(ClientAppUpdatedByAdmin)),
+                "Admin with ID '{UserId}' updated client app with client ID '{ClientId}'.");
 
         private static readonly Action<ILogger, string, Exception> _createdAccountWithPassword =
             LoggerMessage.Define<string>(
@@ -242,6 +296,33 @@ namespace Etherna.SSOServer.Services.Extensions
 
         public static void ApiKeyValidatedLoginAttempt(this ILogger logger, string userId) =>
             _apiKeyValidatedLoginAttempt(logger, userId, null!);
+
+        public static void ClientAppCreated(this ILogger logger, string userId, string clientId) =>
+            _clientAppCreated(logger, userId, clientId, null!);
+
+        public static void ClientAppCreatedByAdmin(this ILogger logger, string userId, string clientId) =>
+            _clientAppCreatedByAdmin(logger, userId, clientId, null!);
+
+        public static void ClientAppDeleted(this ILogger logger, string userId, string clientId) =>
+            _clientAppDeleted(logger, userId, clientId, null!);
+
+        public static void ClientAppDeletedByAdmin(this ILogger logger, string userId, string clientId) =>
+            _clientAppDeletedByAdmin(logger, userId, clientId, null!);
+
+        public static void ClientAppSecretAdded(this ILogger logger, string userId, string clientId) =>
+            _clientAppSecretAdded(logger, userId, clientId, null!);
+
+        public static void ClientAppSecretAddedByAdmin(this ILogger logger, string userId, string clientId) =>
+            _clientAppSecretAddedByAdmin(logger, userId, clientId, null!);
+
+        public static void ClientAppSecretDeleted(this ILogger logger, string userId, string clientId) =>
+            _clientAppSecretDeleted(logger, userId, clientId, null!);
+
+        public static void ClientAppUpdated(this ILogger logger, string userId, string clientId) =>
+            _clientAppUpdated(logger, userId, clientId, null!);
+
+        public static void ClientAppUpdatedByAdmin(this ILogger logger, string userId, string clientId) =>
+            _clientAppUpdatedByAdmin(logger, userId, clientId, null!);
 
         public static void CreatedAccountWithPassword(this ILogger logger, string userId) =>
             _createdAccountWithPassword(logger, userId, null!);

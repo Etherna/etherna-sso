@@ -1,5 +1,5 @@
-﻿@page
-@model Etherna.SSOServer.Areas.Identity.Pages.Account.Manage.ApiKeyCreateModel
+@page
+@model Etherna.SSOServer.Areas.Identity.Pages.Account.Manage.Developer.ApiKeyCreateModel
 @{
     ViewData["Title"] = "New API Key";
     ViewData["ActivePage"] = ManageNavPages.Developer;
@@ -12,7 +12,7 @@
     <div class="col-md-6">
         @if (Model.PrettyPrintedPlainKey is null)
         {
-            <form id="change-password-form" method="post">
+            <form id="api-key-create-form" method="post">
                 <div asp-validation-summary="All" class="text-danger"></div>
                 <div class="mb-3">
                     <label asp-for="Input.Label"></label>

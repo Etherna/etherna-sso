@@ -24,7 +24,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
+namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage.Developer
 {
     public class ApiKeyCreateModel(
         ISsoDbContext ssoDbContext,
