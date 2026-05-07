@@ -113,6 +113,7 @@ namespace Etherna.SSOServer.Domain.Models
         public virtual DateTime LastLoginDateTime { get; protected set; }
         //public virtual bool LockoutEnabled => SharedInfo.LockoutEnabled;
         //public virtual DateTimeOffset? LockoutEnd => SharedInfo.LockoutEnd;
+        public virtual int MaxAllowedClients { get; protected set; }
         public virtual string? NormalizedEmail { get; protected set; }
         public virtual string NormalizedUsername { get; protected set; } = null!;
         [PersonalData]
@@ -247,6 +248,14 @@ namespace Etherna.SSOServer.Domain.Models
                 NormalizedUsername = UsernameHelper.NormalizeUsername(username);
                 Username = username;
             }
+        }
+
+        [PropertyAlterer(nameof(MaxAllowedClients))]
+        public virtual void SetMaxAllowedClients(int maxClients)
+        {
+            if (maxClients < 0)
+                throw new ArgumentOutOfRangeException(nameof(maxClients), "Max allowed clients cannot be negative.");
+            MaxAllowedClients = maxClients;
         }
 
         [PropertyAlterer(nameof(LastLoginDateTime))]

@@ -22,6 +22,7 @@ namespace Etherna.SSOServer.Domain
     {
         IRepository<AlphaPassRequest, string> AlphaPassRequests { get; }
         IRepository<ApiKey, string> ApiKeys { get; }
+        IRepository<ClientApp, string> ClientApps { get; }
         IRepository<DailyStats, string> DailyStats { get; }
         IRepository<Invitation, string> Invitations { get; }
         IRepository<Role, string> Roles { get; }
