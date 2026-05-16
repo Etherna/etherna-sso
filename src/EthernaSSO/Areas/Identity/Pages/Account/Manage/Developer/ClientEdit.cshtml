@@ -1,0 +1,184 @@
+@page "{id}"
+@model Etherna.SSOServer.Areas.Identity.Pages.Account.Manage.Developer.ClientEditModel
+@{
+    ViewData["Title"] = "Edit Client";
+    ViewData["ActivePage"] = ManageNavPages.Developer;
+}
+
+<div class="row">
+    <div class="col-12 mb-3 text-center mt-1">
+        <h2>@ViewData["Title"]</h2>
+    </div>
+</div>
+
+<partial name="_StatusMessage" model="Model.StatusMessage" />
+
+<form id="client-form" asp-page-handler="Save" asp-route-id="@Model.ClientAppId" method="post">
+
+    <div asp-validation-summary="All" class="text-danger"></div>
+
+    <!-- Read-only Info -->
+    <div class="card mt-3">
+        <h5 class="card-header">Client Info</h5>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-sm-10">
+
+                    <div class="mb-3 row">
+                        <label class="col-sm-3 col-form-label">Client ID</label>
+                        <div class="col-sm-9">
+                            <input type="text" readonly class="form-control-plaintext" value="@Model.ClientId" />
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <label class="col-sm-3 col-form-label">Client Type</label>
+                        <div class="col-sm-9">
+                            <input type="text" readonly class="form-control-plaintext" value="@Model.ClientType" />
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Editable Fields -->
+    <div class="card mt-3">
+        <h5 class="card-header">Basic Settings</h5>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-sm-10">
+
+                    <div class="mb-3 row">
+                        <label asp-for="Input.ClientName" class="col-sm-3 col-form-label"></label>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control" asp-for="Input.ClientName" />
+                            <span asp-validation-for="Input.ClientName" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <label asp-for="Input.Description" class="col-sm-3 col-form-label"></label>
+                        <div class="col-sm-9">
+                            <textarea class="form-control" rows="3" asp-for="Input.Description"></textarea>
+                            <span asp-validation-for="Input.Description" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <label asp-for="Input.Enabled" class="col-sm-3 col-form-label"></label>
+                        <div class="col-sm-9">
+                            <input type="checkbox" asp-for="Input.Enabled" />
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scopes -->
+    <div class="card mt-3">
+        <h5 class="card-header">Allowed Scopes</h5>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-sm-10">
+
+                    <div class="mb-3">
+                        <label class="col-form-label fw-bold">Identity Scopes</label>
+                        @foreach (var scope in ClientApp.DeveloperAllowedIdentityScopes)
+                        {
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox"
+                                       name="Input.AllowedScopes" value="@scope"
+                                       id="scope-@scope"
+                                       checked="@(Model.Input.AllowedScopes.Contains(scope))" />
+                                <label class="form-check-label" for="scope-@scope">@scope</label>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="col-form-label fw-bold">API Scopes</label>
+                        @foreach (var scope in ClientApp.DeveloperAllowedApiScopes)
+                        {
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox"
+                                       name="Input.AllowedScopes" value="@scope"
+                                       id="scope-@scope"
+                                       checked="@(Model.Input.AllowedScopes.Contains(scope))" />
+                                <label class="form-check-label" for="scope-@scope">@scope</label>
+                            </div>
+                        }
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- URIs -->
+    <div class="card mt-3">
+        <h5 class="card-header">URIs</h5>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-sm-10">
+
+                    <div class="mb-3 row">
+                        <label asp-for="Input.RedirectUris" class="col-sm-3 col-form-label"></label>
+                        <div class="col-sm-9">
+                            <textarea class="form-control" rows="4" asp-for="Input.RedirectUris"></textarea>
+                            <span asp-validation-for="Input.RedirectUris" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <label asp-for="Input.PostLogoutRedirectUris" class="col-sm-3 col-form-label"></label>
+                        <div class="col-sm-9">
+                            <textarea class="form-control" rows="4" asp-for="Input.PostLogoutRedirectUris"></textarea>
+                            <span asp-validation-for="Input.PostLogoutRedirectUris" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <label asp-for="Input.AllowedCorsOrigins" class="col-sm-3 col-form-label"></label>
+                        <div class="col-sm-9">
+                            <textarea class="form-control" rows="4" asp-for="Input.AllowedCorsOrigins"></textarea>
+                            <span asp-validation-for="Input.AllowedCorsOrigins" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="card mt-3">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-sm-10">
+                    <div class="mb-3 row">
+                        <label class="col-sm-3 col-form-label"></label>
+                        <div class="col-sm-9">
+                            <button type="submit" class="btn btn-primary">Save</button>
+                            @if (Model.RequireClientSecret)
+                            {
+                                <a asp-page="ClientSecrets" asp-route-id="@Model.ClientAppId"
+                                   class="btn btn-outline-primary ms-2">Manage Secrets</a>
+                            }
+                            <a asp-page="ClientDelete" asp-route-id="@Model.ClientAppId"
+                               class="btn btn-danger ms-2">Delete Client</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

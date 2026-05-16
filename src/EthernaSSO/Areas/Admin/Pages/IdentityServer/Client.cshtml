@@ -1,0 +1,282 @@
+@*
+    Copyright 2021-present Etherna SA
+    This file is part of Etherna Sso.
+
+    Etherna Sso is free software: you can redistribute it and/or modify it under the terms of the
+    GNU Affero General Public License as published by the Free Software Foundation,
+    either version 3 of the License, or (at your option) any later version.
+
+    Etherna Sso is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+    without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+    See the GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
+    If not, see <https://www.gnu.org/licenses/>.
+*@
+
+@page
+@model Etherna.SSOServer.Areas.Admin.Pages.IdentityServer.ClientModel
+@{
+    ViewData["Title"] = Model.IsNewClient ? "New Client" : "Client";
+}
+
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-page="Index">Admin</a></li>
+                <li class="breadcrumb-item active" aria-current="page">
+                    @(Model.IsNewClient ? "New Client" : Model.Input.ClientName)
+                </li>
+            </ol>
+        </nav>
+    </div>
+
+    <div class="col-12">
+        <h2>@ViewData["Title"]</h2>
+        <partial name="_StatusMessage" model="Model.StatusMessage" />
+    </div>
+</div>
+
+<form id="client-form" asp-page-handler="Save" asp-route-id="@Model.ClientAppId" Method="post">
+
+    <div asp-validation-summary="All" class="text-danger"></div>
+
+    @if (!Model.IsNewClient)
+    {
+        <!--Buttons-->
+        <div class="mb-3 row">
+            <div class="col-md-12 col-m-b-10 col-m-t-10">
+                <a asp-page="ClientSecrets" asp-route-id="@Model.ClientAppId" class="btn btn-outline-primary">Manage Secrets</a>
+                <a asp-page="ClientDelete" asp-route-id="@Model.ClientAppId" class="btn btn-danger">Delete Client</a>
+            </div>
+        </div>
+    }
+
+    <!-- Basic Info -->
+    <div class="card mt-3">
+        <h5 class="card-header">Basic Info</h5>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-sm-10">
+
+                    <div class="mb-3 row">
+                        <label asp-for="Input.ClientId" class="col-sm-3 col-form-label"></label>
+                        <div class="col-sm-9">
+                            @if (Model.IsNewClient)
+                            {
+                                <input type="text" class="form-control" asp-for="Input.ClientId">
+                            }
+                            else
+                            {
+                                <input type="text" readonly class="form-control-plaintext" asp-for="Input.ClientId">
+                            }
+                            <span asp-validation-for="Input.ClientId" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <label asp-for="Input.ClientName" class="col-sm-3 col-form-label"></label>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control" asp-for="Input.ClientName">
+                            <span asp-validation-for="Input.ClientName" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <label asp-for="Input.Description" class="col-sm-3 col-form-label"></label>
+                        <div class="col-sm-9">
+                            <textarea class="form-control" rows="3" asp-for="Input.Description"></textarea>
+                            <span asp-validation-for="Input.Description" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <label asp-for="Input.Enabled" class="col-sm-3 col-form-label"></label>
+                        <div class="col-sm-9">
+                            <input type="checkbox" asp-for="Input.Enabled">
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Authentication -->
+    <div class="card mt-3">
+        <h5 class="card-header">Authentication</h5>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-sm-10">
+
+                    <div class="mb-3 row">
+                        <label asp-for="Input.AllowedGrantTypes" class="col-sm-3 col-form-label"></label>
+                        <div class="col-sm-9">
+                            <select class="form-select" asp-for="Input.AllowedGrantTypes">
+                                <option value="authorization_code">Authorization Code</option>
+                                <option value="client_credentials">Client Credentials</option>
+                                <option value="authorization_code, client_credentials">Hybrid (Code + Credentials)</option>
+                                <option value="implicit">Implicit</option>
+                            </select>
+                            <small class="text-muted">Select a grant type or edit the value directly after save.</small>
+                            <span asp-validation-for="Input.AllowedGrantTypes" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <label asp-for="Input.RequireClientSecret" class="col-sm-3 col-form-label"></label>
+                        <div class="col-sm-9">
+                            <input type="checkbox" asp-for="Input.RequireClientSecret">
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <label asp-for="Input.RequirePkce" class="col-sm-3 col-form-label"></label>
+                        <div class="col-sm-9">
+                            <input type="checkbox" asp-for="Input.RequirePkce">
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Token -->
+    <div class="card mt-3">
+        <h5 class="card-header">Token</h5>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-sm-10">
+
+                    <div class="mb-3 row">
+                        <label asp-for="Input.AllowOfflineAccess" class="col-sm-3 col-form-label"></label>
+                        <div class="col-sm-9">
+                            <input type="checkbox" asp-for="Input.AllowOfflineAccess">
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <label asp-for="Input.AlwaysIncludeUserClaimsInIdToken" class="col-sm-3 col-form-label"></label>
+                        <div class="col-sm-9">
+                            <input type="checkbox" asp-for="Input.AlwaysIncludeUserClaimsInIdToken">
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <label asp-for="Input.RequireConsent" class="col-sm-3 col-form-label"></label>
+                        <div class="col-sm-9">
+                            <input type="checkbox" asp-for="Input.RequireConsent">
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <label asp-for="Input.AccessTokenType" class="col-sm-3 col-form-label"></label>
+                        <div class="col-sm-9">
+                            <select class="form-select" asp-for="Input.AccessTokenType">
+                                <option value="0">Jwt</option>
+                                <option value="1">Reference</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <label asp-for="Input.RefreshTokenUsage" class="col-sm-3 col-form-label"></label>
+                        <div class="col-sm-9">
+                            <select class="form-select" asp-for="Input.RefreshTokenUsage">
+                                <option value="0">ReUse</option>
+                                <option value="1">OneTimeOnly</option>
+                            </select>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scopes -->
+    <div class="card mt-3">
+        <h5 class="card-header">Scopes</h5>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-sm-10">
+
+                    <div class="mb-3 row">
+                        <label asp-for="Input.AllowedScopes" class="col-sm-3 col-form-label"></label>
+                        <div class="col-sm-9">
+                            <textarea class="form-control" rows="6" asp-for="Input.AllowedScopes"></textarea>
+                            <span asp-validation-for="Input.AllowedScopes" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <label class="col-sm-3 col-form-label">Available scopes</label>
+                        <div class="col-sm-9">
+                            <small class="text-muted">
+                                <strong>Identity:</strong> openid, profile, ether_accounts, role<br />
+                                <strong>API:</strong> userApi.credit, userApi.gateway, userApi.index, userApi.sso<br />
+                                <strong>Service:</strong> ethernaCredit_serviceInteract_api, ethernaSso_userContactInfo_api
+                            </small>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- URIs -->
+    <div class="card mt-3">
+        <h5 class="card-header">URIs</h5>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-sm-10">
+
+                    <div class="mb-3 row">
+                        <label asp-for="Input.RedirectUris" class="col-sm-3 col-form-label"></label>
+                        <div class="col-sm-9">
+                            <textarea class="form-control" rows="4" asp-for="Input.RedirectUris"></textarea>
+                            <span asp-validation-for="Input.RedirectUris" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <label asp-for="Input.PostLogoutRedirectUris" class="col-sm-3 col-form-label"></label>
+                        <div class="col-sm-9">
+                            <textarea class="form-control" rows="4" asp-for="Input.PostLogoutRedirectUris"></textarea>
+                            <span asp-validation-for="Input.PostLogoutRedirectUris" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <label asp-for="Input.AllowedCorsOrigins" class="col-sm-3 col-form-label"></label>
+                        <div class="col-sm-9">
+                            <textarea class="form-control" rows="4" asp-for="Input.AllowedCorsOrigins"></textarea>
+                            <span asp-validation-for="Input.AllowedCorsOrigins" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Save Button -->
+    <div class="card mt-3">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-sm-10">
+                    <div class="mb-3 row">
+                        <label class="col-sm-3 col-form-label"></label>
+                        <div class="col-sm-9">
+                            <button type="submit" class="btn btn-primary">Save</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</form>

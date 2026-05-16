@@ -12,6 +12,7 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
+using Duende.IdentityServer.Models;
 using Etherna.DomainEvents;
 using Etherna.MongoDB.Bson.IO;
 using Etherna.MongoDB.Bson.Serialization;
@@ -19,6 +20,7 @@ using Etherna.MongoDB.Driver;
 using Etherna.MongODM.Core.Serialization.Serializers;
 using Etherna.MongODM.Core.Utility;
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Domain.Models.ClientAppAgg;
 using Etherna.SSOServer.Domain.Models.UserAgg;
 using Etherna.SSOServer.Persistence.Helpers;
 using Etherna.SSOServer.Persistence.Settings;
@@ -53,6 +55,232 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
         }
 
         // Data.
+        public static IEnumerable<object[]> ClientAppDeserializationTests
+        {
+            get
+            {
+                var tests = new List<DeserializationTestElement<ClientApp, SsoDbContext>>();
+
+                // "1f980b1f-74d9-4a44-96c6-b45bfaeb6886" - WebApp
+                {
+                    var sourceDocument =
+                        @"{
+                            ""_id"" : ObjectId(""69fcaca3133dda7d424cda52""),
+                            ""_m"" : ""1f980b1f-74d9-4a44-96c6-b45bfaeb6886"",
+                            ""CreationDateTime"" : ISODate(""2026-05-07T15:15:47.764+0000""),
+                            ""AccessTokenType"" : ""Jwt"",
+                            ""AllowedCorsOrigins"" : [],
+                            ""AllowedGrantTypes"" : [ ""authorization_code"" ],
+                            ""AllowedScopes"" : [ ""openid"", ""profile"", ""ether_accounts"", ""role"", ""userApi.credit"", ""userApi.gateway"", ""userApi.sso"" ],
+                            ""AllowOfflineAccess"" : true,
+                            ""AlwaysIncludeUserClaimsInIdToken"" : true,
+                            ""ClientId"" : ""dev_myNLAbCUAYRpxoIfS6py"",
+                            ""ClientName"" : ""MyWebApplication"",
+                            ""ClientType"" : ""WebApp"",
+                            ""ClientSecrets"" : [
+                                {
+                                    ""_m"" : ""adf2f702-0f84-41bb-ad5d-f485372af6ef"",
+                                    ""Created"" : ISODate(""2026-05-07T15:15:47.771+0000""),
+                                    ""Description"" : ""Auto-generated secret"",
+                                    ""Expiration"" : null,
+                                    ""Value"" : ""FRd8ZbmyDZ5JwxDBq4M1D72lAxpouRIYPiKVsGtcWtM=""
+                                }
+                            ],
+                            ""Description"" : ""A new web application"",
+                            ""Enabled"" : true,
+                            ""Owner"" : {
+                                ""_m"" : ""a1976133-bb21-40af-b6de-3a0f7f7dc676"",
+                                ""_t"" : ""UserWeb2"",
+                                ""_id"" : ObjectId(""69fcabfb133dda7d424cda4e"")
+                            },
+                            ""PostLogoutRedirectUris"" : [ ""https://myapplication.com/logout"", ""https://myapplication.net/logout"" ],
+                            ""RedirectUris"" : [ ""https://myapplication.com/redirect"", ""https://myapplication.net/redirect"" ],
+                            ""RefreshTokenUsage"" : ""OneTimeOnly"",
+                            ""RequireClientSecret"" : true,
+                            ""RequireConsent"" : false,
+                            ""RequirePkce"" : false
+                        }";
+
+                    var expectedDocumentMock = new Mock<ClientApp>();
+                    expectedDocumentMock.Setup(c => c.Id).Returns("69fcaca3133dda7d424cda52");
+                    expectedDocumentMock.Setup(c => c.CreationDateTime).Returns(new DateTime(2026, 05, 07, 15, 15, 47, 764));
+                    expectedDocumentMock.Setup(c => c.AccessTokenType).Returns(AccessTokenType.Jwt);
+                    expectedDocumentMock.Setup(c => c.AllowedCorsOrigins).Returns(Array.Empty<string>());
+                    expectedDocumentMock.Setup(c => c.AllowedGrantTypes).Returns(["authorization_code"]);
+                    expectedDocumentMock.Setup(c => c.AllowedScopes).Returns(["openid", "profile", "ether_accounts", "role", "userApi.credit", "userApi.gateway", "userApi.sso"]);
+                    expectedDocumentMock.Setup(c => c.AllowOfflineAccess).Returns(true);
+                    expectedDocumentMock.Setup(c => c.AlwaysIncludeUserClaimsInIdToken).Returns(true);
+                    expectedDocumentMock.Setup(c => c.ClientId).Returns("dev_myNLAbCUAYRpxoIfS6py");
+                    expectedDocumentMock.Setup(c => c.ClientName).Returns("MyWebApplication");
+                    expectedDocumentMock.Setup(c => c.ClientType).Returns(ClientAppType.WebApp);
+                    {
+                        var secretMock = new Mock<ClientSecret>();
+                        secretMock.Setup(s => s.Created).Returns(new DateTime(2026, 05, 07, 15, 15, 47, 771));
+                        secretMock.Setup(s => s.Description).Returns("Auto-generated secret");
+                        secretMock.Setup(s => s.Expiration).Returns((DateTime?)null);
+                        secretMock.Setup(s => s.Value).Returns("FRd8ZbmyDZ5JwxDBq4M1D72lAxpouRIYPiKVsGtcWtM=");
+                        expectedDocumentMock.Setup(c => c.ClientSecrets).Returns([secretMock.Object]);
+                    }
+                    expectedDocumentMock.Setup(c => c.Description).Returns("A new web application");
+                    expectedDocumentMock.Setup(c => c.Enabled).Returns(true);
+                    {
+                        var ownerMock = new Mock<UserBase>();
+                        ownerMock.Setup(u => u.Id).Returns("69fcabfb133dda7d424cda4e");
+                        expectedDocumentMock.Setup(c => c.Owner).Returns(ownerMock.Object);
+                    }
+                    expectedDocumentMock.Setup(c => c.PostLogoutRedirectUris).Returns(["https://myapplication.com/logout", "https://myapplication.net/logout"]);
+                    expectedDocumentMock.Setup(c => c.RedirectUris).Returns(["https://myapplication.com/redirect", "https://myapplication.net/redirect"]);
+                    expectedDocumentMock.Setup(c => c.RefreshTokenUsage).Returns(TokenUsage.OneTimeOnly);
+                    expectedDocumentMock.Setup(c => c.RequireClientSecret).Returns(true);
+                    expectedDocumentMock.Setup(c => c.RequireConsent).Returns(false);
+                    expectedDocumentMock.Setup(c => c.RequirePkce).Returns(false);
+
+                    tests.Add(new(sourceDocument, expectedDocumentMock.Object));
+                }
+
+                // "1f980b1f-74d9-4a44-96c6-b45bfaeb6886" - NativeApp
+                {
+                    var sourceDocument =
+                        @"{
+                            ""_id"" : ObjectId(""69fcad52133dda7d424cda53""),
+                            ""_m"" : ""1f980b1f-74d9-4a44-96c6-b45bfaeb6886"",
+                            ""CreationDateTime"" : ISODate(""2026-05-07T15:18:42.269+0000""),
+                            ""AccessTokenType"" : ""Jwt"",
+                            ""AllowedCorsOrigins"" : [ ""native.com"" ],
+                            ""AllowedGrantTypes"" : [ ""authorization_code"" ],
+                            ""AllowedScopes"" : [ ""openid"", ""role"", ""userApi.credit"", ""userApi.index"" ],
+                            ""AllowOfflineAccess"" : true,
+                            ""AlwaysIncludeUserClaimsInIdToken"" : true,
+                            ""ClientId"" : ""dev_x7gxOuz18R5xtZafodRa"",
+                            ""ClientName"" : ""MyNative"",
+                            ""ClientType"" : ""NativeApp"",
+                            ""ClientSecrets"" : [],
+                            ""Description"" : ""A new native application"",
+                            ""Enabled"" : true,
+                            ""Owner"" : {
+                                ""_m"" : ""a1976133-bb21-40af-b6de-3a0f7f7dc676"",
+                                ""_t"" : ""UserWeb2"",
+                                ""_id"" : ObjectId(""69fcabfb133dda7d424cda4e"")
+                            },
+                            ""PostLogoutRedirectUris"" : [ ""http://native.com"" ],
+                            ""RedirectUris"" : [ ""http://native.com"" ],
+                            ""RefreshTokenUsage"" : ""OneTimeOnly"",
+                            ""RequireClientSecret"" : false,
+                            ""RequireConsent"" : false,
+                            ""RequirePkce"" : true
+                        }";
+
+                    var expectedDocumentMock = new Mock<ClientApp>();
+                    expectedDocumentMock.Setup(c => c.Id).Returns("69fcad52133dda7d424cda53");
+                    expectedDocumentMock.Setup(c => c.CreationDateTime).Returns(new DateTime(2026, 05, 07, 15, 18, 42, 269));
+                    expectedDocumentMock.Setup(c => c.AccessTokenType).Returns(AccessTokenType.Jwt);
+                    expectedDocumentMock.Setup(c => c.AllowedCorsOrigins).Returns(["native.com"]);
+                    expectedDocumentMock.Setup(c => c.AllowedGrantTypes).Returns(["authorization_code"]);
+                    expectedDocumentMock.Setup(c => c.AllowedScopes).Returns(["openid", "role", "userApi.credit", "userApi.index"]);
+                    expectedDocumentMock.Setup(c => c.AllowOfflineAccess).Returns(true);
+                    expectedDocumentMock.Setup(c => c.AlwaysIncludeUserClaimsInIdToken).Returns(true);
+                    expectedDocumentMock.Setup(c => c.ClientId).Returns("dev_x7gxOuz18R5xtZafodRa");
+                    expectedDocumentMock.Setup(c => c.ClientName).Returns("MyNative");
+                    expectedDocumentMock.Setup(c => c.ClientType).Returns(ClientAppType.NativeApp);
+                    expectedDocumentMock.Setup(c => c.ClientSecrets).Returns(Array.Empty<ClientSecret>());
+                    expectedDocumentMock.Setup(c => c.Description).Returns("A new native application");
+                    expectedDocumentMock.Setup(c => c.Enabled).Returns(true);
+                    {
+                        var ownerMock = new Mock<UserBase>();
+                        ownerMock.Setup(u => u.Id).Returns("69fcabfb133dda7d424cda4e");
+                        expectedDocumentMock.Setup(c => c.Owner).Returns(ownerMock.Object);
+                    }
+                    expectedDocumentMock.Setup(c => c.PostLogoutRedirectUris).Returns(["http://native.com"]);
+                    expectedDocumentMock.Setup(c => c.RedirectUris).Returns(["http://native.com"]);
+                    expectedDocumentMock.Setup(c => c.RefreshTokenUsage).Returns(TokenUsage.OneTimeOnly);
+                    expectedDocumentMock.Setup(c => c.RequireClientSecret).Returns(false);
+                    expectedDocumentMock.Setup(c => c.RequireConsent).Returns(false);
+                    expectedDocumentMock.Setup(c => c.RequirePkce).Returns(true);
+
+                    tests.Add(new(sourceDocument, expectedDocumentMock.Object));
+                }
+
+                // "1f980b1f-74d9-4a44-96c6-b45bfaeb6886" - ClientCredential
+                {
+                    var sourceDocument =
+                        @"{
+                            ""_id"" : ObjectId(""69fcad8c133dda7d424cda54""),
+                            ""_m"" : ""1f980b1f-74d9-4a44-96c6-b45bfaeb6886"",
+                            ""CreationDateTime"" : ISODate(""2026-05-07T15:19:40.070+0000""),
+                            ""AccessTokenType"" : ""Jwt"",
+                            ""AllowedCorsOrigins"" : [],
+                            ""AllowedGrantTypes"" : [ ""client_credentials"" ],
+                            ""AllowedScopes"" : [ ""openid"", ""userApi.gateway"", ""userApi.index"", ""userApi.sso"" ],
+                            ""AllowOfflineAccess"" : false,
+                            ""AlwaysIncludeUserClaimsInIdToken"" : false,
+                            ""ClientId"" : ""dev_eGCxsQuCBo7zeHDyvlwD"",
+                            ""ClientName"" : ""Machine2machine"",
+                            ""ClientType"" : ""ClientCredential"",
+                            ""ClientSecrets"" : [
+                                {
+                                    ""_m"" : ""adf2f702-0f84-41bb-ad5d-f485372af6ef"",
+                                    ""Created"" : ISODate(""2026-05-07T15:19:40.070+0000""),
+                                    ""Description"" : ""Auto-generated secret"",
+                                    ""Expiration"" : null,
+                                    ""Value"" : ""unK/QiBKwvuiMLJij2Lkebeo/InWRCCga+yUslzFU0o=""
+                                }
+                            ],
+                            ""Description"" : ""My machine 2 machine app"",
+                            ""Enabled"" : true,
+                            ""Owner"" : {
+                                ""_m"" : ""a1976133-bb21-40af-b6de-3a0f7f7dc676"",
+                                ""_t"" : ""UserWeb2"",
+                                ""_id"" : ObjectId(""69fcabfb133dda7d424cda4e"")
+                            },
+                            ""PostLogoutRedirectUris"" : [],
+                            ""RedirectUris"" : [],
+                            ""RefreshTokenUsage"" : ""ReUse"",
+                            ""RequireClientSecret"" : true,
+                            ""RequireConsent"" : false,
+                            ""RequirePkce"" : false
+                        }";
+
+                    var expectedDocumentMock = new Mock<ClientApp>();
+                    expectedDocumentMock.Setup(c => c.Id).Returns("69fcad8c133dda7d424cda54");
+                    expectedDocumentMock.Setup(c => c.CreationDateTime).Returns(new DateTime(2026, 05, 07, 15, 19, 40, 070));
+                    expectedDocumentMock.Setup(c => c.AccessTokenType).Returns(AccessTokenType.Jwt);
+                    expectedDocumentMock.Setup(c => c.AllowedCorsOrigins).Returns(Array.Empty<string>());
+                    expectedDocumentMock.Setup(c => c.AllowedGrantTypes).Returns(["client_credentials"]);
+                    expectedDocumentMock.Setup(c => c.AllowedScopes).Returns(["openid", "userApi.gateway", "userApi.index", "userApi.sso"]);
+                    expectedDocumentMock.Setup(c => c.AllowOfflineAccess).Returns(false);
+                    expectedDocumentMock.Setup(c => c.AlwaysIncludeUserClaimsInIdToken).Returns(false);
+                    expectedDocumentMock.Setup(c => c.ClientId).Returns("dev_eGCxsQuCBo7zeHDyvlwD");
+                    expectedDocumentMock.Setup(c => c.ClientName).Returns("Machine2machine");
+                    expectedDocumentMock.Setup(c => c.ClientType).Returns(ClientAppType.ClientCredential);
+                    {
+                        var secretMock = new Mock<ClientSecret>();
+                        secretMock.Setup(s => s.Created).Returns(new DateTime(2026, 05, 07, 15, 19, 40, 070));
+                        secretMock.Setup(s => s.Description).Returns("Auto-generated secret");
+                        secretMock.Setup(s => s.Expiration).Returns((DateTime?)null);
+                        secretMock.Setup(s => s.Value).Returns("unK/QiBKwvuiMLJij2Lkebeo/InWRCCga+yUslzFU0o=");
+                        expectedDocumentMock.Setup(c => c.ClientSecrets).Returns([secretMock.Object]);
+                    }
+                    expectedDocumentMock.Setup(c => c.Description).Returns("My machine 2 machine app");
+                    expectedDocumentMock.Setup(c => c.Enabled).Returns(true);
+                    {
+                        var ownerMock = new Mock<UserBase>();
+                        ownerMock.Setup(u => u.Id).Returns("69fcabfb133dda7d424cda4e");
+                        expectedDocumentMock.Setup(c => c.Owner).Returns(ownerMock.Object);
+                    }
+                    expectedDocumentMock.Setup(c => c.PostLogoutRedirectUris).Returns(Array.Empty<string>());
+                    expectedDocumentMock.Setup(c => c.RedirectUris).Returns(Array.Empty<string>());
+                    expectedDocumentMock.Setup(c => c.RefreshTokenUsage).Returns(TokenUsage.ReUse);
+                    expectedDocumentMock.Setup(c => c.RequireClientSecret).Returns(true);
+                    expectedDocumentMock.Setup(c => c.RequireConsent).Returns(false);
+                    expectedDocumentMock.Setup(c => c.RequirePkce).Returns(false);
+
+                    tests.Add(new(sourceDocument, expectedDocumentMock.Object));
+                }
+
+                return tests.Select(t => new object[] { t });
+            }
+        }
+
         public static IEnumerable<object[]> AlphaPassRequestDeserializationTests
         {
             get
@@ -468,6 +696,58 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
         }
 
         // Tests.
+        [Theory, MemberData(nameof(ClientAppDeserializationTests))]
+        public void ClientAppDeserialization(DeserializationTestElement<ClientApp, SsoDbContext> testElement)
+        {
+            ArgumentNullException.ThrowIfNull(testElement);
+
+            // Arrange.
+            using var documentReader = new JsonReader(testElement.SourceDocument);
+            var modelMapSerializer = new ModelMapSerializer<ClientApp>(dbContext);
+            var deserializationContext = BsonDeserializationContext.CreateRoot(documentReader);
+            testElement.SetupAction(mongoDatabaseMock, dbContext);
+
+            // Action.
+            using var dbExecutionContext = new DbExecutionContextHandler(dbContext); //run into a db execution context
+            var result = modelMapSerializer.Deserialize(deserializationContext);
+
+            // Assert.
+            Assert.Equal(testElement.ExpectedModel.Id, result.Id);
+            Assert.Equal(testElement.ExpectedModel.CreationDateTime, result.CreationDateTime);
+            Assert.Equal(testElement.ExpectedModel.AccessTokenType, result.AccessTokenType);
+            Assert.Equal(testElement.ExpectedModel.AllowedCorsOrigins, result.AllowedCorsOrigins);
+            Assert.Equal(testElement.ExpectedModel.AllowedGrantTypes, result.AllowedGrantTypes);
+            Assert.Equal(testElement.ExpectedModel.AllowedScopes, result.AllowedScopes);
+            Assert.Equal(testElement.ExpectedModel.AllowOfflineAccess, result.AllowOfflineAccess);
+            Assert.Equal(testElement.ExpectedModel.AlwaysIncludeUserClaimsInIdToken, result.AlwaysIncludeUserClaimsInIdToken);
+            Assert.Equal(testElement.ExpectedModel.ClientId, result.ClientId);
+            Assert.Equal(testElement.ExpectedModel.ClientName, result.ClientName);
+            Assert.Equal(testElement.ExpectedModel.ClientType, result.ClientType);
+            Assert.Equal(testElement.ExpectedModel.Description, result.Description);
+            Assert.Equal(testElement.ExpectedModel.Enabled, result.Enabled);
+            Assert.Equal(testElement.ExpectedModel.Owner, result.Owner, EntityModelEqualityComparer.Instance);
+            Assert.Equal(testElement.ExpectedModel.PostLogoutRedirectUris, result.PostLogoutRedirectUris);
+            Assert.Equal(testElement.ExpectedModel.RedirectUris, result.RedirectUris);
+            Assert.Equal(testElement.ExpectedModel.RefreshTokenUsage, result.RefreshTokenUsage);
+            Assert.Equal(testElement.ExpectedModel.RequireClientSecret, result.RequireClientSecret);
+            Assert.Equal(testElement.ExpectedModel.RequireConsent, result.RequireConsent);
+            Assert.Equal(testElement.ExpectedModel.RequirePkce, result.RequirePkce);
+            Assert.NotNull(result.Id);
+            Assert.NotNull(result.ClientId);
+            Assert.NotNull(result.ClientName);
+            Assert.NotNull(result.Owner);
+
+            var expectedSecrets = testElement.ExpectedModel.ClientSecrets.ToList();
+            var resultSecrets = result.ClientSecrets.ToList();
+            Assert.Equal(expectedSecrets.Count, resultSecrets.Count);
+            for (var i = 0; i < expectedSecrets.Count; i++)
+            {
+                Assert.Equal(expectedSecrets[i].Value, resultSecrets[i].Value);
+                Assert.Equal(expectedSecrets[i].Description, resultSecrets[i].Description);
+                Assert.Equal(expectedSecrets[i].Expiration, resultSecrets[i].Expiration);
+            }
+        }
+
         [Theory, MemberData(nameof(AlphaPassRequestDeserializationTests))]
         public void AlphaPassRequestDeserialization(DeserializationTestElement<AlphaPassRequest, SsoDbContext> testElement)
         {

@@ -1,0 +1,121 @@
+@page
+@model Etherna.SSOServer.Areas.Identity.Pages.Account.Manage.Developer.IndexModel
+@{
+    ViewData["Title"] = "Developer";
+    ViewData["ActivePage"] = ManageNavPages.Developer;
+}
+
+<div class="row">
+    <div class="col-12 mb-3 text-center mt-1">
+        <h2>@ViewData["Title"]</h2>
+    </div>
+</div>
+
+@* OAuth Clients *@
+<div class="row">
+    <div class="col-12">
+        <h4>OAuth Clients</h4>
+
+        @if (!Model.IsAdmin && Model.MaxAllowedClients == 0)
+        {
+            <div class="alert alert-info" role="alert">
+                <p class="mb-2">You currently have no client slots available. To request client creation access, please contact us.</p>
+                <a href="mailto:info@@etherna.io?subject=Request%20client%20slots&body=Hello%2C%0A%0AI%20would%20like%20to%20request%20OAuth%20client%20slots%20for%20my%20account.%0A%0AEther%20address%3A%20@(Model.UserEtherAddress)%0A%0AThank%20you."
+                   class="btn btn-outline-primary btn-sm">Contact us</a>
+            </div>
+        }
+        else
+        {
+            @if (Model.IsAdmin)
+            {
+                <p class="text-muted">As an administrator, you have unlimited client slots.</p>
+            }
+            else
+            {
+                <p>Created @Model.Clients.Count / @Model.MaxAllowedClients clients</p>
+            }
+
+            @if (Model.CanCreateClients)
+            {
+                <a asp-page="ClientCreate" class="btn btn-outline-primary mb-3">Create New Client</a>
+            }
+            else
+            {
+                <button class="btn btn-outline-primary mb-3" disabled>Create New Client</button>
+            }
+
+            @if (Model.LimitReached)
+            {
+                <div class="alert alert-info mt-2" role="alert">
+                    <p class="mb-2">You have reached your client limit. To request additional slots, please contact us.</p>
+                    <a href="mailto:info@@etherna.io?subject=Request%20additional%20client%20slots&body=Hello%2C%0A%0AI%20have%20reached%20my%20client%20limit%20(@(Model.MaxAllowedClients))%20and%20would%20like%20to%20request%20additional%20slots.%0A%0AEther%20address%3A%20@(Model.UserEtherAddress)%0A%0AThank%20you."
+                       class="btn btn-outline-primary btn-sm">Contact us</a>
+                </div>
+            }
+
+            @if (Model.Clients.Count == 0)
+            {
+                <p class="text-muted">No clients created yet.</p>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Client ID</th>
+                                <th>Name</th>
+                                <th>Type</th>
+                                <th>Enabled</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var client in Model.Clients)
+                            {
+                                <tr>
+                                    <td class="align-middle"><code>@client.ClientId</code></td>
+                                    <td class="align-middle">@client.ClientName</td>
+                                    <td class="align-middle">
+                                        <span class="badge bg-secondary">@client.ClientType</span>
+                                    </td>
+                                    <td class="align-middle">
+                                        @if (client.Enabled)
+                                        {
+                                            <span class="badge bg-success">Yes</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger">No</span>
+                                        }
+                                    </td>
+                                    <td class="align-middle">@client.CreationDateTime.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                                    <td class="align-middle">
+                                        <a asp-page="ClientEdit" asp-route-id="@client.Id" class="btn btn-sm btn-outline-primary">Edit</a>
+                                        @if (client.RequireClientSecret)
+                                        {
+                                            <a asp-page="ClientSecrets" asp-route-id="@client.Id" class="btn btn-sm btn-outline-secondary">Secrets</a>
+                                        }
+                                        <a asp-page="ClientDelete" asp-route-id="@client.Id" class="btn btn-sm btn-outline-danger">Delete</a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+<hr />
+
+@* API Keys *@
+<div class="row">
+    <div class="col-12">
+        <h4>API Keys</h4>
+        <p>API Keys allow script-based access without browser interaction.</p>
+        <a asp-page="ApiKeys" class="btn btn-outline-primary">Manage API Keys</a>
+    </div>
+</div>

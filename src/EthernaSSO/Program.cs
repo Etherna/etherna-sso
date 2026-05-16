@@ -12,6 +12,7 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
+using Duende.IdentityServer.Services;
 using Duende.IdentityServer.Stores;
 using Duende.IdentityServer.Validation;
 using Etherna.Authentication.AspNetCore;
@@ -79,6 +80,15 @@ namespace Etherna.SSOServer
 {
     public static class Program
     {
+        // Consts.
+        private static readonly string[] StaticCorsOrigins =
+        [
+            "https://etherna.io",
+            "https://credit.etherna.io",
+            "https://gateway.etherna.io",
+            "https://index.etherna.io"
+        ];
+
         public static void Main(string[] args)
         {
             // Configure logging first.
@@ -385,6 +395,7 @@ namespace Etherna.SSOServer
 
             // Configure IdentityServer.
             var idServerConfig = new IdServerConfig(config);
+            services.AddSingleton(idServerConfig);
             services.AddIdentityServer(options =>
                 {
                     options.Authentication.CookieAuthenticationScheme = IdentityConstants.ApplicationScheme;
@@ -419,6 +430,17 @@ namespace Etherna.SSOServer
             {
                 ConnectionString = config["ConnectionStrings:DataProtectionDb"] ?? throw new ServiceConfigurationException()
             }, "signingKeys"));
+
+            //replace client store with composite (DB + in-memory) and CORS policy service
+            var inMemoryClients = idServerConfig.Clients.ToArray();
+            services.Replace(ServiceDescriptor.Scoped<IClientStore>(sp =>
+                new ClientAppStore(
+                    sp.GetRequiredService<ISsoDbContext>(),
+                    inMemoryClients)));
+            services.Replace(ServiceDescriptor.Scoped<ICorsPolicyService>(sp =>
+                new CompositeCorsPolicyService(
+                    sp.GetRequiredService<ISsoDbContext>(),
+                    inMemoryClients)));
 
             // Configure Hangfire server.
             if (!env.IsStaging()) //don't start server in staging
@@ -523,11 +545,20 @@ namespace Etherna.SSOServer
                 }
                 else
                 {
-                    builder.WithOrigins(
-                            "https://etherna.io",
-                            "https://credit.etherna.io",
-                            "https://gateway.etherna.io",
-                            "https://index.etherna.io")
+                    // Allow static origins plus dynamic origins from DB-stored clients.
+                    var corsPolicyService = app.Services.CreateScope().ServiceProvider
+                        .GetRequiredService<ICorsPolicyService>();
+
+                    builder.SetIsOriginAllowed(origin =>
+                           {
+                               // Static origins always allowed.
+                               if (StaticCorsOrigins.Contains(origin, StringComparer.OrdinalIgnoreCase))
+                                   return true;
+
+                               // Check dynamic origins from IdentityServer clients (DB + in-memory).
+                               return corsPolicyService.IsOriginAllowedAsync(origin)
+                                   .GetAwaiter().GetResult();
+                           })
                            .AllowAnyHeader()
                            .AllowAnyMethod()
                            .AllowCredentials();

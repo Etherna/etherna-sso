@@ -63,8 +63,9 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
             CurrentPage = p ?? 0;
             Query = q ?? "";
 
+            var normalizedQuery = Query.ToUpperInvariant();
             var paginatedRoles = await context.Roles.QueryPaginatedElementsAsync(elements =>
-                elements.Where(r => r.NormalizedName.Contains(Query, StringComparison.InvariantCultureIgnoreCase)),
+                elements.Where(r => r.NormalizedName.Contains(normalizedQuery)),
                 r => r.NormalizedName,
                 CurrentPage,
                 PageSize);

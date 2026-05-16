@@ -30,35 +30,29 @@ using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Persistence
 {
-    public class SharedDbContext : DbContext, IEventDispatcherDbContext, ISharedDbContext
+    public class SharedDbContext(IEventDispatcher eventDispatcher)
+        : DbContext, IEventDispatcherDbContext, ISharedDbContext
     {
         // Consts.
         private const string ModelMapsNamespace = "Etherna.SSOServer.Persistence.ModelMaps.Shared";
-
-        // Constructor.
-        public SharedDbContext(
-            IEventDispatcher eventDispatcher)
-        {
-            EventDispatcher = eventDispatcher;
-        }
 
         // Properties.
         //repositories
         public IRepository<UserSharedInfo, string> UsersInfo { get; } = new DomainRepository<UserSharedInfo, string>(
             new RepositoryOptions<UserSharedInfo>("usersInfo")
             {
-                IndexBuilders = new[]
-                {
+                IndexBuilders =
+                [
                     (Builders<UserSharedInfo>.IndexKeys.Ascending(u => u.EtherAddress),
                      new CreateIndexOptions<UserSharedInfo> { Unique = true }),
 
                     (Builders<UserSharedInfo>.IndexKeys.Ascending(u => u.EtherPreviousAddresses),
-                     new CreateIndexOptions<UserSharedInfo>()),
-                }
+                     new CreateIndexOptions<UserSharedInfo>())
+                ]
             });
 
         //other properties
-        public IEventDispatcher EventDispatcher { get; }
+        public IEventDispatcher EventDispatcher { get; } = eventDispatcher;
 
         // Protected properties.
         protected override IEnumerable<IModelMapsCollector> ModelMapsCollectors =>

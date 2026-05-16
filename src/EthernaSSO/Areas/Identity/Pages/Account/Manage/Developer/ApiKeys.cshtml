@@ -1,7 +1,9 @@
-﻿@page
-@model Etherna.SSOServer.Areas.Identity.Pages.Account.Manage.ApiKeysModel
+@page
+@using Etherna.SSOServer.Domain.Models
+@model Etherna.SSOServer.Areas.Identity.Pages.Account.Manage.Developer.ApiKeysModel
 @{
     ViewData["Title"] = "API Keys";
+    ViewData["ActivePage"] = ManageNavPages.Developer;
 }
 
 <div class="row">

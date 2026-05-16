@@ -21,7 +21,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
     {
         // Properties.
         public static string Index => "Index";
-        public static string ApiKeys => "ApiKeys";
+        public static string Developer => "Developer";
         public static string Email => "Email";
         public static string ChangePassword => "ChangePassword";
         public static string DownloadPersonalData => "DownloadPersonalData";
@@ -38,11 +38,11 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             return PageNavClass(viewContext, Index);
         }
 
-        public static string? ApiKeysNavClass(ViewContext viewContext)
+        public static string? DeveloperNavClass(ViewContext viewContext)
         {
             ArgumentNullException.ThrowIfNull(viewContext);
 
-            return PageNavClass(viewContext, ApiKeys);
+            return PageNavClass(viewContext, Developer);
         }
 
         public static string? EmailNavClass(ViewContext viewContext)

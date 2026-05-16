@@ -19,7 +19,7 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 
-namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
+namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage.Developer
 {
     public class ApiKeyDeleteModel(ISsoDbContext ssoDbContext) : PageModel
     {

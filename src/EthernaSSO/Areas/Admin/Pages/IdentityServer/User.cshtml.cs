@@ -46,6 +46,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
 
                 Id = user.Id;
                 Email = user.Email;
+                MaxAllowedClients = user.MaxAllowedClients;
                 PhoneNumber = user.PhoneNumber;
                 LockoutEnabled = sharedInfo.LockoutEnabled;
                 LockoutEnd = sharedInfo.LockoutEnd?.UtcDateTime;
@@ -89,6 +90,10 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
             [Required]
             [RegularExpression(UsernameHelper.UsernameRegex)]
             public string Username { get; set; } = default!;
+
+            [Display(Name = "Max allowed clients")]
+            [Range(0, 100)]
+            public int MaxAllowedClients { get; set; }
 
             public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
             {
@@ -204,6 +209,9 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
 
                 if (user.PhoneNumber != Input.PhoneNumber)
                     user.SetPhoneNumber(Input.PhoneNumber);
+
+                if (user.MaxAllowedClients != Input.MaxAllowedClients)
+                    user.SetMaxAllowedClients(Input.MaxAllowedClients);
 
                 switch (user)
                 {

@@ -1,0 +1,74 @@
+// Copyright 2021-present Etherna SA
+// This file is part of Etherna Sso.
+//
+// Etherna Sso is free software: you can redistribute it and/or modify it under the terms of the
+// GNU Affero General Public License as published by the Free Software Foundation,
+// either version 3 of the License, or (at your option) any later version.
+//
+// Etherna Sso is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+// without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// See the GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
+// If not, see <https://www.gnu.org/licenses/>.
+
+using Duende.IdentityServer.Models;
+using Duende.IdentityServer.Stores;
+using Etherna.MongoDB.Driver.Linq;
+using Etherna.SSOServer.Domain;
+using Etherna.SSOServer.Domain.Models;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace Etherna.SSOServer.Configs.SystemStore
+{
+    internal sealed class ClientAppStore(
+        ISsoDbContext ssoDbContext,
+        Client[] inMemoryClients)
+        : IClientStore
+    {
+        // Methods.
+        public async Task<Client?> FindClientByIdAsync(string clientId)
+        {
+            // Check DB first.
+            var dbClient = await ssoDbContext.ClientApps.QueryElementsAsync(elements =>
+                elements.FirstOrDefaultAsync(c => c.ClientId == clientId));
+
+            if (dbClient is not null)
+                return ToIdentityServerClient(dbClient);
+
+            // Fall back to in-memory.
+            return inMemoryClients.FirstOrDefault(c => c.ClientId == clientId);
+        }
+
+        // Helpers.
+        private static Client ToIdentityServerClient(ClientApp clientApp)
+        {
+            var client = new Client
+            {
+                ClientId = clientApp.ClientId,
+                ClientName = clientApp.ClientName,
+                Description = clientApp.Description,
+                Enabled = clientApp.Enabled,
+                RequireClientSecret = clientApp.RequireClientSecret,
+                RequirePkce = clientApp.RequirePkce,
+                AllowOfflineAccess = clientApp.AllowOfflineAccess,
+                AlwaysIncludeUserClaimsInIdToken = clientApp.AlwaysIncludeUserClaimsInIdToken,
+                RequireConsent = clientApp.RequireConsent,
+                AccessTokenType = clientApp.AccessTokenType,
+                RefreshTokenUsage = clientApp.RefreshTokenUsage,
+                AllowedGrantTypes = clientApp.AllowedGrantTypes.ToList(),
+                AllowedScopes = clientApp.AllowedScopes.ToList(),
+                RedirectUris = clientApp.RedirectUris.ToList(),
+                PostLogoutRedirectUris = clientApp.PostLogoutRedirectUris.ToList(),
+                AllowedCorsOrigins = clientApp.AllowedCorsOrigins.ToList(),
+                ClientSecrets = clientApp.ClientSecrets
+                    .Where(s => !s.IsExpired)
+                    .Select(s => new Secret(s.Value, s.Description ?? "", s.Expiration))
+                    .ToList()
+            };
+
+            return client;
+        }
+    }
+}
