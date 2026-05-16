@@ -15,6 +15,7 @@
 using Duende.IdentityServer.Services;
 using Duende.IdentityServer.Stores;
 using Etherna.DomainEvents;
+using Etherna.SSOServer.Configs.Metrics;
 using Etherna.SSOServer.Domain.Events;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Services.Extensions;
@@ -111,6 +112,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 // Rise event and create log.
                 await eventDispatcher.DispatchAsync(new UserLoginSuccessEvent(user, clientId: context?.Client?.ClientId));
                 logger.LoggedInWith2FA(user.Id);
+                SsoMetrics.RecordLoginAttempt("2fa", "success");
 
                 // Identify redirect.
                 return await ContextedRedirectAsync(context, returnUrl);
@@ -118,11 +120,13 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             else if (result.IsLockedOut)
             {
                 logger.LockedOutLoginAttempt(user.Id);
+                SsoMetrics.RecordLoginAttempt("2fa", "locked_out");
                 return RedirectToPage("./Lockout");
             }
             else
             {
                 logger.Invalid2FACodeAttempt(user.Id);
+                SsoMetrics.RecordLoginAttempt("2fa", "failure");
                 ModelState.AddModelError(string.Empty, "Invalid authenticator code.");
                 return Page();
             }

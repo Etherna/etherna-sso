@@ -14,6 +14,7 @@
 
 using Duende.IdentityServer.Services;
 using Etherna.DomainEvents;
+using Etherna.SSOServer.Configs.Metrics;
 using Etherna.SSOServer.Domain.Events;
 using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models;
@@ -139,6 +140,8 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 // Rise event and create log.
                 await eventDispatcher.DispatchAsync(new UserLoginSuccessEvent(user, clientId: context?.Client?.ClientId));
                 logger.CreatedAccountWithPassword(user.Id);
+                SsoMetrics.RecordRegistration("password");
+                SsoMetrics.RecordLoginAttempt("password", "success");
 
                 // Redirect to add verified email page.
                 return RedirectToPage("SetVerifiedEmail", new { returnUrl });
