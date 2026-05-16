@@ -607,6 +607,11 @@ namespace Etherna.SSOServer
             });
 
             // Register cron tasks.
+            RecurringJob.AddOrUpdate<ICleanupOldFailedTasksTask>(
+                CleanupOldFailedTasksTask.TaskId,
+                task => task.RunAsync(),
+                Cron.Daily);
+            
             RecurringJob.AddOrUpdate<ICompileDailyStatsTask>(
                 CompileDailyStatsTask.TaskId,
                 task => task.RunAsync(),
