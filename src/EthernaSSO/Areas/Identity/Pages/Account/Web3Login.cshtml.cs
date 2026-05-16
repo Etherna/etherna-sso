@@ -17,6 +17,7 @@ using Duende.IdentityServer.Stores;
 using Etherna.BeeNet.Models;
 using Etherna.DomainEvents;
 using Etherna.MongoDB.Driver;
+using Etherna.SSOServer.Configs.Metrics;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Events;
 using Etherna.SSOServer.Domain.Helpers;
@@ -174,6 +175,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                     provider: "web3",
                     providerUserId: etherAddress.ToString()));
                 logger.LoggedInWithWeb3(user.Id);
+                SsoMetrics.RecordLoginAttempt("web3", "success");
 
                 // Identify redirect.
                 return await ContextedRedirectAsync(context, returnUrl);
@@ -233,6 +235,8 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                     provider: "web3",
                     providerUserId: etherAddress));
                 logger.CreatedAccountWithWeb3(user.Id);
+                SsoMetrics.RecordRegistration("web3");
+                SsoMetrics.RecordLoginAttempt("web3", "success");
 
                 // Redirect to add verified email page.
                 return RedirectToPage("SetVerifiedEmail", new { returnUrl });

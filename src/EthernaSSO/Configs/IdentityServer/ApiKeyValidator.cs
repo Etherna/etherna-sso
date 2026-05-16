@@ -14,6 +14,7 @@
 
 using Duende.IdentityServer.Models;
 using Duende.IdentityServer.Validation;
+using Etherna.SSOServer.Configs.Metrics;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Services.Extensions;
@@ -68,6 +69,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
             if (await userManager.IsLockedOutAsync(user))
             {
                 logger.LockedOutLoginAttempt(userId);
+                SsoMetrics.RecordLoginAttempt("api_key", "locked_out");
                 context.Result = new GrantValidationResult(TokenRequestErrors.InvalidGrant, "User is locked out.");
                 return;
             }
@@ -76,6 +78,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
             if (!await signInManager.CanSignInAsync(user))
             {
                 logger.NotAllowedSingInLoginAttempt(userId);
+                SsoMetrics.RecordLoginAttempt("api_key", "failure");
                 context.Result = new GrantValidationResult(TokenRequestErrors.InvalidGrant, "User is not allowed to sign in.");
                 return;
             }
@@ -89,6 +92,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                 await userManager.AccessFailedAsync(user);
 
                 logger.ApiKeyDoesNotExistLoginAttempt(userId);
+                SsoMetrics.RecordLoginAttempt("api_key", "failure");
                 context.Result = new GrantValidationResult(TokenRequestErrors.InvalidGrant, "Api key does not exist.");
                 return;
             }
@@ -97,6 +101,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
             if (!apiKey.IsAlive)
             {
                 logger.ApiKeyIsNotAliveLoginAttempt(userId);
+                SsoMetrics.RecordLoginAttempt("api_key", "failure");
                 context.Result = new GrantValidationResult(TokenRequestErrors.InvalidGrant, "Api key is not alive.");
                 return;
             }
@@ -105,6 +110,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
             //TODO
 
             logger.ApiKeyValidatedLoginAttempt(userId);
+            SsoMetrics.RecordLoginAttempt("api_key", "success");
 
             context.Result = new GrantValidationResult(
                 userId,

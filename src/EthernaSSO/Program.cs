@@ -58,6 +58,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
+using Prometheus;
 using Scalar.AspNetCore;
 using Serilog;
 using Serilog.Exceptions;
@@ -570,6 +571,8 @@ namespace Etherna.SSOServer
 
             app.UseRouting();
 
+            app.UseHttpMetrics();
+
             app.UseCookiePolicy();
             app.UseAuthentication();
             app.UseIdentityServer();
@@ -605,6 +608,10 @@ namespace Etherna.SSOServer
                         flow.SelectedScopes = ["openid", "profile", "ether_accounts", "role", "userApi.sso"];
                     });
             });
+
+            // Prometheus metrics scrape endpoint.
+            // Access restricted at reverse proxy / network level.
+            app.MapMetrics("/metrics");
 
             // Register cron tasks.
             RecurringJob.AddOrUpdate<ICleanupOldFailedTasksTask>(
