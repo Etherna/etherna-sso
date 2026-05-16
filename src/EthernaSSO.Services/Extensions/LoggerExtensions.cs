@@ -20,7 +20,7 @@ namespace Etherna.SSOServer.Services.Extensions
 {
     /*
      * Always group similar log delegates by type, always use incremental event ids.
-     * Last event id is: 41
+     * Last event id is: 43
      */
     public static class LoggerExtensions
     {
@@ -57,6 +57,18 @@ namespace Etherna.SSOServer.Services.Extensions
                 LogLevel.Information,
                 new EventId(24, nameof(ApiKeyValidatedLoginAttempt)),
                 "User with ID '{UserId}' provided valid api key during login attempt.");
+        
+        private static readonly Action<ILogger, long, Exception> _cleanupOldFailedTasksTaskCompleted =
+            LoggerMessage.Define<long>(
+                LogLevel.Information,
+                new EventId(42, nameof(CleanupOldFailedTasksTaskCompleted)),
+                "Clean up failed-tasks task completed removing {RemovedFailedTasks} tasks");
+        
+        private static readonly Action<ILogger, Exception> _cleanupOldFailedTasksTaskStarted =
+            LoggerMessage.Define(
+                LogLevel.Information,
+                new EventId(43, nameof(CleanupOldFailedTasksTaskStarted)),
+                "Clean up failed-tasks task started");
 
         private static readonly Action<ILogger, string, string, Exception> _clientAppCreated =
             LoggerMessage.Define<string, string>(
@@ -296,6 +308,12 @@ namespace Etherna.SSOServer.Services.Extensions
 
         public static void ApiKeyValidatedLoginAttempt(this ILogger logger, string userId) =>
             _apiKeyValidatedLoginAttempt(logger, userId, null!);
+        
+        public static void CleanupOldFailedTasksTaskCompleted(this ILogger logger, long deletedTasks) =>
+            _cleanupOldFailedTasksTaskCompleted(logger, deletedTasks, null!);
+        
+        public static void CleanupOldFailedTasksTaskStarted(this ILogger logger) =>
+            _cleanupOldFailedTasksTaskStarted(logger, null!);
 
         public static void ClientAppCreated(this ILogger logger, string userId, string clientId) =>
             _clientAppCreated(logger, userId, clientId, null!);
