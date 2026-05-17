@@ -1,4 +1,45 @@
-# Etherna SSO - Coding Style
+# Etherna SSO
+
+## Build, run, test
+
+Target framework is **.NET 10** with `TreatWarningsAsErrors=true` and `AnalysisMode=AllEnabledByDefault` — warnings break the build.
+
+```bash
+dotnet restore EthernaSSO.sln
+dotnet build EthernaSSO.sln -c Release
+dotnet test  EthernaSSO.sln -c Release          # runs all xUnit test projects
+dotnet test test/EthernaSSO.Domain.Tests/EthernaSSO.Domain.Tests.csproj    # single project
+dotnet test --filter "FullyQualifiedName~UserBaseTest"                     # single class
+dotnet test --filter "FullyQualifiedName~UserBaseTest.AddClaim_WithCustomClaim_AddsClaimAndReturnsTrue"  # single test
+dotnet run  --project src/EthernaSSO                # local dev server
+```
+
+Frontend assets are bundled by Laravel Mix (webpack). The `EthernaSSO.csproj` MSBuild targets auto-run `npm install` + `npm run build-production` on `Debug` (if missing) and always on `Release`, so a plain `dotnet build` produces a working wwwroot. To iterate on JS/SCSS directly: `cd src/EthernaSSO && npm run watch`.
+
+Docker: `docker build .` (uses `Dockerfile`, which also runs `dotnet test` as part of the build stage).
+
+## Architecture
+
+Four-project layered solution, plus two test projects:
+
+- **`src/EthernaSSO.Domain`** — Pure domain layer. Aggregates live under `Models/` with the `<Name>Agg/` folder convention (e.g. `UserAgg`, `ClientAppAgg`). Base classes: `ModelBase`, `EntityModelBase<TKey>`. Domain events under `Events/` are dispatched via `Etherna.DomainEvents`. Exposes only `ISsoDbContext` / `ISharedDbContext` interfaces — no MongoDB types leak here.
+- **`src/EthernaSSO.Persistence`** — MongODM implementations. `SsoDbContext` (main) and `SharedDbContext` (shared with other Etherna services) plus `ModelMaps/` (Sso, Shared) defining how domain entities serialize. Repositories under `Repositories/` (generic `DomainRepository`).
+- **`src/EthernaSSO.Services`** — Application services and side effects. `Domain/` holds services that orchestrate domain operations (`UserService`, `Web3AuthnService`, `EmailSender`, `RazorViewRenderer`). `EventHandlers/` follows the `On<Event>Then<Action>Handler` convention and is auto-discovered by reflection in `ServiceCollectionExtensions.AddDomainServices` — adding a handler in this namespace registers it automatically. `Tasks/` contains Hangfire recurring jobs (scheduled in `Program.ConfigureApplication`).
+- **`src/EthernaSSO`** — ASP.NET Core Razor Pages host. `Program.cs` wires everything: ASP.NET Identity (`UserBase`/`Role` with custom `UserStore`/`RoleStore`/`CustomUserManager`/`CustomUserValidator`), Duende IdentityServer (with composite `ClientAppStore` = in-memory `IdServerConfig.Clients` + DB-backed `ClientApp` entities), Hangfire (Mongo storage), Serilog → Elasticsearch, Prometheus `/metrics`, Scalar API reference at `/scalar/sso03`. Areas: `Identity` (account UI), `Admin` (admin pages, gated by `RequireAdministratorRolePolicy`), `Api` (REST endpoints under `/api`), `AlphaPass`.
+
+Key cross-cutting points:
+
+- **User model is polymorphic**: `UserBase` (abstract) → `UserWeb2` (email/password) or `UserWeb3` (Ethereum address). ASP.NET Identity is parameterized on `UserBase`.
+- **Authentication uses a policy scheme** (`CommonConsts.UserAuthenticationPolicyScheme`): requests with `Authorization: Bearer …` go to JWT bearer; otherwise fall back to the Identity cookie. Service-to-service calls use a separate JWT scheme (`CommonConsts.ServiceAuthenticationScheme`). Custom requirements `DenyBannedAuthorizationRequirement` and `RequireRoleAuthorizationRequirement` are added to the default policy.
+- **IdentityServer stores are split**: persisted grants, pushed authorization requests, server-side sessions, signing keys, and data-protection keys live in a separate `DataProtectionDb` (see `Program.cs`). The main `SSOServerDb` holds users/clients/domain data; `ServiceSharedDb` is shared with sibling Etherna services.
+- **Hangfire queues** are declared in `Services/Tasks/Queues.cs` and pinned in `Program.AddHangfireServer` (`DB_MAINTENANCE`, `DOMAIN_MAINTENANCE`, `STATS`, `default`). The Hangfire server is **not started in Staging** (see condition in `ConfigureServices`).
+- **MongODM change tracking**: every domain method that mutates a property *must* be annotated with `[PropertyAlterer(nameof(Prop))]` for each modified property — this is required, not optional. See the example under "Domain Entity Classes" below.
+
+## Issue tracker
+
+Bugs and features are tracked in Jira project **ESSO** (https://etherna.atlassian.net/projects/ESSO). Branch names follow `feature/ESSO-<id>-<slug>` / `improve/ESSO-<id>-<slug>` / `fix/ESSO-<id>-<slug>` — match this when creating branches.
+
+# Coding Style
 
 ## General Principles
 
@@ -160,3 +201,5 @@ private void InternalHelper() { ... }
 - AAA pattern with section comments: `// Arrange.`, `// Action.`, `// Assert.`
 - XUnit assertions: `Assert.Equal()`, `Assert.NotNull()`, `Assert.Throws<T>()`
 - Moq for mocking: `new Mock<IService>()`
+- Test projects mirror the project under test (`EthernaSSO.Domain.Tests`, `EthernaSSO.Persistence.Tests`)
+- Domain tests use a builder helper pattern (e.g. `test/EthernaSSO.Domain.Tests/Helpers/UserWeb2Builder.cs`) to construct aggregates
