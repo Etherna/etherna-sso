@@ -535,6 +535,8 @@ namespace Etherna.SSOServer
                 app.UseHsts();
             }
 
+            app.UseStatusCodePagesWithReExecute("/StatusCode", "?code={0}");
+
             app.UseCors(builder =>
             {
                 if (env.IsDevelopment())
