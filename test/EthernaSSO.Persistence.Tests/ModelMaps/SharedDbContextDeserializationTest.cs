@@ -31,6 +31,7 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
 {
     [SuppressMessage("Performance", "CA1861:Avoid constant arrays as arguments")]
     [SuppressMessage("Design", "CA1001:Types that own disposable fields should be disposable")]
+    [SuppressMessage("Naming", "CA1707:Identifiers should not contain underscores", Justification = "Test method naming convention.")]
     public class SharedDbContextDeserializationTest
     {
         // Fields.
@@ -86,7 +87,7 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
 
         // Tests.
         [Theory, MemberData(nameof(UserSharedInfoDeserializationTests))]
-        public void UserSharedInfoDeserialization(DeserializationTestElement<UserSharedInfo, SharedDbContext> testElement)
+        public void Deserialize_WithUserSharedInfoDocument_ReturnsExpectedModel(DeserializationTestElement<UserSharedInfo, SharedDbContext> testElement)
         {
             ArgumentNullException.ThrowIfNull(testElement);
 
