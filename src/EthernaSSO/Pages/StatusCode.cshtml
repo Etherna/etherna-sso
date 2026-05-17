@@ -1,4 +1,4 @@
-﻿@*  *   Copyright 2021-present Etherna Sa
+@*  *   Copyright 2021-present Etherna Sa
     *
     *   Licensed under the Apache License, Version 2.0 (the "License");
     *   you may not use this file except in compliance with the License.
@@ -14,22 +14,16 @@
 *@
 
 @page
-@model ErrorModel
+@model StatusCodeModel
 @{
-    ViewData["Title"] = "Internal Server Error";
+    ViewData["Title"] = Model.Title;
 }
 
 <div class="row justify-content-center" style="margin-top: 5rem; margin-bottom: 5rem;">
     <div class="col-lg-6 col-md-8 text-center">
-        <div class="error-code" aria-hidden="true">500</div>
-        <h1 class="h2 fw-semibold mb-3">Internal Server Error</h1>
-        <p class="text-muted mb-4 fs-5">Something went wrong on our end. Please try again later.</p>
-        @if (Model.ShowRequestId)
-        {
-            <p class="text-muted small mb-4">
-                Request ID: <code>@Model.RequestId</code>
-            </p>
-        }
+        <div class="error-code" aria-hidden="true">@Model.Code</div>
+        <h1 class="h2 fw-semibold mb-3">@Model.Title</h1>
+        <p class="text-muted mb-5 fs-5">@Model.Description</p>
         <a asp-page="/Index" class="btn btn-primary px-4 py-2">Back to home</a>
     </div>
 </div>
