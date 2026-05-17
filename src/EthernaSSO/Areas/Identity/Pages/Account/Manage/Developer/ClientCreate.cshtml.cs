@@ -14,7 +14,9 @@
 
 using Etherna.Authentication;
 using Etherna.MongoDB.Driver.Linq;
+using Etherna.SSOServer.Configs.Metrics;
 using Etherna.SSOServer.Domain;
+using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Domain.Models.ClientAppAgg;
 using Etherna.SSOServer.Models;
@@ -86,11 +88,20 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage.Developer
                 throw new InvalidOperationException();
 
             var isAdmin = await userManager.IsInRoleAsync(user, Role.AdministratorName);
-            if (!isAdmin && user.MaxAllowedClients <= 0)
+            if (!isAdmin)
             {
-                StatusMessage = new StatusMessage(
-                    "You are not allowed to create client applications. Please contact an administrator.",
-                    StatusMessageType.Error);
+                if (!await userManager.IsEmailConfirmedAsync(user))
+                {
+                    StatusMessage = new StatusMessage(
+                        "A verified email address is required to create client applications. Please verify your email first.",
+                        StatusMessageType.Error);
+                }
+                else if (user.MaxAllowedClients <= 0)
+                {
+                    StatusMessage = new StatusMessage(
+                        "You are not allowed to create client applications. Please contact an administrator.",
+                        StatusMessageType.Error);
+                }
             }
 
             return Page();
@@ -105,6 +116,15 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage.Developer
                 throw new InvalidOperationException();
 
             var isAdmin = await userManager.IsInRoleAsync(user, Role.AdministratorName);
+
+            // Check email confirmation (admins bypass).
+            if (!isAdmin && !await userManager.IsEmailConfirmedAsync(user))
+            {
+                StatusMessage = new StatusMessage(
+                    "A verified email address is required to create client applications. Please verify your email first.",
+                    StatusMessageType.Error);
+                return Page();
+            }
 
             // Check max allowed clients (admins bypass the limit).
             if (!isAdmin)
@@ -136,6 +156,24 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage.Developer
                             "At least one redirect URI is required for web applications.");
                         return Page();
                     }
+                    if (redirectUris.Any(u => !UriHelper.IsValidRedirectUri(u)))
+                    {
+                        ModelState.AddModelError("Input.RedirectUris",
+                            "One or more redirect URIs are invalid. Use https:// or http://localhost, with a valid domain name.");
+                        return Page();
+                    }
+                    if (postLogoutRedirectUris.Any(u => !UriHelper.IsValidRedirectUri(u)))
+                    {
+                        ModelState.AddModelError("Input.PostLogoutRedirectUris",
+                            "One or more post-logout redirect URIs are invalid.");
+                        return Page();
+                    }
+                    if (allowedCorsOrigins.Any(o => !UriHelper.IsValidCorsOrigin(o)))
+                    {
+                        ModelState.AddModelError("Input.AllowedCorsOrigins",
+                            "One or more CORS origins are invalid. Use https://domain.com or http://localhost[:port] with no path.");
+                        return Page();
+                    }
                     break;
 
                 case ClientAppType.NativeApp:
@@ -145,10 +183,28 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage.Developer
                             "At least one redirect URI is required for native applications.");
                         return Page();
                     }
+                    if (redirectUris.Any(u => !UriHelper.IsValidRedirectUri(u, allowCustomSchemes: true)))
+                    {
+                        ModelState.AddModelError("Input.RedirectUris",
+                            "One or more redirect URIs are invalid. Use https://, http://localhost, or a custom scheme (e.g. myapp://).");
+                        return Page();
+                    }
+                    if (postLogoutRedirectUris.Any(u => !UriHelper.IsValidRedirectUri(u, allowCustomSchemes: true)))
+                    {
+                        ModelState.AddModelError("Input.PostLogoutRedirectUris",
+                            "One or more post-logout redirect URIs are invalid.");
+                        return Page();
+                    }
                     if (allowedCorsOrigins.Count == 0)
                     {
                         ModelState.AddModelError("Input.AllowedCorsOrigins",
                             "At least one CORS origin is required for native applications.");
+                        return Page();
+                    }
+                    if (allowedCorsOrigins.Any(o => !UriHelper.IsValidCorsOrigin(o)))
+                    {
+                        ModelState.AddModelError("Input.AllowedCorsOrigins",
+                            "One or more CORS origins are invalid. Use https://domain.com or http://localhost[:port] with no path.");
                         return Page();
                     }
                     break;
@@ -200,6 +256,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage.Developer
 
             await ssoDbContext.ClientApps.CreateAsync(clientApp);
             logger.ClientAppCreated(user.Id, clientApp.ClientId);
+            SsoMetrics.RecordClientAppCreated(Input.ClientType.ToString());
 
             // Set result properties.
             GeneratedClientId = clientApp.ClientId;

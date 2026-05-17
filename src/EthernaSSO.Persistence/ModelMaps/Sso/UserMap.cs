@@ -34,7 +34,9 @@ namespace Etherna.SSOServer.Persistence.ModelMaps.Sso
                 mm.GetMemberMap(u => u.Email).SetIgnoreIfNull(true);
                 mm.GetMemberMap(u => u.InvitedBy).SetIgnoreIfNull(true);
                 mm.GetMemberMap(u => u.InvitedByAdmin).SetIgnoreIfDefault(true);
-                mm.GetMemberMap(u => u.MaxAllowedClients).SetIgnoreIfDefault(true);
+                mm.GetMemberMap(u => u.MaxAllowedClients)
+                    .SetDefaultValue(UserBase.DefaultMaxAllowedClients)
+                    .SetIgnoreIfDefault(true);
                 mm.GetMemberMap(u => u.NormalizedEmail).SetIgnoreIfNull(true);
                 mm.GetMemberMap(u => u.NormalizedUsername).SetIgnoreIfNull(true);
                 mm.GetMemberMap(u => u.Username).SetIgnoreIfNull(true);

@@ -541,11 +541,11 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
                     var expectedDocumentMock = new Mock<UserWeb2>();
                     expectedDocumentMock.Setup(d => d.Id).Returns("62fd293ca12c0fd52db29c8d");
                     expectedDocumentMock.Setup(d => d.CreationDateTime).Returns(new DateTime(2022, 08, 17, 17, 45, 32, 876));
-                    expectedDocumentMock.Setup(d => d.Claims).Returns(new[]
-                    {
+                    expectedDocumentMock.Setup(d => d.Claims).Returns(
+                    [
                         new UserClaim("ether_address", "0xDe87768A7B118aAA23Cd3552E4AD34B8F4566Bde"),
                         new UserClaim("ether_prev_addresses", "[\"0xd6cEd4963410D5B99a90510Fe2DcAED517EAa03C\"]")
-                    });
+                    ]);
                     expectedDocumentMock.Setup(d => d.Email).Returns("asdfg@sas.so");
                     expectedDocumentMock.Setup(d => d.EtherAddress).Returns("0xDe87768A7B118aAA23Cd3552E4AD34B8F4566Bde");
                     expectedDocumentMock.Setup(d => d.EtherPreviousAddresses).Returns(["0xd6cEd4963410D5B99a90510Fe2DcAED517EAa03C"]);
@@ -556,6 +556,7 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
                     }
                     expectedDocumentMock.Setup(d => d.InvitedByAdmin).Returns(true);
                     expectedDocumentMock.Setup(d => d.LastLoginDateTime).Returns(new DateTime(2022, 09, 17, 14, 22, 06, 601));
+                    expectedDocumentMock.Setup(d => d.MaxAllowedClients).Returns(UserBase.DefaultMaxAllowedClients);
                     expectedDocumentMock.Setup(d => d.NormalizedEmail).Returns("ASDFG@SAS.SO");
                     expectedDocumentMock.Setup(d => d.NormalizedUsername).Returns("ASDFGA");
                     expectedDocumentMock.Setup(d => d.PhoneNumber).Returns("123-456-7890");
@@ -563,7 +564,7 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
                     {
                         var roleMock = new Mock<Role>();
                         roleMock.Setup(r => r.Id).Returns("61cdeb616b13d8985b3d688d");
-                        expectedDocumentMock.Setup(d => d.Roles).Returns(new[] { roleMock.Object });
+                        expectedDocumentMock.Setup(d => d.Roles).Returns([roleMock.Object]);
                     }
                     expectedDocumentMock.Setup(d => d.SecurityStamp).Returns("ZNB7TIG3GMD6SAWRIYPN2ST5Q734O7DV");
                     expectedDocumentMock.Setup(d => d.SharedInfoId).Returns("62fd293ca12c0fd52db29c8c");
@@ -574,7 +575,7 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
                     expectedDocumentMock.Setup(d => d.EtherLoginAddress).Returns("0xfeF78523191CC15e287b3F7ABFbd0c3d621f053b");
                     expectedDocumentMock.Setup(d => d.PasswordHash).Returns("AQAAAAEAACcQAAAAELAZKxcX4rTHtVo4ZBbpZdaxfsiB4xaOM/3mEO86iq8vdUPtglbwyk7qa2jDajBWUA==");
                     expectedDocumentMock.Setup(d => d.TwoFactorEnabled).Returns(true);
-                    expectedDocumentMock.Setup(d => d.TwoFactorRecoveryCodes).Returns(new[] { "q56k5c6s", "l3rcwj6v", "8y9b5lqv" });
+                    expectedDocumentMock.Setup(d => d.TwoFactorRecoveryCodes).Returns(["q56k5c6s", "l3rcwj6v", "8y9b5lqv"]);
 
                     tests.Add(new(sourceDocument, expectedDocumentMock.Object));
                 }
@@ -630,11 +631,11 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
                     var expectedDocumentMock = new Mock<UserWeb3>();
                     expectedDocumentMock.Setup(d => d.Id).Returns("62fd293ca12c0fd52db29c8d");
                     expectedDocumentMock.Setup(d => d.CreationDateTime).Returns(new DateTime(2022, 08, 17, 17, 45, 32, 876));
-                    expectedDocumentMock.Setup(d => d.Claims).Returns(new[]
-                    {
+                    expectedDocumentMock.Setup(d => d.Claims).Returns(
+                    [
                         new UserClaim("ether_address", "0xDe87768A7B118aAA23Cd3552E4AD34B8F4566Bde"),
                         new UserClaim("ether_prev_addresses", "[\"0xd6cEd4963410D5B99a90510Fe2DcAED517EAa03C\"]")
-                    });
+                    ]);
                     expectedDocumentMock.Setup(d => d.Email).Returns("asdfg@sas.so");
                     expectedDocumentMock.Setup(d => d.EtherAddress).Returns("0xDe87768A7B118aAA23Cd3552E4AD34B8F4566Bde");
                     expectedDocumentMock.Setup(d => d.EtherPreviousAddresses).Returns(["0xd6cEd4963410D5B99a90510Fe2DcAED517EAa03C"]);
@@ -645,6 +646,7 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
                     }
                     expectedDocumentMock.Setup(d => d.InvitedByAdmin).Returns(true);
                     expectedDocumentMock.Setup(d => d.LastLoginDateTime).Returns(new DateTime(2022, 09, 17, 14, 22, 06, 601));
+                    expectedDocumentMock.Setup(d => d.MaxAllowedClients).Returns(UserBase.DefaultMaxAllowedClients);
                     expectedDocumentMock.Setup(d => d.NormalizedEmail).Returns("ASDFG@SAS.SO");
                     expectedDocumentMock.Setup(d => d.NormalizedUsername).Returns("ASDFGA");
                     expectedDocumentMock.Setup(d => d.PhoneNumber).Returns("123-456-7890");
@@ -652,7 +654,7 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
                     {
                         var roleMock = new Mock<Role>();
                         roleMock.Setup(r => r.Id).Returns("61cdeb616b13d8985b3d688d");
-                        expectedDocumentMock.Setup(d => d.Roles).Returns(new[] { roleMock.Object });
+                        expectedDocumentMock.Setup(d => d.Roles).Returns([roleMock.Object]);
                     }
                     expectedDocumentMock.Setup(d => d.SecurityStamp).Returns("ZNB7TIG3GMD6SAWRIYPN2ST5Q734O7DV");
                     expectedDocumentMock.Setup(d => d.SharedInfoId).Returns("62fd293ca12c0fd52db29c8c");
@@ -903,6 +905,7 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
             Assert.Equal(testElement.ExpectedModel.InvitedBy, result.InvitedBy, EntityModelEqualityComparer.Instance);
             Assert.Equal(testElement.ExpectedModel.InvitedByAdmin, result.InvitedByAdmin);
             Assert.Equal(testElement.ExpectedModel.LastLoginDateTime, result.LastLoginDateTime);
+            Assert.Equal(testElement.ExpectedModel.MaxAllowedClients, result.MaxAllowedClients);
             Assert.Equal(testElement.ExpectedModel.NormalizedEmail, result.NormalizedEmail);
             Assert.Equal(testElement.ExpectedModel.NormalizedUsername, result.NormalizedUsername);
             Assert.Equal(testElement.ExpectedModel.PhoneNumber, result.PhoneNumber);

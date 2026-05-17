@@ -34,9 +34,10 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage.Developer
         // Properties.
         public List<ClientApp> Clients { get; } = [];
         public bool IsAdmin { get; set; }
+        public bool IsEmailConfirmed { get; set; }
         public int MaxAllowedClients { get; set; }
-        public bool CanCreateClients => IsAdmin || Clients.Count < MaxAllowedClients;
-        public bool LimitReached => !IsAdmin && Clients.Count >= MaxAllowedClients && MaxAllowedClients > 0;
+        public bool CanCreateClients => IsAdmin || (IsEmailConfirmed && Clients.Count < MaxAllowedClients);
+        public bool LimitReached => !IsAdmin && IsEmailConfirmed && Clients.Count >= MaxAllowedClients && MaxAllowedClients > 0;
         public EthAddress UserEtherAddress { get; set; }
 
         // Methods.
@@ -47,6 +48,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage.Developer
                 return NotFound($"Unable to load user with ID '{userManager.GetUserId(User)}'.");
 
             IsAdmin = await userManager.IsInRoleAsync(user, Role.AdministratorName);
+            IsEmailConfirmed = await userManager.IsEmailConfirmedAsync(user);
             MaxAllowedClients = user.MaxAllowedClients;
             UserEtherAddress = user.EtherAddress;
 

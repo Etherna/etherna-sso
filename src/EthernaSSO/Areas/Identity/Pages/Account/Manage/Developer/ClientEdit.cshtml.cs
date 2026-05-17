@@ -13,6 +13,7 @@
 // If not, see <https://www.gnu.org/licenses/>.
 
 using Etherna.SSOServer.Domain;
+using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Domain.Models.ClientAppAgg;
 using Etherna.SSOServer.Models;
@@ -140,6 +141,29 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage.Developer
             var redirectUris = ParseMultilineField(Input.RedirectUris);
             var postLogoutRedirectUris = ParseMultilineField(Input.PostLogoutRedirectUris);
             var allowedCorsOrigins = ParseMultilineField(Input.AllowedCorsOrigins);
+
+            var allowCustomSchemes = ClientType == ClientAppType.NativeApp;
+            if (redirectUris.Any(u => !UriHelper.IsValidRedirectUri(u, allowCustomSchemes)))
+            {
+                var hint = allowCustomSchemes
+                    ? "Use https://, http://localhost, or a custom scheme (e.g. myapp://)."
+                    : "Use https:// or http://localhost, with a valid domain name.";
+                ModelState.AddModelError("Input.RedirectUris",
+                    $"One or more redirect URIs are invalid. {hint}");
+                return Page();
+            }
+            if (postLogoutRedirectUris.Any(u => !UriHelper.IsValidRedirectUri(u, allowCustomSchemes)))
+            {
+                ModelState.AddModelError("Input.PostLogoutRedirectUris",
+                    "One or more post-logout redirect URIs are invalid.");
+                return Page();
+            }
+            if (allowedCorsOrigins.Any(o => !UriHelper.IsValidCorsOrigin(o)))
+            {
+                ModelState.AddModelError("Input.AllowedCorsOrigins",
+                    "One or more CORS origins are invalid. Use https://domain.com or http://localhost[:port] with no path.");
+                return Page();
+            }
 
             clientApp.SetInfo(Input.ClientName, Input.Description);
             clientApp.Enabled = Input.Enabled;

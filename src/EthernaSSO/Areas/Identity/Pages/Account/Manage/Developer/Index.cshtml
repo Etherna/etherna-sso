@@ -16,6 +16,15 @@
     <div class="col-12">
         <h4>OAuth Clients</h4>
 
+        @if (!Model.IsAdmin && !Model.IsEmailConfirmed)
+        {
+            <div class="alert alert-warning" role="alert">
+                <strong>Email verification required.</strong>
+                A verified email address is required to create OAuth client applications.
+                Please <a asp-area="Identity" asp-page="/Account/Manage/Email" class="alert-link">add and verify your email</a> first.
+            </div>
+        }
+
         @if (!Model.IsAdmin && Model.MaxAllowedClients == 0)
         {
             <div class="alert alert-info" role="alert">

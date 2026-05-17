@@ -28,6 +28,8 @@ namespace Etherna.SSOServer.Domain.Models
     public abstract class UserBase : EntityModelBase<string>
     {
         // Consts.
+        public const int DefaultMaxAllowedClients = 2;
+
         public static readonly IEnumerable<string> DomainManagedClaimNames =
         [
             EthernaClaimTypes.EtherAddress,
@@ -55,6 +57,7 @@ namespace Etherna.SSOServer.Domain.Models
             InvitedBy = invitedBy;
             InvitedByAdmin = invitedByAdmin;
             SharedInfoId = sharedInfo.Id;
+            MaxAllowedClients = DefaultMaxAllowedClients;
         }
         protected UserBase() { }
 

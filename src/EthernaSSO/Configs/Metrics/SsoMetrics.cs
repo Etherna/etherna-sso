@@ -35,11 +35,22 @@ namespace Etherna.SSOServer.Configs.Metrics
                 LabelNames = ["method"]
             });
 
+        private static readonly Counter clientAppsCreated = Metrics.CreateCounter(
+            "sso_client_apps_created_total",
+            "Total OAuth client applications created by developers.",
+            new CounterConfiguration
+            {
+                LabelNames = ["client_type"]
+            });
+
         // Methods.
         public static void RecordLoginAttempt(string method, string result) =>
             loginAttempts.WithLabels(method, result).Inc();
 
         public static void RecordRegistration(string method) =>
             registrations.WithLabels(method).Inc();
+
+        public static void RecordClientAppCreated(string clientType) =>
+            clientAppsCreated.WithLabels(clientType).Inc();
     }
 }
