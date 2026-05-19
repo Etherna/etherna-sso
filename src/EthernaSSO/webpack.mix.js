@@ -7,9 +7,9 @@ mix.disableNotifications()
 mix.js("Static/js/site.js", "js")
 mix.js("Static/js/admin.js", "js")
 mix.js("Static/js/signin-redirect.js", "js")
-mix.js("Static/js/jquery.classyqr.js", "js")
 
 // Standalone TS scripts
+mix.ts("Static/ts/etherna-qrcode.ts", "js")
 mix.ts("Static/ts/etherna-web3-signin.ts", "js")
 
 // Styles
