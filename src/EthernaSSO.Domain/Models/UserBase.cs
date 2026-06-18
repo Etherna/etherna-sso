@@ -59,7 +59,9 @@ namespace Etherna.SSOServer.Domain.Models
             SharedInfoId = sharedInfo.Id;
             MaxAllowedClients = DefaultMaxAllowedClients;
         }
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
         protected UserBase() { }
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 
         // Properties.
         public virtual IEnumerable<UserClaim> Claims
@@ -134,7 +136,7 @@ namespace Etherna.SSOServer.Domain.Models
          * pointing to SharedInfo internal property, and avoid data duplication.
          */
         //protected abstract SharedUserInfo SharedInfo { get; set; }
-        public virtual string SharedInfoId { get; protected set; } = null!;
+        public virtual string SharedInfoId { get; protected set; }
 
         [PersonalData]
         public virtual string Username { get; protected set; } = null!;

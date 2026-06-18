@@ -123,11 +123,11 @@ private void InternalHelper() { ... }
 - `public abstract` for base entity classes (`UserBase`, `ModelBase`, `EntityModelBase`)
 - `virtual` on all properties for MongODM proxy support
 - Use `public set` on properties by default; use `protected set` only when the property requires validation or invariant enforcement
-- Protected parameterless constructor for ORM deserialization:
+- Protected parameterless constructor for ORM deserialization. Suppress CS8618 around the protected constructor **only** — never wrap the public constructor:
   ```csharp
-  #pragma warning disable CS8618
+  #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
   protected EntityName() { }
-  #pragma warning restore CS8618
+  #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
   ```
 - Collection encapsulation with backing fields:
   ```csharp
@@ -138,7 +138,7 @@ private void InternalHelper() { ... }
       protected set => _items = [..value ?? []];
   }
   ```
-- `null!` for ORM-initialized properties: `public virtual string Name { get; protected set; } = null!;`
+- `= null!` only on the non-nullable properties the **public** constructor doesn't visibly assign — i.e. those set through a helper method (`SetName`, `SetUsername`, `SetNickname`) or by the framework after construction (`SecurityStamp`); definite-assignment analysis can't see through method calls, and the public constructor is never pragma-wrapped. Properties assigned directly in the public constructor need no `= null!` — the protected ctor's pragma covers them.
 - Collection expressions for nullable collection setters: `[..value ?? []]`
 - Equality: by ID for entities (in `EntityModelBase<TKey>`), by value for value objects
 - `[PropertyAlterer(nameof(MyProp))]` on every method, for each property the method modifies. This is a MongODM limitation for change tracking:
@@ -177,6 +177,13 @@ private void InternalHelper() { ... }
 ## C# Language Features
 
 - Pattern matching: `is`, `is not`, type patterns, property patterns
+- Prefer a property pattern over a chain of `&&` that combines a type/null check with member accesses: it expresses the condition as a single declarative "shape" the value must match, rather than an imperative sequence of checks (and incidentally drops the throwaway pattern variable):
+  ```csharp
+  // Prefer:
+  if (user is UserWeb2 { HasFido2Credentials: true, IsAuthenticatorAppEnabled: false })
+  // Over:
+  if (user is UserWeb2 userWeb2 && userWeb2.HasFido2Credentials && !userWeb2.IsAuthenticatorAppEnabled)
+  ```
 - Switch expressions for multi-branch returns
 - Primary constructors everywhere applicable
 - Collection expressions: `[]`, `[..spread]`

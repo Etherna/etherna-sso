@@ -44,7 +44,9 @@ namespace Etherna.SSOServer.Domain.Models
 
             EtherManagedPrivateKey = etherManagedPrivateKey;
         }
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
         protected UserWeb2() { }
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 
         // Properties.
         public virtual int AccessFailedCount { get; protected set; }
@@ -62,7 +64,7 @@ namespace Etherna.SSOServer.Domain.Models
             protected set { } //disable set for managed account
         }
         public virtual Account EtherManagedAccount => _etherManagedAccount ??= new Account(EtherManagedPrivateKey);
-        public virtual string EtherManagedPrivateKey { get; protected set; } = null!;
+        public virtual string EtherManagedPrivateKey { get; protected set; }
         [PersonalData]
         public virtual EthAddress? EtherLoginAddress { get; set; }
         public virtual bool HasPassword => !string.IsNullOrEmpty(PasswordHash);
@@ -71,7 +73,7 @@ namespace Etherna.SSOServer.Domain.Models
         public virtual IEnumerable<string> TwoFactorRecoveryCodes
         {
             get => _twoFactorRecoveryCode;
-            set => _twoFactorRecoveryCode = new List<string>(value ?? []);
+            set => _twoFactorRecoveryCode = [..value ?? []];
         }
 
         // Methods.
