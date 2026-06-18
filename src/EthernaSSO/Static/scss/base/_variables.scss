@@ -12,7 +12,9 @@ $container-max-widths: (
   xl: 1140px,
 );
 
-$primary: #27b9d2;
+$primary:   #00aabe; // brand cyan (Pantone 3125 C, official brand kit value)
+$secondary: #57707c; // darker shade of brand grey-blue (Pantone 5425 C, #7496a6) for white-text contrast
+$danger:    #c0504d; // muted red for destructive actions (brand has no red of its own)
 
 $blue:    #1e77eb;
 $indigo:  #6610f2;
