@@ -34,6 +34,8 @@ Key cross-cutting points:
 - **IdentityServer stores are split**: persisted grants, pushed authorization requests, server-side sessions, signing keys, and data-protection keys live in a separate `DataProtectionDb` (see `Program.cs`). The main `SSOServerDb` holds users/clients/domain data; `ServiceSharedDb` is shared with sibling Etherna services.
 - **Hangfire queues** are declared in `Services/Tasks/Queues.cs` and pinned in `Program.AddHangfireServer` (`DB_MAINTENANCE`, `DOMAIN_MAINTENANCE`, `STATS`, `default`). The Hangfire server is **not started in Staging** (see condition in `ConfigureServices`).
 - **MongODM change tracking**: every domain method that mutates a property *must* be annotated with `[PropertyAlterer(nameof(Prop))]` for each modified property — this is required, not optional. See the example under "Domain Entity Classes" below.
+- **Model map IDs are fresh random GUIDs**: every `MapRegistry.AddModelMap<T>("<guid>")` call needs a brand-new, randomly generated GUID (e.g. `uuidgen`) that collides with no existing map ID anywhere in the solution — never copy, edit, or hand-craft one. The ID permanently identifies that schema version, so a collision silently corrupts serialization.
+- **Index definitions are strongly typed**: in `SsoDbContext`/`SharedDbContext` index builders, always select fields with lambda expressions, never magic strings — the driver renders them to the same dotted path while keeping compile-time safety against renames. For a field on a derived type cast inside the lambda (`u => ((UserWeb2)u).Prop`); for a field nested in a collection use `Select` (`u => ((UserWeb2)u).Fido2Credentials.Select(c => c.CredentialId)`).
 
 ## Issue tracker
 
@@ -95,7 +97,7 @@ Use principal-style section comments to delimit groups:
 public const int MaxLength = 100;
 
 // Fields.
-private List<Item> _items = new();
+private List<Item> _items = [];
 
 // Constructors.
 public MyEntity(string name) { ... }
@@ -129,7 +131,7 @@ private void InternalHelper() { ... }
   ```
 - Collection encapsulation with backing fields:
   ```csharp
-  private List<string> _items = new();
+  private List<string> _items = [];
   public virtual IEnumerable<string> Items
   {
       get => _items;
@@ -149,7 +151,7 @@ private void InternalHelper() { ... }
 ## Async Patterns
 
 - Always suffix with `Async`
-- `CancellationToken? cancellationToken = null` as optional last parameter
+- `CancellationToken cancellationToken = default` as the optional last parameter (non-nullable, `default` — not `CancellationToken? = null`)
 - Return `Task` or `Task<T>`, never `async void`
 - No `ConfigureAwait(false)` — not needed in ASP.NET Core apps
 
@@ -178,7 +180,8 @@ private void InternalHelper() { ... }
 - Switch expressions for multi-branch returns
 - Primary constructors everywhere applicable
 - Collection expressions: `[]`, `[..spread]`
-- Target-typed `new()` when type is clear from context
+- Prefer collection expressions over constructors to initialize any collection (lists, arrays, etc.): `[]` not `new()`, `["a", "b"]` not `new List<string> { "a", "b" }`. Use a constructor only when a collection expression can't express the intent (e.g. presizing capacity with `new List<T>(capacity)`).
+- Target-typed `new()` when type is clear from context (for non-collection types)
 - Tuple deconstruction for multiple return values
 
 ## LINQ
