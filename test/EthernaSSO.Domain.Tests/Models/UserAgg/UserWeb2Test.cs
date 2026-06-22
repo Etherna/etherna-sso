@@ -142,5 +142,199 @@ namespace Etherna.SSOServer.Domain.Models.UserAgg
             // Action & Assert.
             Assert.Throws<InvalidOperationException>(() => user.RemoveEtherLoginAddress());
         }
+
+        [Fact]
+        public void TwoFactorEnabled_WithNoFactors_ReturnsFalse()
+        {
+            // Arrange.
+            var user = CreateUser();
+
+            // Assert.
+            Assert.False(user.TwoFactorEnabled);
+            Assert.False(user.IsAuthenticatorAppEnabled);
+            Assert.False(user.HasFido2Credentials);
+        }
+
+        [Fact]
+        public void TwoFactorEnabled_WithUnconfirmedAuthenticatorKey_ReturnsFalse()
+        {
+            // Arrange.
+            var user = CreateUser();
+            user.AuthenticatorKey = "some-key";
+
+            // Assert. A stored key alone (setup started, not verified) must not enable 2FA.
+            Assert.False(user.TwoFactorEnabled);
+            Assert.False(user.IsAuthenticatorAppEnabled);
+        }
+
+        [Fact]
+        public void EnableAuthenticatorApp_WithAuthenticatorKey_EnablesTwoFactor()
+        {
+            // Arrange.
+            var user = CreateUser();
+            user.AuthenticatorKey = "some-key";
+
+            // Act.
+            user.EnableAuthenticatorApp();
+
+            // Assert.
+            Assert.True(user.IsAuthenticatorAppEnabled);
+            Assert.True(user.TwoFactorEnabled);
+        }
+
+        [Fact]
+        public void EnableAuthenticatorApp_WithoutAuthenticatorKey_Throws()
+        {
+            // Arrange.
+            var user = CreateUser();
+
+            // Assert.
+            Assert.Throws<InvalidOperationException>(user.EnableAuthenticatorApp);
+        }
+
+        [Fact]
+        public void DisableAuthenticatorApp_WithEnabledAuthenticatorApp_ClearsKeyAndDisables()
+        {
+            // Arrange.
+            var user = CreateUser();
+            user.AuthenticatorKey = "some-key";
+            user.EnableAuthenticatorApp();
+
+            // Act.
+            user.DisableAuthenticatorApp();
+
+            // Assert.
+            Assert.Null(user.AuthenticatorKey);
+            Assert.False(user.IsAuthenticatorAppEnabled);
+            Assert.False(user.TwoFactorEnabled);
+        }
+
+        [Fact]
+        public void TwoFactorEnabled_WithFido2Credential_ReturnsTrue()
+        {
+            // Arrange.
+            var user = CreateUser();
+            user.AddFido2Credential(UserWeb2Builder.BuildFido2Credential());
+
+            // Assert.
+            Assert.True(user.TwoFactorEnabled);
+            Assert.True(user.HasFido2Credentials);
+        }
+
+        [Fact]
+        public void AddFido2Credential_WithNewCredential_AddsAndReturnsTrue()
+        {
+            // Arrange.
+            var user = CreateUser();
+            var credential = UserWeb2Builder.BuildFido2Credential();
+
+            // Action.
+            var result = user.AddFido2Credential(credential);
+
+            // Assert.
+            Assert.True(result);
+            Assert.Single(user.Fido2Credentials);
+        }
+
+        [Fact]
+        public void AddFido2Credential_WithDuplicateCredentialId_ReturnsFalse()
+        {
+            // Arrange.
+            var user = CreateUser();
+            user.AddFido2Credential(UserWeb2Builder.BuildFido2Credential(credentialId: [9, 9, 9]));
+
+            // Action.
+            var result = user.AddFido2Credential(UserWeb2Builder.BuildFido2Credential(credentialId: [9, 9, 9], nickname: "other"));
+
+            // Assert.
+            Assert.False(result);
+            Assert.Single(user.Fido2Credentials);
+        }
+
+        [Fact]
+        public void RemoveFido2Credential_WithExistingId_RemovesAndReturnsTrue()
+        {
+            // Arrange.
+            var user = CreateUser();
+            user.AddFido2Credential(UserWeb2Builder.BuildFido2Credential(credentialId: [1, 1]));
+            user.AddFido2Credential(UserWeb2Builder.BuildFido2Credential(credentialId: [2, 2], nickname: "k2"));
+
+            // Action.
+            var result = user.RemoveFido2Credential([1, 1]);
+
+            // Assert.
+            Assert.True(result);
+            Assert.Single(user.Fido2Credentials);
+        }
+
+        [Fact]
+        public void RemoveFido2Credential_WithUnknownId_ReturnsFalse()
+        {
+            // Arrange.
+            var user = CreateUser();
+            user.AddFido2Credential(UserWeb2Builder.BuildFido2Credential(credentialId: [1]));
+
+            // Action.
+            var result = user.RemoveFido2Credential([2]);
+
+            // Assert.
+            Assert.False(result);
+            Assert.Single(user.Fido2Credentials);
+        }
+
+        [Fact]
+        public void RenameFido2Credential_WithExistingId_UpdatesNicknameAndReturnsTrue()
+        {
+            // Arrange.
+            var user = CreateUser();
+            user.AddFido2Credential(UserWeb2Builder.BuildFido2Credential(credentialId: [1], nickname: "old"));
+
+            // Action.
+            var result = user.RenameFido2Credential([1], "new");
+
+            // Assert.
+            Assert.True(result);
+            Assert.Equal("new", System.Linq.Enumerable.First(user.Fido2Credentials).Nickname);
+        }
+
+        [Fact]
+        public void RenameFido2Credential_WithUnknownId_ReturnsFalse()
+        {
+            // Arrange.
+            var user = CreateUser();
+
+            // Action.
+            var result = user.RenameFido2Credential([9], "new");
+
+            // Assert.
+            Assert.False(result);
+        }
+
+        [Fact]
+        public void RecordFido2CredentialUsage_WithExistingId_UpdatesCounter()
+        {
+            // Arrange.
+            var user = CreateUser();
+            user.AddFido2Credential(UserWeb2Builder.BuildFido2Credential(credentialId: [1], signatureCounter: 0));
+
+            // Action.
+            user.RecordFido2CredentialUsage([1], 5);
+
+            // Assert.
+            var credential = user.FindFido2Credential([1]);
+            Assert.NotNull(credential);
+            Assert.Equal(5u, credential.SignatureCounter);
+            Assert.NotNull(credential.LastUsedAt);
+        }
+
+        [Fact]
+        public void RecordFido2CredentialUsage_WithUnknownId_ThrowsInvalidOperationException()
+        {
+            // Arrange.
+            var user = CreateUser();
+
+            // Action & Assert.
+            Assert.Throws<InvalidOperationException>(() => user.RecordFido2CredentialUsage([9], 1));
+        }
     }
 }

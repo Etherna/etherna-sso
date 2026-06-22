@@ -1,5 +1,5 @@
-﻿@page
-@model EnableAuthenticatorModel
+@page
+@model AddAuthenticatorAppModel
 @{
     ViewData["Title"] = "Configure authenticator app";
     ViewData["ActivePage"] = ManageNavPages.TwoFactorAuthentication;
@@ -29,8 +29,7 @@
                 Scan the QR Code or enter this key <kbd>@Model.SharedKey</kbd> into your two factor authenticator app.
                 Spaces and casing do not matter.
             </p>
-            <div id="qrCode"></div>
-            <div id="qrCodeData" data-url="@Html.Raw(@Model.AuthenticatorUri)"></div>
+            <div id="qrCode" data-qrcode data-text="@Model.AuthenticatorUri" style="max-width: 240px;"></div>
         </li>
         <li>
             <p>
@@ -56,15 +55,6 @@
 </div>
 
 @section Scripts {
-<partial name="_ValidationScriptsPartial" />
-<script src="~/dist/js/jquery.classyqr.js"></script>
-<script>
-    (function ($) {
-        $('#qrCode').ClassyQR({
-            create: true,
-            type: 'text', // text/url/sms/email/call/locatithe text to encode in the QR.
-            text: '@Model.AuthenticatorUri'
-        });
-    })(jQuery)
-</script>
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/dist/js/etherna-qrcode.js" asp-append-version="true"></script>
 }

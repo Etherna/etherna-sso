@@ -1,7 +1,7 @@
 ﻿@page
-@model LoginWith2faModel
+@model LoginWithAuthenticatorAppModel
 @{
-    ViewData["Title"] = "Two-factor authentication";
+    ViewData["Title"] = "Sign in with authenticator app";
 }
 
 <h1>@ViewData["Title"]</h1>
@@ -31,8 +31,12 @@
     </div>
 </div>
 <p>
-    Don't have access to your authenticator device? You can
-    <a id="recovery-code-login" asp-page="./LoginWithRecoveryCode" asp-route-returnUrl="@Model.ReturnUrl">log in with a recovery code</a>.
+    @if (Model.HasFido2Credentials)
+    {
+        <a id="use-security-key" asp-page="./LoginWithSecurityKey" asp-route-returnUrl="@Model.ReturnUrl">Use a security key instead</a>
+        <span> &middot; </span>
+    }
+    <a id="recovery-code-login" asp-page="./LoginWithRecoveryCode" asp-route-returnUrl="@Model.ReturnUrl">Log in with a recovery code</a>
 </p>
 
 @section Scripts {

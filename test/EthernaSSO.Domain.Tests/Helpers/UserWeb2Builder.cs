@@ -13,7 +13,9 @@
 // If not, see <https://www.gnu.org/licenses/>.
 
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Domain.Models.Fido2CredentialAgg;
 using Etherna.SSOServer.Domain.Models.UserAgg;
+using System.Collections.Generic;
 using Account = Nethereum.Web3.Accounts.Account;
 
 namespace Etherna.SSOServer.Domain.Helpers
@@ -33,5 +35,18 @@ namespace Etherna.SSOServer.Domain.Helpers
             var sharedInfo = new UserSharedInfo(account.Address);
             return new UserWeb2(username, invitedBy, invitedByAdmin, EtherManagedPrivateKey, sharedInfo);
         }
+
+        public static Fido2Credential BuildFido2Credential(
+            byte[]? credentialId = null,
+            byte[]? publicKey = null,
+            uint signatureCounter = 0,
+            string nickname = "test-key",
+            IEnumerable<string>? transports = null) =>
+            new(
+                credentialId ?? [1, 2, 3, 4],
+                publicKey ?? [5, 6, 7, 8],
+                signatureCounter,
+                nickname,
+                transports ?? ["usb"]);
     }
 }

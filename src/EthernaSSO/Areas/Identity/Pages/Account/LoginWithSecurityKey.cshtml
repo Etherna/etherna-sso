@@ -1,0 +1,64 @@
+@page
+@model LoginWithSecurityKeyModel
+@{
+    ViewData["Title"] = "Sign in with security key";
+}
+
+<h1>@ViewData["Title"]</h1>
+<hr />
+<p>Touch your security key, or use the platform authenticator (Touch ID, Windows Hello, …) to complete sign in.</p>
+<div class="row">
+    <div class="col-md-6">
+        <form id="security-key-form" method="post" asp-route-returnUrl="@Model.ReturnUrl">
+            <div asp-validation-summary="All" class="text-danger"></div>
+            <input type="hidden" asp-for="Input.AssertionResponseJson" id="assertion-response" />
+            <div class="mb-3">
+                <div class="checkbox">
+                    <label asp-for="Input.RememberMachine">
+                        <input asp-for="Input.RememberMachine" />
+                        @Html.DisplayNameFor(m => m.Input.RememberMachine)
+                    </label>
+                </div>
+            </div>
+            <div class="mb-3">
+                <button type="button" id="activate-security-key" class="btn btn-primary">Use security key</button>
+            </div>
+        </form>
+    </div>
+</div>
+<p>
+    @if (Model.HasAuthenticator)
+    {
+        <a id="use-authenticator-app" asp-page="./LoginWithAuthenticatorApp" asp-route-returnUrl="@Model.ReturnUrl">Use authenticator app instead</a>
+        <span> &middot; </span>
+    }
+    <a id="recovery-code-login" asp-page="./LoginWithRecoveryCode" asp-route-returnUrl="@Model.ReturnUrl">Log in with a recovery code</a>
+</p>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/dist/js/etherna-fido2.js" asp-append-version="true"></script>
+    <script>
+        (function () {
+            const options = @Html.Raw(Model.AssertionOptionsJson);
+            const button = document.getElementById('activate-security-key');
+            const input = document.getElementById('assertion-response');
+            const form = document.getElementById('security-key-form');
+
+            async function authenticate() {
+                try {
+                    const json = await window.ethernaFido2.assertCredential(options);
+                    input.value = json;
+                    form.submit();
+                } catch (err) {
+                    console.error(err);
+                    alert(err.message || 'Security key authentication failed.');
+                }
+            }
+
+            //require an explicit click: the WebAuthn prompt is a modal that blocks the page, so
+            //auto-triggering it would prevent ticking "Remember this machine" first.
+            button.addEventListener('click', authenticate);
+        })();
+    </script>
+}

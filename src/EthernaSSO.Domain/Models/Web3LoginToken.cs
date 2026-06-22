@@ -31,10 +31,12 @@ namespace Etherna.SSOServer.Domain.Models
             EtherAddress = etherAddress;
             Code = GenerateNewCode();
         }
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
         protected Web3LoginToken() { }
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 
         // Properties.
-        public virtual string Code { get; protected set; } = null!;
+        public virtual string Code { get; protected set; }
         public virtual EthAddress EtherAddress { get; protected set; }
 
         // Helpers.

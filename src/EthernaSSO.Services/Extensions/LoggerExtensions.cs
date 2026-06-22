@@ -14,24 +14,16 @@
 
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 
 namespace Etherna.SSOServer.Services.Extensions
 {
     /*
      * Always group similar log delegates by type, always use incremental event ids.
-     * Last event id is: 43
+     * Last event id is: 46
      */
     public static class LoggerExtensions
     {
         // Fields.
-        //*** DEBUG LOGS ***
-        private static readonly Action<ILogger, IEnumerable<string>, Exception> _externalClaims =
-            LoggerMessage.Define<IEnumerable<string>>(
-                LogLevel.Debug,
-                new EventId(0, nameof(ExternalClaims)),
-                "External claims: {Claims}");
-        
         //*** ERROR LOGS ***
         private static readonly Action<ILogger, string, Exception> _requestError =
             LoggerMessage.Define<string>(
@@ -45,6 +37,12 @@ namespace Etherna.SSOServer.Services.Extensions
                 LogLevel.Information,
                 new EventId(11, nameof(AccountDeleted)),
                 "Account of user with ID '{UserId}' has been deleted by user with id {DeleterUserId}.");
+
+        private static readonly Action<ILogger, string, string, Exception> _addedSecurityKey =
+            LoggerMessage.Define<string, string>(
+                LogLevel.Information,
+                new EventId(46, nameof(AddedSecurityKey)),
+                "User with ID '{UserId}' added a FIDO2 security key with nickname '{Nickname}'.");
 
         private static readonly Action<ILogger, int, Exception> _alphaPassRequestsProcessed =
             LoggerMessage.Define<int>(
@@ -130,12 +128,6 @@ namespace Etherna.SSOServer.Services.Extensions
                 new EventId(17, nameof(CreatedAccountWithPassword)),
                 "User with ID '{UserId}' created a new account with password.");
 
-        private static readonly Action<ILogger, string, string, Exception> _createdAccountWithProvider =
-            LoggerMessage.Define<string, string>(
-                LogLevel.Information,
-                new EventId(2, nameof(CreatedAccountWithProvider)),
-                "User with ID '{UserId}' created an account using {LoginProvider} provider.");
-
         private static readonly Action<ILogger, string, Exception> _createdAccountWithWeb3 =
             LoggerMessage.Define<string>(
                 LogLevel.Information,
@@ -208,17 +200,17 @@ namespace Etherna.SSOServer.Services.Extensions
                 new EventId(3, nameof(LoggedInWithPassword)),
                 "User with ID '{UserId}' logged in with password.");
 
-        private static readonly Action<ILogger, string, string, Exception> _loggedInWithProvider =
-            LoggerMessage.Define<string, string>(
-                LogLevel.Information,
-                new EventId(1, nameof(LoggedInWithProvider)),
-                "{Name} logged in with {LoginProvider} provider.");
-
         private static readonly Action<ILogger, string, Exception> _loggedInWithRecoveryCode =
             LoggerMessage.Define<string>(
                 LogLevel.Information,
                 new EventId(7, nameof(LoggedInWithRecoveryCode)),
                 "User with ID '{UserId}' logged in with a recovery code.");
+
+        private static readonly Action<ILogger, string, Exception> _loggedInWithSecurityKey =
+            LoggerMessage.Define<string>(
+                LogLevel.Information,
+                new EventId(44, nameof(LoggedInWithSecurityKey)),
+                "User with ID '{UserId}' logged in with a FIDO2 security key.");
 
         private static readonly Action<ILogger, string, Exception> _loggedInWithWeb3 =
             LoggerMessage.Define<string>(
@@ -250,12 +242,6 @@ namespace Etherna.SSOServer.Services.Extensions
                 new EventId(26, nameof(RefreshedLogin)),
                 "User with ID '{UserId}' refreshed login.");
 
-        private static readonly Action<ILogger, string, Exception> _resetted2FAAuthApp =
-            LoggerMessage.Define<string>(
-                LogLevel.Information,
-                new EventId(16, nameof(Resetted2FAAuthApp)),
-                "User with ID '{UserId}' has reset their authentication app key.");
-
         //*** WARNING LOGS ***
         private static readonly Action<ILogger, string, Exception> _apiKeyDoesNotExistLoginAttempt =
             LoggerMessage.Define<string>(
@@ -281,6 +267,12 @@ namespace Etherna.SSOServer.Services.Extensions
                 new EventId(8, nameof(InvalidRecoveryCodeAttempt)),
                 "Invalid recovery code entered for user with ID '{UserId}'.");
 
+        private static readonly Action<ILogger, string, Exception> _invalidSecurityKeyAttempt =
+            LoggerMessage.Define<string>(
+                LogLevel.Warning,
+                new EventId(45, nameof(InvalidSecurityKeyAttempt)),
+                "Invalid FIDO2 assertion for user with ID '{UserId}'.");
+
         private static readonly Action<ILogger, string, Exception> _lockedOutLoginAttempt =
             LoggerMessage.Define<string>(
                 LogLevel.Warning,
@@ -296,6 +288,9 @@ namespace Etherna.SSOServer.Services.Extensions
         // Methods.
         public static void AccountDeleted(this ILogger logger, string userId, string deletedByUserId) =>
             _accountDeleted(logger, userId, deletedByUserId, null!);
+
+        public static void AddedSecurityKey(this ILogger logger, string userId, string nickname) =>
+            _addedSecurityKey(logger, userId, nickname, null!);
 
         public static void AlphaPassRequestsProcessed(this ILogger logger, int count) =>
             _alphaPassRequestsProcessed(logger, count, null!);
@@ -345,9 +340,6 @@ namespace Etherna.SSOServer.Services.Extensions
         public static void CreatedAccountWithPassword(this ILogger logger, string userId) =>
             _createdAccountWithPassword(logger, userId, null!);
 
-        public static void CreatedAccountWithProvider(this ILogger logger, string userId, string loginProvider) =>
-            _createdAccountWithProvider(logger, userId, loginProvider, null!);
-
         public static void CreatedAccountWithWeb3(this ILogger logger, string userId) =>
             _createdAccountWithWeb3(logger, userId, null!);
 
@@ -372,9 +364,6 @@ namespace Etherna.SSOServer.Services.Extensions
         public static void Enabled2FAWithAuthApp(this ILogger logger, string userId) =>
             _enabled2FAWithAuthApp(logger, userId, null!);
 
-        public static void ExternalClaims(this ILogger logger, IEnumerable<string> claims) =>
-            _externalClaims(logger, claims, null!);
-
         public static void Generated2FARecoveryCodes(this ILogger logger, string userId) =>
             _generated2FARecoveryCodes(logger, userId, null!);
 
@@ -383,6 +372,9 @@ namespace Etherna.SSOServer.Services.Extensions
 
         public static void InvalidRecoveryCodeAttempt(this ILogger logger, string userId) =>
             _invalidRecoveryCodeAttempt(logger, userId, null!);
+
+        public static void InvalidSecurityKeyAttempt(this ILogger logger, string userId) =>
+            _invalidSecurityKeyAttempt(logger, userId, null!);
 
         public static void LockedOutLoginAttempt(this ILogger logger, string userId) =>
             _lockedOutLoginAttempt(logger, userId, null!);
@@ -396,11 +388,11 @@ namespace Etherna.SSOServer.Services.Extensions
         public static void LoggedInWithPassword(this ILogger logger, string userId) =>
             _loggedInWithPassword(logger, userId, null!);
 
-        public static void LoggedInWithProvider(this ILogger logger, string name, string loginProvider) =>
-            _loggedInWithProvider(logger, name, loginProvider, null!);
-
         public static void LoggedInWithRecoveryCode(this ILogger logger, string userId) =>
             _loggedInWithRecoveryCode(logger, userId, null!);
+
+        public static void LoggedInWithSecurityKey(this ILogger logger, string userId) =>
+            _loggedInWithSecurityKey(logger, userId, null!);
 
         public static void LoggedInWithWeb3(this ILogger logger, string userId) =>
             _loggedInWithWeb3(logger, userId, null!);
@@ -423,7 +415,5 @@ namespace Etherna.SSOServer.Services.Extensions
         public static void RequestError(this ILogger logger, string requestId) =>
             _requestError(logger, requestId, null!);
 
-        public static void Resetted2FAAuthApp(this ILogger logger, string userId) =>
-            _resetted2FAAuthApp(logger, userId, null!);
     }
 }
