@@ -104,8 +104,7 @@ namespace Etherna.SSOServer.Services.Domain
             bool lockoutEnabled,
             DateTimeOffset? lockoutEnd,
             string? phoneNumber,
-            IEnumerable<Role> roles,
-            bool twoFactorEnabled) =>
+            IEnumerable<Role> roles) =>
             RegisterUserHelperAsync(
                 username,
                 null,
@@ -133,7 +132,6 @@ namespace Etherna.SSOServer.Services.Domain
                         user.EtherLoginAddress = etherLoginAddress;
                     foreach (var role in roles)
                         user.AddRole(role);
-                    user.TwoFactorEnabled = twoFactorEnabled;
 
                     var result = await UserManager.CreateAsync(user, password);
                     return (user, result);

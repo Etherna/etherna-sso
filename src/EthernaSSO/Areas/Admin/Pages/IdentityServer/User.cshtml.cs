@@ -182,8 +182,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
                     Input.LockoutEnabled,
                     Input.LockoutEnd.HasValue ? new DateTimeOffset(DateTime.SpecifyKind(Input.LockoutEnd.Value, DateTimeKind.Utc)) : null,
                     Input.PhoneNumber,
-                    [],
-                    Input.TwoFactorEnabled);
+                    []);
 
                 // Report errors.
                 if (newUser is null)
@@ -222,7 +221,13 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
                         else if (userWeb2.EtherLoginAddress != Input.EtherLoginAddress)
                             userWeb2.EtherLoginAddress = Input.EtherLoginAddress;
 
-                        userWeb2.TwoFactorEnabled = Input.TwoFactorEnabled;
+                        //admin can only disable 2FA (clears all factors); enabling requires user-side setup
+                        if (!Input.TwoFactorEnabled && userWeb2.TwoFactorEnabled)
+                        {
+                            userWeb2.DisableAuthenticatorApp();
+                            foreach (var credential in userWeb2.Fido2Credentials.ToList())
+                                userWeb2.RemoveFido2Credential(credential.CredentialId);
+                        }
 
                         break;
                     case UserWeb3 _: break;

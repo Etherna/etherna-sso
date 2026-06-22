@@ -83,6 +83,16 @@ namespace Etherna.SSOServer.Persistence
                 ]
             });
         public IRepository<DailyStats, string> DailyStats { get; } = new DomainRepository<DailyStats, string>("dailyStats");
+        public IRepository<Fido2Challenge, string> Fido2Challenges { get; } = new DomainRepository<Fido2Challenge, string>(
+            new RepositoryOptions<Fido2Challenge>("fido2Challenges")
+            {
+                IndexBuilders =
+                [
+                    //TTL: MongoDB purges documents whose ExpiresAt is in the past.
+                    (Builders<Fido2Challenge>.IndexKeys.Ascending(c => c.ExpiresAt),
+                     new CreateIndexOptions<Fido2Challenge> { ExpireAfter = TimeSpan.Zero })
+                ]
+            });
         public IRepository<Invitation, string> Invitations { get; } = new DomainRepository<Invitation, string>(
             new RepositoryOptions<Invitation>("invitations")
             {
@@ -122,18 +132,17 @@ namespace Etherna.SSOServer.Persistence
                     (Builders<UserBase>.IndexKeys.Ascending(u => u.NormalizedUsername),
                      new CreateIndexOptions<UserBase> { Unique = true }),
 
-                    (Builders<UserBase>.IndexKeys.Ascending("Roles.NormalizedName"),
+                    (Builders<UserBase>.IndexKeys.Ascending(u => u.Roles.Select(r => r.NormalizedName)),
                      new CreateIndexOptions<UserBase>()),
 
                     (Builders<UserBase>.IndexKeys.Ascending(u => u.SharedInfoId),
                      new CreateIndexOptions<UserBase> { Unique = true }),
 
                     //UserWeb2
-                    (Builders<UserBase>.IndexKeys.Ascending("EtherLoginAddress"),
+                    (Builders<UserBase>.IndexKeys.Ascending(u => ((UserWeb2)u).EtherLoginAddress),
                      new CreateIndexOptions<UserBase> { Unique = true, Sparse = true }),
 
-                    (Builders<UserBase>.IndexKeys.Ascending("Logins.LoginProvider")
-                                                 .Ascending("Logins.ProviderKey"),
+                    (Builders<UserBase>.IndexKeys.Ascending(u => ((UserWeb2)u).Fido2Credentials.Select(c => c.CredentialId)),
                      new CreateIndexOptions<UserBase> { Unique = true, Sparse = true })
                 ]
             });
@@ -197,8 +206,7 @@ namespace Etherna.SSOServer.Persistence
                     true,
                     null,
                     null,
-                    [adminRole],
-                    false);
+                    [adminRole]);
 
                 if (user is null)
                     throw new InvalidOperationException("Error creating first user");

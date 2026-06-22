@@ -11,6 +11,7 @@ mix.js("Static/js/signin-redirect.js", "js")
 // Standalone TS scripts
 mix.ts("Static/ts/etherna-qrcode.ts", "js")
 mix.ts("Static/ts/etherna-web3-signin.ts", "js")
+mix.ts("Static/ts/etherna-fido2.ts", "js")
 
 // Styles
 mix.sass("Static/scss/site.scss", "css", {}, [

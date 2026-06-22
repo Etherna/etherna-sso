@@ -1,14 +1,14 @@
 // Copyright 2021-present Etherna SA
 // This file is part of Etherna Sso.
-// 
+//
 // Etherna Sso is free software: you can redistribute it and/or modify it under the terms of the
 // GNU Affero General Public License as published by the Free Software Foundation,
 // either version 3 of the License, or (at your option) any later version.
-// 
+//
 // Etherna Sso is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
 // without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU Affero General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
@@ -30,7 +30,12 @@ using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
 {
-    public class EnableAuthenticatorModel : StatusMessagePageModel
+    public class AddAuthenticatorAppModel(
+        IOptions<ApplicationOptions> applicationSettings,
+        ILogger<AddAuthenticatorAppModel> logger,
+        UrlEncoder urlEncoder,
+        UserManager<UserBase> userManager)
+        : StatusMessagePageModel
     {
         // Models.
         public class InputModel
@@ -39,29 +44,13 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             [StringLength(7, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
             [DataType(DataType.Text)]
             [Display(Name = "Verification Code")]
-            public string Code { get; set; } = default!;
+            public string Code { get; set; } = null!;
         }
 
         // Fields.
-        private readonly ApplicationOptions applicationOptions;
-        private readonly ILogger<EnableAuthenticatorModel> logger;
-        private readonly UrlEncoder urlEncoder;
-        private readonly UserManager<UserBase> userManager;
+        private readonly ApplicationOptions applicationOptions = applicationSettings.Value;
 
-        public EnableAuthenticatorModel(
-            IOptions<ApplicationOptions> applicationSettings,
-            ILogger<EnableAuthenticatorModel> logger,
-            UrlEncoder urlEncoder,
-            UserManager<UserBase> userManager)
-        {
-            ArgumentNullException.ThrowIfNull(applicationSettings);
-
-            this.applicationOptions = applicationSettings.Value;
-            this.logger = logger;
-            this.urlEncoder = urlEncoder;
-            this.userManager = userManager;
-        }
-
+        // Properties.
         public string AuthenticatorUri { get; set; } = null!;
 
 #pragma warning disable CA1819 // Properties should not return arrays
@@ -88,7 +77,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
         public async Task<IActionResult> OnPostAsync()
         {
             var user = await userManager.GetUserAsync(User);
-            if (user == null)
+            if (user is not UserWeb2 userWeb2)
                 return NotFound($"Unable to load user with ID '{userManager.GetUserId(User)}'.");
 
             if (!ModelState.IsValid)
@@ -111,7 +100,11 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
                 return Page();
             }
 
-            await userManager.SetTwoFactorEnabledAsync(user, true);
+            // The key is already stored from the GET; the app becomes an active second factor only now,
+            // once the user has proven they configured it by entering a valid verification code.
+            userWeb2.EnableAuthenticatorApp();
+            await userManager.UpdateAsync(user);
+
             var userId = await userManager.GetUserIdAsync(user);
             logger.Enabled2FAWithAuthApp(userId);
 
@@ -164,6 +157,6 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
         }
 
         private string GenerateQrCodeUri(string serviceName, string username, string unformattedKey) =>
-            $"otpauth://totp/{urlEncoder.Encode(serviceName)}%20({urlEncoder.Encode(username)})?secret={unformattedKey}&issuer={urlEncoder.Encode(serviceName)}&digits=6";
+            $"otpauth://totp/{urlEncoder.Encode(username)}?secret={unformattedKey}&issuer={urlEncoder.Encode(serviceName)}&digits=6";
     }
 }

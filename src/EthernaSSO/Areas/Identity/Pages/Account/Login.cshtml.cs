@@ -32,42 +32,25 @@ using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
 namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 {
     [AllowAnonymous]
-    public class LoginModel : SsoExitPageModelBase
+    public class LoginModel(
+        IClientStore clientStore,
+        IEventDispatcher eventDispatcher,
+        IIdentityServerInteractionService idServerInteractionService,
+        ILogger<LoginModel> logger,
+        SignInManager<UserBase> signInManager,
+        UserManager<UserBase> userManager)
+        : SsoExitPageModelBase(clientStore)
     {
         // Models.
         public class InputModel
         {
             [Required]
             [Display(Name = "Username or email")]
-            public string UsernameOrEmail { get; set; } = default!;
+            public string UsernameOrEmail { get; set; } = null!;
 
             [Required]
             [DataType(DataType.Password)]
-            public string Password { get; set; } = default!;
-        }
-
-        // Fields.
-        private readonly IEventDispatcher eventDispatcher;
-        private readonly IIdentityServerInteractionService idServerInteractionService;
-        private readonly ILogger<LoginModel> logger;
-        private readonly SignInManager<UserBase> signInManager;
-        private readonly UserManager<UserBase> userManager;
-
-        // Constructor.
-        public LoginModel(
-            IClientStore clientStore,
-            IEventDispatcher eventDispatcher,
-            IIdentityServerInteractionService idServerInteractionService,
-            ILogger<LoginModel> logger,
-            SignInManager<UserBase> signInManager,
-            UserManager<UserBase> userManager)
-            : base(clientStore)
-        {
-            this.eventDispatcher = eventDispatcher;
-            this.idServerInteractionService = idServerInteractionService;
-            this.logger = logger;
-            this.signInManager = signInManager;
-            this.userManager = userManager;
+            public string Password { get; set; } = null!;
         }
 
         // Properties.
@@ -75,11 +58,11 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         public string? ErrorMessage { get; set; }
 
         [BindProperty]
-        public InputModel Input { get; set; } = default!;
+        public InputModel Input { get; set; } = null!;
 
         public string? InvitationCode { get; set; }
         public string? ReturnUrl { get; set; }
-        public Web3LoginPartialModel Web3LoginPartialModel { get; set; } = default!;
+        public Web3LoginPartialModel Web3LoginPartialModel { get; set; } = null!;
 
         // Methods.
         public async Task<IActionResult> OnGetAsync(string? invitationCode = null, string? returnUrl = null)
@@ -153,7 +136,10 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
             else if (result.RequiresTwoFactor)
             {
-                return RedirectToPage("./LoginWith2fa", new { ReturnUrl });
+                //prefer security key when the user has no authenticator app configured
+                if (user is UserWeb2 { HasFido2Credentials: true, IsAuthenticatorAppEnabled: false })
+                    return RedirectToPage("./LoginWithSecurityKey", new { ReturnUrl });
+                return RedirectToPage("./LoginWithAuthenticatorApp", new { ReturnUrl });
             }
 
             else if (result.IsLockedOut)

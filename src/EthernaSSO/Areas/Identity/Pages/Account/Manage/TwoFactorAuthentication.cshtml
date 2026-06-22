@@ -7,6 +7,7 @@
 
 <partial name="_StatusMessage" for="StatusMessage" />
 <h4>@ViewData["Title"]</h4>
+
 @if (Model.Is2faEnabled)
 {
     if (Model.RecoveryCodesLeft == 0)
@@ -37,20 +38,59 @@
             <button type="submit" class="btn btn-secondary">Forget this browser</button>
         </form>
     }
-    <a asp-page="./Disable2fa" class="btn btn-secondary">Disable 2FA</a>
     <a asp-page="./GenerateRecoveryCodes" class="btn btn-secondary">Reset recovery codes</a>
 }
 
+<hr />
 <h5>Authenticator app</h5>
 @if (!Model.HasAuthenticator)
 {
-    <a id="enable-authenticator" asp-page="./EnableAuthenticator" class="btn btn-secondary">Add authenticator app</a>
+    <p>Use a TOTP authenticator app (e.g. Google Authenticator, 1Password, Aegis) to generate one-time codes.</p>
+    <a id="add-authenticator-app" asp-page="./AddAuthenticatorApp" class="btn btn-secondary">Add authenticator app</a>
 }
 else
 {
-    <a id="enable-authenticator" asp-page="./EnableAuthenticator" class="btn btn-secondary">Setup authenticator app</a>
-    <a id="reset-authenticator" asp-page="./ResetAuthenticator" class="btn btn-secondary">Reset authenticator app</a>
+    <p>An authenticator app is configured.</p>
+    <a id="disable-authenticator-app" asp-page="./DisableAuthenticatorApp" class="btn btn-danger">Disable authenticator app</a>
 }
+
+<hr />
+<h5>Security keys</h5>
+<p>Register a FIDO2 security key (YubiKey, Titan Key, Touch ID, Windows Hello, …) as a second factor.</p>
+
+@if (Model.HasFido2Credentials)
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Registered</th>
+                <th>Last used</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var credential in Model.Fido2Credentials)
+            {
+                <tr>
+                    <td>@credential.Nickname</td>
+                    <td>@credential.CreatedAt.ToString("yyyy-MM-dd")</td>
+                    <td>@(credential.LastUsedAt?.ToString("yyyy-MM-dd") ?? "never")</td>
+                    <td>
+                        <a asp-page="./SecurityKeys"
+                           asp-route-credentialId="@System.Convert.ToBase64String(credential.CredentialId)"
+                           class="btn btn-sm btn-secondary">Manage</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p class="text-muted">No security keys registered.</p>
+}
+<a id="add-security-key" asp-page="./AddSecurityKey" class="btn btn-secondary">Add security key</a>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

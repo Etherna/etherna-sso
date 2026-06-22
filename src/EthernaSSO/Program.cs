@@ -194,6 +194,9 @@ namespace Etherna.SSOServer
             services.Replace(ServiceDescriptor.Scoped<UserManager<UserBase>, CustomUserManager>());
             services.Replace(ServiceDescriptor.Scoped<IUserValidator<UserBase>, CustomUserValidator>());
 
+            // Configure FIDO2 (WebAuthn).
+            services.AddFido2(options => config.GetSection("Fido2").Bind(options));
+
             services.ConfigureApplicationCookie(options =>
             {
                 // Cookie settings.

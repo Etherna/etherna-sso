@@ -433,10 +433,12 @@ namespace Etherna.SSOServer.Configs.Identity
 
         public Task SetTwoFactorEnabledAsync(UserBase user, bool enabled, CancellationToken cancellationToken)
         {
-            if (user is not UserWeb2 userWeb2)
+            //TwoFactorEnabled is derived from configured factors (authenticator app or FIDO2 credentials).
+            //ASP.NET Identity still calls this to confirm state; we accept the call but the actual flag
+            //comes from those factors. Disable happens by removing the underlying factor.
+            if (user is not UserWeb2)
                 throw new ArgumentException("User is not a web2 account", nameof(user));
 
-            userWeb2.TwoFactorEnabled = enabled;
             return Task.CompletedTask;
         }
 

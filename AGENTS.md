@@ -46,10 +46,12 @@ Bugs and features are tracked in Jira project **ESSO** (https://etherna.atlassia
 ## General Principles
 
 - Keep commits clean: only include changes strictly necessary for the task at hand.
+- Never reference AI agents or assistants in commits or code — no agent names, no `Co-Authored-By` agent trailers, no "generated/assisted by" notes. Commit messages and code must read as the team's own work.
 - Exceptions to these conventions are accepted when strictly necessary or when they significantly improve code quality. Justify with a comment where needed.
 - All elements (usings, properties, methods, fields, enum members, etc.) are always alphabetically ordered within their respective sections.
-- Primary constructors are preferred everywhere the constructor is a simple parameter assignment — not limited to DI services.
+- Prefer primary constructors whenever possible — not limited to DI services. A parameter needing a light transformation still qualifies: capture it and derive a field (`private readonly ApplicationOptions options = applicationSettings.Value;`). Fall back to a classic constructor only when the body needs real logic that can't be expressed as a field initializer.
 - Keep code clean: remove unused variables, dead code, and redundant imports.
+- Don't extract a private helper method for logic used in a single place — inline it. Reserve helpers for code shared by two or more call sites (or when extraction materially clarifies an otherwise long, complex method).
 
 ## Naming
 
@@ -116,7 +118,7 @@ private void InternalHelper() { ... }
 ## Class Design
 
 - `internal sealed` for service implementations
-- Primary constructors everywhere the constructor is a simple assignment
+- Primary constructors whenever possible — light transformations go in field initializers; a classic constructor only when the body needs logic beyond initializers
 
 ### Domain Entity Classes
 
@@ -129,6 +131,7 @@ private void InternalHelper() { ... }
   protected EntityName() { }
   #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
   ```
+- A collection member (list/array/`IEnumerable`) is never `null` — at most empty. So no caller (or test) ever needs a null check on one.
 - Collection encapsulation with backing fields:
   ```csharp
   private List<string> _items = [];
@@ -140,6 +143,7 @@ private void InternalHelper() { ... }
   ```
 - `= null!` only on the non-nullable properties the **public** constructor doesn't visibly assign — i.e. those set through a helper method (`SetName`, `SetUsername`, `SetNickname`) or by the framework after construction (`SecurityStamp`); definite-assignment analysis can't see through method calls, and the public constructor is never pragma-wrapped. Properties assigned directly in the public constructor need no `= null!` — the protected ctor's pragma covers them.
 - Collection expressions for nullable collection setters: `[..value ?? []]`
+- Reference another persisted entity by the **entity type**, not a raw `string XxxId`, whenever the target is an aggregate of the same `DbContext`. Model it as the type (`public virtual UserBase User { get; protected set; }`) and wire the map with `mm.SetMemberSerializer(c => c.User, UserMap.ReferenceSerializer(dbContext))`. MongODM stores only the identity (`{_id, _t, _m}`) and resolves it lazily — reading just `.Id` triggers no extra load, queries read naturally (`c.User.Id == userId`), and the foreign-key abstraction stays in the ODM. Examples: `ApiKey.Owner`, `ClientApp.Owner`, `Invitation.Emitter`, `UserBase.InvitedBy`, `Fido2Challenge.User`. A raw id stays appropriate only for cross-context/external references the ODM can't resolve (e.g. `UserBase.SharedInfoId`, which lives in the shared DbContext).
 - Equality: by ID for entities (in `EntityModelBase<TKey>`), by value for value objects
 - `[PropertyAlterer(nameof(MyProp))]` on every method, for each property the method modifies. This is a MongODM limitation for change tracking:
   ```csharp
@@ -161,6 +165,7 @@ private void InternalHelper() { ... }
 - `ArgumentNullException.ThrowIfNull(param)` for parameter validation
 - `is null` / `is not null` (not `== null`)
 - Prefer `null` over `default` as default value for optional parameters
+- Initialize required-but-deferred reference members (ORM, `[BindProperty]`, TempData) with `= null!`, not `= default!` — `null!` states the non-null contract explicitly. Reserve `default!` for value-type or unconstrained-generic members where `= null!` won't compile.
 - `??` and `??=` operators
 
 ## Formatting
@@ -205,6 +210,11 @@ private void InternalHelper() { ... }
 - `AddTransient` for background tasks
 - `AddSingleton` for configuration objects
 
+## Logging
+
+- Strongly-typed log delegates defined with `LoggerMessage.Define` in `LoggerExtensions`, grouped by `LogLevel`, each with a unique `EventId`.
+- Event ids are incremental and never reused. The header comment `Last event id is: N` is the single source of truth for the next free id: when adding a delegate, assign `N+1` and **update that comment** so it always equals the highest `EventId` in the file.
+
 ## Testing (xUnit + Moq)
 
 - `[Fact]` for basic tests, `[Theory]` for parameterized
@@ -213,3 +223,5 @@ private void InternalHelper() { ... }
 - Moq for mocking: `new Mock<IService>()`
 - Test projects mirror the project under test (`EthernaSSO.Domain.Tests`, `EthernaSSO.Persistence.Tests`)
 - Domain tests use a builder helper pattern (e.g. `test/EthernaSSO.Domain.Tests/Helpers/UserWeb2Builder.cs`) to construct aggregates
+- In schema deserialization tests (`*DbContextDeserializationTest`), list a model's sample documents newest schema version first — the current/active schema on top, older (migrated) schemas below it
+- Collections are never null (see Domain Entity Classes): set expected collection members to `[]`, assert against empty, and never accept `null` as a valid value (no `?? []` fallbacks) — that would mask a contract violation

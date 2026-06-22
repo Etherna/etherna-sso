@@ -21,6 +21,7 @@ using Etherna.MongODM.Core.Serialization.Serializers;
 using Etherna.MongODM.Core.Utility;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Domain.Models.ClientAppAgg;
+using Etherna.SSOServer.Domain.Models.Fido2CredentialAgg;
 using Etherna.SSOServer.Domain.Models.UserAgg;
 using Etherna.SSOServer.Persistence.Helpers;
 using Etherna.SSOServer.Persistence.Settings;
@@ -472,7 +473,121 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
             {
                 var tests = new List<DeserializationTestElement<UserBase, SsoDbContext>>();
 
-                // "2ccb567f-63cc-4fb3-b66e-a51fb4ff1bfe" - v0.3.22 - UserWeb2
+                // "c54bb1fe-a7e2-4069-b91c-1065b16ca4da" - v0.4.0 - UserWeb2 (current schema, with a FIDO2 credential)
+                {
+                    var sourceDocument =
+                        @"{
+                            ""_id"" : ObjectId(""6a317235d33d390f7d1e350e""),                                                                                                                                                                     
+                            ""_m"" : ""c54bb1fe-a7e2-4069-b91c-1065b16ca4da"",                                                                                                                                                                    
+                            ""_t"" : ""UserWeb2"",                                                                                                                                                                                                
+                            ""CreationDateTime"" : ISODate(""2026-06-16T17:56:37.411+02:00""),                                                                                                                                                    
+                            ""Claims"" : [                                                                                                                                                                                                      
+                                {                                                                                                                                                                                                             
+                                    ""_m"" : ""f7831985-dc0c-439f-b118-d7c511619a87"",                                                                                                                                                            
+                                    ""Type"" : ""ether_address"",                                                                                                                                                                                 
+                                    ""Value"" : ""0xC2AE6f81f7DdBE4ed1904CAB954c6a4aEA28b76F""                                                                                                                                                    
+                                },                                                                                                                                                                                                            
+                                {                                                                                                                                                                                                             
+                                    ""_m"" : ""f7831985-dc0c-439f-b118-d7c511619a87"",                                                                                                                                                            
+                                    ""Type"" : ""ether_prev_addresses"",                                                                                                                                                                          
+                                    ""Value"" : ""[]""                                                                                                                                                                                            
+                                },                                                                                                                                                                                                            
+                                {                                                                                                                                                                                                             
+                                    ""_m"" : ""f7831985-dc0c-439f-b118-d7c511619a87"",                                                                                                                                                            
+                                    ""Type"" : ""isWeb3Account"",                                                                                                                                                                                 
+                                    ""Value"" : ""False""                                                                                                                                                                                         
+                                },                                                                                                                                                                                                            
+                                {                                                                                                                                                                                                             
+                                    ""_m"" : ""f7831985-dc0c-439f-b118-d7c511619a87"",                                                                                                                                                            
+                                    ""Type"" : ""preferred_username"",                                                                                                                                                                            
+                                    ""Value"" : ""admin""                                                                                                                                                                                         
+                                },                                                                                                                                                                                                            
+                                {                                                                                                                                                                                                             
+                                    ""_m"" : ""f7831985-dc0c-439f-b118-d7c511619a87"",                                                                                                                                                            
+                                    ""Type"" : ""role"",                                                                                                                                                                                          
+                                    ""Value"" : ""ADMINISTRATOR""                                                                                                                                                                                 
+                                }                                                                                                                                                                                                             
+                            ],                                                                                                                                                                                                                
+                            ""EtherAddress"" : ""0xC2AE6f81f7DdBE4ed1904CAB954c6a4aEA28b76F"",                                                                                                                                                    
+                            ""EtherPreviousAddresses"" : [ ],                                                                                                                                                                                   
+                            ""InvitedByAdmin"" : true,                                                                                                                                                                                          
+                            ""LastLoginDateTime"" : ISODate(""2026-06-21T11:50:49.809+02:00""),                                                                                                                                                   
+                            ""NormalizedUsername"" : ""ADMIN"",                                                                                                                                                                                   
+                            ""PhoneNumber"" : null,                                                                                                                                                                                             
+                            ""PhoneNumberConfirmed"" : false,                                                                                                                                                                                   
+                            ""Roles"" : [                                                                                                                                                                                                       
+                                {                                                                                                                                                                                                             
+                                    ""_m"" : ""cc9c6902-edd5-491d-acb5-07ca02fa71d0"",                                                                                                                                                            
+                                    ""_id"" : ObjectId(""6a317234d33d390f7d1e350b""),                                                                                                                                                             
+                                    ""NormalizedName"" : ""ADMINISTRATOR""                                                                                                                                                                        
+                                }                                                                                                                                                                                                             
+                            ],                                                                                                                                                                                                                
+                            ""SecurityStamp"" : ""CFSMW5N2VB4DNAWXMQNTC3VS6BR4QZOV"",                                                                                                                                                             
+                            ""SharedInfoId"" : ""6a317235d33d390f7d1e350d"",                                                                                                                                                                      
+                            ""Username"" : ""admin"",                                                                                                                                                                                             
+                            ""AccessFailedCount"" : 3,                                                                                                                                                                                          
+                            ""AuthenticatorKey"" : null,                                                                                                                                                                                        
+                            ""EtherManagedPrivateKey"" : ""54e0bb8ccbb95719898f179b7422f4bf3f053c789a3e1c54b8d8ee81dead1224"",                                                                                                                    
+                            ""Fido2Credentials"" : [                                                                                                                                                                                            
+                                {                                                                                                                                                                                                             
+                                    ""_m"" : ""194013ae-d113-48f8-aea7-e8cf169186fa"",                                                                                                                                                            
+                                    ""CreatedAt"" : ISODate(""2026-06-20T20:16:06.415+02:00""),                                                                                                                                                   
+                                    ""CredentialId"" : BinData(0, ""ZmFrZS1jcmVkZW50aWFsLWlkLWFub255bWl6ZWQtZnJvbS1hLXJlYWwteXViaWtleS1mb3ItdW5pdC10ZXN0cy0wMDAx""),           
+                                    ""LastUsedAt"" : ISODate(""2026-06-21T11:50:49.211+02:00""),                                                                                                                                                  
+                                    ""Nickname"" : ""sas"",                                                                                                                                                                                       
+                                    ""PublicKey"" : BinData(0, ""ZmFrZS1jb3NlLXB1YmxpYy1rZXktYW5vbnltaXplZC1mb3ItdW5pdC10ZXN0cy0wMDAx""),                                                                                                     
+                                    ""SignatureCounter"" : 7,                                                                                                                                                                                   
+                                    ""Transports"" : [ ""Nfc"", ""Usb"" ]                                                                                                                                                                           
+                                }                                                                                                                                                                                                             
+                            ],                                                                                                                                                                                                                
+                            ""PasswordHash"" : ""AQAAAAIAAYagAAAAECl712ZiEiMxfcgbND7GJ9iltzB7o4GfVNofb93FGse7/qUApSd88VdBs6DfAk3i/Q=="",                                                                                                          
+                            ""TwoFactorRecoveryCodes"" : [                                                                                                                                                                                      
+                                ""8NR9T-W29GV"",                                                                                                                                                                                                
+                                ""TC5FY-3T9H9"",                                                                                                                                                                                                
+                                ""BX73B-D7VMY""                                                                                                                                                                                                 
+                            ]                                                                                                                                                                                                                 
+                        }";
+
+                    var expectedDocumentMock = new Mock<UserWeb2>();
+                    expectedDocumentMock.Setup(d => d.Id).Returns("6a317235d33d390f7d1e350e");
+                    expectedDocumentMock.Setup(d => d.CreationDateTime).Returns(new DateTime(2026, 06, 16, 15, 56, 37, 411));
+                    expectedDocumentMock.Setup(d => d.EtherAddress).Returns("0xC2AE6f81f7DdBE4ed1904CAB954c6a4aEA28b76F");
+                    expectedDocumentMock.Setup(d => d.EtherPreviousAddresses).Returns([]);
+                    expectedDocumentMock.Setup(d => d.InvitedByAdmin).Returns(true);
+                    expectedDocumentMock.Setup(d => d.LastLoginDateTime).Returns(new DateTime(2026, 06, 21, 09, 50, 49, 809));
+                    expectedDocumentMock.Setup(d => d.MaxAllowedClients).Returns(UserBase.DefaultMaxAllowedClients);
+                    expectedDocumentMock.Setup(d => d.NormalizedUsername).Returns("ADMIN");
+                    expectedDocumentMock.Setup(d => d.PhoneNumberConfirmed).Returns(false);
+                    {
+                        var roleMock = new Mock<Role>();
+                        roleMock.Setup(r => r.Id).Returns("6a317234d33d390f7d1e350b");
+                        expectedDocumentMock.Setup(d => d.Roles).Returns([roleMock.Object]);
+                    }
+                    expectedDocumentMock.Setup(d => d.SecurityStamp).Returns("CFSMW5N2VB4DNAWXMQNTC3VS6BR4QZOV");
+                    expectedDocumentMock.Setup(d => d.SharedInfoId).Returns("6a317235d33d390f7d1e350d");
+                    expectedDocumentMock.Setup(d => d.Username).Returns("admin");
+                    expectedDocumentMock.Setup(d => d.AccessFailedCount).Returns(3);
+                    expectedDocumentMock.Setup(d => d.EtherManagedPrivateKey).Returns("54e0bb8ccbb95719898f179b7422f4bf3f053c789a3e1c54b8d8ee81dead1224");
+                    expectedDocumentMock.Setup(d => d.PasswordHash).Returns("AQAAAAIAAYagAAAAECl712ZiEiMxfcgbND7GJ9iltzB7o4GfVNofb93FGse7/qUApSd88VdBs6DfAk3i/Q==");
+                    expectedDocumentMock.Setup(d => d.IsAuthenticatorAppEnabled).Returns(false);
+                    expectedDocumentMock.Setup(d => d.TwoFactorEnabled).Returns(true);
+                    expectedDocumentMock.Setup(d => d.TwoFactorRecoveryCodes).Returns(["8NR9T-W29GV", "TC5FY-3T9H9", "BX73B-D7VMY"]);
+                    {
+                        var credentialMock = new Mock<Fido2Credential>();
+                        credentialMock.Setup(c => c.CreatedAt).Returns(new DateTime(2026, 06, 20, 18, 16, 06, 415));
+                        credentialMock.Setup(c => c.CredentialId).Returns(Convert.FromBase64String("ZmFrZS1jcmVkZW50aWFsLWlkLWFub255bWl6ZWQtZnJvbS1hLXJlYWwteXViaWtleS1mb3ItdW5pdC10ZXN0cy0wMDAx"));
+                        credentialMock.Setup(c => c.LastUsedAt).Returns(new DateTime(2026, 06, 21, 09, 50, 49, 211));
+                        credentialMock.Setup(c => c.Nickname).Returns("sas");
+                        credentialMock.Setup(c => c.PublicKey).Returns(Convert.FromBase64String("ZmFrZS1jb3NlLXB1YmxpYy1rZXktYW5vbnltaXplZC1mb3ItdW5pdC10ZXN0cy0wMDAx"));
+                        credentialMock.Setup(c => c.SignatureCounter).Returns(7u);
+                        credentialMock.Setup(c => c.Transports).Returns(["Nfc", "Usb"]);
+                        expectedDocumentMock.Setup(d => d.Fido2Credentials).Returns([credentialMock.Object]);
+                    }
+
+                    tests.Add(new(sourceDocument, expectedDocumentMock.Object));
+                }
+
+                // "2ccb567f-63cc-4fb3-b66e-a51fb4ff1bfe" - v0.3.22 - UserWeb2 (with TOTP enabled, migrated to active schema)
                 {
                     var sourceDocument =
                         @"{
@@ -575,8 +690,65 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
                     expectedDocumentMock.Setup(d => d.EtherManagedPrivateKey).Returns("e883fcbe10b59d63dc7f1bbed29dbd81f17a03fc65ea7d87461f45a6dfe76d0c");
                     expectedDocumentMock.Setup(d => d.EtherLoginAddress).Returns("0xfeF78523191CC15e287b3F7ABFbd0c3d621f053b");
                     expectedDocumentMock.Setup(d => d.PasswordHash).Returns("AQAAAAEAACcQAAAAELAZKxcX4rTHtVo4ZBbpZdaxfsiB4xaOM/3mEO86iq8vdUPtglbwyk7qa2jDajBWUA==");
+                    expectedDocumentMock.Setup(d => d.IsAuthenticatorAppEnabled).Returns(true);
                     expectedDocumentMock.Setup(d => d.TwoFactorEnabled).Returns(true);
                     expectedDocumentMock.Setup(d => d.TwoFactorRecoveryCodes).Returns(["q56k5c6s", "l3rcwj6v", "8y9b5lqv"]);
+                    expectedDocumentMock.Setup(d => d.Fido2Credentials).Returns([]);
+
+                    tests.Add(new(sourceDocument, expectedDocumentMock.Object));
+                }
+
+                // "2ccb567f-63cc-4fb3-b66e-a51fb4ff1bfe" - v0.3.22 - UserWeb2 (authenticator key set but TOTP never confirmed)
+                // The legacy "TwoFactorEnabled" flag was false: the user opened the setup page (which stored a key)
+                // but never verified a code. Migration must NOT treat them as 2FA-enabled; the leftover key is harmless
+                // since enablement is driven by the flag, not the key's presence.
+                {
+                    var sourceDocument =
+                        @"{
+                            ""_id"" : ObjectId(""62fd293ca12c0fd52db29c8e""),
+                            ""_m"" : ""2ccb567f-63cc-4fb3-b66e-a51fb4ff1bfe"",
+                            ""_t"" : ""UserWeb2"",
+                            ""CreationDateTime"" : ISODate(""2022-08-17T17:45:32.876+0000""),
+                            ""Claims"" : [],
+                            ""Email"" : ""asdfg@sas.so"",
+                            ""EtherAddress"" : ""0xDe87768A7B118aAA23Cd3552E4AD34B8F4566Bde"",
+                            ""EtherPreviousAddresses"" : [],
+                            ""NormalizedEmail"" : ""ASDFG@SAS.SO"",
+                            ""NormalizedUsername"" : ""ASDFGA"",
+                            ""Roles"" : [],
+                            ""SecurityStamp"" : ""ZNB7TIG3GMD6SAWRIYPN2ST5Q734O7DV"",
+                            ""SharedInfoId"" : ""62fd293ca12c0fd52db29c8c"",
+                            ""Username"" : ""asdfga"",
+                            ""AccessFailedCount"" : NumberInt(0),
+                            ""AuthenticatorKey"" : ""SVKPXJRGFOAJGSJZOUUUJSSZZTYBXDPL"",
+                            ""EtherManagedPrivateKey"" : ""e883fcbe10b59d63dc7f1bbed29dbd81f17a03fc65ea7d87461f45a6dfe76d0c"",
+                            ""PasswordHash"" : ""AQAAAAEAACcQAAAAELAZKxcX4rTHtVo4ZBbpZdaxfsiB4xaOM/3mEO86iq8vdUPtglbwyk7qa2jDajBWUA=="",
+                            ""TwoFactorEnabled"" : false,
+                            ""TwoFactorRecoveryCodes"" : []
+                        }";
+
+                    var expectedDocumentMock = new Mock<UserWeb2>();
+                    expectedDocumentMock.Setup(d => d.Id).Returns("62fd293ca12c0fd52db29c8e");
+                    expectedDocumentMock.Setup(d => d.CreationDateTime).Returns(new DateTime(2022, 08, 17, 17, 45, 32, 876));
+                    expectedDocumentMock.Setup(d => d.Claims).Returns([]);
+                    expectedDocumentMock.Setup(d => d.Email).Returns("asdfg@sas.so");
+                    expectedDocumentMock.Setup(d => d.EtherAddress).Returns("0xDe87768A7B118aAA23Cd3552E4AD34B8F4566Bde");
+                    expectedDocumentMock.Setup(d => d.EtherPreviousAddresses).Returns([]);
+                    expectedDocumentMock.Setup(d => d.MaxAllowedClients).Returns(UserBase.DefaultMaxAllowedClients);
+                    expectedDocumentMock.Setup(d => d.NormalizedEmail).Returns("ASDFG@SAS.SO");
+                    expectedDocumentMock.Setup(d => d.NormalizedUsername).Returns("ASDFGA");
+                    expectedDocumentMock.Setup(d => d.Roles).Returns([]);
+                    expectedDocumentMock.Setup(d => d.SecurityStamp).Returns("ZNB7TIG3GMD6SAWRIYPN2ST5Q734O7DV");
+                    expectedDocumentMock.Setup(d => d.SharedInfoId).Returns("62fd293ca12c0fd52db29c8c");
+                    expectedDocumentMock.Setup(d => d.Username).Returns("asdfga");
+                    expectedDocumentMock.Setup(d => d.AccessFailedCount).Returns(0);
+                    expectedDocumentMock.Setup(d => d.AuthenticatorKey).Returns("SVKPXJRGFOAJGSJZOUUUJSSZZTYBXDPL"); //key kept; only the flag is migrated
+                    expectedDocumentMock.Setup(d => d.EtherManagedPrivateKey).Returns("e883fcbe10b59d63dc7f1bbed29dbd81f17a03fc65ea7d87461f45a6dfe76d0c");
+                    expectedDocumentMock.Setup(d => d.PasswordHash).Returns("AQAAAAEAACcQAAAAELAZKxcX4rTHtVo4ZBbpZdaxfsiB4xaOM/3mEO86iq8vdUPtglbwyk7qa2jDajBWUA==");
+                    expectedDocumentMock.Setup(d => d.IsAuthenticatorAppEnabled).Returns(false);
+                    expectedDocumentMock.Setup(d => d.TwoFactorEnabled).Returns(false);
+                    expectedDocumentMock.Setup(d => d.TwoFactorRecoveryCodes).Returns([]);
+                    expectedDocumentMock.Setup(d => d.Fido2Credentials).Returns([]);
 
                     tests.Add(new(sourceDocument, expectedDocumentMock.Object));
                 }
@@ -690,6 +862,48 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
                     expectedDocumentMock.Setup(d => d.CreationDateTime).Returns(new DateTime(2022, 03, 11, 14, 33, 31, 567));
                     expectedDocumentMock.Setup(d => d.Code).Returns("Vu6pBdFzjm");
                     expectedDocumentMock.Setup(d => d.EtherAddress).Returns("0x75691aD5a48d8f7A9f13a0Eab1B89E19eDFcA4d9");
+
+                    tests.Add(new(sourceDocument, expectedDocumentMock.Object));
+                }
+
+                return tests.Select(t => new object[] { t });
+            }
+        }
+
+        public static IEnumerable<object[]> Fido2ChallengeDeserializationTests
+        {
+            get
+            {
+                var tests = new List<DeserializationTestElement<Fido2Challenge, SsoDbContext>>();
+
+                // "a31c17c6-9671-4b89-87ff-dc19a4ada303" - v0.4.0 - Assertion challenge (User stored as a reference)
+                {
+                    var sourceDocument =
+                        @"{
+                            ""_id"" : ObjectId(""6a392c7e727c44ba78d5d6af""),
+                            ""_m"" : ""a31c17c6-9671-4b89-87ff-dc19a4ada303"",
+                            ""CreationDateTime"" : ISODate(""2026-06-22T14:37:18.593+02:00""),
+                            ""ExpiresAt"" : ISODate(""2026-06-22T14:42:18.593+02:00""),
+                            ""OptionsJson"" : ""{\""challenge\"":\""fakeChallenge_anonymized\"",\""timeout\"":60000,\""rpId\"":\""localhost\"",\""allowCredentials\"":[{\""type\"":\""public-key\"",\""id\"":\""fakeCredentialId_anonymized_for_unit_tests\"",\""transports\"":[\""nfc\"",\""usb\""]}],\""userVerification\"":\""discouraged\"",\""hints\"":[]}"",
+                            ""Purpose"" : ""Assertion"",
+                            ""User"" : {
+                                ""_m"" : ""a1976133-bb21-40af-b6de-3a0f7f7dc676"",
+                                ""_t"" : ""UserWeb2"",
+                                ""_id"" : ObjectId(""6a317235d33d390f7d1e350e"")
+                            }
+                        }";
+
+                    var expectedDocumentMock = new Mock<Fido2Challenge>();
+                    expectedDocumentMock.Setup(c => c.Id).Returns("6a392c7e727c44ba78d5d6af");
+                    expectedDocumentMock.Setup(c => c.CreationDateTime).Returns(new DateTime(2026, 06, 22, 12, 37, 18, 593));
+                    expectedDocumentMock.Setup(c => c.ExpiresAt).Returns(new DateTime(2026, 06, 22, 12, 42, 18, 593));
+                    expectedDocumentMock.Setup(c => c.OptionsJson).Returns(@"{""challenge"":""fakeChallenge_anonymized"",""timeout"":60000,""rpId"":""localhost"",""allowCredentials"":[{""type"":""public-key"",""id"":""fakeCredentialId_anonymized_for_unit_tests"",""transports"":[""nfc"",""usb""]}],""userVerification"":""discouraged"",""hints"":[]}");
+                    expectedDocumentMock.Setup(c => c.Purpose).Returns(Fido2ChallengePurpose.Assertion);
+                    {
+                        var userMock = new Mock<UserBase>();
+                        userMock.Setup(u => u.Id).Returns("6a317235d33d390f7d1e350e");
+                        expectedDocumentMock.Setup(c => c.User).Returns(userMock.Object);
+                    }
 
                     tests.Add(new(sourceDocument, expectedDocumentMock.Object));
                 }
@@ -933,9 +1147,24 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
                     Assert.Equal(expectedWeb2.EtherManagedPrivateKey, resultWeb2.EtherManagedPrivateKey);
                     Assert.Equal(expectedWeb2.EtherLoginAddress, resultWeb2.EtherLoginAddress);
                     Assert.Equal(expectedWeb2.PasswordHash, resultWeb2.PasswordHash);
+                    Assert.Equal(expectedWeb2.IsAuthenticatorAppEnabled, resultWeb2.IsAuthenticatorAppEnabled);
                     Assert.Equal(expectedWeb2.TwoFactorEnabled, resultWeb2.TwoFactorEnabled);
                     Assert.Equal(expectedWeb2.TwoFactorRecoveryCodes, resultWeb2.TwoFactorRecoveryCodes);
                     Assert.NotNull(resultWeb2.EtherManagedPrivateKey);
+
+                    var expectedCredentials = expectedWeb2.Fido2Credentials.ToList();
+                    var resultCredentials = resultWeb2.Fido2Credentials.ToList();
+                    Assert.Equal(expectedCredentials.Count, resultCredentials.Count);
+                    for (var i = 0; i < expectedCredentials.Count; i++)
+                    {
+                        Assert.Equal(expectedCredentials[i].CredentialId, resultCredentials[i].CredentialId);
+                        Assert.Equal(expectedCredentials[i].PublicKey, resultCredentials[i].PublicKey);
+                        Assert.Equal(expectedCredentials[i].Nickname, resultCredentials[i].Nickname);
+                        Assert.Equal(expectedCredentials[i].SignatureCounter, resultCredentials[i].SignatureCounter);
+                        Assert.Equal(expectedCredentials[i].CreatedAt, resultCredentials[i].CreatedAt);
+                        Assert.Equal(expectedCredentials[i].LastUsedAt, resultCredentials[i].LastUsedAt);
+                        Assert.Equal(expectedCredentials[i].Transports, resultCredentials[i].Transports);
+                    }
                     break;
                 case UserWeb3 expectedWeb3: break;
                 default: throw new InvalidOperationException();
@@ -964,6 +1193,33 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
             Assert.Equal(testElement.ExpectedModel.EtherAddress, result.EtherAddress);
             Assert.NotNull(result.Id);
             Assert.NotNull(result.Code);
+        }
+
+        [Theory, MemberData(nameof(Fido2ChallengeDeserializationTests))]
+        public void Deserialize_WithFido2ChallengeDocument_ReturnsExpectedModel(DeserializationTestElement<Fido2Challenge, SsoDbContext> testElement)
+        {
+            ArgumentNullException.ThrowIfNull(testElement);
+
+            // Arrange.
+            using var documentReader = new JsonReader(testElement.SourceDocument);
+            var modelMapSerializer = new ModelMapSerializer<Fido2Challenge>(dbContext);
+            var deserializationContext = BsonDeserializationContext.CreateRoot(documentReader);
+            testElement.SetupAction(mongoDatabaseMock, dbContext);
+
+            // Action.
+            using var dbExecutionContext = new DbExecutionContextHandler(dbContext); //run into a db execution context
+            var result = modelMapSerializer.Deserialize(deserializationContext);
+
+            // Assert.
+            Assert.Equal(testElement.ExpectedModel.Id, result.Id);
+            Assert.Equal(testElement.ExpectedModel.CreationDateTime, result.CreationDateTime);
+            Assert.Equal(testElement.ExpectedModel.ExpiresAt, result.ExpiresAt);
+            Assert.Equal(testElement.ExpectedModel.OptionsJson, result.OptionsJson);
+            Assert.Equal(testElement.ExpectedModel.Purpose, result.Purpose);
+            Assert.Equal(testElement.ExpectedModel.User, result.User, EntityModelEqualityComparer.Instance);
+            Assert.NotNull(result.Id);
+            Assert.NotNull(result.OptionsJson);
+            Assert.NotNull(result.User);
         }
     }
 }

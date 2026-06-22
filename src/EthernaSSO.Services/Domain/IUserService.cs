@@ -44,8 +44,7 @@ namespace Etherna.SSOServer.Services.Domain
             bool lockoutEnabled,
             DateTimeOffset? lockoutEnd,
             string? phoneNumber,
-            IEnumerable<Role> roles,
-            bool twoFactorEnabled);
+            IEnumerable<Role> roles);
 
         Task<(IEnumerable<(string key, string msg)> errors, UserWeb3? user)> RegisterWeb3UserAsync(
             string username,

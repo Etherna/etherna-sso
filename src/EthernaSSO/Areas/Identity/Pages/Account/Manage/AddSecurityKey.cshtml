@@ -1,0 +1,53 @@
+@page
+@model AddSecurityKeyModel
+@{
+    ViewData["Title"] = "Add security key";
+    ViewData["ActivePage"] = ManageNavPages.TwoFactorAuthentication;
+}
+
+<partial name="_StatusMessage" for="StatusMessage" />
+<h2>@ViewData["Title"]</h2>
+
+<p>Choose a name to identify this key later, then tap your key (or use the platform authenticator) when prompted.</p>
+
+<div class="row">
+    <div class="col-md-6">
+        <form id="add-security-key-form" method="post">
+            <div asp-validation-summary="All" class="text-danger"></div>
+            <div class="mb-3">
+                <label asp-for="Input.Nickname"></label>
+                <input asp-for="Input.Nickname" class="form-control" maxlength="@Etherna.SSOServer.Domain.Models.Fido2CredentialAgg.Fido2Credential.MaxNicknameLength" />
+                <span asp-validation-for="Input.Nickname" class="text-danger"></span>
+            </div>
+            <input type="hidden" asp-for="Input.AttestationResponseJson" id="attestation-response" />
+            <div class="mb-3">
+                <button type="button" id="register-security-key" class="btn btn-primary">Register</button>
+                <a asp-page="./TwoFactorAuthentication" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/dist/js/etherna-fido2.js" asp-append-version="true"></script>
+    <script>
+        (function () {
+            const options = @Html.Raw(Model.CredentialOptionsJson);
+            const button = document.getElementById('register-security-key');
+            const input = document.getElementById('attestation-response');
+            const form = document.getElementById('add-security-key-form');
+
+            button.addEventListener('click', async function () {
+                try {
+                    const json = await window.ethernaFido2.createCredential(options);
+                    input.value = json;
+                    form.submit();
+                } catch (err) {
+                    console.error(err);
+                    alert(err.message || 'Security key registration failed.');
+                }
+            });
+        })();
+    </script>
+}
