@@ -2,18 +2,24 @@
   "name": "etherna-sso",
   "version": "1.0.0",
   "scripts": {
-    "watch": "mix watch",
-    "build": "mix",
-    "build-production": "mix --production",
+    "build-js": "esbuild Static/js/site.js Static/js/admin.js Static/js/signin-redirect.js Static/ts/etherna-qrcode.ts Static/ts/etherna-web3-signin.ts Static/ts/etherna-fido2.ts --bundle --minify --format=iife --outdir=wwwroot/dist/js --entry-names=[name] --log-level=warning",
+    "build-css": "sass Static/scss/site.scss:wwwroot/dist/css/site.css --style=compressed --no-source-map --quiet-deps --silence-deprecation=import,global-builtin,color-functions,if-function && postcss wwwroot/dist/css/site.css --use autoprefixer --replace --no-map",
+    "build-production": "npm run build-js && npm run build-css",
+    "build": "npm run build-production",
+    "watch": "esbuild Static/js/site.js Static/js/admin.js Static/js/signin-redirect.js Static/ts/etherna-qrcode.ts Static/ts/etherna-web3-signin.ts Static/ts/etherna-fido2.ts --bundle --format=iife --outdir=wwwroot/dist/js --entry-names=[name] --watch",
+    "watch-css": "sass --watch Static/scss/site.scss:wwwroot/dist/css/site.css --quiet-deps --silence-deprecation=import,global-builtin,color-functions,if-function",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "browserslist": [
+    "defaults"
+  ],
   "dependencies": {
     "@popperjs/core": "2.11.8",
     "bootstrap": "5.3.8",
-    "ethers": "6.16.0",
+    "ethers": "6.17.0",
     "flatpickr": "^4.6.13",
     "jquery": "4.0.0",
     "jquery-datepicker": "1.12.3",
@@ -21,18 +27,14 @@
     "jquery-ui": "1.14.2",
     "jquery-validation": "1.22.1",
     "jquery-validation-unobtrusive": "4.0.0",
-    "popper.js": "1.16.1",
     "qrcode-generator": "^2.0.4"
   },
   "devDependencies": {
     "autoprefixer": "10.5.0",
-    "laravel-mix": "6.0.49",
-    "laravel-mix-purgecss": "6.0.0",
-    "postcss": "8.5.13",
-    "resolve-url-loader": "5.0.0",
-    "sass": "1.99.0",
-    "sass-loader": "16.0.7",
-    "ts-loader": "9.5.7",
+    "esbuild": "0.28.1",
+    "postcss": "8.5.15",
+    "postcss-cli": "11.0.1",
+    "sass": "1.101.0",
     "typescript": "6.0.3"
   }
 }

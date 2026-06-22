@@ -55,7 +55,7 @@
     <Exec Command="npm run build-production" />
   </Target>
 
-  <Target Name="DebugRunWebpack" BeforeTargets="Build" Condition="'$(Configuration)' == 'Debug' And Exists('node_modules')">
+  <Target Name="DebugRunBundler" BeforeTargets="Build" Condition="'$(Configuration)' == 'Debug' And Exists('node_modules')">
     <Message Importance="High" Text="Compiling bundle..." />
     <Exec Command="npm run build-production" />
   </Target>

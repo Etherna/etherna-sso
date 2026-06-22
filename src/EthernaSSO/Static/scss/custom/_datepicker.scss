@@ -1,6 +1,6 @@
-@import "../../node_modules/jquery-ui/themes/base/datepicker.css";
-@import "../../node_modules/jquery-datetimepicker/build/jquery.datetimepicker.min.css";
-@import "../../node_modules/flatpickr/dist/flatpickr.min.css";
+@import "../../../node_modules/jquery-ui/themes/base/datepicker";
+@import "../../../node_modules/jquery-datetimepicker/build/jquery.datetimepicker.min";
+@import "../../../node_modules/flatpickr/dist/flatpickr.min";
 
 .ui-datepicker {
   background-color: #fff;

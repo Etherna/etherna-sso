@@ -1,11 +1,10 @@
+import $ from "./jquery-global"
 import "bootstrap"
-
-import $ from "jquery"
+import "jquery-validation"
+import "jquery-validation-unobtrusive"
 import datepickerFactory from "jquery-datepicker"
 
-window.$ = window.jQuery = $
-
-// Jquery UI - Date Picker
+// jQuery date picker
 datepickerFactory($)
 
 $(function () {
