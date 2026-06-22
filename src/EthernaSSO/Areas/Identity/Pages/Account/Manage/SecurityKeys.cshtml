@@ -49,7 +49,3 @@
     <input type="hidden" asp-for="Input.Nickname" value="@Model.Credential.Nickname" />
     <button type="submit" class="btn btn-danger" onclick="return confirm('Remove this security key? You will no longer be able to use it to sign in.');">Remove security key</button>
 </form>
-
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-}

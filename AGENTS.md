@@ -14,7 +14,7 @@ dotnet test --filter "FullyQualifiedName~UserBaseTest.AddClaim_WithCustomClaim_A
 dotnet run  --project src/EthernaSSO                # local dev server
 ```
 
-Frontend assets are bundled by Laravel Mix (webpack). The `EthernaSSO.csproj` MSBuild targets auto-run `npm install` + `npm run build-production` on `Debug` (if missing) and always on `Release`, so a plain `dotnet build` produces a working wwwroot. To iterate on JS/SCSS directly: `cd src/EthernaSSO && npm run watch`.
+Frontend assets are bundled by esbuild (JS/TS) plus Dart Sass + Autoprefixer (SCSS), driven by npm scripts (no bundler config file). The `EthernaSSO.csproj` MSBuild targets auto-run `npm install` + `npm run build-production` on `Debug` (if missing) and always on `Release`, so a plain `dotnet build` produces a working wwwroot. To iterate on JS/SCSS directly: `cd src/EthernaSSO && npm run watch` (JS/TS) or `npm run watch-css` (SCSS).
 
 Docker: `docker build .` (uses `Dockerfile`, which also runs `dotnet test` as part of the build stage).
 
