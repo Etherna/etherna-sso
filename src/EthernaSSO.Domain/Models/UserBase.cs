@@ -13,10 +13,10 @@
 // If not, see <https://www.gnu.org/licenses/>.
 
 using Etherna.Authentication;
-using Etherna.BeeNet.Models;
 using Etherna.MongODM.Core.Attributes;
 using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models.UserAgg;
+using Etherna.SwarmSdk.Models;
 using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;

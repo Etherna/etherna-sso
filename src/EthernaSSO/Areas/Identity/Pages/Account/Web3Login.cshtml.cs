@@ -14,7 +14,6 @@
 
 using Duende.IdentityServer.Services;
 using Duende.IdentityServer.Stores;
-using Etherna.BeeNet.Models;
 using Etherna.DomainEvents;
 using Etherna.MongoDB.Driver;
 using Etherna.SSOServer.Configs.Metrics;
@@ -25,6 +24,7 @@ using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Services.Domain;
 using Etherna.SSOServer.Services.Extensions;
 using Etherna.SSOServer.Services.Options;
+using Etherna.SwarmSdk.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;

@@ -12,8 +12,8 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.BeeNet.Exceptions;
 using Etherna.MongODM.Core.Exceptions;
+using Etherna.SwarmSdk.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Serilog;
 using System;
@@ -52,13 +52,13 @@ namespace Etherna.SSOServer.Areas.Api
                         return ErrorResults.GetUnauthorizedErrorResult();
 
                     // Error code 404.
-                    case BeeNetApiException { StatusCode: 404 }:
+                    case SwarmSdkApiException { StatusCode: 404 }:
                     case KeyNotFoundException:
                     case MongodmEntityNotFoundException:
                         return ErrorResults.GetNotFoundErrorResult();
                     
                     // Error code 503.
-                    case BeeNetApiException:
+                    case SwarmSdkApiException:
                     case NotSupportedException:
                         return ErrorResults.GetServiceUnavailableErrorResult();
                         

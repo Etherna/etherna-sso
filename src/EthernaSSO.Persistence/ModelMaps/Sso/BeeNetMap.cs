@@ -12,10 +12,10 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.BeeNet.Models;
 using Etherna.MongODM.Core;
 using Etherna.MongODM.Core.Serialization;
 using Etherna.SSOServer.Persistence.Serializers;
+using Etherna.SwarmSdk.Models;
 
 namespace Etherna.SSOServer.Persistence.ModelMaps.Sso
 {

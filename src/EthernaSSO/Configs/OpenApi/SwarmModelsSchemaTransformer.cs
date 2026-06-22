@@ -12,8 +12,8 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.BeeNet.JsonConverters;
-using Etherna.BeeNet.Models;
+using Etherna.SwarmSdk.JsonConverters;
+using Etherna.SwarmSdk.Models;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.OpenApi;
 using System;

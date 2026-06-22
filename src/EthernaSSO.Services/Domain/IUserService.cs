@@ -12,10 +12,10 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.BeeNet.Models;
 using Etherna.MongODM.Core.Repositories;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Domain.Models.UserAgg;
+using Etherna.SwarmSdk.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;

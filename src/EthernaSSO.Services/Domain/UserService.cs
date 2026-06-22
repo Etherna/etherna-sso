@@ -12,7 +12,6 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.BeeNet.Models;
 using Etherna.MongoDB.Bson;
 using Etherna.MongODM.Core.Exceptions;
 using Etherna.MongODM.Core.Repositories;
@@ -20,6 +19,7 @@ using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Domain.Models.UserAgg;
+using Etherna.SwarmSdk.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Nethereum.Hex.HexConvertors.Extensions;
