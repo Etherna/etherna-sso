@@ -778,5 +778,37 @@ namespace Etherna.SSOServer.Configs.IdentityServer
             IdResourcesDef.EtherAccounts,
             IdResourcesDef.Role
         ];
+
+        /// <summary>
+        /// Maps each scope to the user claims it grants, read from the configured identity resources
+        /// and api scopes (authoritative source). Used to preview, in the client editor, which claims
+        /// a token will carry for the selected scopes.
+        /// </summary>
+        public IReadOnlyDictionary<string, ICollection<string>> ScopeUserClaimsMap =>
+            field ??= BuildScopeUserClaimsMap();
+
+        // Helpers.
+        private Dictionary<string, ICollection<string>> BuildScopeUserClaimsMap()
+        {
+            var map = new Dictionary<string, ICollection<string>>();
+
+            // Identity scopes: claims come straight from the identity resource.
+            foreach (var resource in IdResources)
+                map[resource.Name] = resource.UserClaims;
+
+            // Api scopes: union the scope's own claims with those of every api resource that exposes
+            // it, since IdentityServer issues both for a requested scope.
+            List<ApiResource> apiResources = [.. ApiResources];
+            foreach (var scope in ApiScopes)
+            {
+                var claims = new HashSet<string>(scope.UserClaims);
+                foreach (var resource in apiResources)
+                    if (resource.Scopes.Contains(scope.Name))
+                        claims.UnionWith(resource.UserClaims);
+                map[scope.Name] = claims;
+            }
+
+            return map;
+        }
     }
 }

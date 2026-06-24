@@ -195,6 +195,7 @@ private void InternalHelper() { ... }
 - Prefer collection expressions over constructors to initialize any collection (lists, arrays, etc.): `[]` not `new()`, `["a", "b"]` not `new List<string> { "a", "b" }`. Use a constructor only when a collection expression can't express the intent (e.g. presizing capacity with `new List<T>(capacity)`).
 - Target-typed `new()` when type is clear from context (for non-collection types)
 - Tuple deconstruction for multiple return values
+- Use the `field` keyword for field-backed properties (e.g. lazy initialization) instead of declaring an explicit backing field: `public T Prop => field ??= Compute();`
 
 ## LINQ
 
