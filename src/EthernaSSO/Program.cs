@@ -400,7 +400,7 @@ namespace Etherna.SSOServer
             // Configure IdentityServer.
             var idServerConfig = new IdServerConfig(config);
             services.AddSingleton(idServerConfig);
-            services.AddIdentityServer(options =>
+            var idServerBuilder = services.AddIdentityServer(options =>
                 {
                     options.Authentication.CookieAuthenticationScheme = IdentityConstants.ApplicationScheme;
                     options.Authentication.CookieSameSiteMode = SameSiteMode.Lax;
@@ -435,12 +435,17 @@ namespace Etherna.SSOServer
                 ConnectionString = config["ConnectionStrings:DataProtectionDb"] ?? throw new ServiceConfigurationException()
             }, "signingKeys"));
 
-            //replace client store with composite (DB + in-memory) and CORS policy service
+            //replace client store with composite (DB + in-memory), wrapped by Duende's client store
+            //cache (default 15m TTL) so the owner ether address claim isn't resolved on every token
+            //request, and replace the CORS policy service
             var inMemoryClients = idServerConfig.Clients.ToArray();
-            services.Replace(ServiceDescriptor.Scoped<IClientStore>(sp =>
+            services.AddScoped(sp =>
                 new ClientAppStore(
                     sp.GetRequiredService<ISsoDbContext>(),
-                    inMemoryClients)));
+                    inMemoryClients));
+            idServerBuilder
+                .AddInMemoryCaching()
+                .AddClientStoreCache<ClientAppStore>();
             services.Replace(ServiceDescriptor.Scoped<ICorsPolicyService>(sp =>
                 new CompositeCorsPolicyService(
                     sp.GetRequiredService<ISsoDbContext>(),

@@ -132,6 +132,12 @@ namespace Etherna.SSOServer.Domain.Models
             {
                 if (!DeveloperAllowedScopes.Contains(scope))
                     throw new ArgumentException($"Scope '{scope}' is not allowed for developer clients.");
+
+                // Machine-to-machine clients have no interactive user: identity scopes are invalid for the
+                // client credentials grant and IdentityServer rejects them at the token request, so forbid them.
+                if (clientType == ClientAppType.ClientCredential && DeveloperAllowedIdentityScopes.Contains(scope))
+                    throw new ArgumentException(
+                        "Identity scopes are not allowed for machine-to-machine clients.", nameof(allowedScopes));
             }
             _allowedScopes = [..allowedScopes];
 
@@ -294,6 +300,11 @@ namespace Etherna.SSOServer.Domain.Models
                 {
                     if (!DeveloperAllowedScopes.Contains(scope))
                         throw new ArgumentException($"Scope '{scope}' is not allowed for developer clients.");
+
+                    // Machine-to-machine clients can't hold identity scopes (invalid for the client credentials grant).
+                    if (ClientType == ClientAppType.ClientCredential && DeveloperAllowedIdentityScopes.Contains(scope))
+                        throw new ArgumentException(
+                            "Identity scopes are not allowed for machine-to-machine clients.", nameof(scopes));
                 }
             }
             else // admin-created client

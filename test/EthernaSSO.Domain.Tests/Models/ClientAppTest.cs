@@ -107,6 +107,33 @@ namespace Etherna.SSOServer.Domain.Models
         }
 
         [Fact]
+        public void Constructor_WithIdentityScopeForClientCredential_ThrowsArgumentException()
+        {
+            // Action & Assert.
+            Assert.Throws<ArgumentException>(() => new ClientApp(
+                clientName: "Service",
+                description: null,
+                clientType: ClientAppType.ClientCredential,
+                owner: CreateOwner(),
+                allowedScopes: [EthernaScopes.OpenId]));
+        }
+
+        [Fact]
+        public void SetAllowedScopes_WithIdentityScopeForClientCredential_ThrowsArgumentException()
+        {
+            // Arrange.
+            var client = new ClientApp(
+                clientName: "Service",
+                description: null,
+                clientType: ClientAppType.ClientCredential,
+                owner: CreateOwner(),
+                allowedScopes: [EthernaScopes.UserApiSso]);
+
+            // Action & Assert.
+            Assert.Throws<ArgumentException>(() => client.SetAllowedScopes([EthernaScopes.OpenId]));
+        }
+
+        [Fact]
         public void Constructor_WithDisallowedScopeForDeveloper_ThrowsArgumentException()
         {
             // Action & Assert.

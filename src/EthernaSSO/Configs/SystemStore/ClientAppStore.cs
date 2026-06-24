@@ -14,9 +14,11 @@
 
 using Duende.IdentityServer.Models;
 using Duende.IdentityServer.Stores;
+using Etherna.Authentication;
 using Etherna.MongoDB.Driver.Linq;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Domain.Models.ClientAppAgg;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -42,7 +44,7 @@ namespace Etherna.SSOServer.Configs.SystemStore
         }
 
         // Helpers.
-        private static Client ToIdentityServerClient(ClientApp clientApp)
+        internal static Client ToIdentityServerClient(ClientApp clientApp)
         {
             var client = new Client
             {
@@ -67,6 +69,17 @@ namespace Etherna.SSOServer.Configs.SystemStore
                     .Select(s => new Secret(s.Value, s.Description ?? "", s.Expiration))
                     .ToList()
             };
+
+            // Machine-to-machine clients have no interactive user, so downstream services
+            // (e.g. the Gateway) can't resolve an ether address to bill from user claims.
+            // Embed the owner's ether address as a client claim so the application's consumption
+            // is attributed to its owner. Interactive flows must keep the logged-in user's address.
+            if (clientApp.ClientType == ClientAppType.ClientCredential)
+            {
+                client.Claims.Add(new ClientClaim(EthernaClaimTypes.EtherAddress, clientApp.Owner.EtherAddress.ToString()));
+                client.AlwaysSendClientClaims = true;
+                client.ClientClaimsPrefix = ""; // emit as "ether_address", not "client_ether_address"
+            }
 
             return client;
         }

@@ -14,6 +14,7 @@
 
 using Etherna.Authentication;
 using Etherna.MongoDB.Driver.Linq;
+using Etherna.SSOServer.Configs.IdentityServer;
 using Etherna.SSOServer.Configs.Metrics;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Helpers;
@@ -37,7 +38,8 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage.Developer
     public class ClientCreateModel(
         ILogger<ClientCreateModel> logger,
         ISsoDbContext ssoDbContext,
-        UserManager<UserBase> userManager)
+        UserManager<UserBase> userManager,
+        IdServerConfig idServerConfig)
         : PageModel
     {
         // Models.
@@ -81,11 +83,20 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage.Developer
         public string? GeneratedClientId { get; set; }
         public string? GeneratedSecret { get; set; }
 
+        // Ether address of the owner (current user); machine-to-machine tokens are billed to it.
+        public string? OwnerEtherAddress { get; set; }
+
+        // Scope -> claims it grants (authoritative, from configured resources), and the claims always
+        // present on client-credentials tokens. Used to preview token claims in the form.
+        public IReadOnlyDictionary<string, ICollection<string>> ScopeClaims => idServerConfig.ScopeUserClaimsMap;
+        public IEnumerable<string> ClientCredentialAlwaysClaims => [EthernaClaimTypes.EtherAddress];
+
         // Methods.
         public async Task<IActionResult> OnGetAsync()
         {
             var user = await userManager.GetUserAsync(User) ??
                 throw new InvalidOperationException();
+            OwnerEtherAddress = user.EtherAddress.ToString();
 
             var isAdmin = await userManager.IsInRoleAsync(user, Role.AdministratorName);
             if (!isAdmin)
@@ -114,6 +125,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage.Developer
 
             var user = await userManager.GetUserAsync(User) ??
                 throw new InvalidOperationException();
+            OwnerEtherAddress = user.EtherAddress.ToString();
 
             var isAdmin = await userManager.IsInRoleAsync(user, Role.AdministratorName);
 
@@ -146,6 +158,16 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage.Developer
             var redirectUris = ParseMultilineField(Input.RedirectUris);
             var postLogoutRedirectUris = ParseMultilineField(Input.PostLogoutRedirectUris);
             var allowedCorsOrigins = ParseMultilineField(Input.AllowedCorsOrigins);
+
+            // Drop fields not applicable to the chosen type (the form hides them; defend against crafted posts).
+            if (Input.ClientType == ClientAppType.ClientCredential)
+            {
+                redirectUris.Clear();
+                postLogoutRedirectUris.Clear();
+                allowedCorsOrigins.Clear();
+            }
+            else if (Input.ClientType == ClientAppType.WebApp)
+                allowedCorsOrigins.Clear();
 
             switch (Input.ClientType)
             {
@@ -218,9 +240,19 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage.Developer
                     return Page();
             }
 
-            // Ensure openid scope is always included.
-            if (!Input.AllowedScopes.Contains(EthernaScopes.OpenId))
+            // Normalize scopes by client type.
+            if (Input.ClientType == ClientAppType.ClientCredential)
+            {
+                // Machine-to-machine clients have no interactive user: identity scopes (openid, profile, ...)
+                // are invalid for the client credentials grant -- IdentityServer rejects a token request that
+                // asks for them -- so keep only API scopes.
+                Input.AllowedScopes.RemoveAll(s => !ClientApp.DeveloperAllowedApiScopes.Contains(s));
+            }
+            else if (!Input.AllowedScopes.Contains(EthernaScopes.OpenId))
+            {
+                // Interactive flows always need the openid identity scope.
                 Input.AllowedScopes.Insert(0, EthernaScopes.OpenId);
+            }
 
             // Validate scopes.
             foreach (var scope in Input.AllowedScopes)

@@ -85,19 +85,22 @@
             <div class="row">
                 <div class="col-sm-10">
 
-                    <div class="mb-3">
-                        <label class="col-form-label fw-bold">Identity Scopes</label>
-                        @foreach (var scope in ClientApp.DeveloperAllowedIdentityScopes)
-                        {
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox"
-                                       name="Input.AllowedScopes" value="@scope"
-                                       id="scope-@scope"
-                                       checked="@(Model.Input.AllowedScopes.Contains(scope))" />
-                                <label class="form-check-label" for="scope-@scope">@scope</label>
-                            </div>
-                        }
-                    </div>
+                    @if (Model.ClientType != ClientAppType.ClientCredential)
+                    {
+                        <div class="mb-3">
+                            <label class="col-form-label fw-bold">Identity Scopes</label>
+                            @foreach (var scope in ClientApp.DeveloperAllowedIdentityScopes)
+                            {
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox"
+                                           name="Input.AllowedScopes" value="@scope"
+                                           id="scope-@scope"
+                                           checked="@(Model.Input.AllowedScopes.Contains(scope))" />
+                                    <label class="form-check-label" for="scope-@scope">@scope</label>
+                                </div>
+                            }
+                        </div>
+                    }
 
                     <div class="mb-3">
                         <label class="col-form-label fw-bold">API Scopes</label>
@@ -118,41 +121,73 @@
         </div>
     </div>
 
-    <!-- URIs -->
+    <!-- Claims -->
     <div class="card mt-3">
-        <h5 class="card-header">URIs</h5>
+        <h5 class="card-header">Claims</h5>
         <div class="card-body">
             <div class="row">
                 <div class="col-sm-10">
-
-                    <div class="mb-3 row">
-                        <label asp-for="Input.RedirectUris" class="col-sm-3 col-form-label"></label>
-                        <div class="col-sm-9">
-                            <textarea class="form-control" rows="4" asp-for="Input.RedirectUris"></textarea>
-                            <span asp-validation-for="Input.RedirectUris" class="text-danger"></span>
-                        </div>
+                    <div class="form-text mb-2">
+                        These claims are issued automatically in the token, based on the selected scopes.
+                        They are not configurable; some appear only if the user has the corresponding data.
                     </div>
-
-                    <div class="mb-3 row">
-                        <label asp-for="Input.PostLogoutRedirectUris" class="col-sm-3 col-form-label"></label>
-                        <div class="col-sm-9">
-                            <textarea class="form-control" rows="4" asp-for="Input.PostLogoutRedirectUris"></textarea>
-                            <span asp-validation-for="Input.PostLogoutRedirectUris" class="text-danger"></span>
+                    <ul id="claimsList" class="mb-0">
+                        <li class="text-muted">(select scopes to see the included claims)</li>
+                    </ul>
+                    @if (Model.ClientType == ClientAppType.ClientCredential)
+                    {
+                        <div class="form-text mt-2">
+                            Machine-to-machine usage is billed to the owner's address: <code>@Model.OwnerEtherAddress</code>
                         </div>
-                    </div>
-
-                    <div class="mb-3 row">
-                        <label asp-for="Input.AllowedCorsOrigins" class="col-sm-3 col-form-label"></label>
-                        <div class="col-sm-9">
-                            <textarea class="form-control" rows="4" asp-for="Input.AllowedCorsOrigins"></textarea>
-                            <span asp-validation-for="Input.AllowedCorsOrigins" class="text-danger"></span>
-                        </div>
-                    </div>
-
+                    }
                 </div>
             </div>
         </div>
     </div>
+
+    @* Machine-to-machine clients have no interactive flow: no redirect/post-logout/CORS URIs. *@
+    @if (Model.ClientType != ClientAppType.ClientCredential)
+    {
+        <!-- URIs -->
+        <div class="card mt-3">
+            <h5 class="card-header">URIs</h5>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-sm-10">
+
+                        <div class="mb-3 row">
+                            <label asp-for="Input.RedirectUris" class="col-sm-3 col-form-label"></label>
+                            <div class="col-sm-9">
+                                <textarea class="form-control" rows="4" asp-for="Input.RedirectUris"></textarea>
+                                <span asp-validation-for="Input.RedirectUris" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3 row">
+                            <label asp-for="Input.PostLogoutRedirectUris" class="col-sm-3 col-form-label"></label>
+                            <div class="col-sm-9">
+                                <textarea class="form-control" rows="4" asp-for="Input.PostLogoutRedirectUris"></textarea>
+                                <span asp-validation-for="Input.PostLogoutRedirectUris" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        @* CORS origins apply to browser-based (native/SPA) clients only, matching the create form. *@
+                        @if (Model.ClientType == ClientAppType.NativeApp)
+                        {
+                            <div class="mb-3 row">
+                                <label asp-for="Input.AllowedCorsOrigins" class="col-sm-3 col-form-label"></label>
+                                <div class="col-sm-9">
+                                    <textarea class="form-control" rows="4" asp-for="Input.AllowedCorsOrigins"></textarea>
+                                    <span asp-validation-for="Input.AllowedCorsOrigins" class="text-danger"></span>
+                                </div>
+                            </div>
+                        }
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 
     <!-- Actions -->
     <div class="card mt-3">
@@ -178,3 +213,47 @@
     </div>
 
 </form>
+
+@section Scripts {
+    <script>
+        // Claims preview: mirrors the token by listing the union of claims granted by the selected
+        // scopes, plus the claims always issued for client-credentials clients (the owner ether address).
+        (function () {
+            var claimsList = document.getElementById('claimsList');
+            if (!claimsList) return;
+            var scopeClaims = @Json.Serialize(Model.ScopeClaims);
+            var m2mAlwaysClaims = @Json.Serialize(Model.ClientCredentialAlwaysClaims);
+            var isM2m = @(Model.ClientType == ClientAppType.ClientCredential ? "true" : "false");
+
+            function updateClaims() {
+                var set = {};
+                document.querySelectorAll('input[name="Input.AllowedScopes"]').forEach(function (input) {
+                    if (input.disabled || (input.type !== 'hidden' && !input.checked)) return;
+                    (scopeClaims[input.value] || []).forEach(function (c) { set[c] = true; });
+                });
+                if (isM2m)
+                    m2mAlwaysClaims.forEach(function (c) { set[c] = true; });
+
+                claimsList.innerHTML = '';
+                var claims = Object.keys(set).sort();
+                if (claims.length === 0) {
+                    var empty = document.createElement('li');
+                    empty.className = 'text-muted';
+                    empty.textContent = '(no claims)';
+                    claimsList.appendChild(empty);
+                } else {
+                    claims.forEach(function (c) {
+                        var li = document.createElement('li');
+                        li.textContent = c;
+                        claimsList.appendChild(li);
+                    });
+                }
+            }
+
+            document.querySelectorAll('input[name="Input.AllowedScopes"]').forEach(function (input) {
+                input.addEventListener('change', updateClaims);
+            });
+            updateClaims();
+        })();
+    </script>
+}

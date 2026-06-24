@@ -12,6 +12,8 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
+using Etherna.Authentication;
+using Etherna.SSOServer.Configs.IdentityServer;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models;
@@ -34,7 +36,8 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage.Developer
     public class ClientEditModel(
         ILogger<ClientEditModel> logger,
         ISsoDbContext ssoDbContext,
-        UserManager<UserBase> userManager)
+        UserManager<UserBase> userManager,
+        IdServerConfig idServerConfig)
         : StatusMessagePageModel
     {
         // Models.
@@ -86,6 +89,14 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage.Developer
         public ClientAppType ClientType { get; private set; }
         public bool RequireClientSecret { get; private set; }
 
+        // Ether address of the owner; machine-to-machine tokens are billed to it.
+        public string? OwnerEtherAddress { get; private set; }
+
+        // Scope -> claims it grants (authoritative, from configured resources), and the claims always
+        // present on client-credentials tokens. Used to preview token claims in the form.
+        public IReadOnlyDictionary<string, ICollection<string>> ScopeClaims => idServerConfig.ScopeUserClaimsMap;
+        public IEnumerable<string> ClientCredentialAlwaysClaims => [EthernaClaimTypes.EtherAddress];
+
         [BindProperty]
         public InputModel Input { get; set; } = default!;
 
@@ -104,6 +115,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage.Developer
             ClientId = clientApp.ClientId;
             ClientType = clientApp.ClientType;
             RequireClientSecret = clientApp.RequireClientSecret;
+            OwnerEtherAddress = clientApp.Owner.EtherAddress.ToString();
             Input = new InputModel(clientApp);
 
             return Page();
@@ -123,6 +135,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage.Developer
             ClientId = clientApp.ClientId;
             ClientType = clientApp.ClientType;
             RequireClientSecret = clientApp.RequireClientSecret;
+            OwnerEtherAddress = clientApp.Owner.EtherAddress.ToString();
 
             if (!ModelState.IsValid)
                 return Page();
@@ -138,11 +151,30 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage.Developer
                 return Page();
             }
 
-            var redirectUris = ParseMultilineField(Input.RedirectUris);
-            var postLogoutRedirectUris = ParseMultilineField(Input.PostLogoutRedirectUris);
-            var allowedCorsOrigins = ParseMultilineField(Input.AllowedCorsOrigins);
+            // Fields not applicable to the client type aren't exposed by the form; normalize them away
+            // defensively, so a crafted post can't set redirect/CORS data on a client that doesn't use it.
+            var isClientCredential = clientApp.ClientType == ClientAppType.ClientCredential;
+            var isNativeApp = clientApp.ClientType == ClientAppType.NativeApp;
 
-            var allowCustomSchemes = ClientType == ClientAppType.NativeApp;
+            string[] redirectUris = isClientCredential ? [] : ParseMultilineField(Input.RedirectUris);
+            string[] postLogoutRedirectUris = isClientCredential ? [] : ParseMultilineField(Input.PostLogoutRedirectUris);
+            string[] allowedCorsOrigins = isNativeApp ? ParseMultilineField(Input.AllowedCorsOrigins) : [];
+
+            // Required fields per type (mirror the create form).
+            if (!isClientCredential && redirectUris.Length == 0)
+            {
+                ModelState.AddModelError("Input.RedirectUris", "At least one redirect URI is required.");
+                return Page();
+            }
+            if (isNativeApp && allowedCorsOrigins.Length == 0)
+            {
+                ModelState.AddModelError("Input.AllowedCorsOrigins",
+                    "At least one CORS origin is required for native applications.");
+                return Page();
+            }
+
+            // Validate URI formats.
+            var allowCustomSchemes = isNativeApp;
             if (redirectUris.Any(u => !UriHelper.IsValidRedirectUri(u, allowCustomSchemes)))
             {
                 var hint = allowCustomSchemes
@@ -164,6 +196,10 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage.Developer
                     "One or more CORS origins are invalid. Use https://domain.com or http://localhost[:port] with no path.");
                 return Page();
             }
+
+            // Machine-to-machine clients can't use identity scopes (invalid for the client credentials grant).
+            if (isClientCredential)
+                Input.AllowedScopes.RemoveAll(s => !ClientApp.DeveloperAllowedApiScopes.Contains(s));
 
             clientApp.SetInfo(Input.ClientName, Input.Description);
             clientApp.Enabled = Input.Enabled;
