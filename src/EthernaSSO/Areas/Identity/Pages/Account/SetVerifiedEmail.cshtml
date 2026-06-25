@@ -34,6 +34,11 @@ else
             <div class="mb-3">
                 <label asp-for="EmailInput.Email"></label>
                 <input asp-for="EmailInput.Email" class="form-control" />
+                <div class="form-check mt-2">
+                    <input asp-for="EmailInput.SubscribeToNewsletter" class="form-check-input" />
+                    <label asp-for="EmailInput.SubscribeToNewsletter" class="form-check-label"></label>
+                    <small class="form-text text-muted d-block">A verified email is required to subscribe.</small>
+                </div>
                 <button type="submit" class="btn btn-secondary mt-2">Send code</button>
             </div>
         </form>
@@ -41,6 +46,7 @@ else
         <form asp-page-handler="ConfirmCode"
               asp-route-returnUrl="@Model.ReturnUrl"
               asp-route-email="@Model.EmailInput?.Email"
+              asp-route-subscribeToNewsletter="@(Model.EmailInput?.SubscribeToNewsletter ?? false)"
               method="post">
 
             <div class="mb-3">

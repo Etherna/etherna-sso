@@ -29,6 +29,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
 {
     public class EmailModel(
         IEmailSender emailSender,
+        INewsletterService newsletterService,
         IRazorViewRenderer razorViewRenderer,
         ISsoDbContext ssoDbContext,
         UserManager<UserBase> userManager)
@@ -45,6 +46,9 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
 
         // Properties.
         public string? Email { get; set; }
+
+        public bool ShowNewsletterSection { get; set; }
+        public bool SubscribedToNewsletter { get; set; }
 
         [BindProperty]
         public InputModel Input { get; set; } = null!;
@@ -123,10 +127,37 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             return RedirectToPage();
         }
 
+        public async Task<IActionResult> OnPostSubscribeNewsletterAsync()
+        {
+            var user = await userManager.GetUserAsync(User);
+            if (user == null)
+                return NotFound($"Unable to load user with ID '{userManager.GetUserId(User)}'.");
+
+            var email = await userManager.GetEmailAsync(user);
+            if (email is null)
+            {
+                StatusMessage = new StatusMessage("You must add a verified email before subscribing.", StatusMessageType.Warning);
+                return RedirectToPage();
+            }
+
+            // Idempotent: the newsletter service performs an add-or-update on the allowed list, so a repeated
+            // call (or a double submit) is harmless.
+            await newsletterService.SubscribeEmailAsync(email, NewsletterSubscriptionSource.AccountSettings);
+
+            StatusMessage = new StatusMessage("You have been subscribed to our newsletter.");
+            return RedirectToPage();
+        }
+
         // Helpers.
         private async Task LoadAsync(UserBase user)
         {
             Email = await userManager.GetEmailAsync(user);
+
+            // Offer the newsletter section whenever the user has a (verified) email, regardless of whether the
+            // newsletter service is enabled: when disabled, IsSubscribedAsync reports "not subscribed" and the
+            // subscribe call is a no-op. The button is shown only when the contact is not already subscribed.
+            ShowNewsletterSection = Email is not null;
+            SubscribedToNewsletter = ShowNewsletterSection && await newsletterService.IsSubscribedAsync(Email!);
         }
     }
 }

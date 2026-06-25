@@ -32,5 +32,23 @@
             </div>
             <button id="change-email-button" type="submit" asp-page-handler="ChangeEmail" class="btn btn-primary">Change email</button>
         </form>
+
+        @if (Model.ShowNewsletterSection)
+        {
+            <hr />
+            <div class="mb-3">
+                <label class="form-label d-block">Newsletter</label>
+                @if (Model.SubscribedToNewsletter)
+                {
+                    <p class="text-success mb-0">You are subscribed to our newsletter.</p>
+                }
+                else
+                {
+                    <form id="newsletter-form" method="post">
+                        <button id="subscribe-newsletter-button" type="submit" asp-page-handler="SubscribeNewsletter" class="btn btn-primary">Subscribe to newsletter</button>
+                    </form>
+                }
+            </div>
+        }
     </div>
 </div>

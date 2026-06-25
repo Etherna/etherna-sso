@@ -470,6 +470,7 @@ namespace Etherna.SSOServer
             // Configure setting.
             services.Configure<ApplicationOptions>(config.GetSection("Application") ?? throw new ServiceConfigurationException());
             services.Configure<EmailOptions>(config.GetSection("Email") ?? throw new ServiceConfigurationException());
+            services.Configure<NewsletterOptions>(config.GetSection("Newsletter") ?? throw new ServiceConfigurationException());
             services.Configure<SsoDbSeedSettings>(config.GetSection("DbSeed") ?? throw new ServiceConfigurationException());
             
             // Configure api handler.
