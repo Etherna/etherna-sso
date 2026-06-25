@@ -19,7 +19,7 @@ namespace Etherna.SSOServer.Services.Extensions
 {
     /*
      * Always group similar log delegates by type, always use incremental event ids.
-     * Last event id is: 46
+     * Last event id is: 48
      */
     public static class LoggerExtensions
     {
@@ -279,6 +279,18 @@ namespace Etherna.SSOServer.Services.Extensions
                 new EventId(4, nameof(LockedOutLoginAttempt)),
                 "User with ID '{UserId}' failed login attempt because account is locked out.");
 
+        private static readonly Action<ILogger, string, Exception> _newsletterStatusCheckFailed =
+            LoggerMessage.Define<string>(
+                LogLevel.Warning,
+                new EventId(48, nameof(NewsletterStatusCheckFailed)),
+                "Failed to read newsletter subscription status for email '{Email}'.");
+
+        private static readonly Action<ILogger, string, Exception> _newsletterSubscriptionFailed =
+            LoggerMessage.Define<string>(
+                LogLevel.Warning,
+                new EventId(47, nameof(NewsletterSubscriptionFailed)),
+                "Failed to subscribe email '{Email}' to the newsletter service.");
+
         private static readonly Action<ILogger, string, Exception> _notAllowedSingInLoginAttempt =
             LoggerMessage.Define<string>(
                 LogLevel.Warning,
@@ -396,6 +408,12 @@ namespace Etherna.SSOServer.Services.Extensions
 
         public static void LoggedInWithWeb3(this ILogger logger, string userId) =>
             _loggedInWithWeb3(logger, userId, null!);
+
+        public static void NewsletterStatusCheckFailed(this ILogger logger, string email, Exception exception) =>
+            _newsletterStatusCheckFailed(logger, email, exception);
+
+        public static void NewsletterSubscriptionFailed(this ILogger logger, string email, Exception exception) =>
+            _newsletterSubscriptionFailed(logger, email, exception);
 
         public static void NotAllowedSingInLoginAttempt(this ILogger logger, string userId) =>
             _notAllowedSingInLoginAttempt(logger, userId, null!);

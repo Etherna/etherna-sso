@@ -42,6 +42,7 @@ namespace Etherna.SSOServer.Services
             //domain
             services.AddScoped<IEmailSender, EmailSender>();
             services.AddScoped<IFido2Service, Fido2Service>();
+            services.AddScoped<INewsletterService, NewsletterService>();
             services.AddScoped<IRazorViewRenderer, RazorViewRenderer>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IWeb3AuthnService, Web3AuthnService>();

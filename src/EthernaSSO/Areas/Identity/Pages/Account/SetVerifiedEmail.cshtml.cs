@@ -29,6 +29,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 {
     public class SetVerifiedEmailModel(
         IEmailSender emailSender,
+        INewsletterService newsletterService,
         IClientStore clientStore,
         ISsoDbContext context,
         IIdentityServerInteractionService idServerInteractionService,
@@ -48,6 +49,9 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             [Display(Name = "Email (optional)")]
             [Required]
             public string Email { get; set; } = null!;
+
+            [Display(Name = "Subscribe to our newsletter")]
+            public bool SubscribeToNewsletter { get; set; }
         }
 
         // Properties.
@@ -62,8 +66,8 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         public string? ReturnUrl { get; private set; }
 
         // Methods.
-        public async Task OnGetAsync(string? email, bool isCodeSent, string? returnUrl) =>
-            await InitializeAsync(email, isCodeSent, returnUrl);
+        public async Task OnGetAsync(string? email, bool subscribeToNewsletter, bool isCodeSent, string? returnUrl) =>
+            await InitializeAsync(email, subscribeToNewsletter, isCodeSent, returnUrl);
 
         public async Task<IActionResult> OnGetSkipAsync(string? returnUrl) =>
             await ProceedAsync(returnUrl);
@@ -83,7 +87,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
             if (ModelState.ErrorCount > 0)
             {
-                await InitializeAsync(EmailInput.Email, false, returnUrl);
+                await InitializeAsync(EmailInput.Email, EmailInput.SubscribeToNewsletter, false, returnUrl);
                 return Page();
             }
 
@@ -102,11 +106,11 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 emailBody);
 
             // Return page.
-            await InitializeAsync(EmailInput.Email, true, returnUrl);
+            await InitializeAsync(EmailInput.Email, EmailInput.SubscribeToNewsletter, true, returnUrl);
             return Page();
         }
 
-        public async Task<IActionResult> OnPostConfirmCodeAsync(string email, string? returnUrl)
+        public async Task<IActionResult> OnPostConfirmCodeAsync(string email, bool subscribeToNewsletter, string? returnUrl)
         {
             // Validate model.
             ModelState.Clear();
@@ -121,7 +125,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
             if (ModelState.ErrorCount > 0)
             {
-                await InitializeAsync(email, true, returnUrl);
+                await InitializeAsync(email, subscribeToNewsletter, true, returnUrl);
                 return Page();
             }
 
@@ -129,14 +133,20 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             user.SetEmail(email);
             await context.SaveChangesAsync();
 
+            // Forward the verified contact to the newsletter service (best-effort, single opt-in).
+            // The email in the SSO db is never used for marketing: the newsletter service owns both the
+            // allowed list and the consent record (opt-in timestamp, source), so nothing is stored here.
+            if (subscribeToNewsletter)
+                await newsletterService.SubscribeEmailAsync(email, NewsletterSubscriptionSource.Registration);
+
             return await ProceedAsync(returnUrl);
         }
 
         // Helpers.
-        private async Task InitializeAsync(string? email, bool isCodeSent, string? returnUrl)
+        private async Task InitializeAsync(string? email, bool subscribeToNewsletter, bool isCodeSent, string? returnUrl)
         {
             if (email is not null)
-                EmailInput = new EmailInputModel { Email = email };
+                EmailInput = new EmailInputModel { Email = email, SubscribeToNewsletter = subscribeToNewsletter };
 
             var user = await userManager.GetUserAsync(User);
             IsWeb3 = user is UserWeb3;

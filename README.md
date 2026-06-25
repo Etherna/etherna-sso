@@ -30,6 +30,10 @@ source together with its build and deployment configuration.
   password reset and account recovery.
 - **Web3 login** — sign in by proving control of an Ethereum address via a challenge/response, and link an
   Ethereum address to an existing account.
+- **Newsletter opt-in** — optional: during email verification the user can opt in (a verified email is then
+  required), or later from the account email settings (a button shown only when not already subscribed). The
+  verified contact is forwarded to an external newsletter service (e.g. Mailchimp) that owns the allowed list;
+  SSO emails are never used for non-technical communications. Disabled by default.
 - **Two-factor authentication** — TOTP authenticator apps, FIDO2/WebAuthn security keys (YubiKey, Touch ID,
   Windows Hello, …) and single-use recovery codes; at login a registered security key is preferred when no
   authenticator app is configured.
@@ -130,6 +134,16 @@ Secrets (`*Password`, `*ServiceKey`, `*Secret`, `Duende:IdentityServer:LicenseKe
 | `Email:ServiceUser` | — | provider user (Mailtrap) |
 | `Email:DisplayName` | `Etherna` | sender display name |
 | `Email:SendingAddress` | `noreply@etherna.io` | sender address |
+
+### Newsletter
+
+Optional, opt-in only: a user can subscribe to the newsletter during email verification or later from the account email settings (see [Features](#features)). The verified contact is forwarded to the configured newsletter service, which owns the allowed list — emails stored in the SSO db are never used for non-technical communications. Disabled by default (`FakeService`, a no-op).
+
+| Key | Default | Notes |
+|---|---|---|
+| `Newsletter:CurrentService` | `FakeService` | `Mailchimp` \| `FakeService` |
+| `Newsletter:ApiKey` | — | **secret** — Mailchimp API key (includes the `-<dc>` data-center suffix) |
+| `Newsletter:AudienceId` | — | Mailchimp audience (list) id |
 
 ### FIDO2 / WebAuthn (security-key 2FA)
 
