@@ -137,7 +137,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             if (Input.RememberMachine)
                 await signInManager.RememberTwoFactorClientAsync(userWeb2);
 
-            var context = await idServerInteractService.GetAuthorizationContextAsync(returnUrl);
+            var context = await idServerInteractService.GetAuthorizationContextAsync(returnUrl, HttpContext.RequestAborted);
             await eventDispatcher.DispatchAsync(new UserLoginSuccessEvent(userWeb2, clientId: context?.Client?.ClientId));
             logger.LoggedInWithSecurityKey(userWeb2.Id);
             SsoMetrics.RecordLoginAttempt("security_key", "success");

@@ -23,6 +23,7 @@ using Etherna.MongODM.Core.Options;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Configs.SystemStore
@@ -56,32 +57,32 @@ namespace Etherna.SSOServer.Configs.SystemStore
         }
 
         // Methods.
-        public async Task<IEnumerable<PersistedGrant>> GetAllAsync(PersistedGrantFilter filter)
+        public async Task<IReadOnlyCollection<PersistedGrant>> GetAllAsync(PersistedGrantFilter filter, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(filter);
             filter.Validate();
 
-            var cursor = await collection.FindAsync(BuildMongoFilterHelper(filter));
-            return await cursor.ToListAsync();
+            var cursor = await collection.FindAsync(BuildMongoFilterHelper(filter), cancellationToken: cancellationToken);
+            return await cursor.ToListAsync(cancellationToken: cancellationToken);
         }
 
-        public async Task<PersistedGrant?> GetAsync(string key) =>
+        public async Task<PersistedGrant?> GetAsync(string key, CancellationToken cancellationToken = default) =>
             await collection.AsQueryable()
-                            .SingleOrDefaultAsync(x => x.Key == key);
+                            .SingleOrDefaultAsync(x => x.Key == key, cancellationToken: cancellationToken);
 
-        public Task RemoveAllAsync(PersistedGrantFilter filter)
+        public Task RemoveAllAsync(PersistedGrantFilter filter, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(filter);
             filter.Validate();
 
-            return collection.DeleteManyAsync(BuildMongoFilterHelper(filter));
+            return collection.DeleteManyAsync(BuildMongoFilterHelper(filter), cancellationToken);
         }
 
-        public Task RemoveAsync(string key) =>
-            collection.DeleteOneAsync(x => x.Key == key);
+        public Task RemoveAsync(string key, CancellationToken cancellationToken = default) =>
+            collection.DeleteOneAsync(x => x.Key == key, cancellationToken: cancellationToken);
 
-        public Task StoreAsync(PersistedGrant grant) =>
-            collection.ReplaceOneAsync(x => x.Key == grant.Key, grant, new ReplaceOptions { IsUpsert = true });
+        public Task StoreAsync(PersistedGrant grant, CancellationToken cancellationToken = default) =>
+            collection.ReplaceOneAsync(x => x.Key == grant.Key, grant, new ReplaceOptions { IsUpsert = true }, cancellationToken);
 
         // Helpers.
         private static FilterDefinition<PersistedGrant> BuildMongoFilterHelper(PersistedGrantFilter sourceFilter)

@@ -57,13 +57,13 @@ namespace Etherna.SSOServer.Configs.SystemStore
         }
 
         // Methods.
-        public Task CreateSessionAsync(ServerSideSession session, CancellationToken cancellationToken = new()) =>
+        public Task CreateSessionAsync(ServerSideSession session, CancellationToken cancellationToken = default) =>
             collection.InsertOneAsync(session, cancellationToken: cancellationToken);
 
-        public Task DeleteSessionAsync(string key, CancellationToken cancellationToken = new()) =>
+        public Task DeleteSessionAsync(string key, CancellationToken cancellationToken = default) =>
             collection.DeleteOneAsync(x => x.Key == key, cancellationToken: cancellationToken);
 
-        public Task DeleteSessionsAsync(SessionFilter filter, CancellationToken cancellationToken = new())
+        public Task DeleteSessionsAsync(SessionFilter filter, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(filter);
             filter.Validate();
@@ -71,7 +71,7 @@ namespace Etherna.SSOServer.Configs.SystemStore
             return collection.DeleteManyAsync(BuildMongoFilterHelper(filter), cancellationToken);
         }
 
-        public async Task<IReadOnlyCollection<ServerSideSession>> GetAndRemoveExpiredSessionsAsync(int count, CancellationToken cancellationToken = new())
+        public async Task<IReadOnlyCollection<ServerSideSession>> GetAndRemoveExpiredSessionsAsync(int count, CancellationToken cancellationToken = default)
         {
             var results = await collection.AsQueryable()
                 .Where(x => x.Expires < DateTime.UtcNow)
@@ -88,11 +88,11 @@ namespace Etherna.SSOServer.Configs.SystemStore
             return results;
         }
 
-        public async Task<ServerSideSession?> GetSessionAsync(string key, CancellationToken cancellationToken = new()) =>
+        public async Task<ServerSideSession?> GetSessionAsync(string key, CancellationToken cancellationToken = default) =>
             await collection.AsQueryable()
                 .SingleOrDefaultAsync(x => x.Key == key, cancellationToken: cancellationToken);
 
-        public async Task<IReadOnlyCollection<ServerSideSession>> GetSessionsAsync(SessionFilter filter, CancellationToken cancellationToken = new())
+        public async Task<IReadOnlyCollection<ServerSideSession>> GetSessionsAsync(SessionFilter filter, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(filter);
             filter.Validate();
@@ -101,7 +101,7 @@ namespace Etherna.SSOServer.Configs.SystemStore
             return await cursor.ToListAsync(cancellationToken: cancellationToken);
         }
 
-        public Task<QueryResult<ServerSideSession>> QuerySessionsAsync(SessionQuery? filter = null, CancellationToken cancellationToken = new())
+        public Task<QueryResult<ServerSideSession>> QuerySessionsAsync(CancellationToken cancellationToken, SessionQuery? filter = null)
         {
             filter ??= new();
 
@@ -181,7 +181,7 @@ namespace Etherna.SSOServer.Configs.SystemStore
                     // we need to start over and re-query from the beginning.
                     filter.ResultsToken = null;
                     filter.RequestPriorResults = false;
-                    return QuerySessionsAsync(filter, cancellationToken);
+                    return QuerySessionsAsync(cancellationToken, filter);
                 }
             }
             else
@@ -247,7 +247,7 @@ namespace Etherna.SSOServer.Configs.SystemStore
             return Task.FromResult(result);
         }
 
-        public Task UpdateSessionAsync(ServerSideSession session, CancellationToken cancellationToken = new()) =>
+        public Task UpdateSessionAsync(ServerSideSession session, CancellationToken cancellationToken = default) =>
             collection.ReplaceOneAsync(x => x.Key == session.Key, session, cancellationToken: cancellationToken);
         
         // Helpers.

@@ -19,7 +19,10 @@ using Etherna.MongoDB.Driver.Linq;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Domain.Models.ClientAppAgg;
+using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Configs.SystemStore
@@ -30,17 +33,33 @@ namespace Etherna.SSOServer.Configs.SystemStore
         : IClientStore
     {
         // Methods.
-        public async Task<Client?> FindClientByIdAsync(string clientId)
+        public async Task<Client?> FindClientByIdAsync(string clientId, CancellationToken cancellationToken = default)
         {
             // Check DB first.
             var dbClient = await ssoDbContext.ClientApps.QueryElementsAsync(elements =>
-                elements.FirstOrDefaultAsync(c => c.ClientId == clientId));
+                elements.FirstOrDefaultAsync(c => c.ClientId == clientId, cancellationToken: cancellationToken));
 
             if (dbClient is not null)
                 return ToIdentityServerClient(dbClient);
 
             // Fall back to in-memory.
             return inMemoryClients.FirstOrDefault(c => c.ClientId == clientId);
+        }
+
+        public async IAsyncEnumerable<Client> GetAllClientsAsync(
+            [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
+            // DB clients take precedence over in-memory ones sharing the same id.
+            var dbClients = await ssoDbContext.ClientApps.QueryElementsAsync(elements =>
+                elements.ToListAsync(cancellationToken: cancellationToken));
+            var dbClientIds = dbClients.Select(c => c.ClientId).ToHashSet();
+
+            foreach (var dbClient in dbClients)
+                yield return ToIdentityServerClient(dbClient);
+
+            foreach (var inMemoryClient in inMemoryClients)
+                if (!dbClientIds.Contains(inMemoryClient.ClientId))
+                    yield return inMemoryClient;
         }
 
         // Helpers.

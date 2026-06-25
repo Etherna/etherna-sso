@@ -87,7 +87,7 @@ Configuration uses the standard ASP.NET Core model. Values are resolved, in incr
 
 Hierarchical keys use a separator: the colon form (`Section:SubSection:Key`) or the double-underscore form (`Section__SubSection__Key`), which is portable across all platforms. Array entries are indexed: `Section:Items:0`, `Section:Items:1`, …
 
-Secrets (`*Password`, `*ServiceKey`, `*Secret`, `IdServer:LicenseKey`, MongoDB credentials) must be supplied via environment variables or a secret store at deploy time — never committed. Values marked **set in prod** below have no entry in `appsettings.Production.json` and must therefore come from the environment.
+Secrets (`*Password`, `*ServiceKey`, `*Secret`, `Duende:IdentityServer:LicenseKey`, MongoDB credentials) must be supplied via environment variables or a secret store at deploy time — never committed. Values marked **set in prod** below have no entry in `appsettings.Production.json` and must therefore come from the environment.
 
 ### Hosting (ASP.NET Core built-ins)
 
@@ -144,7 +144,7 @@ Secrets (`*Password`, `*ServiceKey`, `*Secret`, `IdServer:LicenseKey`, MongoDB c
 
 | Key | Notes |
 |---|---|
-| `IdServer:LicenseKey` | **secret** — Duende license (may be empty in dev) |
+| `Duende:IdentityServer:LicenseKey` | **secret** — Duende license, read automatically from configuration by IdentityServer v8 (may be empty in dev) |
 | `IdServer:SsoServer:BaseUrl` | public SSO authority URL, e.g. `https://sso.etherna.io` |
 | `IdServer:SsoServer:AllowUnsafeConnection` | dev only — allow an http authority |
 | `IdServer:SsoServer:Clients:Webapp:Secret` | **secret** — SSO web-app client secret |

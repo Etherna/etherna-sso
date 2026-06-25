@@ -13,6 +13,7 @@
 // If not, see <https://www.gnu.org/licenses/>.
 
 using Duende.IdentityServer.Stores;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Extensions
@@ -24,12 +25,13 @@ namespace Etherna.SSOServer.Extensions
         /// </summary>
         /// <param name="store">The store.</param>
         /// <param name="clientId">The client identifier.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns></returns>
-        public static async Task<bool> IsPkceClientAsync(this IClientStore store, string clientId)
+        public static async Task<bool> IsPkceClientAsync(this IClientStore store, string clientId, CancellationToken cancellationToken = default)
         {
             if (!string.IsNullOrWhiteSpace(clientId))
             {
-                var client = await store.FindEnabledClientByIdAsync(clientId);
+                var client = await store.FindEnabledClientByIdAsync(clientId, cancellationToken);
                 return client?.RequirePkce == true;
             }
 

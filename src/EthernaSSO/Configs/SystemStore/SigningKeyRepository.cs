@@ -22,6 +22,7 @@ using Etherna.MongODM.Core.Options;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Configs.SystemStore
@@ -55,13 +56,13 @@ namespace Etherna.SSOServer.Configs.SystemStore
         }
 
         // Methods.
-        public Task DeleteKeyAsync(string id) =>
-            collection.DeleteOneAsync(Builders<SerializedKey>.Filter.Eq(sk => sk.Id, id));
+        public Task DeleteKeyAsync(string id, CancellationToken cancellationToken = default) =>
+            collection.DeleteOneAsync(Builders<SerializedKey>.Filter.Eq(sk => sk.Id, id), cancellationToken: cancellationToken);
 
-        public async Task<IEnumerable<SerializedKey>> LoadKeysAsync() =>
-            await collection.AsQueryable().ToListAsync();
+        public async Task<IReadOnlyCollection<SerializedKey>> LoadKeysAsync(CancellationToken cancellationToken = default) =>
+            await collection.AsQueryable().ToListAsync(cancellationToken: cancellationToken);
 
-        public Task StoreKeyAsync(SerializedKey key) =>
-            collection.InsertOneAsync(key);
+        public Task StoreKeyAsync(SerializedKey key, CancellationToken cancellationToken = default) =>
+            collection.InsertOneAsync(key, cancellationToken: cancellationToken);
     }
 }
