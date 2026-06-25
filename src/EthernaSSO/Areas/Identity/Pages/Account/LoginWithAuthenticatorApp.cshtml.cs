@@ -93,7 +93,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             if (result.Succeeded)
             {
                 // Check if we are in the context of an authorization request.
-                var context = await idServerInteractService.GetAuthorizationContextAsync(returnUrl);
+                var context = await idServerInteractService.GetAuthorizationContextAsync(returnUrl, HttpContext.RequestAborted);
 
                 // Raise event and create log.
                 await eventDispatcher.DispatchAsync(new UserLoginSuccessEvent(user, clientId: context?.Client?.ClientId));

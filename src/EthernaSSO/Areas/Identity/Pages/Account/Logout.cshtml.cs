@@ -79,7 +79,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             }
             else if (logoutId is not null)
             {
-                var context = await idServerInteractService.GetLogoutContextAsync(logoutId);
+                var context = await idServerInteractService.GetLogoutContextAsync(logoutId, HttpContext.RequestAborted);
                 if (context?.ShowSignoutPrompt == false)
                 {
                     // it's safe to automatically sign-out
@@ -112,7 +112,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         private async Task<IActionResult> Logout()
         {
             var context = LogoutId is not null ?
-                await idServerInteractService.GetLogoutContextAsync(LogoutId) :
+                await idServerInteractService.GetLogoutContextAsync(LogoutId, HttpContext.RequestAborted) :
                 null;
 
             if (signInManager.IsSignedIn(User))

@@ -80,7 +80,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 var user = await userManager.GetUserAsync(User);
                 if (user is not null)
                 {
-                    var context = await idServerInteractionService.GetAuthorizationContextAsync(ReturnUrl);
+                    var context = await idServerInteractionService.GetAuthorizationContextAsync(ReturnUrl, HttpContext.RequestAborted);
                     
                     // Refresh login.
                     await signInManager.RefreshSignInAsync(user);
@@ -106,7 +106,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
             // Login.
             //check if we are in the context of an authorization request
-            var context = await idServerInteractionService.GetAuthorizationContextAsync(ReturnUrl);
+            var context = await idServerInteractionService.GetAuthorizationContextAsync(ReturnUrl, HttpContext.RequestAborted);
 
             //find user
             var user = Input.UsernameOrEmail.Contains('@', StringComparison.InvariantCulture) ? //if is email

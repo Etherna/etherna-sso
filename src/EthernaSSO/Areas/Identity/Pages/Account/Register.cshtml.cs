@@ -132,7 +132,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             if (user is not null)
             {
                 // Check if we are in the context of an authorization request.
-                var context = await idServerInteractService.GetAuthorizationContextAsync(returnUrl);
+                var context = await idServerInteractService.GetAuthorizationContextAsync(returnUrl, HttpContext.RequestAborted);
 
                 // Login.
                 await signInManager.SignInAsync(user, true);

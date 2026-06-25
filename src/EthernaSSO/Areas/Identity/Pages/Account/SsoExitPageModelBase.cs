@@ -22,17 +22,8 @@ using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 {
-    public abstract class SsoExitPageModelBase : PageModel
+    public abstract class SsoExitPageModelBase(IClientStore clientStore) : PageModel
     {
-        // Fields.
-        private readonly IClientStore clientStore;
-
-        // Constructor.
-        protected SsoExitPageModelBase(IClientStore clientStore)
-        {
-            this.clientStore = clientStore;
-        }
-
         // Methods.
         protected async Task<IActionResult> ContextedRedirectAsync(
             AuthorizationRequest? context,
@@ -45,7 +36,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             // Identify redirect.
             if (context?.Client != null)
             {
-                if (await clientStore.IsPkceClientAsync(context.Client.ClientId))
+                if (await clientStore.IsPkceClientAsync(context.Client.ClientId, HttpContext.RequestAborted))
                 {
                     //if the client is PKCE then we assume it's native, so this change in how to
                     //return the response is for better UX for the end user

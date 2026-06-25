@@ -166,7 +166,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 await ssoDbContext.Web3LoginTokens.DeleteAsync(token);
 
                 // Check if we are in the context of an authorization request.
-                var context = await idServerInteractionService.GetAuthorizationContextAsync(returnUrl);
+                var context = await idServerInteractionService.GetAuthorizationContextAsync(returnUrl, HttpContext.RequestAborted);
 
                 // Rise event and create log.
                 await eventDispatcher.DispatchAsync(new UserLoginSuccessEvent(
@@ -226,7 +226,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 await signInManager.SignInAsync(user, true);
 
                 // Check if we are in the context of an authorization request.
-                var context = await idServerInteractionService.GetAuthorizationContextAsync(returnUrl);
+                var context = await idServerInteractionService.GetAuthorizationContextAsync(returnUrl, HttpContext.RequestAborted);
 
                 // Rise event and create log.
                 await eventDispatcher.DispatchAsync(new UserLoginSuccessEvent(

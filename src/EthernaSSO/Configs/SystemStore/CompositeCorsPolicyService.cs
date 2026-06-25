@@ -18,6 +18,7 @@ using Etherna.MongoDB.Driver.Linq;
 using Etherna.SSOServer.Domain;
 using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Configs.SystemStore
@@ -31,7 +32,7 @@ namespace Etherna.SSOServer.Configs.SystemStore
         : ICorsPolicyService
     {
         // Methods.
-        public async Task<bool> IsOriginAllowedAsync(string origin)
+        public async Task<bool> IsOriginAllowedAsync(string origin, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(origin))
                 return false;
@@ -47,7 +48,7 @@ namespace Etherna.SSOServer.Configs.SystemStore
             var isAllowedInDb = await ssoDbContext.ClientApps.QueryElementsAsync(elements =>
                 elements.AnyAsync(c =>
                     c.Enabled &&
-                    c.AllowedCorsOrigins.Contains(origin)));
+                    c.AllowedCorsOrigins.Contains(origin), cancellationToken: cancellationToken));
 
             return isAllowedInDb;
         }

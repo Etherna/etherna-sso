@@ -404,7 +404,6 @@ namespace Etherna.SSOServer
                 {
                     options.Authentication.CookieAuthenticationScheme = IdentityConstants.ApplicationScheme;
                     options.Authentication.CookieSameSiteMode = SameSiteMode.Lax;
-                    options.LicenseKey = config["IdServer:LicenseKey"]; //can be null in dev env
                     options.UserInteraction.ErrorUrl = "/Error";
                 })
                 .AddServerSideSessions()
@@ -567,7 +566,7 @@ namespace Etherna.SSOServer
                                    return true;
 
                                // Check dynamic origins from IdentityServer clients (DB + in-memory).
-                               return corsPolicyService.IsOriginAllowedAsync(origin)
+                               return corsPolicyService.IsOriginAllowedAsync(origin, System.Threading.CancellationToken.None)
                                    .GetAwaiter().GetResult();
                            })
                            .AllowAnyHeader()

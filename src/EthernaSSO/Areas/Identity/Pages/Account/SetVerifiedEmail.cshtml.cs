@@ -147,7 +147,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
         private async Task<IActionResult> ProceedAsync(string? returnUrl)
         {
-            var context = await idServerInteractionService.GetAuthorizationContextAsync(returnUrl);
+            var context = await idServerInteractionService.GetAuthorizationContextAsync(returnUrl, HttpContext.RequestAborted);
             return await ContextedRedirectAsync(context, returnUrl);
         }
     }

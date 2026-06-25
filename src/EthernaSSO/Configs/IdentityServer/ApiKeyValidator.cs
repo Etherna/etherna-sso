@@ -22,6 +22,7 @@ using IdentityModel;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Configs.IdentityServer
@@ -45,7 +46,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
             this.userManager = userManager;
         }
 
-        public async Task ValidateAsync(ResourceOwnerPasswordValidationContext context)
+        public async Task ValidateAsync(ResourceOwnerPasswordValidationContext context, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(context);
 
@@ -57,7 +58,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
             var plainApiKey = context.Password;
 
             // Get user data.
-            var user = await ssoDbContext.Users.TryFindOneAsync(userId);
+            var user = await ssoDbContext.Users.TryFindOneAsync(userId, cancellationToken: cancellationToken);
             if (user is null)
             {
                 logger.NoUserFoundWithId(userId);
@@ -85,7 +86,8 @@ namespace Etherna.SSOServer.Configs.IdentityServer
 
             // Get key data.
             var apiKey = await ssoDbContext.ApiKeys.TryFindOneAsync(k => k.KeyHash == ApiKey.HashKey(plainApiKey) &&
-                                                                         k.Owner.Id == userId);
+                                                                         k.Owner.Id == userId,
+                                                                         cancellationToken: cancellationToken);
             if (apiKey is null)
             {
                 //increment access failed counter
