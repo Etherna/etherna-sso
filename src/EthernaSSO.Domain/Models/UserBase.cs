@@ -40,6 +40,7 @@ namespace Etherna.SSOServer.Domain.Models
         ];
 
         // Fields.
+        private List<LegalAcceptance> _acceptedLegalDocuments = [];
         private readonly List<UserClaim> _customClaims = new();
         private List<EthAddress> _etherPreviousAddresses = new();
         private List<Role> _roles = new();
@@ -64,6 +65,16 @@ namespace Etherna.SSOServer.Domain.Models
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 
         // Properties.
+        /// <summary>
+        /// Append-only history of the legal documents this user accepted (which document, which
+        /// version, and when). Kept as our own proof of consent for GDPR/nFADP accountability.
+        /// </summary>
+        [PersonalData]
+        public virtual IEnumerable<LegalAcceptance> AcceptedLegalDocuments
+        {
+            get => _acceptedLegalDocuments;
+            protected set => _acceptedLegalDocuments = [..value ?? []];
+        }
         public virtual IEnumerable<UserClaim> Claims
         {
             get => DefaultClaims.Union(_customClaims);
@@ -158,6 +169,16 @@ namespace Etherna.SSOServer.Domain.Models
 
             _customClaims.Add(claim);
             return true;
+        }
+
+        [PropertyAlterer(nameof(AcceptedLegalDocuments))]
+        public virtual void AddLegalAcceptances(IEnumerable<LegalAcceptance> acceptances)
+        {
+            ArgumentNullException.ThrowIfNull(acceptances);
+
+            //append, never replace: the history must be preserved for accountability
+            foreach (var acceptance in acceptances)
+                _acceptedLegalDocuments.Add(acceptance);
         }
 
         [PropertyAlterer(nameof(Roles))]

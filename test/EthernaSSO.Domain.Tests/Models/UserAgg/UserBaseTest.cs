@@ -75,6 +75,50 @@ namespace Etherna.SSOServer.Domain.Models.UserAgg
         }
 
         [Fact]
+        public void AddLegalAcceptances_WithAcceptances_AppendsRecords()
+        {
+            // Arrange.
+            var user = CreateUser();
+            var acceptances = new[]
+            {
+                new LegalAcceptance(LegalDocumentType.TermsOfService, "2026-06-25", new DateTime(2026, 06, 25, 10, 0, 0, DateTimeKind.Utc)),
+                new LegalAcceptance(LegalDocumentType.PrivacyPolicy, "2026-06-25", new DateTime(2026, 06, 25, 10, 0, 0, DateTimeKind.Utc))
+            };
+
+            // Action.
+            user.AddLegalAcceptances(acceptances);
+
+            // Assert.
+            Assert.Equal(acceptances, user.AcceptedLegalDocuments);
+        }
+
+        [Fact]
+        public void AddLegalAcceptances_CalledTwice_PreservesPreviousHistory()
+        {
+            // Arrange.
+            var user = CreateUser();
+            var first = new LegalAcceptance(LegalDocumentType.TermsOfService, "2026-01-01", new DateTime(2026, 01, 01, 0, 0, 0, DateTimeKind.Utc));
+            var second = new LegalAcceptance(LegalDocumentType.TermsOfService, "2026-06-25", new DateTime(2026, 06, 25, 0, 0, 0, DateTimeKind.Utc));
+            user.AddLegalAcceptances([first]);
+
+            // Action.
+            user.AddLegalAcceptances([second]);
+
+            // Assert.
+            Assert.Equal([first, second], user.AcceptedLegalDocuments);
+        }
+
+        [Fact]
+        public void AddLegalAcceptances_WithNull_ThrowsArgumentNullException()
+        {
+            // Arrange.
+            var user = CreateUser();
+
+            // Assert.
+            Assert.Throws<ArgumentNullException>(() => user.AddLegalAcceptances(null!));
+        }
+
+        [Fact]
         public void AddRole_WithNewRole_AddsRoleAndReturnsTrue()
         {
             // Arrange.
