@@ -34,7 +34,8 @@ namespace Etherna.SSOServer.Services.Domain
         Task<(IEnumerable<(string key, string msg)> errors, UserWeb2? user)> RegisterWeb2UserAsync(
             string username,
             string password,
-            string? invitationCode);
+            string? invitationCode,
+            IEnumerable<LegalAcceptance> legalAcceptances);
 
         Task<(IEnumerable<(string key, string msg)> errors, UserWeb2? user)> RegisterWeb2UserByAdminAsync(
             string username,
@@ -49,7 +50,8 @@ namespace Etherna.SSOServer.Services.Domain
         Task<(IEnumerable<(string key, string msg)> errors, UserWeb3? user)> RegisterWeb3UserAsync(
             string username,
             EthAddress etherAddress,
-            string? invitationCode);
+            string? invitationCode,
+            IEnumerable<LegalAcceptance> legalAcceptances);
 
         Task<PaginatedEnumerable<UserBase>> SearchPaginatedUsersByQueryAsync<TOrderKey>(
             string? query,

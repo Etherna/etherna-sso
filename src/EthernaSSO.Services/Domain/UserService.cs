@@ -75,7 +75,8 @@ namespace Etherna.SSOServer.Services.Domain
         public Task<(IEnumerable<(string key, string msg)> errors, UserWeb2? user)> RegisterWeb2UserAsync(
             string username,
             string password,
-            string? invitationCode) =>
+            string? invitationCode,
+            IEnumerable<LegalAcceptance> legalAcceptances) =>
             RegisterUserHelperAsync(
                 username,
                 invitationCode,
@@ -91,6 +92,7 @@ namespace Etherna.SSOServer.Services.Domain
 
                     // Create user.
                     var user = new UserWeb2(username, invitedByUser, invitedByAdmin, etherPrivateKey, sharedInfo);
+                    user.AddLegalAcceptances(legalAcceptances);
                     var result = await UserManager.CreateAsync(user, password);
 
                     return (user, result);
@@ -140,7 +142,8 @@ namespace Etherna.SSOServer.Services.Domain
         public Task<(IEnumerable<(string key, string msg)> errors, UserWeb3? user)> RegisterWeb3UserAsync(
             string username,
             EthAddress etherAddress,
-            string? invitationCode) =>
+            string? invitationCode,
+            IEnumerable<LegalAcceptance> legalAcceptances) =>
             RegisterUserHelperAsync(
                 username,
                 invitationCode,
@@ -152,6 +155,7 @@ namespace Etherna.SSOServer.Services.Domain
 
                     // Create user.
                     var user = new UserWeb3(username, invitedByUser, invitedByAdmin, sharedInfo);
+                    user.AddLegalAcceptances(legalAcceptances);
                     var result = await UserManager.CreateAsync(user);
                     return (user, result);
                 });

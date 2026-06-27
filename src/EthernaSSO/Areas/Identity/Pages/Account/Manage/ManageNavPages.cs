@@ -22,6 +22,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
         // Properties.
         public static string Index => "Index";
         public static string Developer => "Developer";
+        public static string Legal => "Legal";
         public static string Email => "Email";
         public static string ChangePassword => "ChangePassword";
         public static string DownloadPersonalData => "DownloadPersonalData";
@@ -43,6 +44,13 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             ArgumentNullException.ThrowIfNull(viewContext);
 
             return PageNavClass(viewContext, Developer);
+        }
+
+        public static string? LegalNavClass(ViewContext viewContext)
+        {
+            ArgumentNullException.ThrowIfNull(viewContext);
+
+            return PageNavClass(viewContext, Legal);
         }
 
         public static string? EmailNavClass(ViewContext viewContext)

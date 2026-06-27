@@ -15,9 +15,11 @@
 using Duende.IdentityServer.Services;
 using Etherna.DomainEvents;
 using Etherna.SSOServer.Configs.Metrics;
+using Etherna.SSOServer.Configs.Validation;
 using Etherna.SSOServer.Domain.Events;
 using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Domain.Models.UserAgg;
 using Etherna.SSOServer.Services.Domain;
 using Etherna.SSOServer.Services.Extensions;
 using Etherna.SSOServer.Services.Options;
@@ -31,6 +33,7 @@ using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Areas.Identity.Pages.Account
@@ -42,6 +45,14 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         public class InputModel : IValidatableObject
         {
             // Properties.
+            [Display(Name = "I have read the Privacy Policy")]
+            [MustBeTrue(ErrorMessage = "You must confirm you have read the Privacy Policy to register.")]
+            public bool AcceptPrivacyPolicy { get; set; }
+
+            [Display(Name = "I accept the Terms of Service")]
+            [MustBeTrue(ErrorMessage = "You must accept the Terms of Service to register.")]
+            public bool AcceptTermsOfService { get; set; }
+
             [Required]
             [RegularExpression(UsernameHelper.UsernameRegex, ErrorMessage = UsernameHelper.UsernameValidationErrorMessage)]
             [Display(Name = "Username")]
@@ -80,6 +91,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         private readonly ApplicationOptions applicationOptions;
         private readonly IEventDispatcher eventDispatcher;
         private readonly IIdentityServerInteractionService idServerInteractService;
+        private readonly ILegalService legalService;
         private readonly ILogger<RegisterModel> logger;
         private readonly SignInManager<UserBase> signInManager;
         private readonly IUserService userService;
@@ -89,6 +101,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             IOptions<ApplicationOptions> applicationSettings,
             IEventDispatcher eventDispatcher,
             IIdentityServerInteractionService idServerInteractService,
+            ILegalService legalService,
             ILogger<RegisterModel> logger,
             SignInManager<UserBase> signInManager,
             IUserService userService)
@@ -98,6 +111,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             this.applicationOptions = applicationSettings.Value;
             this.eventDispatcher = eventDispatcher;
             this.idServerInteractService = idServerInteractService;
+            this.legalService = legalService;
             this.logger = logger;
             this.signInManager = signInManager;
             this.userService = userService;
@@ -108,7 +122,9 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         public InputModel Input { get; set; } = null!;
 
         public bool IsInvitationRequired { get; private set; }
+        public string PrivacyPolicyUrl { get; private set; } = null!;
         public string? ReturnUrl { get; private set; }
+        public string TermsOfServiceUrl { get; private set; } = null!;
         public Web3LoginPartialModel Web3LoginPartialModel { get; private set; } = null!;
 
         // Methods.
@@ -126,7 +142,8 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             var (errors, user) = await userService.RegisterWeb2UserAsync(
                 Input.Username,
                 Input.Password,
-                Input.InvitationCode);
+                Input.InvitationCode,
+                legalService.BuildAcceptancesForRequiredDocuments());
 
             // Post-registration actions.
             if (user is not null)
@@ -164,7 +181,9 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             Input ??= new InputModel();
             Input.InvitationCode ??= invitationCode;
             IsInvitationRequired = applicationOptions.RequireInvitation;
+            PrivacyPolicyUrl = legalService.RequiredDocuments.First(d => d.Type == LegalDocumentType.PrivacyPolicy).Url;
             ReturnUrl = returnUrl ?? Url.Content("~/");
+            TermsOfServiceUrl = legalService.RequiredDocuments.First(d => d.Type == LegalDocumentType.TermsOfService).Url;
 
             //init partial view models
             Web3LoginPartialModel = new Web3LoginPartialModel()

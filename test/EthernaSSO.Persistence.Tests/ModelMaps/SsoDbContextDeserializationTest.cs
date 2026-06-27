@@ -480,7 +480,21 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
                             ""_id"" : ObjectId(""6a317235d33d390f7d1e350e""),                                                                                                                                                                     
                             ""_m"" : ""c54bb1fe-a7e2-4069-b91c-1065b16ca4da"",                                                                                                                                                                    
                             ""_t"" : ""UserWeb2"",                                                                                                                                                                                                
-                            ""CreationDateTime"" : ISODate(""2026-06-16T17:56:37.411+02:00""),                                                                                                                                                    
+                            ""CreationDateTime"" : ISODate(""2026-06-16T17:56:37.411+02:00""),   
+                            ""AcceptedLegalDocuments"" : [
+                                {
+                                    ""_m"" : ""ff4b1d15-f6d6-48fa-86b8-3087cf75018d"",
+                                    ""AcceptanceDateTime"" : ISODate(""2026-06-25T10:00:00.000+00:00""),
+                                    ""DocumentType"" : ""TermsOfService"",
+                                    ""Version"" : ""2026-06-25""
+                                },
+                                {
+                                    ""_m"" : ""ff4b1d15-f6d6-48fa-86b8-3087cf75018d"",
+                                    ""AcceptanceDateTime"" : ISODate(""2026-06-25T10:00:00.000+00:00""),
+                                    ""DocumentType"" : ""PrivacyPolicy"",
+                                    ""Version"" : ""2026-06-25""
+                                }
+                            ],                                                                                                                                                 
                             ""Claims"" : [                                                                                                                                                                                                      
                                 {                                                                                                                                                                                                             
                                     ""_m"" : ""f7831985-dc0c-439f-b118-d7c511619a87"",                                                                                                                                                            
@@ -551,6 +565,11 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
                     var expectedDocumentMock = new Mock<UserWeb2>();
                     expectedDocumentMock.Setup(d => d.Id).Returns("6a317235d33d390f7d1e350e");
                     expectedDocumentMock.Setup(d => d.CreationDateTime).Returns(new DateTime(2026, 06, 16, 15, 56, 37, 411));
+                    expectedDocumentMock.Setup(d => d.AcceptedLegalDocuments).Returns(
+                    [
+                        new LegalAcceptance(LegalDocumentType.TermsOfService, "2026-06-25", new DateTime(2026, 06, 25, 10, 00, 00, DateTimeKind.Utc)),
+                        new LegalAcceptance(LegalDocumentType.PrivacyPolicy, "2026-06-25", new DateTime(2026, 06, 25, 10, 00, 00, DateTimeKind.Utc))
+                    ]);
                     expectedDocumentMock.Setup(d => d.EtherAddress).Returns("0xC2AE6f81f7DdBE4ed1904CAB954c6a4aEA28b76F");
                     expectedDocumentMock.Setup(d => d.EtherPreviousAddresses).Returns([]);
                     expectedDocumentMock.Setup(d => d.InvitedByAdmin).Returns(true);
@@ -1114,6 +1133,7 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
             // Assert.
             Assert.Equal(testElement.ExpectedModel.Id, result.Id);
             Assert.Equal(testElement.ExpectedModel.CreationDateTime, result.CreationDateTime);
+            Assert.Equal(testElement.ExpectedModel.AcceptedLegalDocuments, result.AcceptedLegalDocuments);
             Assert.Equal(testElement.ExpectedModel.Email, result.Email);
             Assert.Equal(testElement.ExpectedModel.EtherAddress, result.EtherAddress);
             Assert.Equal(testElement.ExpectedModel.EtherPreviousAddresses, result.EtherPreviousAddresses);
@@ -1130,6 +1150,7 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
             Assert.Equal(testElement.ExpectedModel.SharedInfoId, result.SharedInfoId);
             Assert.Equal(testElement.ExpectedModel.Username, result.Username);
             Assert.NotNull(result.Id);
+            Assert.NotNull(result.AcceptedLegalDocuments);
             Assert.NotNull(result.EtherPreviousAddresses);
             Assert.NotNull(result.NormalizedUsername);
             Assert.NotNull(result.Roles);

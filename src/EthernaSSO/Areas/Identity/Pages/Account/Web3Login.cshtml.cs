@@ -17,10 +17,12 @@ using Duende.IdentityServer.Stores;
 using Etherna.DomainEvents;
 using Etherna.MongoDB.Driver;
 using Etherna.SSOServer.Configs.Metrics;
+using Etherna.SSOServer.Configs.Validation;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Events;
 using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Domain.Models.UserAgg;
 using Etherna.SSOServer.Services.Domain;
 using Etherna.SSOServer.Services.Extensions;
 using Etherna.SSOServer.Services.Options;
@@ -32,6 +34,7 @@ using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Areas.Identity.Pages.Account
@@ -42,6 +45,14 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         public class InputModel : IValidatableObject
         {
             // Properties.
+            [Display(Name = "I have read the Privacy Policy")]
+            [MustBeTrue(ErrorMessage = "You must confirm you have read the Privacy Policy to register.")]
+            public bool AcceptPrivacyPolicy { get; set; }
+
+            [Display(Name = "I accept the Terms of Service")]
+            [MustBeTrue(ErrorMessage = "You must accept the Terms of Service to register.")]
+            public bool AcceptTermsOfService { get; set; }
+
             [Display(Name = "Invitation code")]
             public string? InvitationCode { get; set; }
 
@@ -60,7 +71,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 {
                     yield return new ValidationResult(
                         "Invitation code is required",
-                        new[] { nameof(InvitationCode) });
+                        [nameof(InvitationCode)]);
                 }
             }
         }
@@ -69,6 +80,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         private readonly ApplicationOptions applicationOptions;
         private readonly IEventDispatcher eventDispatcher;
         private readonly IIdentityServerInteractionService idServerInteractionService;
+        private readonly ILegalService legalService;
         private readonly ILogger<Web3LoginModel> logger;
         private readonly SignInManager<UserBase> signInManager;
         private readonly ISsoDbContext ssoDbContext;
@@ -82,6 +94,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             IClientStore clientStore,
             IEventDispatcher eventDispatcher,
             IIdentityServerInteractionService idServerInteractionService,
+            ILegalService legalService,
             ILogger<Web3LoginModel> logger,
             SignInManager<UserBase> signInManager,
             ISsoDbContext ssoDbContext,
@@ -95,6 +108,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             this.applicationOptions = applicationSettings.Value;
             this.eventDispatcher = eventDispatcher;
             this.idServerInteractionService = idServerInteractionService;
+            this.legalService = legalService;
             this.logger = logger;
             this.signInManager = signInManager;
             this.ssoDbContext = ssoDbContext;
@@ -113,8 +127,10 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         public bool DuplicateUsername { get; private set; }
         public EthAddress? EtherAddress { get; private set; }
         public bool IsInvitationRequired { get; private set; }
+        public string PrivacyPolicyUrl { get; private set; } = null!;
         public string? ReturnUrl { get; private set; }
         public string? Signature { get; private set; }
+        public string TermsOfServiceUrl { get; private set; } = null!;
 
         // Methods.
         public IActionResult OnGet() =>
@@ -217,7 +233,8 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             var (errors, user) = await userService.RegisterWeb3UserAsync(
                 Input.Username,
                 etherAddress,
-                Input.InvitationCode);
+                Input.InvitationCode,
+                legalService.BuildAcceptancesForRequiredDocuments());
 
             // Post-registration actions.
             if (user is not null)
@@ -257,8 +274,10 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         {
             EtherAddress = etherAddress;
             IsInvitationRequired = applicationOptions.RequireInvitation;
+            PrivacyPolicyUrl = legalService.RequiredDocuments.First(d => d.Type == LegalDocumentType.PrivacyPolicy).Url;
             ReturnUrl = returnUrl ?? Url.Content("~/");
             Signature = signature;
+            TermsOfServiceUrl = legalService.RequiredDocuments.First(d => d.Type == LegalDocumentType.TermsOfService).Url;
         }
     }
 }
