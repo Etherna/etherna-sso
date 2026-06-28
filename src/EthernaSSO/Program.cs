@@ -15,6 +15,10 @@
 using Duende.IdentityServer.Services;
 using Duende.IdentityServer.Stores;
 using Duende.IdentityServer.Validation;
+using Elastic.Ingest.Elasticsearch;
+using Elastic.Ingest.Elasticsearch.DataStreams;
+using Elastic.Serilog.Sinks;
+using Elastic.Transport;
 using Etherna.Authentication.AspNetCore;
 using Etherna.DomainEvents;
 using Etherna.MongODM;
@@ -62,7 +66,6 @@ using Prometheus;
 using Scalar.AspNetCore;
 using Serilog;
 using Serilog.Exceptions;
-using Serilog.Sinks.Elasticsearch;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -128,17 +131,6 @@ namespace Etherna.SSOServer
         }
 
         // Helpers.
-        private static ElasticsearchSinkOptions ConfigureElasticSink(IConfigurationRoot configuration, string environment)
-        {
-            string assemblyName = Assembly.GetExecutingAssembly().GetName().Name!.ToLower(CultureInfo.InvariantCulture).Replace(".", "-", StringComparison.InvariantCulture);
-            string envName = environment.ToLower(CultureInfo.InvariantCulture).Replace(".", "-", StringComparison.InvariantCulture);
-            return new ElasticsearchSinkOptions((configuration.GetSection("Elastic:Urls").Get<string[]>() ?? throw new ServiceConfigurationException()).Select(u => new Uri(u)))
-            {
-                AutoRegisterTemplate = true,
-                IndexFormat = $"{assemblyName}-{envName}-{DateTime.UtcNow:yyyy-MM}"
-            };
-        }
-        
         private static void ConfigureLogging()
         {
             var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? throw new ServiceConfigurationException();
@@ -148,13 +140,32 @@ namespace Etherna.SSOServer
                 .AddEnvironmentVariables()
                 .Build();
 
+            var elasticNodes = (configuration.GetSection("Elastic:Urls").Get<string[]>() ?? throw new ServiceConfigurationException())
+                .Select(u => new Uri(u))
+                .ToArray();
+            var elasticUsername = configuration["Elastic:Username"];
+            var elasticPassword = configuration["Elastic:Password"];
+            var assemblyName = Assembly.GetExecutingAssembly().GetName().Name!.ToLower(CultureInfo.InvariantCulture).Replace(".", "-", StringComparison.InvariantCulture);
+            var envName = environment.ToLower(CultureInfo.InvariantCulture).Replace(".", "-", StringComparison.InvariantCulture);
+
             Log.Logger = new LoggerConfiguration()
                 .Enrich.FromLogContext()
                 .Enrich.WithExceptionDetails()
                 .Enrich.WithMachineName()
                 .WriteTo.Debug(formatProvider: CultureInfo.InvariantCulture)
                 .WriteTo.Console(formatProvider: CultureInfo.InvariantCulture)
-                .WriteTo.Elasticsearch(ConfigureElasticSink(configuration, environment))
+                .WriteTo.Elasticsearch(elasticNodes, opts =>
+                {
+                    opts.BootstrapMethod = BootstrapMethod.Silent;
+                    opts.DataStream = new DataStreamName("logs", assemblyName, envName);
+                }, transport =>
+                {
+                    // Apply basic auth only when credentials are configured, so the same build
+                    // runs against both the unsecured cluster (no creds) and the secured one
+                    // (Elastic:Username/Password set via env).
+                    if (!string.IsNullOrEmpty(elasticUsername) && !string.IsNullOrEmpty(elasticPassword))
+                        transport.Authentication(new BasicAuthentication(elasticUsername, elasticPassword));
+                })
                 .Enrich.WithProperty("Environment", environment)
                 .ReadFrom.Configuration(configuration)
                 .CreateLogger();
