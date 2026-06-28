@@ -34,6 +34,7 @@ using System.Threading.Tasks;
 namespace Etherna.SSOServer.Persistence
 {
     public class SsoDbContext(
+        SsoDbEncryptionSettings encryptionSettings,
         IEventDispatcher eventDispatcher,
         SsoDbSeedSettings seedSettings,
         IServiceProvider serviceProvider)
@@ -160,6 +161,7 @@ namespace Etherna.SSOServer.Persistence
         public override IEnumerable<DocumentMigration> DocumentMigrationList => Array.Empty<DocumentMigration>();
 
         //other properties
+        public string EtherManagedPrivateKeyEncryptionKey { get; } = encryptionSettings.EtherManagedPrivateKey;
         public IEventDispatcher EventDispatcher { get; } = eventDispatcher;
 
         // Protected properties.

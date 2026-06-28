@@ -28,7 +28,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
         {
             [Required]
             [Display(Name = "Role name")]
-            public string Name { get; set; } = default!;
+            public string Name { get; set; } = null!;
         }
 
         // Fields.
@@ -44,7 +44,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
         public string? Id { get; private set; }
 
         [BindProperty]
-        public InputModel Input { get; set; } = default!;
+        public InputModel Input { get; set; } = null!;
 
         // Methods.
         public async Task OnGetAsync(string? id)

@@ -24,6 +24,7 @@ using Etherna.SSOServer.Domain.Models.ClientAppAgg;
 using Etherna.SSOServer.Domain.Models.Fido2CredentialAgg;
 using Etherna.SSOServer.Domain.Models.UserAgg;
 using Etherna.SSOServer.Persistence.Helpers;
+using Etherna.SSOServer.Persistence.Serializers;
 using Etherna.SSOServer.Persistence.Settings;
 using Moq;
 using System;
@@ -39,6 +40,9 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
     [SuppressMessage("Naming", "CA1707:Identifiers should not contain underscores", Justification = "Test method naming convention.")]
     public class SsoDbContextDeserializationTest
     {
+        // Consts.
+        private const string EncryptionKey = "OPYwOt2ZP5n6WaItPi9lny/pbq0Rv+3x7u1+IB7HFKU=";
+
         // Fields.
         private readonly SsoDbContext dbContext;
         private readonly Mock<IEventDispatcher> eventDispatcherMock = new();
@@ -47,11 +51,12 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
         // Constructor.
         public SsoDbContextDeserializationTest()
         {
+            var encryptionSettings = new SsoDbEncryptionSettings { EtherManagedPrivateKey = EncryptionKey };
             var serviceProviderMock = new Mock<IServiceProvider>();
             var ssoDbSeedSettingsMock = new Mock<SsoDbSeedSettings>();
 
             // Setup dbContext.
-            dbContext = new SsoDbContext(eventDispatcherMock.Object, ssoDbSeedSettingsMock.Object, serviceProviderMock.Object);
+            dbContext = new SsoDbContext(encryptionSettings, eventDispatcherMock.Object, ssoDbSeedSettingsMock.Object, serviceProviderMock.Object);
 
             DbContextMockHelper.InitializeDbContextMock(dbContext, mongoDatabaseMock);
         }
@@ -473,8 +478,10 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
             {
                 var tests = new List<DeserializationTestElement<UserBase, SsoDbContext>>();
 
-                // "c54bb1fe-a7e2-4069-b91c-1065b16ca4da" - v0.4.0 - UserWeb2 (current schema, with a FIDO2 credential)
+                // "c54bb1fe-a7e2-4069-b91c-1065b16ca4da" - v0.4.0 - UserWeb2 (active schema, ether managed private key encrypted at rest, with a FIDO2 credential)
                 {
+                    var encryptedManagedPrivateKey = new EncryptedStringSerializer(EncryptionKey)
+                        .Encrypt("54e0bb8ccbb95719898f179b7422f4bf3f053c789a3e1c54b8d8ee81dead1224");
                     var sourceDocument =
                         @"{
                             ""_id"" : ObjectId(""6a317235d33d390f7d1e350e""),                                                                                                                                                                     
@@ -541,7 +548,7 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
                             ""Username"" : ""admin"",                                                                                                                                                                                             
                             ""AccessFailedCount"" : 3,                                                                                                                                                                                          
                             ""AuthenticatorKey"" : null,                                                                                                                                                                                        
-                            ""EtherManagedPrivateKey"" : ""54e0bb8ccbb95719898f179b7422f4bf3f053c789a3e1c54b8d8ee81dead1224"",                                                                                                                    
+                            ""EtherManagedPrivateKey"" : """ + encryptedManagedPrivateKey + @""",                                                                                                                    
                             ""Fido2Credentials"" : [                                                                                                                                                                                            
                                 {                                                                                                                                                                                                             
                                     ""_m"" : ""194013ae-d113-48f8-aea7-e8cf169186fa"",                                                                                                                                                            

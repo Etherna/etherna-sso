@@ -46,6 +46,7 @@ Bugs and features are tracked in Jira project **ESSO** (https://etherna.atlassia
 ## General Principles
 
 - Keep commits clean: only include changes strictly necessary for the task at hand.
+- Keep `README.md` aligned: when a change touches configuration, features, build/run steps, or architecture, update `README.md` in the same change.
 - Never reference AI agents or assistants in commits or code — no agent names, no `Co-Authored-By` agent trailers, no "generated/assisted by" notes. Commit messages and code must read as the team's own work.
 - Exceptions to these conventions are accepted when strictly necessary or when they significantly improve code quality. Justify with a comment where needed.
 - All elements (usings, properties, methods, fields, enum members, etc.) are always alphabetically ordered within their respective sections.
@@ -89,6 +90,8 @@ Secondary/separator comments:
 ```csharp
 //no space, no capital, no ending period
 ```
+
+Comment only what helps a future reader: non-obvious behavior, intent, or a gotcha. Do **not** write narration of your own reasoning or decisions (e.g. "X isn't deployed yet, so we reuse the schema", "no new GUID needed because…") — that belongs in the commit message / PR description, never in committed code. If the code and section comments already make the intent clear, add nothing.
 
 ## Member Ordering Within a Class
 

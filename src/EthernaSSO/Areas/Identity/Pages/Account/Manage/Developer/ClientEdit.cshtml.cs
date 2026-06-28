@@ -60,7 +60,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage.Developer
             [Required]
             [MaxLength(ClientApp.ClientNameMaxLength)]
             [Display(Name = "Client name")]
-            public string ClientName { get; set; } = default!;
+            public string ClientName { get; set; } = null!;
 
             [MaxLength(ClientApp.DescriptionMaxLength)]
             [Display(Name = "Description")]
@@ -98,7 +98,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage.Developer
         public IEnumerable<string> ClientCredentialAlwaysClaims => [EthernaClaimTypes.EtherAddress];
 
         [BindProperty]
-        public InputModel Input { get; set; } = default!;
+        public InputModel Input { get; set; } = null!;
 
         // Methods.
         public async Task<IActionResult> OnGetAsync(string id)

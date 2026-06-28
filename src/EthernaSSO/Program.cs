@@ -472,6 +472,7 @@ namespace Etherna.SSOServer
             services.Configure<EmailOptions>(config.GetSection("Email") ?? throw new ServiceConfigurationException());
             services.Configure<LegalOptions>(config.GetSection("Legal") ?? throw new ServiceConfigurationException());
             services.Configure<NewsletterOptions>(config.GetSection("Newsletter") ?? throw new ServiceConfigurationException());
+            services.Configure<SsoDbEncryptionSettings>(config.GetSection("Encryption") ?? throw new ServiceConfigurationException());
             services.Configure<SsoDbSeedSettings>(config.GetSection("DbSeed") ?? throw new ServiceConfigurationException());
             
             // Configure api handler.
@@ -495,9 +496,10 @@ namespace Etherna.SSOServer
             })
                 .AddDbContext<ISsoDbContext, SsoDbContext>(sp =>
                 {
+                    var encryptionSettings = sp.GetRequiredService<IOptions<SsoDbEncryptionSettings>>();
                     var eventDispatcher = sp.GetRequiredService<IEventDispatcher>();
                     var seedSettings = sp.GetRequiredService<IOptions<SsoDbSeedSettings>>();
-                    return new SsoDbContext(eventDispatcher, seedSettings.Value, sp);
+                    return new SsoDbContext(encryptionSettings.Value, eventDispatcher, seedSettings.Value, sp);
                 },
                 options =>
                 {

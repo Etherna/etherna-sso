@@ -65,8 +65,8 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
         public int CurrentPage { get; set; }
         public long MaxPage { get; set; }
         public string? Query { get; set; }
-        public string RoleId { get; private set; } = default!;
-        public string RoleName { get; private set; } = default!;
+        public string RoleId { get; private set; } = null!;
+        public string RoleName { get; private set; } = null!;
         public List<UserDto> Users { get; } = new();
 
         // Methods.

@@ -91,7 +91,7 @@ Configuration uses the standard ASP.NET Core model. Values are resolved, in incr
 
 Hierarchical keys use a separator: the colon form (`Section:SubSection:Key`) or the double-underscore form (`Section__SubSection__Key`), which is portable across all platforms. Array entries are indexed: `Section:Items:0`, `Section:Items:1`, …
 
-Secrets (`*Password`, `*ServiceKey`, `*Secret`, `Duende:IdentityServer:LicenseKey`, MongoDB credentials) must be supplied via environment variables or a secret store at deploy time — never committed. Values marked **set in prod** below have no entry in `appsettings.Production.json` and must therefore come from the environment.
+Secrets (`*Password`, `*ServiceKey`, `*Secret`, `Duende:IdentityServer:LicenseKey`, `Encryption:EtherManagedPrivateKey`, MongoDB credentials) must be supplied via environment variables or a secret store at deploy time — never committed. Values marked **set in prod** below have no entry in `appsettings.Production.json` and must therefore come from the environment.
 
 ### Hosting (ASP.NET Core built-ins)
 
@@ -134,6 +134,14 @@ Secrets (`*Password`, `*ServiceKey`, `*Secret`, `Duende:IdentityServer:LicenseKe
 | `Email:ServiceUser` | — | provider user (Mailtrap) |
 | `Email:DisplayName` | `Etherna` | sender display name |
 | `Email:SendingAddress` | `noreply@etherna.io` | sender address |
+
+### Encryption
+
+The Web2 managed-wallet private key (`UserWeb2.EtherManagedPrivateKey`) is stored encrypted at rest (AES-256-GCM). Existing managed keys become unreadable if this key is lost or changed.
+
+| Key | Default | Notes |
+|---|---|---|
+| `Encryption:EtherManagedPrivateKey` | — (**set in prod**) | **secret** — base64-encoded 32-byte AES-256 key (`openssl rand -base64 32`); a dev default ships in `appsettings.Development.json` |
 
 ### Newsletter
 

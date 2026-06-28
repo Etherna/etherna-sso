@@ -89,7 +89,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
 
             [Required]
             [RegularExpression(UsernameHelper.UsernameRegex)]
-            public string Username { get; set; } = default!;
+            public string Username { get; set; } = null!;
 
             [Display(Name = "Max allowed clients")]
             [Range(0, 100)]
