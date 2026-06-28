@@ -36,7 +36,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         {
             [Required]
             [EmailAddress]
-            public string Email { get; set; } = default!;
+            public string Email { get; set; } = null!;
         }
 
         // Fields.
@@ -57,7 +57,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
         // Properties.
         [BindProperty]
-        public InputModel Input { get; set; } = default!;
+        public InputModel Input { get; set; } = null!;
 
         // Methods.
         public async Task<IActionResult> OnPostAsync()

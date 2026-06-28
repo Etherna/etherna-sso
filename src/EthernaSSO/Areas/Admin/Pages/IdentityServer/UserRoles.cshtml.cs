@@ -55,13 +55,13 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
         }
 
         // Properties.
-        public IEnumerable<RoleDto> AllRoles { get; private set; } = default!;
+        public IEnumerable<RoleDto> AllRoles { get; private set; } = null!;
         public int CurrentPage { get; private set; }
         public int MaxPage { get; private set; }
-        public string RoleId { get; private set; } = default!;
-        public string UserId { get; private set; } = default!;
-        public string Username { get; private set; } = default!;
-        public IEnumerable<RoleDto> UserRoles { get; private set; } = default!;
+        public string RoleId { get; private set; } = null!;
+        public string UserId { get; private set; } = null!;
+        public string Username { get; private set; } = null!;
+        public IEnumerable<RoleDto> UserRoles { get; private set; } = null!;
 
         // Methods.
         public async Task OnGetAsync(string id, int? p)

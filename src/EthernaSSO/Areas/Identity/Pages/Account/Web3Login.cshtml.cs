@@ -122,7 +122,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         public string? ErrorMessage { get; set; }
 
         [BindProperty]
-        public InputModel Input { get; set; } = default!;
+        public InputModel Input { get; set; } = null!;
 
         public bool DuplicateUsername { get; private set; }
         public EthAddress? EtherAddress { get; private set; }

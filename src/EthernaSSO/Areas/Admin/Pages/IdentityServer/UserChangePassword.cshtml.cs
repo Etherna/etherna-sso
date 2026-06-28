@@ -29,12 +29,12 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
         public class InputModel
         {
             [Required]
-            public string Password { get; set; } = default!;
+            public string Password { get; set; } = null!;
 
             [Required]
             [Compare(nameof(Password))]
             [Display(Name = "Confirm password")]
-            public string ConfirmPassword { get; set; } = default!;
+            public string ConfirmPassword { get; set; } = null!;
         }
 
         // Fields.
@@ -51,11 +51,11 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
         }
 
         // Properties.
-        public string Id { get; private set; } = default!;
-        public string Username { get; private set; } = default!;
+        public string Id { get; private set; } = null!;
+        public string Username { get; private set; } = null!;
 
         [BindProperty]
-        public InputModel Input { get; set; } = default!;
+        public InputModel Input { get; set; } = null!;
 
         // Methods.
         public async Task<IActionResult> OnGetAsync(string id)

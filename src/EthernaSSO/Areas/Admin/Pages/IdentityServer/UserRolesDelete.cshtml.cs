@@ -33,10 +33,10 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
         }
 
         // Properties.
-        public string RoleId { get; private set; } = default!;
-        public string RoleName { get; private set; } = default!;
-        public string UserId { get; private set; } = default!;
-        public string Username { get; private set; } = default!;
+        public string RoleId { get; private set; } = null!;
+        public string RoleName { get; private set; } = null!;
+        public string UserId { get; private set; } = null!;
+        public string Username { get; private set; } = null!;
 
         // Methods.
         public async Task OnGetAsync(string roleId, string userId)

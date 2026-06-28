@@ -37,8 +37,8 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
         }
 
         // Properties.
-        public string Id { get; private set; } = default!;
-        public string Username { get; private set; } = default!;
+        public string Id { get; private set; } = null!;
+        public string Username { get; private set; } = null!;
 
         // Methods.
         public async Task OnGetAsync(string id)

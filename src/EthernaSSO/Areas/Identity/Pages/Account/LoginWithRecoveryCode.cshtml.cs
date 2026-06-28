@@ -36,7 +36,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             [Required]
             [DataType(DataType.Text)]
             [Display(Name = "Recovery Code")]
-            public string RecoveryCode { get; set; } = default!;
+            public string RecoveryCode { get; set; } = null!;
         }
 
         // Fields.
@@ -54,7 +54,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
         // Properties.
         [BindProperty]
-        public InputModel Input { get; set; } = default!;
+        public InputModel Input { get; set; } = null!;
 
         public string? ReturnUrl { get; set; }
 

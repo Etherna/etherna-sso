@@ -60,7 +60,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
         // Properties.
         [BindProperty]
-        public InputModel Input { get; set; } = default!;
+        public InputModel Input { get; set; } = null!;
         public string? LogoutId { get; set; }
 
         // Methods.
