@@ -21,7 +21,8 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
     {
         // Properties.
         public static string Index => "Index";
-        public static string ApiKeys => "ApiKeys";
+        public static string Developer => "Developer";
+        public static string Legal => "Legal";
         public static string Email => "Email";
         public static string ChangePassword => "ChangePassword";
         public static string DownloadPersonalData => "DownloadPersonalData";
@@ -33,63 +34,70 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
         // Methods.
         public static string? IndexNavClass(ViewContext viewContext)
         {
-            ArgumentNullException.ThrowIfNull(viewContext, nameof(viewContext));
+            ArgumentNullException.ThrowIfNull(viewContext);
 
             return PageNavClass(viewContext, Index);
         }
 
-        public static string? ApiKeysNavClass(ViewContext viewContext)
+        public static string? DeveloperNavClass(ViewContext viewContext)
         {
-            ArgumentNullException.ThrowIfNull(viewContext, nameof(viewContext));
+            ArgumentNullException.ThrowIfNull(viewContext);
 
-            return PageNavClass(viewContext, ApiKeys);
+            return PageNavClass(viewContext, Developer);
+        }
+
+        public static string? LegalNavClass(ViewContext viewContext)
+        {
+            ArgumentNullException.ThrowIfNull(viewContext);
+
+            return PageNavClass(viewContext, Legal);
         }
 
         public static string? EmailNavClass(ViewContext viewContext)
         {
-            ArgumentNullException.ThrowIfNull(viewContext, nameof(viewContext));
+            ArgumentNullException.ThrowIfNull(viewContext);
 
             return PageNavClass(viewContext, Email);
         }
 
         public static string? ChangePasswordNavClass(ViewContext viewContext)
         {
-            ArgumentNullException.ThrowIfNull(viewContext, nameof(viewContext));
+            ArgumentNullException.ThrowIfNull(viewContext);
 
             return PageNavClass(viewContext, ChangePassword);
         }
 
         public static string? DeletePersonalDataNavClass(ViewContext viewContext)
         {
-            ArgumentNullException.ThrowIfNull(viewContext, nameof(viewContext));
+            ArgumentNullException.ThrowIfNull(viewContext);
 
             return PageNavClass(viewContext, DeletePersonalData);
         }
 
         public static string? DownloadPersonalDataNavClass(ViewContext viewContext)
         {
-            ArgumentNullException.ThrowIfNull(viewContext, nameof(viewContext));
+            ArgumentNullException.ThrowIfNull(viewContext);
 
             return PageNavClass(viewContext, DownloadPersonalData);
         }
 
         public static string? Web3LoginNavClass(ViewContext viewContext)
         {
-            ArgumentNullException.ThrowIfNull(viewContext, nameof(viewContext));
+            ArgumentNullException.ThrowIfNull(viewContext);
 
             return PageNavClass(viewContext, Web3Login);
         }
 
         public static string? PersonalDataNavClass(ViewContext viewContext)
         {
-            ArgumentNullException.ThrowIfNull(viewContext, nameof(viewContext));
+            ArgumentNullException.ThrowIfNull(viewContext);
 
             return PageNavClass(viewContext, PersonalData);
         }
 
         public static string? TwoFactorAuthenticationNavClass(ViewContext viewContext)
         {
-            ArgumentNullException.ThrowIfNull(viewContext, nameof(viewContext));
+            ArgumentNullException.ThrowIfNull(viewContext);
 
             return PageNavClass(viewContext, TwoFactorAuthentication);
         }

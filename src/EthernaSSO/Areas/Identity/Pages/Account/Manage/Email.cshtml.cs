@@ -12,12 +12,13 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.ACR.Services;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Models;
+using Etherna.SSOServer.Pages;
+using Etherna.SSOServer.Services.Domain;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using System;
 using System.ComponentModel.DataAnnotations;
@@ -26,7 +27,13 @@ using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
 {
-    public partial class EmailModel : PageModel
+    public class EmailModel(
+        IEmailSender emailSender,
+        INewsletterService newsletterService,
+        IRazorViewRenderer razorViewRenderer,
+        ISsoDbContext ssoDbContext,
+        UserManager<UserBase> userManager)
+        : StatusMessagePageModel
     {
         // Model.
         public class InputModel
@@ -34,36 +41,17 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             [Required]
             [EmailAddress]
             [Display(Name = "New email")]
-            public string NewEmail { get; set; } = default!;
-        }
-
-        // Fields.
-        private readonly IEmailSender emailSender;
-        private readonly IRazorViewRenderer razorViewRenderer;
-        private readonly ISsoDbContext ssoDbContext;
-        private readonly UserManager<UserBase> userManager;
-
-        // Constructor.
-        public EmailModel(
-            IEmailSender emailSender,
-            IRazorViewRenderer razorViewRenderer,
-            ISsoDbContext ssoDbContext,
-            UserManager<UserBase> userManager)
-        {
-            this.emailSender = emailSender;
-            this.razorViewRenderer = razorViewRenderer;
-            this.ssoDbContext = ssoDbContext;
-            this.userManager = userManager;
+            public string NewEmail { get; set; } = null!;
         }
 
         // Properties.
         public string? Email { get; set; }
 
-        [TempData]
-        public string? StatusMessage { get; set; }
+        public bool ShowNewsletterSection { get; set; }
+        public bool SubscribedToNewsletter { get; set; }
 
         [BindProperty]
-        public InputModel Input { get; set; } = default!;
+        public InputModel Input { get; set; } = null!;
 
         // Methods.
         public async Task<IActionResult> OnGetAsync()
@@ -112,11 +100,11 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
                     Services.Views.Emails.ConfirmEmailChangeModel.Title,
                     emailBody);
 
-                StatusMessage = "Confirmation link to change email sent. Please check your email.";
+                StatusMessage = new StatusMessage("Confirmation link to change email sent. Please check your email.");
                 return RedirectToPage();
             }
 
-            StatusMessage = "Your email is unchanged.";
+            StatusMessage = new StatusMessage("Your email is unchanged.", StatusMessageType.Warning);
             return RedirectToPage();
         }
 
@@ -135,7 +123,28 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
             user.RemoveEmail();
             await ssoDbContext.SaveChangesAsync();
 
-            StatusMessage = "Email has been removed";
+            StatusMessage = new StatusMessage("Email has been removed");
+            return RedirectToPage();
+        }
+
+        public async Task<IActionResult> OnPostSubscribeNewsletterAsync()
+        {
+            var user = await userManager.GetUserAsync(User);
+            if (user == null)
+                return NotFound($"Unable to load user with ID '{userManager.GetUserId(User)}'.");
+
+            var email = await userManager.GetEmailAsync(user);
+            if (email is null)
+            {
+                StatusMessage = new StatusMessage("You must add a verified email before subscribing.", StatusMessageType.Warning);
+                return RedirectToPage();
+            }
+
+            // Idempotent: the newsletter service performs an add-or-update on the allowed list, so a repeated
+            // call (or a double submit) is harmless.
+            await newsletterService.SubscribeEmailAsync(email, NewsletterSubscriptionSource.AccountSettings);
+
+            StatusMessage = new StatusMessage("You have been subscribed to our newsletter.");
             return RedirectToPage();
         }
 
@@ -143,6 +152,12 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
         private async Task LoadAsync(UserBase user)
         {
             Email = await userManager.GetEmailAsync(user);
+
+            // Offer the newsletter section whenever the user has a (verified) email, regardless of whether the
+            // newsletter service is enabled: when disabled, IsSubscribedAsync reports "not subscribed" and the
+            // subscribe call is a no-op. The button is shown only when the contact is not already subscribed.
+            ShowNewsletterSection = Email is not null;
+            SubscribedToNewsletter = ShowNewsletterSection && await newsletterService.IsSubscribedAsync(Email!);
         }
     }
 }

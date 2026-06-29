@@ -13,6 +13,7 @@
 // If not, see <https://www.gnu.org/licenses/>.
 
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SwarmSdk.Models;
 using System;
 using System.Collections.Generic;
 
@@ -23,7 +24,7 @@ namespace Etherna.SSOServer.Areas.Api.DtoModels
         // Constructor.
         public UserDto(UserBase user)
         {
-            ArgumentNullException.ThrowIfNull(user, nameof(user));
+            ArgumentNullException.ThrowIfNull(user);
 
             EtherAddress = user.EtherAddress;
             EtherPreviousAddresses = user.EtherPreviousAddresses;
@@ -31,8 +32,8 @@ namespace Etherna.SSOServer.Areas.Api.DtoModels
         }
 
         // Properties.
-        public string EtherAddress { get; }
-        public IEnumerable<string> EtherPreviousAddresses { get; }
-        public string? Username { get; }
+        public EthAddress EtherAddress { get; }
+        public IEnumerable<EthAddress> EtherPreviousAddresses { get; }
+        public string Username { get; }
     }
 }

@@ -1,23 +1,29 @@
-import { providers, utils } from "ethers"
+import { BrowserProvider, getAddress, isError } from "ethers"
 
 interface UIStore {
   // web3
-  web3Provider?: providers.Web3Provider
+  web3Provider?: BrowserProvider
   // components
-  web3LoginButton?: HTMLButtonElement
-  confirmWeb3LoginButton?: HTMLButtonElement
-  errorAlert?: HTMLDivElement
-  web3LoginView?: HTMLDivElement
-  manageWeb3View?: HTMLDivElement
-  installWeb3WalletView?: HTMLDivElement
+  web3LoginButton: HTMLButtonElement | null
+  confirmWeb3LoginButton: HTMLButtonElement | null
+  errorAlert: HTMLDivElement | null
+  web3LoginView: HTMLDivElement | null
+  manageWeb3View: HTMLDivElement | null
+  installWeb3WalletView: HTMLDivElement | null
   // vars
-  retriveAuthMessageUrl: string | null
+  retrieveAuthMessageUrl: string | null
   confirmSignatureUrl: string | null
 }
 
 const store: UIStore = {
-  retriveAuthMessageUrl: window.retriveAuthMessageUrl,
-  confirmSignatureUrl: window.confirmSignatureUrl
+  web3LoginButton: null,
+  confirmWeb3LoginButton: null,
+  errorAlert: null,
+  web3LoginView: null,
+  manageWeb3View: null,
+  installWeb3WalletView: null,
+  retrieveAuthMessageUrl: window.retrieveAuthMessageUrl ?? null,
+  confirmSignatureUrl: window.confirmSignatureUrl ?? null
 }
 
 window.addEventListener("load", load)
@@ -75,14 +81,15 @@ function hideError() {
 async function web3Signin() {
   hideError()
 
-  const external = (window.ethereum || window.web3.currentProvider) as providers.ExternalProvider
+  const external = window.ethereum ?? window.web3?.currentProvider
 
   if (external) {
-    store.web3Provider = new providers.Web3Provider(external, 1)
+    store.web3Provider = new BrowserProvider(external as any)
 
     try {
       window.ethereum && window.ethereum.enable()
-      const accounts = await store.web3Provider.listAccounts()
+      const signers = await store.web3Provider.listAccounts()
+      const accounts = signers.map(s => s.address)
       const { msg, address } = await getSignMsg(accounts)
       await signinAndRedirect(msg, address)
     } catch (error) {
@@ -90,7 +97,11 @@ async function web3Signin() {
 
       setBtnDisabled(store.web3LoginButton, false)
       setBtnDisabled(store.confirmWeb3LoginButton, false)
-      showError(error)
+      if (isError(error, 'ACTION_REJECTED')) {
+        showError(new Error("Signature request was rejected. Please try again when ready."))
+      } else {
+        showError(error as Error)
+      }
     }
   } else {
     alert("No ethereum provider found!")
@@ -100,8 +111,8 @@ async function web3Signin() {
 async function getSignMsg(accounts: string[]) {
   if (!accounts || !accounts.length) throw new Error("Unlock you wallet and try again.")
 
-  const address = utils.getAddress(accounts[0])
-  const msgUrl = store.retriveAuthMessageUrl + `&etherAddress=${address}`
+  const address = getAddress(accounts[0])
+  const msgUrl = store.retrieveAuthMessageUrl + `&etherAddress=${address}`
 
   setBtnDisabled(store.web3LoginButton, true)
   setBtnDisabled(store.confirmWeb3LoginButton, true)
@@ -115,7 +126,7 @@ async function getSignMsg(accounts: string[]) {
       address
     }
   } catch (error) {
-    showError(error)
+    showError(error as Error)
     setBtnDisabled(store.web3LoginButton, false)
     setBtnDisabled(store.confirmWeb3LoginButton, false)
     throw error
@@ -123,7 +134,7 @@ async function getSignMsg(accounts: string[]) {
 }
 
 async function signinAndRedirect(msg: string, address: string) {
-  const signer = store.web3Provider!.getSigner(address)
+  const signer = await store.web3Provider!.getSigner(address)
   const signature = await signer.signMessage(msg)
 
   const redirect = store.confirmSignatureUrl + '&etherAddress=' + address + '&signature=' + signature

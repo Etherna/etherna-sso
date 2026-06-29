@@ -34,6 +34,7 @@ using System.Threading.Tasks;
 namespace Etherna.SSOServer.Persistence
 {
     public class SsoDbContext(
+        SsoDbEncryptionSettings encryptionSettings,
         IEventDispatcher eventDispatcher,
         SsoDbSeedSettings seedSettings,
         IServiceProvider serviceProvider)
@@ -47,8 +48,8 @@ namespace Etherna.SSOServer.Persistence
         public IRepository<AlphaPassRequest, string> AlphaPassRequests { get; } = new DomainRepository<AlphaPassRequest, string>(
             new RepositoryOptions<AlphaPassRequest>("alphaPassRequests")
             {
-                IndexBuilders = new[]
-                {
+                IndexBuilders =
+                [
                     (Builders<AlphaPassRequest>.IndexKeys.Ascending(r => r.NormalizedEmail),
                      new CreateIndexOptions<AlphaPassRequest> { Unique = true }),
 
@@ -56,41 +57,66 @@ namespace Etherna.SSOServer.Persistence
                                                          .Ascending(r => r.IsEmailConfirmed)
                                                          .Ascending(r => r.IsInvitationSent),
                      new CreateIndexOptions<AlphaPassRequest>())
-                }
+                ]
             });
         public IRepository<ApiKey, string> ApiKeys { get; } = new DomainRepository<ApiKey, string>(
             new RepositoryOptions<ApiKey>("apiKeys")
             {
-                IndexBuilders = new[]
-                {
+                IndexBuilders =
+                [
                     (Builders<ApiKey>.IndexKeys.Ascending(k => k.KeyHash),
                      new CreateIndexOptions<ApiKey> { Unique = true })
-                }
+                ]
+            });
+        public IRepository<ClientApp, string> ClientApps { get; } = new DomainRepository<ClientApp, string>(
+            new RepositoryOptions<ClientApp>("clientApps")
+            {
+                IndexBuilders =
+                [
+                    (Builders<ClientApp>.IndexKeys.Ascending(c => c.ClientId),
+                     new CreateIndexOptions<ClientApp> { Unique = true }),
+
+                    (Builders<ClientApp>.IndexKeys.Ascending(c => c.ClientName),
+                     new CreateIndexOptions<ClientApp>()),
+
+                    (Builders<ClientApp>.IndexKeys.Ascending(c => c.Enabled),
+                     new CreateIndexOptions<ClientApp>())
+                ]
             });
         public IRepository<DailyStats, string> DailyStats { get; } = new DomainRepository<DailyStats, string>("dailyStats");
+        public IRepository<Fido2Challenge, string> Fido2Challenges { get; } = new DomainRepository<Fido2Challenge, string>(
+            new RepositoryOptions<Fido2Challenge>("fido2Challenges")
+            {
+                IndexBuilders =
+                [
+                    //TTL: MongoDB purges documents whose ExpiresAt is in the past.
+                    (Builders<Fido2Challenge>.IndexKeys.Ascending(c => c.ExpiresAt),
+                     new CreateIndexOptions<Fido2Challenge> { ExpireAfter = TimeSpan.Zero })
+                ]
+            });
         public IRepository<Invitation, string> Invitations { get; } = new DomainRepository<Invitation, string>(
             new RepositoryOptions<Invitation>("invitations")
             {
-                IndexBuilders = new[]
-                {
+                IndexBuilders =
+                [
                     (Builders<Invitation>.IndexKeys.Ascending(i => i.Code),
                      new CreateIndexOptions<Invitation> { Unique = true })
-                }
+                ]
             });
         public IRepository<Role, string> Roles { get; } = new DomainRepository<Role, string>(
             new RepositoryOptions<Role>("roles")
             {
-                IndexBuilders = new[]
-                {
+                IndexBuilders =
+                [
                     (Builders<Role>.IndexKeys.Ascending(r => r.NormalizedName),
                      new CreateIndexOptions<Role> { Unique = true })
-                }
+                ]
             });
         public IRepository<UserBase, string> Users { get; } = new DomainRepository<UserBase, string>(
             new RepositoryOptions<UserBase>("users")
             {
-                IndexBuilders = new[]
-                {
+                IndexBuilders =
+                [
                     //UserBase
                     (Builders<UserBase>.IndexKeys.Ascending(u => u.EtherAddress),
                      new CreateIndexOptions<UserBase> { Unique = true }),
@@ -107,35 +133,35 @@ namespace Etherna.SSOServer.Persistence
                     (Builders<UserBase>.IndexKeys.Ascending(u => u.NormalizedUsername),
                      new CreateIndexOptions<UserBase> { Unique = true }),
 
-                    (Builders<UserBase>.IndexKeys.Ascending("Roles.NormalizedName"),
+                    (Builders<UserBase>.IndexKeys.Ascending(u => u.Roles.Select(r => r.NormalizedName)),
                      new CreateIndexOptions<UserBase>()),
 
                     (Builders<UserBase>.IndexKeys.Ascending(u => u.SharedInfoId),
                      new CreateIndexOptions<UserBase> { Unique = true }),
 
                     //UserWeb2
-                    (Builders<UserBase>.IndexKeys.Ascending("EtherLoginAddress"),
+                    (Builders<UserBase>.IndexKeys.Ascending(u => ((UserWeb2)u).EtherLoginAddress),
                      new CreateIndexOptions<UserBase> { Unique = true, Sparse = true }),
 
-                    (Builders<UserBase>.IndexKeys.Ascending("Logins.LoginProvider")
-                                                 .Ascending("Logins.ProviderKey"),
-                     new CreateIndexOptions<UserBase> { Unique = true, Sparse = true }),
-                }
+                    (Builders<UserBase>.IndexKeys.Ascending(u => ((UserWeb2)u).Fido2Credentials.Select(c => c.CredentialId)),
+                     new CreateIndexOptions<UserBase> { Unique = true, Sparse = true })
+                ]
             });
         public IRepository<Web3LoginToken, string> Web3LoginTokens { get; } = new DomainRepository<Web3LoginToken, string>(
             new RepositoryOptions<Web3LoginToken>("web3LoginTokens")
             {
-                IndexBuilders = new[]
-                {
+                IndexBuilders =
+                [
                     (Builders<Web3LoginToken>.IndexKeys.Ascending(u => u.EtherAddress),
                      new CreateIndexOptions<Web3LoginToken> { Unique = true })
-                }
+                ]
             });
 
         //migrations
         public override IEnumerable<DocumentMigration> DocumentMigrationList => Array.Empty<DocumentMigration>();
 
         //other properties
+        public string EtherManagedPrivateKeyEncryptionKey { get; } = encryptionSettings.EtherManagedPrivateKey;
         public IEventDispatcher EventDispatcher { get; } = eventDispatcher;
 
         // Protected properties.
@@ -182,8 +208,7 @@ namespace Etherna.SSOServer.Persistence
                     true,
                     null,
                     null,
-                    [adminRole],
-                    false);
+                    [adminRole]);
 
                 if (user is null)
                     throw new InvalidOperationException("Error creating first user");

@@ -15,6 +15,7 @@
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Services.Domain;
+using Etherna.SwarmSdk.Models;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System;
 using System.Collections.Generic;
@@ -30,7 +31,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
         {
             public UserDto(UserBase user)
             {
-                ArgumentNullException.ThrowIfNull(user, nameof(user));
+                ArgumentNullException.ThrowIfNull(user);
 
                 Id = user.Id;
                 Email = user.Email;
@@ -40,7 +41,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
 
             public string Id { get; }
             public string? Email { get; }
-            public string EtherAddress { get; }
+            public EthAddress EtherAddress { get; }
             public string Username { get; }
         }
 
@@ -64,14 +65,14 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
         public int CurrentPage { get; set; }
         public long MaxPage { get; set; }
         public string? Query { get; set; }
-        public string RoleId { get; private set; } = default!;
-        public string RoleName { get; private set; } = default!;
+        public string RoleId { get; private set; } = null!;
+        public string RoleName { get; private set; } = null!;
         public List<UserDto> Users { get; } = new();
 
         // Methods.
         public async Task OnGetAsync(string id, int? p, string? q)
         {
-            ArgumentNullException.ThrowIfNull(id, nameof(id));
+            ArgumentNullException.ThrowIfNull(id);
 
             CurrentPage = p ?? 0;
             Query = q ?? "";

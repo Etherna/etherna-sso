@@ -12,11 +12,11 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.ACR.Helpers;
 using Etherna.Authentication;
 using Etherna.MongODM.Core.Attributes;
 using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models.UserAgg;
+using Etherna.SwarmSdk.Models;
 using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
@@ -28,6 +28,8 @@ namespace Etherna.SSOServer.Domain.Models
     public abstract class UserBase : EntityModelBase<string>
     {
         // Consts.
+        public const int DefaultMaxAllowedClients = 2;
+
         public static readonly IEnumerable<string> DomainManagedClaimNames =
         [
             EthernaClaimTypes.EtherAddress,
@@ -38,8 +40,9 @@ namespace Etherna.SSOServer.Domain.Models
         ];
 
         // Fields.
+        private List<LegalAcceptance> _acceptedLegalDocuments = [];
         private readonly List<UserClaim> _customClaims = new();
-        private List<string> _etherPreviousAddresses = new();
+        private List<EthAddress> _etherPreviousAddresses = new();
         private List<Role> _roles = new();
 
         // Constructors.
@@ -49,23 +52,36 @@ namespace Etherna.SSOServer.Domain.Models
             bool invitedByAdmin,
             UserSharedInfo sharedInfo)
         {
-            ArgumentNullException.ThrowIfNull(sharedInfo, nameof(sharedInfo));
+            ArgumentNullException.ThrowIfNull(sharedInfo);
 
             SetUsername(username);
             InvitedBy = invitedBy;
             InvitedByAdmin = invitedByAdmin;
             SharedInfoId = sharedInfo.Id;
+            MaxAllowedClients = DefaultMaxAllowedClients;
         }
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
         protected UserBase() { }
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 
         // Properties.
+        /// <summary>
+        /// Append-only history of the legal documents this user accepted (which document, which
+        /// version, and when). Kept as our own proof of consent for GDPR/nFADP accountability.
+        /// </summary>
+        [PersonalData]
+        public virtual IEnumerable<LegalAcceptance> AcceptedLegalDocuments
+        {
+            get => _acceptedLegalDocuments;
+            protected set => _acceptedLegalDocuments = [..value ?? []];
+        }
         public virtual IEnumerable<UserClaim> Claims
         {
             get => DefaultClaims.Union(_customClaims);
             protected set
             {
                 _customClaims.Clear();
-                foreach (var claim in value ?? Array.Empty<UserClaim>())
+                foreach (var claim in value ?? [])
                     AddClaim(claim);
             }
         }
@@ -75,10 +91,10 @@ namespace Etherna.SSOServer.Domain.Models
             {
                 var claims = new List<UserClaim>
                 {
-                    new UserClaim(EthernaClaimTypes.EtherAddress, EtherAddress),
-                    new UserClaim(EthernaClaimTypes.EtherPreviousAddresses, JsonSerializer.Serialize(_etherPreviousAddresses)),
-                    new UserClaim(EthernaClaimTypes.IsWeb3Account, (this is UserWeb3).ToString()),
-                    new UserClaim(EthernaClaimTypes.Username, Username)
+                    new(EthernaClaimTypes.EtherAddress, EtherAddress.ToString()),
+                    new(EthernaClaimTypes.EtherPreviousAddresses, JsonSerializer.Serialize(_etherPreviousAddresses)),
+                    new(EthernaClaimTypes.IsWeb3Account, (this is UserWeb3).ToString()),
+                    new(EthernaClaimTypes.Username, Username)
                 };
 
                 foreach (var role in _roles)
@@ -93,16 +109,16 @@ namespace Etherna.SSOServer.Domain.Models
 
         [PersonalData]
         /* Keep until SharedInfo can't be encapsulated. */
-        public virtual string EtherAddress { get; protected set; } = default!;
+        public virtual EthAddress EtherAddress { get; protected set; }
         //[PersonalData]
         //public virtual string EtherAddress => SharedInfo.EtherAddress;
 
         [PersonalData]
         /* Keep until SharedInfo can't be encapsulated. */
-        public virtual IEnumerable<string> EtherPreviousAddresses
+        public virtual IEnumerable<EthAddress> EtherPreviousAddresses
         {
             get => _etherPreviousAddresses;
-            protected set => _etherPreviousAddresses = new List<string>(value ?? Array.Empty<string>());
+            protected set => _etherPreviousAddresses = [..value ?? []];
         }
         //[PersonalData]
         //public virtual IEnumerable<string> EtherPreviousAddresses => SharedInfo.EtherPreviousAddresses;
@@ -113,33 +129,34 @@ namespace Etherna.SSOServer.Domain.Models
         public virtual DateTime LastLoginDateTime { get; protected set; }
         //public virtual bool LockoutEnabled => SharedInfo.LockoutEnabled;
         //public virtual DateTimeOffset? LockoutEnd => SharedInfo.LockoutEnd;
+        public virtual int MaxAllowedClients { get; protected set; }
         public virtual string? NormalizedEmail { get; protected set; }
-        public virtual string NormalizedUsername { get; protected set; } = default!;
+        public virtual string NormalizedUsername { get; protected set; } = null!;
         [PersonalData]
         public virtual string? PhoneNumber { get; protected set; }
         public virtual bool PhoneNumberConfirmed { get; protected set; }
         public virtual IEnumerable<Role> Roles
         {
             get => _roles;
-            protected set => _roles = new List<Role>(value ?? Array.Empty<Role>());
+            protected set => _roles = [..value ?? []];
         }
-        public virtual string SecurityStamp { get; set; } = default!;
+        public virtual string SecurityStamp { get; set; } = null!;
 
         /* SharedInfo is encapsulable with resolution of https://etherna.atlassian.net/browse/MODM-101.
          * With encapsulation we can expose also EtherAddress and EtherPreviousAddresses properties
          * pointing to SharedInfo internal property, and avoid data duplication.
          */
         //protected abstract SharedUserInfo SharedInfo { get; set; }
-        public virtual string SharedInfoId { get; protected set; } = default!;
+        public virtual string SharedInfoId { get; protected set; }
 
         [PersonalData]
-        public virtual string Username { get; protected set; } = default!;
+        public virtual string Username { get; protected set; } = null!;
 
         // Methods.
         [PropertyAlterer(nameof(Claims))]
         public virtual bool AddClaim(UserClaim claim)
         {
-            ArgumentNullException.ThrowIfNull(claim, nameof(claim));
+            ArgumentNullException.ThrowIfNull(claim);
 
             //keep default claims managed by model
             if (DomainManagedClaimNames.Contains(claim.Type))
@@ -152,6 +169,16 @@ namespace Etherna.SSOServer.Domain.Models
 
             _customClaims.Add(claim);
             return true;
+        }
+
+        [PropertyAlterer(nameof(AcceptedLegalDocuments))]
+        public virtual void AddLegalAcceptances(IEnumerable<LegalAcceptance> acceptances)
+        {
+            ArgumentNullException.ThrowIfNull(acceptances);
+
+            //append, never replace: the history must be preserved for accountability
+            foreach (var acceptance in acceptances)
+                _acceptedLegalDocuments.Add(acceptance);
         }
 
         [PropertyAlterer(nameof(Roles))]
@@ -177,7 +204,7 @@ namespace Etherna.SSOServer.Domain.Models
         [PropertyAlterer(nameof(Claims))]
         public virtual bool RemoveClaim(UserClaim claim)
         {
-            ArgumentNullException.ThrowIfNull(claim, nameof(claim));
+            ArgumentNullException.ThrowIfNull(claim);
 
             return RemoveClaim(claim.Type, claim.Value);
         }
@@ -185,8 +212,8 @@ namespace Etherna.SSOServer.Domain.Models
         [PropertyAlterer(nameof(Claims))]
         public virtual bool RemoveClaim(string type, string value)
         {
-            ArgumentNullException.ThrowIfNull(type, nameof(type));
-            ArgumentNullException.ThrowIfNull(value, nameof(value));
+            ArgumentNullException.ThrowIfNull(type);
+            ArgumentNullException.ThrowIfNull(value);
 
             var removed = _customClaims.RemoveAll(c => c.Type == type &&
                                                        c.Value == value);
@@ -247,6 +274,14 @@ namespace Etherna.SSOServer.Domain.Models
                 NormalizedUsername = UsernameHelper.NormalizeUsername(username);
                 Username = username;
             }
+        }
+
+        [PropertyAlterer(nameof(MaxAllowedClients))]
+        public virtual void SetMaxAllowedClients(int maxClients)
+        {
+            if (maxClients < 0)
+                throw new ArgumentOutOfRangeException(nameof(maxClients), "Max allowed clients cannot be negative.");
+            MaxAllowedClients = maxClients;
         }
 
         [PropertyAlterer(nameof(LastLoginDateTime))]

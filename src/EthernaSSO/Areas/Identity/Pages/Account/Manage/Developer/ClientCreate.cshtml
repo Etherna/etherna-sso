@@ -1,0 +1,341 @@
+@* Copyright 2021-present Etherna SA
+   This file is part of Etherna Sso.
+
+   Etherna Sso is free software: you can redistribute it and/or modify it under the terms of the
+   GNU Affero General Public License as published by the Free Software Foundation,
+   either version 3 of the License, or (at your option) any later version.
+
+   Etherna Sso is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+   without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+   See the GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
+   If not, see <https://www.gnu.org/licenses/>. *@
+
+@page
+@model Etherna.SSOServer.Areas.Identity.Pages.Account.Manage.Developer.ClientCreateModel
+@{
+    ViewData["Title"] = "Create Client Application";
+    ViewData["ActivePage"] = ManageNavPages.Developer;
+}
+
+<h4>@ViewData["Title"]</h4>
+<partial name="_StatusMessage" for="StatusMessage" />
+
+@if (Model.GeneratedClientId is not null)
+{
+    <div class="card border-success mb-4">
+        <div class="card-header bg-success text-white">
+            <strong>Application Created Successfully</strong>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <label class="form-label fw-bold">Client ID</label>
+                <div class="input-group">
+                    <input type="text" class="form-control" value="@Model.GeneratedClientId" readonly id="clientIdField" />
+                    <button class="btn btn-outline-secondary" type="button" onclick="copyToClipboard('clientIdField')">Copy</button>
+                </div>
+            </div>
+
+            @if (Model.GeneratedSecret is not null)
+            {
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Client Secret</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" value="@Model.GeneratedSecret" readonly id="clientSecretField" />
+                        <button class="btn btn-outline-secondary" type="button" onclick="copyToClipboard('clientSecretField')">Copy</button>
+                    </div>
+                    <div class="alert alert-warning mt-2 mb-0">
+                        <strong>Save this secret now.</strong> It will not be shown again. If you lose it, you will need to generate a new one.
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
+else
+{
+    <form id="client-create-form" method="post">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        @* Step 1: Choose application type *@
+        <div class="card mb-4">
+            <div class="card-header">
+                <strong>Step 1:</strong> Choose application type
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="radio" asp-for="Input.ClientType"
+                               value="@ClientAppType.WebApp" id="typeWebApp" />
+                        <label class="form-check-label fw-bold" for="typeWebApp">
+                            Web Application
+                        </label>
+                        <div class="text-muted small">
+                            Server-side web application (e.g., ASP.NET, Django, Express).
+                            Uses Authorization Code flow. A client secret is generated for secure server-to-server communication.
+                        </div>
+                    </div>
+
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="radio" asp-for="Input.ClientType"
+                               value="@ClientAppType.NativeApp" id="typeNativeApp" />
+                        <label class="form-check-label fw-bold" for="typeNativeApp">
+                            Native Application
+                        </label>
+                        <div class="text-muted small">
+                            Desktop, mobile, or single-page application that runs on the user's device.
+                            Uses Authorization Code with PKCE for security without a shared secret.
+                        </div>
+                    </div>
+
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="radio" asp-for="Input.ClientType"
+                               value="@ClientAppType.ClientCredential" id="typeClientCredential" />
+                        <label class="form-check-label fw-bold" for="typeClientCredential">
+                            Machine-to-Machine
+                        </label>
+                        <div class="text-muted small">
+                            Backend service or daemon that accesses APIs without user interaction.
+                            Uses Client Credentials flow with a client secret.
+                        </div>
+                    </div>
+
+                    <span asp-validation-for="Input.ClientType" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+
+        @* Step 2: Application details *@
+        <div class="card mb-4">
+            <div class="card-header">
+                <strong>Step 2:</strong> Application details
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label asp-for="Input.ClientName" class="form-label"></label>
+                    <input asp-for="Input.ClientName" class="form-control" />
+                    <span asp-validation-for="Input.ClientName" class="text-danger"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Input.Description" class="form-label"></label>
+                    <textarea asp-for="Input.Description" class="form-control" rows="3"></textarea>
+                    <div class="form-text">Optional. A brief description of your application.</div>
+                    <span asp-validation-for="Input.Description" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+
+        @* Step 3: Configuration *@
+        <div class="card mb-4" id="urisCard">
+            <div class="card-header">
+                <strong>Step 3:</strong> Configuration
+            </div>
+            <div class="card-body">
+                <div class="mb-3" id="redirectUrisGroup">
+                    <label asp-for="Input.RedirectUris" class="form-label"></label>
+                    <textarea asp-for="Input.RedirectUris" class="form-control" rows="3"></textarea>
+                    <div class="form-text">
+                        One URI per line. These are the URLs where users will be redirected after authentication.
+                        Required for Web Application and Native Application types.
+                    </div>
+                    <span asp-validation-for="Input.RedirectUris" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3" id="postLogoutRedirectUrisGroup">
+                    <label asp-for="Input.PostLogoutRedirectUris" class="form-label"></label>
+                    <textarea asp-for="Input.PostLogoutRedirectUris" class="form-control" rows="3"></textarea>
+                    <div class="form-text">
+                        One URI per line. Optional. URLs where users will be redirected after logging out.
+                    </div>
+                    <span asp-validation-for="Input.PostLogoutRedirectUris" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3" id="allowedCorsOriginsGroup">
+                    <label asp-for="Input.AllowedCorsOrigins" class="form-label"></label>
+                    <textarea asp-for="Input.AllowedCorsOrigins" class="form-control" rows="3"></textarea>
+                    <div class="form-text">
+                        One URI per line. Required for Native Application (browser-based apps).
+                        Origins allowed for cross-origin requests.
+                    </div>
+                    <span asp-validation-for="Input.AllowedCorsOrigins" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+
+        @* Step 4: Scopes *@
+        <div class="card mb-4">
+            <div class="card-header">
+                <strong>Step 4:</strong> Scopes
+            </div>
+            <div class="card-body">
+                <div id="identityScopesGroup">
+                    <h6>Identity Scopes</h6>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="openid"
+                                   checked disabled id="scopeOpenid" />
+                            <input type="hidden" name="Input.AllowedScopes" value="openid" id="scopeOpenidHidden" />
+                            <label class="form-check-label" for="scopeOpenid">
+                                openid <span class="text-muted small">(always required)</span>
+                            </label>
+                        </div>
+                        @foreach (var scope in ClientApp.DeveloperAllowedIdentityScopes.Where(s => s != "openid"))
+                        {
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="Input.AllowedScopes"
+                                       value="@scope" id="scope_@scope"
+                                       @(Model.Input.AllowedScopes.Contains(scope) ? "checked" : "") />
+                                <label class="form-check-label" for="scope_@scope">
+                                    @scope
+                                </label>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <h6>API Scopes</h6>
+                <div class="mb-3">
+                    @foreach (var scope in ClientApp.DeveloperAllowedApiScopes)
+                    {
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="Input.AllowedScopes"
+                                   value="@scope" id="scope_@scope.Replace(".", "_")"
+                                   @(Model.Input.AllowedScopes.Contains(scope) ? "checked" : "") />
+                            <label class="form-check-label" for="scope_@scope.Replace(".", "_")">
+                                @scope
+                            </label>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        @* Claims (issued automatically from the selected scopes; not configurable) *@
+        <div class="card mb-4">
+            <div class="card-header">
+                <strong>Claims</strong>
+            </div>
+            <div class="card-body">
+                <div class="form-text mb-2">
+                    These claims are issued automatically in the token, based on the selected scopes.
+                    They are not configurable; some appear only if the user has the corresponding data.
+                </div>
+                <ul id="claimsList" class="mb-0">
+                    <li class="text-muted">(select scopes to see the included claims)</li>
+                </ul>
+                <div id="m2mBillingNote" class="form-text mt-2" style="display: none;">
+                    Machine-to-machine usage is billed to the owner's address: <code>@Model.OwnerEtherAddress</code>
+                </div>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-lg">Create Application</button>
+    </form>
+}
+
+@section Scripts {
+    <script>
+        function copyToClipboard(elementId) {
+            var field = document.getElementById(elementId);
+            navigator.clipboard.writeText(field.value).then(function () {
+                var btn = field.nextElementSibling;
+                var originalText = btn.textContent;
+                btn.textContent = 'Copied!';
+                setTimeout(function () { btn.textContent = originalText; }, 2000);
+            });
+        }
+
+        (function () {
+            var radios = document.querySelectorAll('input[name="Input.ClientType"]');
+            var redirectGroup = document.getElementById('redirectUrisGroup');
+            var postLogoutGroup = document.getElementById('postLogoutRedirectUrisGroup');
+            var corsGroup = document.getElementById('allowedCorsOriginsGroup');
+            var urisCard = document.getElementById('urisCard');
+            var identityScopesGroup = document.getElementById('identityScopesGroup');
+            var claimsList = document.getElementById('claimsList');
+            var m2mBillingNote = document.getElementById('m2mBillingNote');
+            var scopeClaims = @Json.Serialize(Model.ScopeClaims);
+            var m2mAlwaysClaims = @Json.Serialize(Model.ClientCredentialAlwaysClaims);
+
+            function selectedClientType() {
+                var selected = document.querySelector('input[name="Input.ClientType"]:checked');
+                return selected ? selected.value : null;
+            }
+
+            // Identity scopes are invalid for machine-to-machine clients. Disabled inputs are not
+            // submitted, so toggling them controls what is actually posted (and counted in the claims).
+            function setIdentityScopesActive(active) {
+                if (!identityScopesGroup) return;
+                identityScopesGroup.style.display = active ? '' : 'none';
+                identityScopesGroup.querySelectorAll('input[name="Input.AllowedScopes"]').forEach(function (input) {
+                    input.disabled = !active;
+                });
+            }
+
+            // The claims preview mirrors the token: union of the claims granted by the selected scopes,
+            // plus the claims always issued for client-credentials clients (the owner ether address).
+            function updateClaims() {
+                if (!claimsList) return;
+                var isM2m = selectedClientType() === '@ClientAppType.ClientCredential';
+                var set = {};
+                document.querySelectorAll('input[name="Input.AllowedScopes"]').forEach(function (input) {
+                    if (input.disabled || (input.type !== 'hidden' && !input.checked)) return;
+                    (scopeClaims[input.value] || []).forEach(function (c) { set[c] = true; });
+                });
+                if (isM2m)
+                    m2mAlwaysClaims.forEach(function (c) { set[c] = true; });
+
+                claimsList.innerHTML = '';
+                var claims = Object.keys(set).sort();
+                if (claims.length === 0) {
+                    var empty = document.createElement('li');
+                    empty.className = 'text-muted';
+                    empty.textContent = '(no claims)';
+                    claimsList.appendChild(empty);
+                } else {
+                    claims.forEach(function (c) {
+                        var li = document.createElement('li');
+                        li.textContent = c;
+                        claimsList.appendChild(li);
+                    });
+                }
+                if (m2mBillingNote) m2mBillingNote.style.display = isM2m ? '' : 'none';
+            }
+
+            function updateVisibility() {
+                var value = selectedClientType();
+                // ClientCredential: no interactive flow -> hide the whole URIs section.
+                if (value === '@ClientAppType.ClientCredential') {
+                    if (urisCard) urisCard.style.display = 'none';
+                    setIdentityScopesActive(false);
+                }
+                // WebApp: redirect + post-logout, but no CORS (server-side).
+                else if (value === '@ClientAppType.WebApp') {
+                    if (urisCard) urisCard.style.display = '';
+                    if (redirectGroup) redirectGroup.style.display = '';
+                    if (postLogoutGroup) postLogoutGroup.style.display = '';
+                    if (corsGroup) corsGroup.style.display = 'none';
+                    setIdentityScopesActive(true);
+                }
+                // NativeApp, or nothing selected yet: show URIs (CORS only for NativeApp).
+                else {
+                    if (urisCard) urisCard.style.display = '';
+                    if (redirectGroup) redirectGroup.style.display = '';
+                    if (postLogoutGroup) postLogoutGroup.style.display = '';
+                    if (corsGroup) corsGroup.style.display = (value === '@ClientAppType.NativeApp') ? '' : 'none';
+                    setIdentityScopesActive(true);
+                }
+                updateClaims();
+            }
+
+            radios.forEach(function (radio) {
+                radio.addEventListener('change', updateVisibility);
+            });
+            document.querySelectorAll('input[name="Input.AllowedScopes"]').forEach(function (input) {
+                input.addEventListener('change', updateClaims);
+            });
+            updateVisibility();
+        })();
+    </script>
+}

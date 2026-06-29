@@ -1,19 +1,4 @@
-﻿@*  *   Copyright 2021-present Etherna Sa
-    *
-    *   Licensed under the Apache License, Version 2.0 (the "License");
-    *   you may not use this file except in compliance with the License.
-    *   You may obtain a copy of the License at
-    *
-    *       http://www.apache.org/licenses/LICENSE-2.0
-    *
-    *   Unless required by applicable law or agreed to in writing, software
-    *   distributed under the License is distributed on an "AS IS" BASIS,
-    *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    *   See the License for the specific language governing permissions and
-    *   limitations under the License.
-*@
-
-@using Etherna.SSOServer.Configs;
+﻿@using Etherna.SSOServer.Configs;
 @using Microsoft.AspNetCore.Authorization;
 @inject IAuthorizationService authorizationService
 @{
@@ -31,8 +16,6 @@
     @if (userIsAdmin) {
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
     }
-    <script src="~/dist/js/manifest.js" asp-append-version="true"></script>
-    <script src="~/dist/js/vendor.js" asp-append-version="true"></script>
 </head>
 
 <body>
@@ -65,9 +48,6 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-page="/Index">Home</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Privacy">Privacy</a>
-                        </li>
                     </ul>
                 </div>
             </div>
@@ -81,7 +61,7 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2020-@DateTime.UtcNow.Year - Etherna SA - <a href="https://info.etherna.io/privacy-policy/">Privacy</a> - <a href="/swagger">API</a>
+            &copy; 2020-@DateTime.UtcNow.Year - Etherna SA - <a href="https://info.etherna.io/privacy-policy/">Privacy</a> - <a href="/scalar">API</a>
         </div>
     </footer>
 
@@ -91,6 +71,23 @@
     }
 
     @await RenderSectionAsync("Scripts", required: false)
+
+    <!-- Matomo -->
+    <script>
+        var _paq = window._paq = window._paq || [];
+        _paq.push(["setDocumentTitle", document.domain + "/" + document.title]);
+        _paq.push(["disableCookies"]);
+        _paq.push(['trackPageView']);
+        _paq.push(['enableLinkTracking']);
+        (function() {
+            var u = "https://analytics.etherna.io/";
+            _paq.push(['setTrackerUrl', u + 'matomo.php']);
+            _paq.push(['setSiteId', '3']);
+            var d = document, g = d.createElement('script'), s = d.getElementsByTagName('script')[0];
+            g.async = true; g.src = u + 'matomo.js'; s.parentNode.insertBefore(g, s);
+        })();
+    </script>
+    <!-- End Matomo Code -->
 </body>
 
 </html>

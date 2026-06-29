@@ -12,8 +12,9 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
+using Etherna.SSOServer.Configs.Metrics;
 using Etherna.SSOServer.Domain.Models;
-using Etherna.SSOServer.Extensions;
+using Etherna.SSOServer.Services.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -35,7 +36,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             [Required]
             [DataType(DataType.Text)]
             [Display(Name = "Recovery Code")]
-            public string RecoveryCode { get; set; } = default!;
+            public string RecoveryCode { get; set; } = null!;
         }
 
         // Fields.
@@ -53,7 +54,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
         // Properties.
         [BindProperty]
-        public InputModel Input { get; set; } = default!;
+        public InputModel Input { get; set; } = null!;
 
         public string? ReturnUrl { get; set; }
 
@@ -88,16 +89,19 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             if (result.Succeeded)
             {
                 logger.LoggedInWithRecoveryCode(user.Id);
+                SsoMetrics.RecordLoginAttempt("recovery_code", "success");
                 return LocalRedirect(returnUrl ?? Url.Content("~/"));
             }
             if (result.IsLockedOut)
             {
                 logger.LockedOutLoginAttempt(user.Id);
+                SsoMetrics.RecordLoginAttempt("recovery_code", "locked_out");
                 return RedirectToPage("./Lockout");
             }
             else
             {
                 logger.InvalidRecoveryCodeAttempt(user.Id);
+                SsoMetrics.RecordLoginAttempt("recovery_code", "failure");
                 ModelState.AddModelError(string.Empty, "Invalid recovery code entered.");
                 return Page();
             }

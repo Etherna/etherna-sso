@@ -28,11 +28,13 @@ namespace Etherna.SSOServer.Domain.Models
             IsFromAdmin = isFromAdmin;
             IsSingleUse = isSingleUse;
         }
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
         protected Invitation() { }
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 
         // Properties.
-        public virtual string Code { get; protected set; } = default!;
-        public virtual UserBase? Emitter { get; protected set; } = default!;
+        public virtual string Code { get; protected set; }
+        public virtual UserBase? Emitter { get; protected set; }
         public virtual DateTime? EndLife { get; protected set; }
         public virtual bool IsAlive => EndLife is null || DateTime.UtcNow < EndLife;
         public virtual bool IsFromAdmin { get; protected set; }

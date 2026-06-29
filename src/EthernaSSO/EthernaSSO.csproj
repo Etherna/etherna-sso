@@ -20,15 +20,19 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.7" />
+    <PackageReference Include="Elastic.Serilog.Sinks" Version="9.0.0" />
+    <PackageReference Include="Fido2.AspNet" Version="4.0.1" />
+    <PackageReference Include="HtmlSanitizer" Version="9.0.892" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.9" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning.ApiExplorer" Version="5.1.0" />
-    <PackageReference Include="MongODM" Version="0.25.0-alpha.54" />
-    <PackageReference Include="MongODM.AspNetCore.UI" Version="0.25.0-alpha.54" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.9" />
+    <PackageReference Include="MongODM" Version="0.25.0-alpha.55" />
+    <PackageReference Include="prometheus-net.AspNetCore" Version="8.2.1" />
+    <PackageReference Include="MongODM.AspNetCore.UI" Version="0.25.0-alpha.55" />
+    <PackageReference Include="Scalar.AspNetCore" Version="2.16.4" />
     <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
     <PackageReference Include="Serilog.Enrichers.Environment" Version="3.0.1" />
     <PackageReference Include="Serilog.Exceptions" Version="8.4.0" />
-    <PackageReference Include="Serilog.Sinks.Elasticsearch" Version="10.0.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.7" />
   </ItemGroup>
 
   <ItemGroup>
@@ -51,7 +55,7 @@
     <Exec Command="npm run build-production" />
   </Target>
 
-  <Target Name="DebugRunWebpack" BeforeTargets="Build" Condition="'$(Configuration)' == 'Debug' And Exists('node_modules')">
+  <Target Name="DebugRunBundler" BeforeTargets="Build" Condition="'$(Configuration)' == 'Debug' And Exists('node_modules')">
     <Message Importance="High" Text="Compiling bundle..." />
     <Exec Command="npm run build-production" />
   </Target>

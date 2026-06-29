@@ -60,7 +60,7 @@ namespace Etherna.SSOServer.Configs.Identity
         // Methods.
         public Task AddClaimsAsync(UserBase user, IEnumerable<Claim> claims, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(user, nameof(user));
+            ArgumentNullException.ThrowIfNull(user);
 
             foreach (var claim in claims.Select(c => new Domain.Models.UserAgg.UserClaim(c.Type, c.Value)))
                 user.AddClaim(claim);
@@ -69,8 +69,8 @@ namespace Etherna.SSOServer.Configs.Identity
 
         public async Task AddToRoleAsync(UserBase user, string roleName, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(user, nameof(user));
-            ArgumentNullException.ThrowIfNull(roleName, nameof(roleName));
+            ArgumentNullException.ThrowIfNull(user);
+            ArgumentNullException.ThrowIfNull(roleName);
 
             var role = await ssoDbContext.Roles.QueryElementsAsync(elements =>
                 elements.Where(r => r.NormalizedName == roleName)
@@ -135,7 +135,7 @@ namespace Etherna.SSOServer.Configs.Identity
 
         public Task<IList<Claim>> GetClaimsAsync(UserBase user, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(user, nameof(user));
+            ArgumentNullException.ThrowIfNull(user);
 
             return Task.FromResult<IList<Claim>>(
                 user.Claims.Select(c => new Claim(c.Type, c.Value)).ToList());
@@ -143,21 +143,21 @@ namespace Etherna.SSOServer.Configs.Identity
 
         public Task<string?> GetEmailAsync(UserBase user, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(user, nameof(user));
+            ArgumentNullException.ThrowIfNull(user);
 
             return Task.FromResult(user.Email);
         }
 
         public Task<bool> GetEmailConfirmedAsync(UserBase user, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(user, nameof(user));
+            ArgumentNullException.ThrowIfNull(user);
 
             return Task.FromResult(user.NormalizedEmail is not null);
         }
 
         public async Task<bool> GetLockoutEnabledAsync(UserBase user, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(user, nameof(user));
+            ArgumentNullException.ThrowIfNull(user);
 
             var sharedInfo = await userService.GetSharedUserInfoAsync(user);
 
@@ -166,7 +166,7 @@ namespace Etherna.SSOServer.Configs.Identity
 
         public async Task<DateTimeOffset?> GetLockoutEndDateAsync(UserBase user, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(user, nameof(user));
+            ArgumentNullException.ThrowIfNull(user);
 
             var sharedInfo = await userService.GetSharedUserInfoAsync(user);
 
@@ -175,14 +175,14 @@ namespace Etherna.SSOServer.Configs.Identity
 
         public Task<string?> GetNormalizedEmailAsync(UserBase user, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(user, nameof(user));
+            ArgumentNullException.ThrowIfNull(user);
 
             return Task.FromResult(user.NormalizedEmail);
         }
 
         public Task<string?> GetNormalizedUserNameAsync(UserBase user, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(user, nameof(user));
+            ArgumentNullException.ThrowIfNull(user);
 
             return Task.FromResult<string?>(user.NormalizedUsername);
         }
@@ -197,28 +197,28 @@ namespace Etherna.SSOServer.Configs.Identity
 
         public Task<string?> GetPhoneNumberAsync(UserBase user, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(user, nameof(user));
+            ArgumentNullException.ThrowIfNull(user);
 
             return Task.FromResult(user.PhoneNumber);
         }
 
         public Task<bool> GetPhoneNumberConfirmedAsync(UserBase user, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(user, nameof(user));
+            ArgumentNullException.ThrowIfNull(user);
 
             return Task.FromResult(user.PhoneNumberConfirmed);
         }
 
         public Task<IList<string>> GetRolesAsync(UserBase user, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(user, nameof(user));
+            ArgumentNullException.ThrowIfNull(user);
 
             return Task.FromResult<IList<string>>(user.Roles.Select(r => r.NormalizedName).ToList());
         }
 
         public Task<string?> GetSecurityStampAsync(UserBase user, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(user, nameof(user));
+            ArgumentNullException.ThrowIfNull(user);
 
             return Task.FromResult<string?>(user.SecurityStamp);
         }
@@ -233,14 +233,14 @@ namespace Etherna.SSOServer.Configs.Identity
 
         public Task<string> GetUserIdAsync(UserBase user, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(user, nameof(user));
+            ArgumentNullException.ThrowIfNull(user);
 
             return Task.FromResult(user.Id);
         }
 
         public Task<string?> GetUserNameAsync(UserBase user, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(user, nameof(user));
+            ArgumentNullException.ThrowIfNull(user);
 
             return Task.FromResult<string?>(user.Username);
         }
@@ -249,14 +249,14 @@ namespace Etherna.SSOServer.Configs.Identity
         {
             return await ssoDbContext.Users.QueryElementsAsync(
                 users => users.Where(u => u.Claims.Any(c => c.Type == claim.Type && c.Value == claim.Value))
-                              .ToListAsync());
+                              .ToListAsync(cancellationToken: cancellationToken));
         }
 
         public async Task<IList<UserBase>> GetUsersInRoleAsync(string roleName, CancellationToken cancellationToken)
         {
             return await ssoDbContext.Users.QueryElementsAsync(
                 users => users.Where(u => u.Roles.Any(r => r.NormalizedName == roleName))
-                              .ToListAsync());
+                              .ToListAsync(cancellationToken: cancellationToken));
         }
 
         public Task<bool> HasPasswordAsync(UserBase user, CancellationToken cancellationToken)
@@ -278,7 +278,7 @@ namespace Etherna.SSOServer.Configs.Identity
 
         public Task<bool> IsInRoleAsync(UserBase user, string roleName, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(user, nameof(user));
+            ArgumentNullException.ThrowIfNull(user);
 
             return Task.FromResult(user.Roles.Any(r => r.NormalizedName == roleName));
         }
@@ -293,7 +293,7 @@ namespace Etherna.SSOServer.Configs.Identity
 
         public Task RemoveClaimsAsync(UserBase user, IEnumerable<Claim> claims, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(user, nameof(user));
+            ArgumentNullException.ThrowIfNull(user);
 
             foreach (var claim in claims.Select(c => new Domain.Models.UserAgg.UserClaim(c.Type, c.Value)))
                 user.RemoveClaim(claim);
@@ -302,7 +302,7 @@ namespace Etherna.SSOServer.Configs.Identity
 
         public Task RemoveFromRoleAsync(UserBase user, string roleName, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(user, nameof(user));
+            ArgumentNullException.ThrowIfNull(user);
 
             user.RemoveRole(roleName);
             return Task.CompletedTask;
@@ -310,9 +310,9 @@ namespace Etherna.SSOServer.Configs.Identity
 
         public Task ReplaceClaimAsync(UserBase user, Claim claim, Claim newClaim, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(user, nameof(user));
-            ArgumentNullException.ThrowIfNull(claim, nameof(claim));
-            ArgumentNullException.ThrowIfNull(newClaim, nameof(newClaim));
+            ArgumentNullException.ThrowIfNull(user);
+            ArgumentNullException.ThrowIfNull(claim);
+            ArgumentNullException.ThrowIfNull(newClaim);
 
             user.RemoveClaim(new Domain.Models.UserAgg.UserClaim(claim.Type, claim.Value));
             user.AddClaim(new Domain.Models.UserAgg.UserClaim(newClaim.Type, newClaim.Value));
@@ -349,7 +349,7 @@ namespace Etherna.SSOServer.Configs.Identity
 
         public Task SetEmailAsync(UserBase user, string? email, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(user, nameof(user));
+            ArgumentNullException.ThrowIfNull(user);
 
             if (email is null)
                 user.RemoveEmail();
@@ -361,7 +361,7 @@ namespace Etherna.SSOServer.Configs.Identity
 
         public Task SetEmailConfirmedAsync(UserBase user, bool confirmed, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(user, nameof(user));
+            ArgumentNullException.ThrowIfNull(user);
 
             //we accept only confirmed emails
             return Task.CompletedTask;
@@ -369,7 +369,7 @@ namespace Etherna.SSOServer.Configs.Identity
 
         public async Task SetLockoutEnabledAsync(UserBase user, bool enabled, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(user, nameof(user));
+            ArgumentNullException.ThrowIfNull(user);
 
             var sharedInfo = await userService.GetSharedUserInfoAsync(user);
             sharedInfo.LockoutEnabled = enabled;
@@ -377,7 +377,7 @@ namespace Etherna.SSOServer.Configs.Identity
 
         public async Task SetLockoutEndDateAsync(UserBase user, DateTimeOffset? lockoutEnd, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(user, nameof(user));
+            ArgumentNullException.ThrowIfNull(user);
 
             var sharedInfo = await userService.GetSharedUserInfoAsync(user);
             sharedInfo.LockoutEnd = lockoutEnd;
@@ -406,7 +406,7 @@ namespace Etherna.SSOServer.Configs.Identity
 
         public Task SetPhoneNumberAsync(UserBase user, string? phoneNumber, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(user, nameof(user));
+            ArgumentNullException.ThrowIfNull(user);
 
             user.SetPhoneNumber(phoneNumber);
             return Task.CompletedTask;
@@ -414,7 +414,7 @@ namespace Etherna.SSOServer.Configs.Identity
 
         public Task SetPhoneNumberConfirmedAsync(UserBase user, bool confirmed, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(user, nameof(user));
+            ArgumentNullException.ThrowIfNull(user);
 
             //if confirmed == false don't perform any action, because is already managed by domain
             if (confirmed)
@@ -425,7 +425,7 @@ namespace Etherna.SSOServer.Configs.Identity
 
         public Task SetSecurityStampAsync(UserBase user, string stamp, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(user, nameof(user));
+            ArgumentNullException.ThrowIfNull(user);
 
             user.SecurityStamp = stamp;
             return Task.CompletedTask;
@@ -433,17 +433,19 @@ namespace Etherna.SSOServer.Configs.Identity
 
         public Task SetTwoFactorEnabledAsync(UserBase user, bool enabled, CancellationToken cancellationToken)
         {
-            if (user is not UserWeb2 userWeb2)
+            //TwoFactorEnabled is derived from configured factors (authenticator app or FIDO2 credentials).
+            //ASP.NET Identity still calls this to confirm state; we accept the call but the actual flag
+            //comes from those factors. Disable happens by removing the underlying factor.
+            if (user is not UserWeb2)
                 throw new ArgumentException("User is not a web2 account", nameof(user));
 
-            userWeb2.TwoFactorEnabled = enabled;
             return Task.CompletedTask;
         }
 
         public Task SetUserNameAsync(UserBase user, string? userName, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(user, nameof(user));
-            ArgumentNullException.ThrowIfNull(userName, nameof(userName));
+            ArgumentNullException.ThrowIfNull(user);
+            ArgumentNullException.ThrowIfNull(userName);
 
             user.SetUsername(userName);
             return Task.CompletedTask;

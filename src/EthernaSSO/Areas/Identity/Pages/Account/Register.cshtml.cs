@@ -14,12 +14,15 @@
 
 using Duende.IdentityServer.Services;
 using Etherna.DomainEvents;
+using Etherna.SSOServer.Configs.Metrics;
+using Etherna.SSOServer.Configs.Validation;
 using Etherna.SSOServer.Domain.Events;
 using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models;
-using Etherna.SSOServer.Extensions;
+using Etherna.SSOServer.Domain.Models.UserAgg;
 using Etherna.SSOServer.Services.Domain;
-using Etherna.SSOServer.Services.Settings;
+using Etherna.SSOServer.Services.Extensions;
+using Etherna.SSOServer.Services.Options;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -30,6 +33,7 @@ using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Areas.Identity.Pages.Account
@@ -41,10 +45,18 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         public class InputModel : IValidatableObject
         {
             // Properties.
+            [Display(Name = "I have read the Privacy Policy")]
+            [MustBeTrue(ErrorMessage = "You must confirm you have read the Privacy Policy to register.")]
+            public bool AcceptPrivacyPolicy { get; set; }
+
+            [Display(Name = "I accept the Terms of Service")]
+            [MustBeTrue(ErrorMessage = "You must accept the Terms of Service to register.")]
+            public bool AcceptTermsOfService { get; set; }
+
             [Required]
             [RegularExpression(UsernameHelper.UsernameRegex, ErrorMessage = UsernameHelper.UsernameValidationErrorMessage)]
             [Display(Name = "Username")]
-            public string Username { get; set; } = default!;
+            public string Username { get; set; } = null!;
 
             [Display(Name = "Invitation code")]
             public string? InvitationCode { get; set; }
@@ -53,50 +65,53 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
             [DataType(DataType.Password)]
             [Display(Name = "Password")]
-            public string Password { get; set; } = default!;
+            public string Password { get; set; } = null!;
 
             [DataType(DataType.Password)]
             [Display(Name = "Confirm password")]
             [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
-            public string ConfirmPassword { get; set; } = default!;
+            public string ConfirmPassword { get; set; } = null!;
 
             // Methods.
             public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
             {
-                ArgumentNullException.ThrowIfNull(validationContext, nameof(validationContext));
+                ArgumentNullException.ThrowIfNull(validationContext);
 
-                var appSettings = (IOptions<ApplicationSettings>)validationContext.GetService(typeof(IOptions<ApplicationSettings>))!;
+                var appSettings = (IOptions<ApplicationOptions>)validationContext.GetService(typeof(IOptions<ApplicationOptions>))!;
                 if (appSettings.Value.RequireInvitation && string.IsNullOrWhiteSpace(InvitationCode))
                 {
                     yield return new ValidationResult(
                         "Invitation code is required",
-                        new[] { nameof(InvitationCode) });
+                        [nameof(InvitationCode)]);
                 }
             }
         }
 
         // Fields.
-        private readonly ApplicationSettings applicationSettings;
+        private readonly ApplicationOptions applicationOptions;
         private readonly IEventDispatcher eventDispatcher;
         private readonly IIdentityServerInteractionService idServerInteractService;
+        private readonly ILegalService legalService;
         private readonly ILogger<RegisterModel> logger;
         private readonly SignInManager<UserBase> signInManager;
         private readonly IUserService userService;
 
         // Constructor.
         public RegisterModel(
-            IOptions<ApplicationSettings> applicationSettings,
+            IOptions<ApplicationOptions> applicationSettings,
             IEventDispatcher eventDispatcher,
             IIdentityServerInteractionService idServerInteractService,
+            ILegalService legalService,
             ILogger<RegisterModel> logger,
             SignInManager<UserBase> signInManager,
             IUserService userService)
         {
-            ArgumentNullException.ThrowIfNull(applicationSettings, nameof(applicationSettings));
+            ArgumentNullException.ThrowIfNull(applicationSettings);
 
-            this.applicationSettings = applicationSettings.Value;
+            this.applicationOptions = applicationSettings.Value;
             this.eventDispatcher = eventDispatcher;
             this.idServerInteractService = idServerInteractService;
+            this.legalService = legalService;
             this.logger = logger;
             this.signInManager = signInManager;
             this.userService = userService;
@@ -104,11 +119,13 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
         // Properties.
         [BindProperty]
-        public InputModel Input { get; set; } = default!;
+        public InputModel Input { get; set; } = null!;
 
         public bool IsInvitationRequired { get; private set; }
+        public string PrivacyPolicyUrl { get; private set; } = null!;
         public string? ReturnUrl { get; private set; }
-        public Web3LoginPartialModel Web3LoginPartialModel { get; private set; } = default!;
+        public string TermsOfServiceUrl { get; private set; } = null!;
+        public Web3LoginPartialModel Web3LoginPartialModel { get; private set; } = null!;
 
         // Methods.
         public async Task OnGetAsync(string? invitationCode, string? returnUrl = null) =>
@@ -125,13 +142,14 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             var (errors, user) = await userService.RegisterWeb2UserAsync(
                 Input.Username,
                 Input.Password,
-                Input.InvitationCode);
+                Input.InvitationCode,
+                legalService.BuildAcceptancesForRequiredDocuments());
 
             // Post-registration actions.
             if (user is not null)
             {
                 // Check if we are in the context of an authorization request.
-                var context = await idServerInteractService.GetAuthorizationContextAsync(returnUrl);
+                var context = await idServerInteractService.GetAuthorizationContextAsync(returnUrl, HttpContext.RequestAborted);
 
                 // Login.
                 await signInManager.SignInAsync(user, true);
@@ -139,6 +157,8 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 // Rise event and create log.
                 await eventDispatcher.DispatchAsync(new UserLoginSuccessEvent(user, clientId: context?.Client?.ClientId));
                 logger.CreatedAccountWithPassword(user.Id);
+                SsoMetrics.RecordRegistration("password");
+                SsoMetrics.RecordLoginAttempt("password", "success");
 
                 // Redirect to add verified email page.
                 return RedirectToPage("SetVerifiedEmail", new { returnUrl });
@@ -160,8 +180,10 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             //load data
             Input ??= new InputModel();
             Input.InvitationCode ??= invitationCode;
-            IsInvitationRequired = applicationSettings.RequireInvitation;
+            IsInvitationRequired = applicationOptions.RequireInvitation;
+            PrivacyPolicyUrl = legalService.RequiredDocuments.First(d => d.Type == LegalDocumentType.PrivacyPolicy).Url;
             ReturnUrl = returnUrl ?? Url.Content("~/");
+            TermsOfServiceUrl = legalService.RequiredDocuments.First(d => d.Type == LegalDocumentType.TermsOfService).Url;
 
             //init partial view models
             Web3LoginPartialModel = new Web3LoginPartialModel()

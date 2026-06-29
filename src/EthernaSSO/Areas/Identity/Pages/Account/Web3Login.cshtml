@@ -1,19 +1,4 @@
-﻿@*  *   Copyright 2021-present Etherna Sa
-    *
-    *   Licensed under the Apache License, Version 2.0 (the "License");
-    *   you may not use this file except in compliance with the License.
-    *   You may obtain a copy of the License at
-    *
-    *       http://www.apache.org/licenses/LICENSE-2.0
-    *
-    *   Unless required by applicable law or agreed to in writing, software
-    *   distributed under the License is distributed on an "AS IS" BASIS,
-    *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    *   See the License for the specific language governing permissions and
-    *   limitations under the License.
-*@
-
-@page
+﻿@page
 @model Web3LoginModel
 @{
     ViewData["Title"] = "Register";
@@ -57,6 +42,20 @@
                        asp-page="/Index">Click here to request an Alpha Pass!</a>
                 </p>
             </div>
+            <div class="mb-3 form-check">
+                <input asp-for="Input.AcceptTermsOfService" class="form-check-input" />
+                <label asp-for="Input.AcceptTermsOfService" class="form-check-label">
+                    I accept the <a href="@Model.TermsOfServiceUrl" target="_blank" rel="noopener noreferrer">Terms of Service</a>.
+                </label>
+                <span asp-validation-for="Input.AcceptTermsOfService" class="text-danger d-block"></span>
+            </div>
+            <div class="mb-3 form-check">
+                <input asp-for="Input.AcceptPrivacyPolicy" class="form-check-input" />
+                <label asp-for="Input.AcceptPrivacyPolicy" class="form-check-label">
+                    I have read the <a href="@Model.PrivacyPolicyUrl" target="_blank" rel="noopener noreferrer">Privacy Policy</a>.
+                </label>
+                <span asp-validation-for="Input.AcceptPrivacyPolicy" class="text-danger d-block"></span>
+            </div>
             <button type="submit" class="btn btn-primary">Register</button>
         </form>
     </div>
@@ -74,8 +73,4 @@
             </p>
         </div>
     </div>
-}
-
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
 }

@@ -12,8 +12,8 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
+using Etherna.SwarmSdk.Models;
 using Microsoft.AspNetCore.Identity;
-using Nethereum.Util;
 using System;
 using System.Collections.Generic;
 
@@ -29,26 +29,23 @@ namespace Etherna.SSOServer.Domain.Models.UserAgg
     public class UserSharedInfo : EntityModelBase<string>
     {
         // Fields.
-        private List<string> _etherPreviousAddresses = new();
+        private List<EthAddress> _etherPreviousAddresses = new();
 
         // Constructors.
-        public UserSharedInfo(string etherAddress)
+        public UserSharedInfo(EthAddress etherAddress)
         {
-            if (!etherAddress.IsValidEthereumAddressHexFormat())
-                throw new ArgumentException("The value is not a valid address", nameof(etherAddress));
-
             EtherAddress = etherAddress;
         }
         protected UserSharedInfo() { }
 
         // Properties.
         [PersonalData]
-        public virtual string EtherAddress { get; protected internal set; } = default!;
+        public virtual EthAddress EtherAddress { get; protected internal set; }
         [PersonalData]
-        public virtual IEnumerable<string> EtherPreviousAddresses
+        public virtual IEnumerable<EthAddress> EtherPreviousAddresses
         {
             get => _etherPreviousAddresses;
-            protected internal set => _etherPreviousAddresses = new List<string>(value ?? Array.Empty<string>());
+            protected internal set => _etherPreviousAddresses = [..value ?? []];
         }
         public virtual bool LockoutEnabled { get; set; }
         public virtual DateTimeOffset? LockoutEnd { get; set; }

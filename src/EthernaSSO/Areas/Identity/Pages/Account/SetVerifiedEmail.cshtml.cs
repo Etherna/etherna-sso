@@ -14,10 +14,10 @@
 
 using Duende.IdentityServer.Services;
 using Duende.IdentityServer.Stores;
-using Etherna.ACR.Helpers;
-using Etherna.ACR.Services;
 using Etherna.SSOServer.Domain;
+using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Services.Domain;
 using Etherna.SSOServer.Services.Views.Emails;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -27,60 +27,47 @@ using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 {
-    public class SetVerifiedEmailModel : SsoExitPageModelBase
+    public class SetVerifiedEmailModel(
+        IEmailSender emailSender,
+        INewsletterService newsletterService,
+        IClientStore clientStore,
+        ISsoDbContext context,
+        IIdentityServerInteractionService idServerInteractionService,
+        IRazorViewRenderer razorViewRenderer,
+        UserManager<UserBase> userManager)
+        : SsoExitPageModelBase(clientStore)
     {
         // Models.
         public class CodeInputModel
         {
             [Required]
-            public string Code { get; set; } = default!;
+            public string Code { get; set; } = null!;
         }
         public class EmailInputModel
         {
             [EmailAddress]
             [Display(Name = "Email (optional)")]
             [Required]
-            public string Email { get; set; } = default!;
-        }
+            public string Email { get; set; } = null!;
 
-        // Fields.
-        private readonly IEmailSender emailSender;
-        private readonly ISsoDbContext context;
-        private readonly IIdentityServerInteractionService idServerInteractionService;
-        private readonly IRazorViewRenderer razorViewRenderer;
-        private readonly UserManager<UserBase> userManager;
-
-        // Constructors.
-        public SetVerifiedEmailModel(
-            IEmailSender emailSender,
-            IClientStore clientStore,
-            ISsoDbContext context,
-            IIdentityServerInteractionService idServerInteractionService,
-            IRazorViewRenderer razorViewRenderer,
-            UserManager<UserBase> userManager)
-            : base(clientStore)
-        {
-            this.emailSender = emailSender;
-            this.context = context;
-            this.idServerInteractionService = idServerInteractionService;
-            this.razorViewRenderer = razorViewRenderer;
-            this.userManager = userManager;
+            [Display(Name = "Subscribe to our newsletter")]
+            public bool SubscribeToNewsletter { get; set; }
         }
 
         // Properties.
         [BindProperty]
-        public CodeInputModel CodeInput { get; set; } = default!;
+        public CodeInputModel CodeInput { get; set; } = null!;
 
         [BindProperty]
-        public EmailInputModel EmailInput { get; set; } = default!;
+        public EmailInputModel EmailInput { get; set; } = null!;
 
         public bool IsCodeSent { get; private set; }
         public bool IsWeb3 { get; private set; }
         public string? ReturnUrl { get; private set; }
 
         // Methods.
-        public async Task OnGetAsync(string? email, bool isCodeSent, string? returnUrl) =>
-            await InitializeAsync(email, isCodeSent, returnUrl);
+        public async Task OnGetAsync(string? email, bool subscribeToNewsletter, bool isCodeSent, string? returnUrl) =>
+            await InitializeAsync(email, subscribeToNewsletter, isCodeSent, returnUrl);
 
         public async Task<IActionResult> OnGetSkipAsync(string? returnUrl) =>
             await ProceedAsync(returnUrl);
@@ -100,7 +87,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
             if (ModelState.ErrorCount > 0)
             {
-                await InitializeAsync(EmailInput.Email, false, returnUrl);
+                await InitializeAsync(EmailInput.Email, EmailInput.SubscribeToNewsletter, false, returnUrl);
                 return Page();
             }
 
@@ -119,11 +106,11 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 emailBody);
 
             // Return page.
-            await InitializeAsync(EmailInput.Email, true, returnUrl);
+            await InitializeAsync(EmailInput.Email, EmailInput.SubscribeToNewsletter, true, returnUrl);
             return Page();
         }
 
-        public async Task<IActionResult> OnPostConfirmCodeAsync(string email, string? returnUrl)
+        public async Task<IActionResult> OnPostConfirmCodeAsync(string email, bool subscribeToNewsletter, string? returnUrl)
         {
             // Validate model.
             ModelState.Clear();
@@ -138,7 +125,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
             if (ModelState.ErrorCount > 0)
             {
-                await InitializeAsync(email, true, returnUrl);
+                await InitializeAsync(email, subscribeToNewsletter, true, returnUrl);
                 return Page();
             }
 
@@ -146,14 +133,20 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             user.SetEmail(email);
             await context.SaveChangesAsync();
 
+            // Forward the verified contact to the newsletter service (best-effort, single opt-in).
+            // The email in the SSO db is never used for marketing: the newsletter service owns both the
+            // allowed list and the consent record (opt-in timestamp, source), so nothing is stored here.
+            if (subscribeToNewsletter)
+                await newsletterService.SubscribeEmailAsync(email, NewsletterSubscriptionSource.Registration);
+
             return await ProceedAsync(returnUrl);
         }
 
         // Helpers.
-        private async Task InitializeAsync(string? email, bool isCodeSent, string? returnUrl)
+        private async Task InitializeAsync(string? email, bool subscribeToNewsletter, bool isCodeSent, string? returnUrl)
         {
             if (email is not null)
-                EmailInput = new EmailInputModel { Email = email };
+                EmailInput = new EmailInputModel { Email = email, SubscribeToNewsletter = subscribeToNewsletter };
 
             var user = await userManager.GetUserAsync(User);
             IsWeb3 = user is UserWeb3;
@@ -164,7 +157,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
         private async Task<IActionResult> ProceedAsync(string? returnUrl)
         {
-            var context = await idServerInteractionService.GetAuthorizationContextAsync(returnUrl);
+            var context = await idServerInteractionService.GetAuthorizationContextAsync(returnUrl, HttpContext.RequestAborted);
             return await ContextedRedirectAsync(context, returnUrl);
         }
     }

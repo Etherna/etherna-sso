@@ -19,6 +19,7 @@ using Etherna.MongODM.Core.Extensions;
 using Etherna.MongODM.Core.Serialization;
 using Etherna.MongODM.Core.Serialization.Serializers;
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Persistence.Serializers;
 
 namespace Etherna.SSOServer.Persistence.ModelMaps.Sso
 {
@@ -26,6 +27,9 @@ namespace Etherna.SSOServer.Persistence.ModelMaps.Sso
     {
         public void Register(IDbContext dbContext)
         {
+            var etherManagedPrivateKeySerializer = new EncryptedStringSerializer(
+                ((SsoDbContext)dbContext).EtherManagedPrivateKeyEncryptionKey);
+            
             dbContext.MapRegistry.AddModelMap<UserBase>("a492aaa7-196c-4ec0-8fb5-255d099d0b9f", mm =>
             {
                 mm.AutoMap();
@@ -34,6 +38,9 @@ namespace Etherna.SSOServer.Persistence.ModelMaps.Sso
                 mm.GetMemberMap(u => u.Email).SetIgnoreIfNull(true);
                 mm.GetMemberMap(u => u.InvitedBy).SetIgnoreIfNull(true);
                 mm.GetMemberMap(u => u.InvitedByAdmin).SetIgnoreIfDefault(true);
+                mm.GetMemberMap(u => u.MaxAllowedClients)
+                    .SetDefaultValue(UserBase.DefaultMaxAllowedClients)
+                    .SetIgnoreIfDefault(true);
                 mm.GetMemberMap(u => u.NormalizedEmail).SetIgnoreIfNull(true);
                 mm.GetMemberMap(u => u.NormalizedUsername).SetIgnoreIfNull(true);
                 mm.GetMemberMap(u => u.Username).SetIgnoreIfNull(true);
@@ -42,15 +49,30 @@ namespace Etherna.SSOServer.Persistence.ModelMaps.Sso
                 mm.SetMemberSerializer(u => u.InvitedBy!, ReferenceSerializer(dbContext));
                 mm.SetMemberSerializer(u => u.Roles, new EnumerableSerializer<Role>(RoleMap.ReferenceSerializer(dbContext)));
             });
-            dbContext.MapRegistry.AddModelMap<UserWeb2>("2ccb567f-63cc-4fb3-b66e-a51fb4ff1bfe", mm =>
+            dbContext.MapRegistry.AddModelMap<UserWeb2>("c54bb1fe-a7e2-4069-b91c-1065b16ca4da", mm => //v0.4.0
             {
                 mm.AutoMap();
 
-                // Set members to ignore if null.
+                // Set members to ignore if null or default.
                 mm.GetMemberMap(u => u.EtherLoginAddress).SetIgnoreIfNull(true);
                 mm.GetMemberMap(u => u.EtherManagedPrivateKey).SetIgnoreIfNull(true);
+                mm.GetMemberMap(u => u.IsAuthenticatorAppEnabled).SetIgnoreIfDefault(true);
                 mm.GetMemberMap(u => u.PasswordHash).SetIgnoreIfNull(true);
-            });
+
+                // Set members with custom serializers.
+                mm.SetMemberSerializer(u => u.EtherManagedPrivateKey, etherManagedPrivateKeySerializer);
+            })
+                .AddSecondarySchema("2ccb567f-63cc-4fb3-b66e-a51fb4ff1bfe",
+                    mm =>
+                    {
+                        mm.AutoMap();
+
+                        mm.GetMemberMap(u => u.EtherLoginAddress).SetIgnoreIfNull(true);
+                        mm.GetMemberMap(u => u.EtherManagedPrivateKey).SetIgnoreIfNull(true);
+                        mm.GetMemberMap(u => u.PasswordHash).SetIgnoreIfNull(true);
+                        //the legacy "TwoFactorEnabled" flag (pre-FIDO2) tracked TOTP enablement; map it onto the renamed member
+                        mm.GetMemberMap(u => u.IsAuthenticatorAppEnabled).SetElementName("TwoFactorEnabled");
+                    });
             dbContext.MapRegistry.AddModelMap<UserWeb3>("7d8804ab-217c-476a-a47f-977fe693fce3");
         }
 

@@ -21,6 +21,7 @@ using Etherna.MongoDB.Driver.Linq;
 using Etherna.MongODM.Core.Options;
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Configs.SystemStore
@@ -54,14 +55,14 @@ namespace Etherna.SSOServer.Configs.SystemStore
         }
 
         // Methods.
-        public Task ConsumeByHashAsync(string referenceValueHash) =>
-            collection.DeleteOneAsync(x => x.ReferenceValueHash == referenceValueHash);
+        public Task ConsumeByHashAsync(string referenceValueHash, CancellationToken cancellationToken = default) =>
+            collection.DeleteOneAsync(x => x.ReferenceValueHash == referenceValueHash, cancellationToken: cancellationToken);
 
-        public async Task<PushedAuthorizationRequest?> GetByHashAsync(string referenceValueHash) =>
+        public async Task<PushedAuthorizationRequest?> GetByHashAsync(string referenceValueHash, CancellationToken cancellationToken = default) =>
             await collection.AsQueryable()
-                .SingleOrDefaultAsync(x => x.ReferenceValueHash == referenceValueHash);
-        
-        public Task StoreAsync(PushedAuthorizationRequest pushedAuthorizationRequest) =>
-            collection.InsertOneAsync(pushedAuthorizationRequest);
+                .SingleOrDefaultAsync(x => x.ReferenceValueHash == referenceValueHash, cancellationToken: cancellationToken);
+
+        public Task StoreAsync(PushedAuthorizationRequest pushedAuthorizationRequest, CancellationToken cancellationToken = default) =>
+            collection.InsertOneAsync(pushedAuthorizationRequest, cancellationToken: cancellationToken);
     }
 }

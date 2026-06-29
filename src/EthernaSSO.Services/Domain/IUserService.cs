@@ -15,6 +15,7 @@
 using Etherna.MongODM.Core.Repositories;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Domain.Models.UserAgg;
+using Etherna.SwarmSdk.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
@@ -26,30 +27,31 @@ namespace Etherna.SSOServer.Services.Domain
     {
         Task DeleteAsync(UserBase user);
 
-        Task<UserBase> FindUserByAddressAsync(string etherAddress);
+        Task<UserBase> FindUserByAddressAsync(EthAddress etherAddress);
 
         Task<UserSharedInfo> GetSharedUserInfoAsync(UserBase user);
 
         Task<(IEnumerable<(string key, string msg)> errors, UserWeb2? user)> RegisterWeb2UserAsync(
             string username,
             string password,
-            string? invitationCode);
+            string? invitationCode,
+            IEnumerable<LegalAcceptance> legalAcceptances);
 
         Task<(IEnumerable<(string key, string msg)> errors, UserWeb2? user)> RegisterWeb2UserByAdminAsync(
             string username,
             string password,
             string? email,
-            string? etherLoginAddress,
+            EthAddress? etherLoginAddress,
             bool lockoutEnabled,
             DateTimeOffset? lockoutEnd,
             string? phoneNumber,
-            IEnumerable<Role> roles,
-            bool twoFactorEnabled);
+            IEnumerable<Role> roles);
 
         Task<(IEnumerable<(string key, string msg)> errors, UserWeb3? user)> RegisterWeb3UserAsync(
             string username,
-            string etherAddress,
-            string? invitationCode);
+            EthAddress etherAddress,
+            string? invitationCode,
+            IEnumerable<LegalAcceptance> legalAcceptances);
 
         Task<PaginatedEnumerable<UserBase>> SearchPaginatedUsersByQueryAsync<TOrderKey>(
             string? query,

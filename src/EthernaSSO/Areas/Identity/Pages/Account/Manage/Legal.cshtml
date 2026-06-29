@@ -1,0 +1,58 @@
+@page
+@model LegalModel
+@{
+    ViewData["Title"] = "Legal";
+    ViewData["ActivePage"] = ManageNavPages.Legal;
+}
+
+<h4>@ViewData["Title"]</h4>
+
+<div class="row">
+    <div class="col-md-8">
+        <p>The record of the legal documents you accepted, and when.</p>
+
+        @if (Model.AcceptedDocuments.Count == 0)
+        {
+            <p class="text-muted">No legal acceptances are recorded for your account.</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Document</th>
+                            <th>Accepted version</th>
+                            <th>Accepted on (UTC)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var doc in Model.AcceptedDocuments)
+                        {
+                            <tr>
+                                <td class="align-middle">
+                                    @if (doc.CurrentUrl is not null)
+                                    {
+                                        <a href="@doc.CurrentUrl" target="_blank" rel="noopener noreferrer">@doc.Name</a>
+                                    }
+                                    else
+                                    {
+                                        @doc.Name
+                                    }
+                                </td>
+                                <td class="align-middle">
+                                    @doc.Version
+                                    @if (!doc.IsCurrentVersion)
+                                    {
+                                        <span class="badge bg-secondary ms-1" title="A newer version has since been published">superseded</span>
+                                    }
+                                </td>
+                                <td class="align-middle">@doc.AcceptanceDateTime.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

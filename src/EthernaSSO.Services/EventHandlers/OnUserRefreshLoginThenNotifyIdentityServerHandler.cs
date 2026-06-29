@@ -15,6 +15,7 @@
 using Duende.IdentityServer.Services;
 using Etherna.DomainEvents;
 using Etherna.SSOServer.Domain.Events;
+using System.Threading;
 using System.Threading.Tasks;
 using UserLoginSuccessEvent = Duende.IdentityServer.Events.UserLoginSuccessEvent;
 
@@ -30,6 +31,7 @@ namespace Etherna.SSOServer.Services.EventHandlers
                     @event.User.Username,
                     @event.User.Id,
                     @event.User.Username,
-                    clientId: @event.ClientId));
+                    clientId: @event.ClientId),
+                CancellationToken.None);
     }
 }

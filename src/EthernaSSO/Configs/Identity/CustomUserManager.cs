@@ -20,32 +20,39 @@ using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Configs.Identity
 {
-    public class CustomUserManager : UserManager<UserBase>
+    public class CustomUserManager(
+        IEthernaOpenIdConnectClient ethernaOidcClient,
+        IUserStore<UserBase> store,
+        IOptions<IdentityOptions> optionsAccessor,
+        IPasswordHasher<UserBase> passwordHasher,
+        IEnumerable<IUserValidator<UserBase>> userValidators,
+        IEnumerable<IPasswordValidator<UserBase>> passwordValidators,
+        ILookupNormalizer keyNormalizer,
+        IdentityErrorDescriber errors,
+        IServiceProvider services,
+        ILogger<UserManager<UserBase>> logger)
+        : UserManager<UserBase>(store, optionsAccessor, passwordHasher, userValidators, passwordValidators,
+            keyNormalizer, errors, services, logger)
     {
-        // Fields.
-        private readonly IEthernaOpenIdConnectClient ethernaOidcClient;
-
-        // Constructor.
-        public CustomUserManager(
-            IEthernaOpenIdConnectClient ethernaOidcClient,
-            IUserStore<UserBase> store,
-            IOptions<IdentityOptions> optionsAccessor,
-            IPasswordHasher<UserBase> passwordHasher,
-            IEnumerable<IUserValidator<UserBase>> userValidators,
-            IEnumerable<IPasswordValidator<UserBase>> passwordValidators,
-            ILookupNormalizer keyNormalizer,
-            IdentityErrorDescriber errors,
-            IServiceProvider services,
-            ILogger<UserManager<UserBase>> logger)
-            : base(store, optionsAccessor, passwordHasher, userValidators, passwordValidators, keyNormalizer, errors, services, logger)
-        {
-            this.ethernaOidcClient = ethernaOidcClient;
-        }
+        // Consts.
+        //Sentinel provider name advertising FIDO2 as a valid second factor.
+        //ASP.NET Identity gates RequiresTwoFactor on GetValidTwoFactorProvidersAsync returning a non-empty list,
+        //but FIDO2 is not implemented as an IUserTwoFactorTokenProvider — its flow runs through IFido2Service.
+        public const string Fido2ProviderName = "Fido2";
 
         // Methods.
+        public override async Task<IList<string>> GetValidTwoFactorProvidersAsync(UserBase user)
+        {
+            var providers = await base.GetValidTwoFactorProvidersAsync(user);
+            if (user is UserWeb2 { HasFido2Credentials: true })
+                providers.Add(Fido2ProviderName);
+            return providers;
+        }
+
         public override string? GetUserId(ClaimsPrincipal principal)
         {
             var id = base.GetUserId(principal);

@@ -1,0 +1,97 @@
+@page
+@using Etherna.SSOServer.Pages.SharedModels
+@model Etherna.SSOServer.Areas.Admin.Pages.IdentityServer.ClientsModel
+@{
+    ViewData["Title"] = "Clients";
+
+    var pageSelectorModel = new PageSelectorModel(Model.CurrentPage, Model.MaxPage, routeData: new() { { "q", Model.Query! } });
+    var searchModel = new SearchModel(Model.Query);
+}
+
+<div class="row">
+    <div class="col-12 mb-3 text-center mt-1">
+        <h2>@ViewData["Title"]</h2>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <a asp-page="Client" class="btn btn-outline-primary mb-3 mt-3">+ Add Client</a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <partial name="_Search" model="searchModel" />
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>ClientId</th>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Grant Types</th>
+                        <th>Enabled</th>
+                        <th>Owner</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var client in Model.Clients)
+                    {
+                        <tr>
+                            <td class="align-middle">
+                                @if (!client.IsInMemory)
+                                {
+                                    <a class="btn btn-primary" asp-page="Client" asp-route-id="@client.Id">Edit</a>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">System</span>
+                                }
+                            </td>
+                            <td class="align-middle">@client.ClientId</td>
+                            <td class="align-middle">@client.ClientName</td>
+                            <td class="align-middle">
+                                @if (client.ClientType.HasValue)
+                                {
+                                    @client.ClientType.Value
+                                }
+                            </td>
+                            <td class="align-middle">@client.GrantTypes</td>
+                            <td class="align-middle">
+                                @if (client.Enabled)
+                                {
+                                    <span class="badge bg-success">Enabled</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">Disabled</span>
+                                }
+                            </td>
+                            <td class="align-middle">@client.OwnerUsername</td>
+                            <td class="align-middle">
+                                @if (!client.IsInMemory)
+                                {
+                                    <a class="btn btn-danger" asp-page="ClientDelete" asp-route-id="@client.Id">X</a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <partial name="_PageSelector" model="pageSelectorModel" />
+    </div>
+</div>

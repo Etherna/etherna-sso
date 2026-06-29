@@ -13,6 +13,7 @@
 // If not, see <https://www.gnu.org/licenses/>.
 
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SwarmSdk.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -22,25 +23,15 @@ using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage
 {
-    public partial class IndexModel : PageModel
+    public partial class IndexModel(UserManager<UserBase> userManager) : PageModel
     {
-        // Fields.
-        private readonly UserManager<UserBase> userManager;
-
-        // Constructor.
-        public IndexModel(
-            UserManager<UserBase> userManager)
-        {
-            this.userManager = userManager;
-        }
-
         // Properties.
         [Display(Name = "Ethereum address")]
-        public string EtherAddress { get; set; } = default!;
+        public EthAddress EtherAddress { get; set; }
         [Display(Name = "Ethereum previous addresses")]
-        public IEnumerable<string> EtherPreviousAddresses { get; set; } = default!;
+        public IEnumerable<EthAddress> EtherPreviousAddresses { get; set; } = null!;
         public bool IsWeb3User { get; set; }
-        public string Username { get; set; } = default!;
+        public string Username { get; set; } = null!;
 
         // Methods.
         public async Task<IActionResult> OnGetAsync()

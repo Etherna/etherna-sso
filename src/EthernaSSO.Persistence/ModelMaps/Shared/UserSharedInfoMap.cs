@@ -12,9 +12,14 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
+using Etherna.MongoDB.Bson;
+using Etherna.MongoDB.Bson.Serialization.Serializers;
 using Etherna.MongODM.Core;
 using Etherna.MongODM.Core.Serialization;
 using Etherna.SSOServer.Domain.Models.UserAgg;
+using Etherna.SSOServer.Persistence.Serializers;
+using Etherna.SwarmSdk.Models;
+using System;
 
 namespace Etherna.SSOServer.Persistence.ModelMaps.Shared
 {
@@ -22,12 +27,17 @@ namespace Etherna.SSOServer.Persistence.ModelMaps.Shared
     {
         public void Register(IDbContext dbContext)
         {
+            dbContext.MapRegistry.AddCustomSerializerMap<EthAddress>( //v0.4.0
+                new EthAddressSerializer());
+
             dbContext.MapRegistry.AddModelMap<UserSharedInfo>("6d0d2ee1-6aa3-42ea-9833-ac592bfc6613", mm =>
             {
                 mm.AutoMap();
 
                 // Set members to ignore if null or default.
-                mm.GetMemberMap(u => u.LockoutEnd).SetIgnoreIfNull(true);
+                mm.GetMemberMap(u => u.LockoutEnd)
+                    .SetSerializer(new NullableSerializer<DateTimeOffset>(new DateTimeOffsetSerializer(BsonType.DateTime)))
+                    .SetIgnoreIfNull(true);
             });
         }
     }

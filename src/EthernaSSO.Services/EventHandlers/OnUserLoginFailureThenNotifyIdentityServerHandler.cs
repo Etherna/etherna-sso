@@ -15,6 +15,7 @@
 using Duende.IdentityServer.Services;
 using Etherna.DomainEvents;
 using Etherna.SSOServer.Domain.Events;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Services.EventHandlers
@@ -37,7 +38,8 @@ namespace Etherna.SSOServer.Services.EventHandlers
             await identityServerEventService.RaiseAsync(new Duende.IdentityServer.Events.UserLoginFailureEvent(
                 @event.Identifier,
                 @event.Error,
-                clientId: @event.ClientId));
+                clientId: @event.ClientId),
+                CancellationToken.None);
         }
     }
 }

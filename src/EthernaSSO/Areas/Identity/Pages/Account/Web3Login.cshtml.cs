@@ -16,13 +16,17 @@ using Duende.IdentityServer.Services;
 using Duende.IdentityServer.Stores;
 using Etherna.DomainEvents;
 using Etherna.MongoDB.Driver;
+using Etherna.SSOServer.Configs.Metrics;
+using Etherna.SSOServer.Configs.Validation;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Events;
 using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models;
-using Etherna.SSOServer.Extensions;
+using Etherna.SSOServer.Domain.Models.UserAgg;
 using Etherna.SSOServer.Services.Domain;
-using Etherna.SSOServer.Services.Settings;
+using Etherna.SSOServer.Services.Extensions;
+using Etherna.SSOServer.Services.Options;
+using Etherna.SwarmSdk.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -30,6 +34,7 @@ using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Areas.Identity.Pages.Account
@@ -40,33 +45,42 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         public class InputModel : IValidatableObject
         {
             // Properties.
+            [Display(Name = "I have read the Privacy Policy")]
+            [MustBeTrue(ErrorMessage = "You must confirm you have read the Privacy Policy to register.")]
+            public bool AcceptPrivacyPolicy { get; set; }
+
+            [Display(Name = "I accept the Terms of Service")]
+            [MustBeTrue(ErrorMessage = "You must accept the Terms of Service to register.")]
+            public bool AcceptTermsOfService { get; set; }
+
             [Display(Name = "Invitation code")]
             public string? InvitationCode { get; set; }
 
             [Required]
             [RegularExpression(UsernameHelper.UsernameRegex, ErrorMessage = UsernameHelper.UsernameValidationErrorMessage)]
             [Display(Name = "Username")]
-            public string Username { get; set; } = default!;
+            public string Username { get; set; } = null!;
 
             // Methods.
             public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
             {
-                ArgumentNullException.ThrowIfNull(validationContext, nameof(validationContext));
+                ArgumentNullException.ThrowIfNull(validationContext);
 
-                var appSettings = (IOptions<ApplicationSettings>)validationContext.GetService(typeof(IOptions<ApplicationSettings>))!;
+                var appSettings = (IOptions<ApplicationOptions>)validationContext.GetService(typeof(IOptions<ApplicationOptions>))!;
                 if (appSettings.Value.RequireInvitation && string.IsNullOrWhiteSpace(InvitationCode))
                 {
                     yield return new ValidationResult(
                         "Invitation code is required",
-                        new[] { nameof(InvitationCode) });
+                        [nameof(InvitationCode)]);
                 }
             }
         }
 
         // Fields.
-        private readonly ApplicationSettings applicationSettings;
+        private readonly ApplicationOptions applicationOptions;
         private readonly IEventDispatcher eventDispatcher;
         private readonly IIdentityServerInteractionService idServerInteractionService;
+        private readonly ILegalService legalService;
         private readonly ILogger<Web3LoginModel> logger;
         private readonly SignInManager<UserBase> signInManager;
         private readonly ISsoDbContext ssoDbContext;
@@ -76,10 +90,11 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
         // Constructor.
         public Web3LoginModel(
-            IOptions<ApplicationSettings> applicationSettings,
+            IOptions<ApplicationOptions> applicationSettings,
             IClientStore clientStore,
             IEventDispatcher eventDispatcher,
             IIdentityServerInteractionService idServerInteractionService,
+            ILegalService legalService,
             ILogger<Web3LoginModel> logger,
             SignInManager<UserBase> signInManager,
             ISsoDbContext ssoDbContext,
@@ -88,11 +103,12 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             IWeb3AuthnService web3AuthnService)
             : base(clientStore)
         {
-            ArgumentNullException.ThrowIfNull(applicationSettings, nameof(applicationSettings));
+            ArgumentNullException.ThrowIfNull(applicationSettings);
 
-            this.applicationSettings = applicationSettings.Value;
+            this.applicationOptions = applicationSettings.Value;
             this.eventDispatcher = eventDispatcher;
             this.idServerInteractionService = idServerInteractionService;
+            this.legalService = legalService;
             this.logger = logger;
             this.signInManager = signInManager;
             this.ssoDbContext = ssoDbContext;
@@ -106,22 +122,24 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         public string? ErrorMessage { get; set; }
 
         [BindProperty]
-        public InputModel Input { get; set; } = default!;
+        public InputModel Input { get; set; } = null!;
 
         public bool DuplicateUsername { get; private set; }
-        public string? EtherAddress { get; private set; }
+        public EthAddress? EtherAddress { get; private set; }
         public bool IsInvitationRequired { get; private set; }
+        public string PrivacyPolicyUrl { get; private set; } = null!;
         public string? ReturnUrl { get; private set; }
         public string? Signature { get; private set; }
+        public string TermsOfServiceUrl { get; private set; } = null!;
 
         // Methods.
         public IActionResult OnGet() =>
             RedirectToPage("./Login");
 
-        public async Task<IActionResult> OnGetRetriveAuthMessageAsync(string etherAddress) =>
-            new JsonResult(await web3AuthnService.RetriveAuthnMessageAsync(etherAddress));
+        public async Task<IActionResult> OnGetRetrieveAuthMessageAsync(EthAddress etherAddress) =>
+            new JsonResult(await web3AuthnService.RetrieveAuthnMessageAsync(etherAddress));
 
-        public async Task<IActionResult> OnGetConfirmSignature(string etherAddress, string signature, string? invitationCode, string? returnUrl)
+        public async Task<IActionResult> OnGetConfirmSignature(EthAddress etherAddress, string signature, string? invitationCode, string? returnUrl)
         {
             // Verify signature.
             //get token
@@ -164,15 +182,16 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 await ssoDbContext.Web3LoginTokens.DeleteAsync(token);
 
                 // Check if we are in the context of an authorization request.
-                var context = await idServerInteractionService.GetAuthorizationContextAsync(returnUrl);
+                var context = await idServerInteractionService.GetAuthorizationContextAsync(returnUrl, HttpContext.RequestAborted);
 
                 // Rise event and create log.
                 await eventDispatcher.DispatchAsync(new UserLoginSuccessEvent(
                     user,
                     clientId: context?.Client?.ClientId,
                     provider: "web3",
-                    providerUserId: etherAddress));
+                    providerUserId: etherAddress.ToString()));
                 logger.LoggedInWithWeb3(user.Id);
+                SsoMetrics.RecordLoginAttempt("web3", "success");
 
                 // Identify redirect.
                 return await ContextedRedirectAsync(context, returnUrl);
@@ -214,7 +233,8 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             var (errors, user) = await userService.RegisterWeb3UserAsync(
                 Input.Username,
                 etherAddress,
-                Input.InvitationCode);
+                Input.InvitationCode,
+                legalService.BuildAcceptancesForRequiredDocuments());
 
             // Post-registration actions.
             if (user is not null)
@@ -223,7 +243,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 await signInManager.SignInAsync(user, true);
 
                 // Check if we are in the context of an authorization request.
-                var context = await idServerInteractionService.GetAuthorizationContextAsync(returnUrl);
+                var context = await idServerInteractionService.GetAuthorizationContextAsync(returnUrl, HttpContext.RequestAborted);
 
                 // Rise event and create log.
                 await eventDispatcher.DispatchAsync(new UserLoginSuccessEvent(
@@ -232,6 +252,8 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                     provider: "web3",
                     providerUserId: etherAddress));
                 logger.CreatedAccountWithWeb3(user.Id);
+                SsoMetrics.RecordRegistration("web3");
+                SsoMetrics.RecordLoginAttempt("web3", "success");
 
                 // Redirect to add verified email page.
                 return RedirectToPage("SetVerifiedEmail", new { returnUrl });
@@ -248,12 +270,14 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         }
 
         // Helpers.
-        private void Initialize(string etherAddress, string signature, string? returnUrl)
+        private void Initialize(EthAddress etherAddress, string signature, string? returnUrl)
         {
             EtherAddress = etherAddress;
-            IsInvitationRequired = applicationSettings.RequireInvitation;
+            IsInvitationRequired = applicationOptions.RequireInvitation;
+            PrivacyPolicyUrl = legalService.RequiredDocuments.First(d => d.Type == LegalDocumentType.PrivacyPolicy).Url;
             ReturnUrl = returnUrl ?? Url.Content("~/");
             Signature = signature;
+            TermsOfServiceUrl = legalService.RequiredDocuments.First(d => d.Type == LegalDocumentType.TermsOfService).Url;
         }
     }
 }

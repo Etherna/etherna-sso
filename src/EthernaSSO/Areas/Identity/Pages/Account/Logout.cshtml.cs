@@ -16,7 +16,7 @@ using Duende.IdentityServer.Services;
 using Etherna.DomainEvents;
 using Etherna.SSOServer.Domain.Events;
 using Etherna.SSOServer.Domain.Models;
-using Etherna.SSOServer.Extensions;
+using Etherna.SSOServer.Services.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -60,7 +60,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
         // Properties.
         [BindProperty]
-        public InputModel Input { get; set; } = default!;
+        public InputModel Input { get; set; } = null!;
         public string? LogoutId { get; set; }
 
         // Methods.
@@ -79,7 +79,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             }
             else if (logoutId is not null)
             {
-                var context = await idServerInteractService.GetLogoutContextAsync(logoutId);
+                var context = await idServerInteractService.GetLogoutContextAsync(logoutId, HttpContext.RequestAborted);
                 if (context?.ShowSignoutPrompt == false)
                 {
                     // it's safe to automatically sign-out
@@ -112,7 +112,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         private async Task<IActionResult> Logout()
         {
             var context = LogoutId is not null ?
-                await idServerInteractService.GetLogoutContextAsync(LogoutId) :
+                await idServerInteractService.GetLogoutContextAsync(LogoutId, HttpContext.RequestAborted) :
                 null;
 
             if (signInManager.IsSignedIn(User))

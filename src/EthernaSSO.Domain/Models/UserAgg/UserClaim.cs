@@ -29,11 +29,13 @@ namespace Etherna.SSOServer.Domain.Models.UserAgg
             Type = type;
             Value = value;
         }
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
         protected UserClaim() { }
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 
         // Properties.
-        public virtual string Type { get; protected set; } = default!;
-        public virtual string Value { get; protected set; } = default!;
+        public virtual string Type { get; protected set; }
+        public virtual string Value { get; protected set; }
 
         // Methods.
         public override bool Equals(object? obj)

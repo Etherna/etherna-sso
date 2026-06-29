@@ -14,13 +14,15 @@
 
 using Duende.IdentityServer.Models;
 using Duende.IdentityServer.Validation;
+using Etherna.SSOServer.Configs.Metrics;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
-using Etherna.SSOServer.Extensions;
+using Etherna.SSOServer.Services.Extensions;
 using IdentityModel;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Configs.IdentityServer
@@ -44,9 +46,9 @@ namespace Etherna.SSOServer.Configs.IdentityServer
             this.userManager = userManager;
         }
 
-        public async Task ValidateAsync(ResourceOwnerPasswordValidationContext context)
+        public async Task ValidateAsync(ResourceOwnerPasswordValidationContext context, CancellationToken cancellationToken = default)
         {
-            ArgumentNullException.ThrowIfNull(context, nameof(context));
+            ArgumentNullException.ThrowIfNull(context);
 
             /*
              * The ROPC base protocol requires to pass fields "username" and "password" during authentication.
@@ -56,7 +58,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
             var plainApiKey = context.Password;
 
             // Get user data.
-            var user = await ssoDbContext.Users.TryFindOneAsync(userId);
+            var user = await ssoDbContext.Users.TryFindOneAsync(userId, cancellationToken: cancellationToken);
             if (user is null)
             {
                 logger.NoUserFoundWithId(userId);
@@ -68,6 +70,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
             if (await userManager.IsLockedOutAsync(user))
             {
                 logger.LockedOutLoginAttempt(userId);
+                SsoMetrics.RecordLoginAttempt("api_key", "locked_out");
                 context.Result = new GrantValidationResult(TokenRequestErrors.InvalidGrant, "User is locked out.");
                 return;
             }
@@ -76,19 +79,22 @@ namespace Etherna.SSOServer.Configs.IdentityServer
             if (!await signInManager.CanSignInAsync(user))
             {
                 logger.NotAllowedSingInLoginAttempt(userId);
+                SsoMetrics.RecordLoginAttempt("api_key", "failure");
                 context.Result = new GrantValidationResult(TokenRequestErrors.InvalidGrant, "User is not allowed to sign in.");
                 return;
             }
 
             // Get key data.
             var apiKey = await ssoDbContext.ApiKeys.TryFindOneAsync(k => k.KeyHash == ApiKey.HashKey(plainApiKey) &&
-                                                                         k.Owner.Id == userId);
+                                                                         k.Owner.Id == userId,
+                                                                         cancellationToken: cancellationToken);
             if (apiKey is null)
             {
                 //increment access failed counter
                 await userManager.AccessFailedAsync(user);
 
                 logger.ApiKeyDoesNotExistLoginAttempt(userId);
+                SsoMetrics.RecordLoginAttempt("api_key", "failure");
                 context.Result = new GrantValidationResult(TokenRequestErrors.InvalidGrant, "Api key does not exist.");
                 return;
             }
@@ -97,6 +103,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
             if (!apiKey.IsAlive)
             {
                 logger.ApiKeyIsNotAliveLoginAttempt(userId);
+                SsoMetrics.RecordLoginAttempt("api_key", "failure");
                 context.Result = new GrantValidationResult(TokenRequestErrors.InvalidGrant, "Api key is not alive.");
                 return;
             }
@@ -105,6 +112,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
             //TODO
 
             logger.ApiKeyValidatedLoginAttempt(userId);
+            SsoMetrics.RecordLoginAttempt("api_key", "success");
 
             context.Result = new GrantValidationResult(
                 userId,

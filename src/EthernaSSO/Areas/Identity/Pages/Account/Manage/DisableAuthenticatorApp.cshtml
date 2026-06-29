@@ -1,0 +1,29 @@
+@page
+@model DisableAuthenticatorAppModel
+@{
+    ViewData["Title"] = "Disable authenticator app";
+    ViewData["ActivePage"] = ManageNavPages.TwoFactorAuthentication;
+}
+
+<partial name="_StatusMessage" for="StatusMessage" />
+<h2>@ViewData["Title"]</h2>
+
+<div class="alert alert-warning" role="alert">
+    <p>
+        <strong>This removes the authenticator app as a second factor.</strong>
+        @if (Model.IsLastFactor)
+        {
+            <span>You have no security keys registered, so disabling the authenticator app will turn off two-factor authentication for your account.</span>
+        }
+        else
+        {
+            <span>Your registered security keys will continue to work as a second factor.</span>
+        }
+    </p>
+</div>
+
+<div>
+    <form method="post" class="form-group">
+        <button class="btn btn-danger" type="submit">Disable authenticator app</button>
+    </form>
+</div>

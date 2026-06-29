@@ -31,7 +31,7 @@ namespace Etherna.SSOServer.Domain.Helpers
 
         public static string NormalizeUsername(string username)
         {
-            ArgumentNullException.ThrowIfNull(username, nameof(username));
+            ArgumentNullException.ThrowIfNull(username);
 
             username = username.ToUpper(CultureInfo.InvariantCulture); //to upper case
 

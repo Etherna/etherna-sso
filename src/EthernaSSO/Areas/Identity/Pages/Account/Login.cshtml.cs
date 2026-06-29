@@ -15,58 +15,42 @@
 using Duende.IdentityServer.Services;
 using Duende.IdentityServer.Stores;
 using Etherna.DomainEvents;
+using Etherna.SSOServer.Configs.Metrics;
 using Etherna.SSOServer.Domain.Events;
 using Etherna.SSOServer.Domain.Models;
-using Etherna.SSOServer.Extensions;
+using Etherna.SSOServer.Services.Extensions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
+using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
 
 namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 {
     [AllowAnonymous]
-    public class LoginModel : SsoExitPageModelBase
+    public class LoginModel(
+        IClientStore clientStore,
+        IEventDispatcher eventDispatcher,
+        IIdentityServerInteractionService idServerInteractionService,
+        ILogger<LoginModel> logger,
+        SignInManager<UserBase> signInManager,
+        UserManager<UserBase> userManager)
+        : SsoExitPageModelBase(clientStore)
     {
         // Models.
         public class InputModel
         {
             [Required]
             [Display(Name = "Username or email")]
-            public string UsernameOrEmail { get; set; } = default!;
+            public string UsernameOrEmail { get; set; } = null!;
 
             [Required]
             [DataType(DataType.Password)]
-            public string Password { get; set; } = default!;
-        }
-
-        // Fields.
-        private readonly IEventDispatcher eventDispatcher;
-        private readonly IIdentityServerInteractionService idServerInteractionService;
-        private readonly ILogger<LoginModel> logger;
-        private readonly SignInManager<UserBase> signInManager;
-        private readonly UserManager<UserBase> userManager;
-
-        // Constructor.
-        public LoginModel(
-            IClientStore clientStore,
-            IEventDispatcher eventDispatcher,
-            IIdentityServerInteractionService idServerInteractionService,
-            ILogger<LoginModel> logger,
-            SignInManager<UserBase> signInManager,
-            UserManager<UserBase> userManager)
-            : base(clientStore)
-        {
-            this.eventDispatcher = eventDispatcher;
-            this.idServerInteractionService = idServerInteractionService;
-            this.logger = logger;
-            this.signInManager = signInManager;
-            this.userManager = userManager;
+            public string Password { get; set; } = null!;
         }
 
         // Properties.
@@ -74,11 +58,11 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         public string? ErrorMessage { get; set; }
 
         [BindProperty]
-        public InputModel Input { get; set; } = default!;
+        public InputModel Input { get; set; } = null!;
 
         public string? InvitationCode { get; set; }
         public string? ReturnUrl { get; set; }
-        public Web3LoginPartialModel Web3LoginPartialModel { get; set; } = default!;
+        public Web3LoginPartialModel Web3LoginPartialModel { get; set; } = null!;
 
         // Methods.
         public async Task<IActionResult> OnGetAsync(string? invitationCode = null, string? returnUrl = null)
@@ -96,7 +80,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                 var user = await userManager.GetUserAsync(User);
                 if (user is not null)
                 {
-                    var context = await idServerInteractionService.GetAuthorizationContextAsync(ReturnUrl);
+                    var context = await idServerInteractionService.GetAuthorizationContextAsync(ReturnUrl, HttpContext.RequestAborted);
                     
                     // Refresh login.
                     await signInManager.RefreshSignInAsync(user);
@@ -122,7 +106,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
             // Login.
             //check if we are in the context of an authorization request
-            var context = await idServerInteractionService.GetAuthorizationContextAsync(ReturnUrl);
+            var context = await idServerInteractionService.GetAuthorizationContextAsync(ReturnUrl, HttpContext.RequestAborted);
 
             //find user
             var user = Input.UsernameOrEmail.Contains('@', StringComparison.InvariantCulture) ? //if is email
@@ -137,13 +121,14 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
             //validate login
             var result = user is UserWeb2 ? //if user is not UserWeb2, fail password login
                 await signInManager.PasswordSignInAsync(user, Input.Password, true, lockoutOnFailure: true) :
-                Microsoft.AspNetCore.Identity.SignInResult.Failed;
+                SignInResult.Failed;
 
             if (result.Succeeded)
             {
                 // Rise event and create log.
                 await eventDispatcher.DispatchAsync(new UserLoginSuccessEvent(user, clientId: context?.Client?.ClientId));
                 logger.LoggedInWithPassword(user.Id);
+                SsoMetrics.RecordLoginAttempt("password", "success");
 
                 // Identify redirect.
                 return await ContextedRedirectAsync(context, returnUrl);
@@ -151,18 +136,23 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
             else if (result.RequiresTwoFactor)
             {
-                return RedirectToPage("./LoginWith2fa", new { ReturnUrl });
+                //prefer security key when the user has no authenticator app configured
+                if (user is UserWeb2 { HasFido2Credentials: true, IsAuthenticatorAppEnabled: false })
+                    return RedirectToPage("./LoginWithSecurityKey", new { ReturnUrl });
+                return RedirectToPage("./LoginWithAuthenticatorApp", new { ReturnUrl });
             }
 
             else if (result.IsLockedOut)
             {
                 logger.LockedOutLoginAttempt(user.Id);
+                SsoMetrics.RecordLoginAttempt("password", "locked_out");
                 return RedirectToPage("./Lockout");
             }
 
             else
             {
                 await eventDispatcher.DispatchAsync(new UserLoginFailureEvent(Input.UsernameOrEmail, "invalid credentials", clientId: context?.Client?.ClientId));
+                SsoMetrics.RecordLoginAttempt("password", "failure");
                 ModelState.AddModelError(string.Empty, "Invalid login attempt.");
                 return Page();
             }

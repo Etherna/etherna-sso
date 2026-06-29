@@ -16,7 +16,9 @@ using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Domain.Models.UserAgg;
+using Etherna.SSOServer.Models;
 using Etherna.SSOServer.Services.Domain;
+using Etherna.SwarmSdk.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System;
@@ -27,7 +29,10 @@ using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
 {
-    public class UserModel : PageModel
+    public class UserModel(
+        ISsoDbContext context,
+        IUserService userService)
+        : PageModel
     {
         // Model.
         public class InputModel : IValidatableObject
@@ -36,14 +41,15 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
             public InputModel() { }
             public InputModel(UserBase user, UserSharedInfo sharedInfo)
             {
-                ArgumentNullException.ThrowIfNull(user, nameof(user));
-                ArgumentNullException.ThrowIfNull(sharedInfo, nameof(sharedInfo));
+                ArgumentNullException.ThrowIfNull(user);
+                ArgumentNullException.ThrowIfNull(sharedInfo);
 
                 Id = user.Id;
                 Email = user.Email;
+                MaxAllowedClients = user.MaxAllowedClients;
                 PhoneNumber = user.PhoneNumber;
                 LockoutEnabled = sharedInfo.LockoutEnabled;
-                LockoutEnd = sharedInfo.LockoutEnd;
+                LockoutEnd = sharedInfo.LockoutEnd?.UtcDateTime;
                 Username = user.Username;
 
                 switch (user)
@@ -64,13 +70,13 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
             public string? Email { get; set; }
 
             [Display(Name = "Ethereum login address")]
-            public string? EtherLoginAddress { get; set; }
+            public EthAddress? EtherLoginAddress { get; set; }
 
             [Display(Name = "Lockout enabled")]
             public bool LockoutEnabled { get; set; } = true;
 
-            [Display(Name = "Lockout end")]
-            public DateTimeOffset? LockoutEnd { get; set; }
+            [Display(Name = "Lockout end (UTC)")]
+            public DateTime? LockoutEnd { get; set; }
 
             [Display(Name = "New user password")]
             public string? NewUserPassword { get; set; }
@@ -83,7 +89,11 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
 
             [Required]
             [RegularExpression(UsernameHelper.UsernameRegex)]
-            public string Username { get; set; } = default!;
+            public string Username { get; set; } = null!;
+
+            [Display(Name = "Max allowed clients")]
+            [Range(0, 100)]
+            public int MaxAllowedClients { get; set; }
 
             public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
             {
@@ -92,44 +102,36 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
             }
         }
 
-        // Fields.
-        private readonly ISsoDbContext context;
-        private readonly IUserService userService;
-
-        // Constructor.
-        public UserModel(
-            ISsoDbContext context,
-            IUserService userService)
-        {
-            this.context = context;
-            this.userService = userService;
-        }
-
         // Properties.
         [Display(Name = "Access failed count")]
         public int AccessFailedCount { get; private set; }
 
         [Display(Name = "Ethereum address")]
-        public string? EtherAddress { get; private set; }
+        public EthAddress? EtherAddress { get; private set; }
 
         [Display(Name = "Previous ethereum addresses")]
-        public IEnumerable<string> EtherPreviousAddresses { get; private set; } = Array.Empty<string>();
+        public IEnumerable<EthAddress> EtherPreviousAddresses { get; private set; } = [];
 
         [Display(Name = "Has password")]
         public bool HasPassword { get; private set; }
 
         [BindProperty]
-        public InputModel Input { get; set; } = default!;
+        public InputModel Input { get; set; } = null!;
 
         public bool IsWeb3 { get; private set; }
 
+        [Display(Name = "User registration (UTC)")]
+        [DisplayFormat(DataFormatString = "{0:dd/MM/yyyy HH:mm:ss}", ApplyFormatInEditMode = true)]
+        public DateTime? CreationDateTime { get; private set; }
+
         [Display(Name = "Last login date/time (UTC)")]
+        [DisplayFormat(DataFormatString = "{0:dd/MM/yyyy HH:mm:ss}", ApplyFormatInEditMode = true)]
         public DateTime? LastLoginDateTime { get; private set; }
 
         [Display(Name = "Phone number confirmed")]
         public bool PhoneNumberConfirmed { get; private set; }
 
-        public string? StatusMessage { get; set; }
+        public StatusMessage? StatusMessage { get; set; }
 
         // Methods.
         public async Task OnGetAsync(string? id)
@@ -142,6 +144,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
                 EtherAddress = user.EtherAddress;
                 EtherPreviousAddresses = user.EtherPreviousAddresses;
                 Input = new InputModel(user, sharedInfo);
+                CreationDateTime = user.CreationDateTime;
                 IsWeb3 = user is UserWeb3;
                 LastLoginDateTime = user.LastLoginDateTime;
                 PhoneNumberConfirmed = user.PhoneNumberConfirmed;
@@ -177,15 +180,14 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
                     Input.Email,
                     Input.EtherLoginAddress,
                     Input.LockoutEnabled,
-                    Input.LockoutEnd,
+                    Input.LockoutEnd.HasValue ? new DateTimeOffset(DateTime.SpecifyKind(Input.LockoutEnd.Value, DateTimeKind.Utc)) : null,
                     Input.PhoneNumber,
-                    Array.Empty<Role>(),
-                    Input.TwoFactorEnabled);
+                    []);
 
                 // Report errors.
                 if (newUser is null)
                 {
-                    StatusMessage = "Error: " + string.Join("\n", errors.Select(e => e.msg));
+                    StatusMessage = new StatusMessage("Error: " + string.Join("\n", errors.Select(e => e.msg)), StatusMessageType.Error);
                     return Page();
                 }
 
@@ -207,16 +209,25 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
                 if (user.PhoneNumber != Input.PhoneNumber)
                     user.SetPhoneNumber(Input.PhoneNumber);
 
+                if (user.MaxAllowedClients != Input.MaxAllowedClients)
+                    user.SetMaxAllowedClients(Input.MaxAllowedClients);
+
                 switch (user)
                 {
                     case UserWeb2 userWeb2:
 
-                        if (string.IsNullOrWhiteSpace(Input.EtherLoginAddress))
+                        if (!Input.EtherLoginAddress.HasValue)
                             userWeb2.RemoveEtherLoginAddress();
                         else if (userWeb2.EtherLoginAddress != Input.EtherLoginAddress)
-                            userWeb2.SetEtherLoginAddress(Input.EtherLoginAddress);
+                            userWeb2.EtherLoginAddress = Input.EtherLoginAddress;
 
-                        userWeb2.TwoFactorEnabled = Input.TwoFactorEnabled;
+                        //admin can only disable 2FA (clears all factors); enabling requires user-side setup
+                        if (!Input.TwoFactorEnabled && userWeb2.TwoFactorEnabled)
+                        {
+                            userWeb2.DisableAuthenticatorApp();
+                            foreach (var credential in userWeb2.Fido2Credentials.ToList())
+                                userWeb2.RemoveFido2Credential(credential.CredentialId);
+                        }
 
                         break;
                     case UserWeb3 _: break;
@@ -229,7 +240,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
                 await userService.UpdateLockoutStatusAsync(
                     user,
                     Input.LockoutEnabled,
-                    Input.LockoutEnd);
+                    Input.LockoutEnd.HasValue ? new DateTimeOffset(DateTime.SpecifyKind(Input.LockoutEnd.Value, DateTimeKind.Utc)) : null);
             }
 
             return RedirectToPage(new { user.Id });

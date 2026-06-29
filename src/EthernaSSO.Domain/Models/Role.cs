@@ -28,11 +28,13 @@ namespace Etherna.SSOServer.Domain.Models
         {
             SetName(name);
         }
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
         protected Role() { }
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 
         // Properties.
-        public virtual string Name { get; protected set; } = default!;
-        public virtual string NormalizedName { get; protected set; } = default!;
+        public virtual string Name { get; protected set; } = null!;
+        public virtual string NormalizedName { get; protected set; } = null!;
 
         // Methods.
 
@@ -40,7 +42,7 @@ namespace Etherna.SSOServer.Domain.Models
         [PropertyAlterer(nameof(NormalizedName))]
         public virtual void SetName(string name)
         {
-            ArgumentNullException.ThrowIfNull(name, nameof(name));
+            ArgumentNullException.ThrowIfNull(name);
 
             if (Name != name)
             {
@@ -52,7 +54,7 @@ namespace Etherna.SSOServer.Domain.Models
         // Public static helpers.
         public static string NormalizeName(string name)
         {
-            ArgumentNullException.ThrowIfNull(name, nameof(name));
+            ArgumentNullException.ThrowIfNull(name);
 
             name = name.ToUpper(CultureInfo.InvariantCulture); //to upper case
 

@@ -12,7 +12,7 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Nethereum.Util;
+using Etherna.SwarmSdk.Models;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
@@ -26,19 +26,18 @@ namespace Etherna.SSOServer.Domain.Models
         public readonly static string CodeValidChars = "0123456789" + "abcdefghijklmnopqrstuvwxyz" + "ABCDEFGHIJKLMNOPQRSTUVWXYZ" + "-_";
 
         // Constructors.
-        public Web3LoginToken(string etherAddress)
+        public Web3LoginToken(EthAddress etherAddress)
         {
-            if (!etherAddress.IsValidEthereumAddressHexFormat())
-                throw new ArgumentException("The value is not a valid address", nameof(etherAddress));
-
-            EtherAddress = etherAddress.ConvertToEthereumChecksumAddress();
+            EtherAddress = etherAddress;
             Code = GenerateNewCode();
         }
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
         protected Web3LoginToken() { }
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 
         // Properties.
-        public virtual string Code { get; protected set; } = default!;
-        public virtual string EtherAddress { get; protected set; } = default!;
+        public virtual string Code { get; protected set; }
+        public virtual EthAddress EtherAddress { get; protected set; }
 
         // Helpers.
         [SuppressMessage("Security", "CA5394:Do not use insecure randomness", Justification = "A different code each login is sufficient. Secure randomness is not required")]

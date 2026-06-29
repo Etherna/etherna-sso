@@ -15,30 +15,29 @@
 using Etherna.MongoDB.Driver;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Services.Extensions;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Services.Tasks
 {
-    public sealed class DeleteOldInvitationsTask : IDeleteOldInvitationsTask
+    public sealed class DeleteOldInvitationsTask(
+        ILogger<DeleteOldInvitationsTask> logger,
+        ISsoDbContext ssoDbContext)
+        : IDeleteOldInvitationsTask
     {
         // Consts.
         public const string TaskId = "deleteOldInvitationsTask";
 
-        // Fields.
-        private readonly ISsoDbContext ssoDbContext;
-
-        // Constructor.
-        public DeleteOldInvitationsTask(
-            ISsoDbContext ssoDbContext)
-        {
-            this.ssoDbContext = ssoDbContext;
-        }
-
         // Methods.
-        public Task RunAsync() =>
-            ssoDbContext.Invitations.AccessToCollectionAsync(collection =>
+        public async Task RunAsync()
+        {
+            var result = await ssoDbContext.Invitations.AccessToCollectionAsync(collection =>
                 collection.DeleteManyAsync(
                     Builders<Invitation>.Filter.Where(i => i.EndLife != null && i.EndLife < DateTime.UtcNow)));
+
+            logger.DeletedExpiredInvitations(result.DeletedCount);
+        }
     }
 }

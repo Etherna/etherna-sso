@@ -14,8 +14,8 @@
 
 using Duende.IdentityServer;
 using Duende.IdentityServer.Models;
-using Etherna.ACR.Exceptions;
 using Etherna.Authentication;
+using Etherna.SSOServer.Exceptions;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
@@ -51,23 +51,23 @@ namespace Etherna.SSOServer.Configs.IdentityServer
         public static class ApiScopesDef //these can go in very details of client permissions
         {
             //credit service interaction scopes
-            public static readonly ApiScope EthernaCreditServiceInteract = new("ethernaCredit_serviceInteract_api", "Etherna Credit service interact API");
+            public static readonly ApiScope EthernaCreditServiceInteract = new(EthernaScopes.EthernaCreditServiceInteract, "Etherna Credit service interact API");
 
             //sso service interaction scopes
-            public static readonly ApiScope EthernaSsoUserContactInfo = new("ethernaSso_userContactInfo_api", "Etherna SSO user contatct info API");
+            public static readonly ApiScope EthernaSsoUserContactInfo = new(EthernaScopes.EthernaSsoUserContactInfo, "Etherna SSO user contatct info API");
 
             //global user interaction scopes
-            public static readonly ApiScope UserInteractEthernaCredit = new("userApi.credit", "Etherna Credit user API");
-            public static readonly ApiScope UserInteractEthernaGateway = new("userApi.gateway", "Etherna Gateway user API");
-            public static readonly ApiScope UserInteractEthernaIndex = new("userApi.index", "Etherna Index user API");
-            public static readonly ApiScope UserInteractEthernaSso = new("userApi.sso", "Etherna Sso user API");
+            public static readonly ApiScope UserInteractEthernaCredit = new(EthernaScopes.UserApiCredit, "Etherna Credit user API");
+            public static readonly ApiScope UserInteractEthernaGateway = new(EthernaScopes.UserApiGateway, "Etherna Gateway user API");
+            public static readonly ApiScope UserInteractEthernaIndex = new(EthernaScopes.UserApiIndex, "Etherna Index user API");
+            public static readonly ApiScope UserInteractEthernaSso = new(EthernaScopes.UserApiSso, "Etherna Sso user API");
         }
         public static class IdResourcesDef
         {
             public static readonly IdentityResource EtherAccounts = new()
             {
                 DisplayName = "Ether accounts",
-                Name = "ether_accounts",
+                Name = EthernaScopes.EtherAccounts,
                 UserClaims = new List<string>
                 {
                     EthernaClaimTypes.EtherAddress,
@@ -78,7 +78,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
             public static readonly IdentityResource Role = new()
             {
                 DisplayName = "Role",
-                Name = "role",
+                Name = EthernaScopes.Role,
                 UserClaims = [EthernaClaimTypes.Role_IdentityModel]
             };
         }
@@ -108,6 +108,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
         private readonly string ethernaGatewayCli_BaseUrl;
         private readonly string ethernaGatewayCli_ClientId;
 
+        private readonly string ethernaGatewayScalar_ClientId;
         private readonly string ethernaGatewaySwagger_ClientId;
 
         private readonly string ethernaIndex_BaseUrl;
@@ -116,12 +117,14 @@ namespace Etherna.SSOServer.Configs.IdentityServer
         private readonly string ethernaIndex_Webapp_ClientId;
         private readonly string ethernaIndex_Webapp_Secret;
 
+        private readonly string ethernaIndexScalar_ClientId;
         private readonly string ethernaIndexSwagger_ClientId;
 
         private readonly string ethernaSso_BaseUrl;
         private readonly string ethernaSso_Webapp_ClientId;
         private readonly string ethernaSso_Webapp_Secret;
 
+        private readonly string ethernaSsoScalar_ClientId;
         private readonly string ethernaSsoSwagger_ClientId;
 
         private readonly string ethernaVideoImporter_BaseUrl;
@@ -130,7 +133,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
         // Constructor.
         public IdServerConfig(IConfiguration configuration)
         {
-            ArgumentNullException.ThrowIfNull(configuration, nameof(configuration));
+            ArgumentNullException.ThrowIfNull(configuration);
 
             apiKey_ClientId = configuration["IdServer:Clients:ApiKey:ClientId"] ?? throw new ServiceConfigurationException();
 
@@ -155,6 +158,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
             ethernaGatewayCli_BaseUrl = configuration["IdServer:Clients:EthernaGatewayCli:BaseUrl"] ?? throw new ServiceConfigurationException();
             ethernaGatewayCli_ClientId = configuration["IdServer:Clients:EthernaGatewayCli:ClientId"] ?? throw new ServiceConfigurationException();
 
+            ethernaGatewayScalar_ClientId = configuration["IdServer:Clients:EthernaGatewayScalar:ClientId"] ?? throw new ServiceConfigurationException();
             ethernaGatewaySwagger_ClientId = configuration["IdServer:Clients:EthernaGatewaySwagger:ClientId"] ?? throw new ServiceConfigurationException();
 
             ethernaIndex_BaseUrl = configuration["IdServer:Clients:EthernaIndex:BaseUrl"] ?? throw new ServiceConfigurationException();
@@ -163,12 +167,14 @@ namespace Etherna.SSOServer.Configs.IdentityServer
             ethernaIndex_Webapp_ClientId = configuration["IdServer:Clients:EthernaIndex:Clients:Webapp:ClientId"] ?? throw new ServiceConfigurationException();
             ethernaIndex_Webapp_Secret = configuration["IdServer:Clients:EthernaIndex:Clients:Webapp:Secret"] ?? throw new ServiceConfigurationException();
 
+            ethernaIndexScalar_ClientId = configuration["IdServer:Clients:EthernaIndexScalar:ClientId"] ?? throw new ServiceConfigurationException();
             ethernaIndexSwagger_ClientId = configuration["IdServer:Clients:EthernaIndexSwagger:ClientId"] ?? throw new ServiceConfigurationException();
 
             ethernaSso_BaseUrl = configuration["IdServer:SsoServer:BaseUrl"] ?? throw new ServiceConfigurationException();
             ethernaSso_Webapp_ClientId = configuration["IdServer:SsoServer:Clients:Webapp:ClientId"] ?? throw new ServiceConfigurationException();
             ethernaSso_Webapp_Secret = configuration["IdServer:SsoServer:Clients:Webapp:Secret"] ?? throw new ServiceConfigurationException();
 
+            ethernaSsoScalar_ClientId = configuration["IdServer:Clients:EthernaSsoScalar:ClientId"] ?? throw new ServiceConfigurationException();
             ethernaSsoSwagger_ClientId = configuration["IdServer:Clients:EthernaSsoSwagger:ClientId"] ?? throw new ServiceConfigurationException();
 
             ethernaVideoImporter_BaseUrl = configuration["IdServer:Clients:EthernaVideoImporter:BaseUrl"] ?? throw new ServiceConfigurationException();
@@ -455,6 +461,44 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                 RefreshTokenUsage = TokenUsage.OneTimeOnly //because client have not secret
             },
             
+            //gateway scalar
+            new()
+            {
+                ClientId = ethernaGatewayScalar_ClientId,
+                ClientName = "Etherna Gateway API Scalar",
+                RequireClientSecret = false,
+                
+                AllowedGrantTypes = GrantTypes.Code,
+                
+                //where to redirect to after login
+                RedirectUris = ethernaGateway_BaseUrls.SelectMany(url =>
+                    new[]
+                    {
+                        $"{url}/scalar/swarm",
+                        $"{url}/scalar/swarmv1",
+                        $"{url}/scalar/gateway03"
+                    }).ToList(),
+                
+                AllowedCorsOrigins = ethernaGateway_BaseUrls,
+                RequirePkce = true,
+                
+                AlwaysIncludeUserClaimsInIdToken = true,
+                AllowedScopes =
+                {
+                    //identity
+                    IdentityServerConstants.StandardScopes.OpenId,
+                    IdentityServerConstants.StandardScopes.Profile,
+                    IdResourcesDef.EtherAccounts.Name,
+                    IdResourcesDef.Role.Name,
+                    
+                    //resource
+                    ApiScopesDef.UserInteractEthernaGateway.Name,
+                },
+                
+                AllowOfflineAccess = true,
+                RefreshTokenUsage = TokenUsage.OneTimeOnly //because client have not secret
+            },
+            
             //gateway swagger
             new()
             {
@@ -534,6 +578,38 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                 AllowOfflineAccess = true
             },
             
+            //index scalar
+            new()
+            {
+                ClientId = ethernaIndexScalar_ClientId,
+                ClientName = "Etherna Index API Scalar",
+                RequireClientSecret = false,
+                
+                AllowedGrantTypes = GrantTypes.Code,
+                
+                //where to redirect to after login
+                RedirectUris = { $"{ethernaIndex_BaseUrl}/scalar/index03" },
+                
+                AllowedCorsOrigins = { ethernaIndex_BaseUrl },
+                RequirePkce = true,
+                
+                AlwaysIncludeUserClaimsInIdToken = true,
+                AllowedScopes =
+                {
+                    //identity
+                    IdentityServerConstants.StandardScopes.OpenId,
+                    IdentityServerConstants.StandardScopes.Profile,
+                    IdResourcesDef.EtherAccounts.Name,
+                    IdResourcesDef.Role.Name,
+                    
+                    //resource
+                    ApiScopesDef.UserInteractEthernaIndex.Name,
+                },
+                
+                AllowOfflineAccess = true,
+                RefreshTokenUsage = TokenUsage.OneTimeOnly //because client have not secret
+            },
+            
             //index swagger
             new()
             {
@@ -593,6 +669,38 @@ namespace Etherna.SSOServer.Configs.IdentityServer
 
                 // Allow token refresh.
                 AllowOfflineAccess = true
+            },
+            
+            //sso scalar
+            new()
+            {
+                ClientId = ethernaSsoScalar_ClientId,
+                ClientName = "Etherna SSO API Scalar",
+                RequireClientSecret = false,
+                
+                AllowedGrantTypes = GrantTypes.Code,
+                
+                //where to redirect to after login
+                RedirectUris = { $"{ethernaSso_BaseUrl}/scalar/sso03" },
+                
+                AllowedCorsOrigins = { ethernaSso_BaseUrl },
+                RequirePkce = true,
+                
+                AlwaysIncludeUserClaimsInIdToken = true,
+                AllowedScopes =
+                {
+                    //identity
+                    IdentityServerConstants.StandardScopes.OpenId,
+                    IdentityServerConstants.StandardScopes.Profile,
+                    IdResourcesDef.EtherAccounts.Name,
+                    IdResourcesDef.Role.Name,
+                    
+                    //resource
+                    ApiScopesDef.UserInteractEthernaSso.Name,
+                },
+                
+                AllowOfflineAccess = true,
+                RefreshTokenUsage = TokenUsage.OneTimeOnly //because client have not secret
             },
             
             //sso swagger
@@ -670,5 +778,37 @@ namespace Etherna.SSOServer.Configs.IdentityServer
             IdResourcesDef.EtherAccounts,
             IdResourcesDef.Role
         ];
+
+        /// <summary>
+        /// Maps each scope to the user claims it grants, read from the configured identity resources
+        /// and api scopes (authoritative source). Used to preview, in the client editor, which claims
+        /// a token will carry for the selected scopes.
+        /// </summary>
+        public IReadOnlyDictionary<string, ICollection<string>> ScopeUserClaimsMap =>
+            field ??= BuildScopeUserClaimsMap();
+
+        // Helpers.
+        private Dictionary<string, ICollection<string>> BuildScopeUserClaimsMap()
+        {
+            var map = new Dictionary<string, ICollection<string>>();
+
+            // Identity scopes: claims come straight from the identity resource.
+            foreach (var resource in IdResources)
+                map[resource.Name] = resource.UserClaims;
+
+            // Api scopes: union the scope's own claims with those of every api resource that exposes
+            // it, since IdentityServer issues both for a requested scope.
+            List<ApiResource> apiResources = [.. ApiResources];
+            foreach (var scope in ApiScopes)
+            {
+                var claims = new HashSet<string>(scope.UserClaims);
+                foreach (var resource in apiResources)
+                    if (resource.Scopes.Contains(scope.Name))
+                        claims.UnionWith(resource.UserClaims);
+                map[scope.Name] = claims;
+            }
+
+            return map;
+        }
     }
 }

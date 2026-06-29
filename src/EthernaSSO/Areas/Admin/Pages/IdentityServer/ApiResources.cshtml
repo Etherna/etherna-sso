@@ -1,0 +1,59 @@
+@page
+@model Etherna.SSOServer.Areas.Admin.Pages.IdentityServer.ApiResourcesModel
+@{
+    ViewData["Title"] = "API Resources";
+}
+
+<div class="row">
+    <div class="col-12 mb-3 text-center mt-1">
+        <h2>@ViewData["Title"]</h2>
+    </div>
+</div>
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-page="Index">Admin</a></li>
+        <li class="breadcrumb-item active" aria-current="page">API Resources</li>
+    </ol>
+</nav>
+
+<div class="alert alert-info" role="alert">
+    These resources are defined in the server configuration and cannot be modified from this interface.
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Display Name</th>
+                        <th>Scopes</th>
+                        <th>Enabled</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var resource in Model.ApiResources)
+                    {
+                        <tr>
+                            <td class="align-middle">@resource.Name</td>
+                            <td class="align-middle">@resource.DisplayName</td>
+                            <td class="align-middle">@string.Join(", ", resource.Scopes)</td>
+                            <td class="align-middle">
+                                @if (resource.Enabled)
+                                {
+                                    <span class="badge bg-success">Enabled</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">Disabled</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

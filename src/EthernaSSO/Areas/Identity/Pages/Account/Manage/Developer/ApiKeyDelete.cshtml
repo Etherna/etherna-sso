@@ -1,0 +1,32 @@
+@page
+@model Etherna.SSOServer.Areas.Identity.Pages.Account.Manage.Developer.ApiKeyDeleteModel
+@{
+    ViewData["Title"] = "Delete API Key";
+    ViewData["ActivePage"] = ManageNavPages.Developer;
+}
+
+<form id="client-form" asp-page-handler="Delete" asp-route-id="@Model.Id" method="post">
+
+    <h2>@ViewData["Title"]</h2>
+
+    <div class="card mt-3">
+        <div class="card-body">
+
+            <div class="mb-3">
+                <label asp-for="Label"></label>
+                <input asp-for="Label" disabled class="form-control" />
+            </div>
+            <div class="mb-3">
+                <label asp-for="EndOfLife"></label>
+                <input asp-for="EndOfLife" disabled type="text" class="form-control" />
+            </div>
+
+            <div class="mb-3 row">
+                <div class="col-sm-9">
+                    <button type="submit" class="btn btn-danger">Delete API Key</button>
+                    <a asp-page="ApiKeys" class="btn btn-secondary ms-2">Cancel</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>

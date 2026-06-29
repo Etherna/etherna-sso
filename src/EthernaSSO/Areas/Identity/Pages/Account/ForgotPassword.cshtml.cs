@@ -12,9 +12,10 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.ACR.Services;
 using Etherna.SSOServer.Configs;
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Services.Domain;
+using Etherna.SSOServer.Services.Views.Emails;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -35,7 +36,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
         {
             [Required]
             [EmailAddress]
-            public string Email { get; set; } = default!;
+            public string Email { get; set; } = null!;
         }
 
         // Fields.
@@ -56,7 +57,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
 
         // Properties.
         [BindProperty]
-        public InputModel Input { get; set; } = default!;
+        public InputModel Input { get; set; } = null!;
 
         // Methods.
         public async Task<IActionResult> OnPostAsync()
@@ -79,7 +80,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                     var callbackUrl = Url.Page(
                         "/Account/ResetPassword",
                         pageHandler: null,
-                        values: new { area = CommonConsts.IdentityArea, code },
+                        values: new { area = CommonConsts.IdentityArea, code, email = Input.Email },
                         protocol: Request.Scheme) ?? throw new InvalidOperationException();
 
                     // Send email.
@@ -98,11 +99,11 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account
                     // Send email.
                     var web3EmailBody = await razorViewRenderer.RenderViewToStringAsync(
                         "Views/Emails/ResetPasswordWeb3.cshtml",
-                        new Services.Views.Emails.ResetPasswordWeb3Model(userWeb3.EtherAddress));
+                        new ResetPasswordWeb3Model(userWeb3.EtherAddress));
 
                     await emailSender.SendEmailAsync(
                         Input.Email,
-                        Services.Views.Emails.ResetPasswordWeb3Model.Title,
+                        ResetPasswordWeb3Model.Title,
                         web3EmailBody);
                     
                     return RedirectToPage("./ForgotPasswordConfirmation");

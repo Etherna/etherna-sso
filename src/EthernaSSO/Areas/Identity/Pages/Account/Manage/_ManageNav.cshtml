@@ -1,36 +1,22 @@
-﻿@*  *   Copyright 2021-present Etherna Sa
-    *
-    *   Licensed under the Apache License, Version 2.0 (the "License");
-    *   you may not use this file except in compliance with the License.
-    *   You may obtain a copy of the License at
-    *
-    *       http://www.apache.org/licenses/LICENSE-2.0
-    *
-    *   Unless required by applicable law or agreed to in writing, software
-    *   distributed under the License is distributed on an "AS IS" BASIS,
-    *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    *   See the License for the specific language governing permissions and
-    *   limitations under the License.
-*@
-
-@inject SignInManager<UserBase> SignInManager
+﻿@inject SignInManager<UserBase> SignInManager
 @inject UserManager<UserBase> UserManager
 @{
     var user = await UserManager.GetUserAsync(User);
     var isWeb3User = user is UserWeb3;
 }
 <ul class="nav nav-pills flex-column">
-    <li class="nav-item"><a class="nav-link @ManageNavPages.IndexNavClass(ViewContext)" id="profile" asp-page="./Index">Profile</a></li>
+    <li class="nav-item"><a class="nav-link @ManageNavPages.IndexNavClass(ViewContext)" id="profile" asp-page="/Account/Manage/Index" asp-area="Identity">Profile</a></li>
     @if (!isWeb3User)
     {
-        <li class="nav-item"><a class="nav-link @ManageNavPages.Web3LoginNavClass(ViewContext)" asp-page="./Web3Login">Web3 login</a></li>
+        <li class="nav-item"><a class="nav-link @ManageNavPages.Web3LoginNavClass(ViewContext)" asp-page="/Account/Manage/Web3Login" asp-area="Identity">Web3 login</a></li>
     }
-    <li class="nav-item"><a class="nav-link @ManageNavPages.EmailNavClass(ViewContext)" id="email" asp-page="./Email">Email</a></li>
+    <li class="nav-item"><a class="nav-link @ManageNavPages.EmailNavClass(ViewContext)" id="email" asp-page="/Account/Manage/Email" asp-area="Identity">Email</a></li>
     @if (!isWeb3User)
     {
-        <li class="nav-item"><a class="nav-link @ManageNavPages.ChangePasswordNavClass(ViewContext)" id="change-password" asp-page="./ChangePassword">Password</a></li>
-        <li class="nav-item"><a class="nav-link @ManageNavPages.TwoFactorAuthenticationNavClass(ViewContext)" id="two-factor" asp-page="./TwoFactorAuthentication">Two-factor authentication</a></li>
+        <li class="nav-item"><a class="nav-link @ManageNavPages.ChangePasswordNavClass(ViewContext)" id="change-password" asp-page="/Account/Manage/ChangePassword" asp-area="Identity">Password</a></li>
+        <li class="nav-item"><a class="nav-link @ManageNavPages.TwoFactorAuthenticationNavClass(ViewContext)" id="two-factor" asp-page="/Account/Manage/TwoFactorAuthentication" asp-area="Identity">Two-factor authentication</a></li>
     }
-    <li class="nav-item"><a class="nav-link @ManageNavPages.PersonalDataNavClass(ViewContext)" id="personal-data" asp-page="./PersonalData">Personal data</a></li>
-    <li class="nav-item"><a class="nav-link @ManageNavPages.ApiKeysNavClass(ViewContext)" id="api-keys" asp-page="./ApiKeys">API Keys</a></li>
+    <li class="nav-item"><a class="nav-link @ManageNavPages.PersonalDataNavClass(ViewContext)" id="personal-data" asp-page="/Account/Manage/PersonalData" asp-area="Identity">Personal data</a></li>
+    <li class="nav-item"><a class="nav-link @ManageNavPages.DeveloperNavClass(ViewContext)" id="developer" asp-page="/Account/Manage/Developer/Index" asp-area="Identity">Developer</a></li>
+    <li class="nav-item"><a class="nav-link @ManageNavPages.LegalNavClass(ViewContext)" id="legal" asp-page="/Account/Manage/Legal" asp-area="Identity">Legal</a></li>
 </ul>
