@@ -87,6 +87,8 @@ namespace Etherna.SSOServer.Configs.IdentityServer
         // Fields.
         private readonly string apiKey_ClientId;
 
+        private readonly ConfigClientDefinition[] configClientDefinitions;
+
         private readonly string ethernaCredit_BaseUrl;
         private readonly string ethernaCredit_Sso_ClientId;
         private readonly string ethernaCredit_Sso_Secret;
@@ -136,6 +138,8 @@ namespace Etherna.SSOServer.Configs.IdentityServer
             ArgumentNullException.ThrowIfNull(configuration);
 
             apiKey_ClientId = configuration["IdServer:Clients:ApiKey:ClientId"] ?? throw new ServiceConfigurationException();
+
+            configClientDefinitions = configuration.GetSection("IdServer:ConfigClients").Get<ConfigClientDefinition[]>() ?? [];
 
             ethernaCredit_BaseUrl = configuration["IdServer:Clients:EthernaCredit:BaseUrl"] ?? throw new ServiceConfigurationException();
             ethernaCredit_Sso_ClientId = configuration["IdServer:Clients:EthernaCredit:Clients:SsoServer:ClientId"] ?? throw new ServiceConfigurationException();
@@ -768,7 +772,10 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                 // Allow token refresh.
                 AllowOfflineAccess = true,
                 RefreshTokenUsage = TokenUsage.OneTimeOnly //because client have not secret
-            }
+            },
+
+            //clients defined by configuration (see "IdServer:ConfigClients")
+            .. configClientDefinitions.Select(BuildConfigClient)
         ];
 
         public IEnumerable<IdentityResource> IdResources =>
@@ -788,6 +795,32 @@ namespace Etherna.SSOServer.Configs.IdentityServer
             field ??= BuildScopeUserClaimsMap();
 
         // Helpers.
+        private static Client BuildConfigClient(ConfigClientDefinition definition)
+        {
+            if (string.IsNullOrEmpty(definition.ClientId))
+                throw new ServiceConfigurationException();
+
+            return new Client
+            {
+                ClientId = definition.ClientId,
+                ClientName = definition.ClientName,
+                ClientSecrets = definition.Secret is null ? [] : [new Secret(definition.Secret.Sha256())],
+                RequireClientSecret = definition.Secret is not null,
+
+                AllowedGrantTypes = [.. definition.AllowedGrantTypes],
+
+                //where to redirect to after login
+                RedirectUris = [.. definition.RedirectUris],
+
+                //where to redirect to after logout
+                PostLogoutRedirectUris = [.. definition.PostLogoutRedirectUris],
+
+                AllowedScopes = [.. definition.AllowedScopes],
+
+                AllowOfflineAccess = definition.AllowOfflineAccess
+            };
+        }
+
         private Dictionary<string, ICollection<string>> BuildScopeUserClaimsMap()
         {
             var map = new Dictionary<string, ICollection<string>>();
