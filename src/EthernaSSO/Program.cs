@@ -344,6 +344,7 @@ namespace Etherna.SSOServer
                     options.SaveTokens = true;
 
                     options.Scope.Add("ether_accounts");
+                    options.Scope.Add("offline_access"); //permit user access token refresh
                     options.Scope.Add("role");
 
                     // Handle unauthorized call on api with 401 response. For users not logged in.
