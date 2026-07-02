@@ -38,7 +38,7 @@ source together with its build and deployment configuration.
   Windows Hello, …) and single-use recovery codes; at login a registered security key is preferred when no
   authenticator app is configured.
 - **OpenID Connect provider** — built on Duende IdentityServer; issues identity/access tokens to the Etherna
-  services, with both in-memory and database-backed client registrations.
+  services, with in-memory, configuration-defined and database-backed client registrations.
 - **REST API** — endpoints under `/api` (including API-key authentication) with an interactive Scalar
   reference at `/scalar/sso03`.
 - **Admin area** — user and client management for administrators.
@@ -171,6 +171,7 @@ Optional, opt-in only: a user can subscribe to the newsletter during email verif
 | `IdServer:SsoServer:AllowUnsafeConnection` | dev only — allow an http authority |
 | `IdServer:SsoServer:Clients:Webapp:Secret` | **secret** — SSO web-app client secret |
 | `IdServer:Clients:<App>:…:Secret` | **secret** — downstream client secrets (Credit, Gateway, Index, …); client ids and base urls live in `appsettings*.json` |
+| `IdServer:ConfigClients:<n>:…` | additional clients defined entirely by configuration (`ClientId`, `ClientName`, `Secret`, `AllowedGrantTypes`, `AllowedScopes`, `RedirectUris`, `PostLogoutRedirectUris`, `AllowOfflineAccess`); used to host environment-specific clients in `appsettings.Development.json` — in production such clients are created from the developer editor and live on db |
 
 ### Logging & networking
 
