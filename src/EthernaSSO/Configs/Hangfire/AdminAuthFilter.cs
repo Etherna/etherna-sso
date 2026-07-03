@@ -1,22 +1,22 @@
-﻿// Copyright 2021-present Etherna SA
+// Copyright 2021-present Etherna SA
 // This file is part of Etherna Sso.
-// 
+//
 // Etherna Sso is free software: you can redistribute it and/or modify it under the terms of the
 // GNU Affero General Public License as published by the Free Software Foundation,
 // either version 3 of the License, or (at your option) any later version.
-// 
+//
 // Etherna Sso is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
 // without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // See the GNU Affero General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
+using Etherna.Authentication;
 using Etherna.SSOServer.Domain.Models;
 using Hangfire.Dashboard;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
-using System;
+using System.Linq;
 
 namespace Etherna.SSOServer.Configs.Hangfire
 {
@@ -25,17 +25,15 @@ namespace Etherna.SSOServer.Configs.Hangfire
         public bool Authorize(DashboardContext context)
         {
             var httpContext = context.GetHttpContext();
-            if (httpContext?.User is null)
+            if (httpContext?.User.Identity?.IsAuthenticated != true)
                 return false;
-            var userManager = httpContext.RequestServices.GetService<UserManager<UserBase>>()!;
 
-            var getUserTask = userManager.GetUserAsync(httpContext.User);
-            getUserTask.Wait();
-            var user = getUserTask.Result ?? throw new InvalidOperationException();
+            // Verify role on claims, without db reads: keeps the dashboard reachable while a migration locks the db context.
+            var ethernaOidcClient = httpContext.RequestServices.GetRequiredService<IEthernaOpenIdConnectClient>();
+            var rolesTask = ethernaOidcClient.TryGetRolesAsync();
+            rolesTask.Wait();
 
-            var isInRoleTask = userManager.IsInRoleAsync(user, Role.AdministratorName);
-            isInRoleTask.Wait();
-            return isInRoleTask.Result;
+            return rolesTask.Result?.Contains(Role.NormalizeName(Role.AdministratorName)) == true;
         }
     }
 }
