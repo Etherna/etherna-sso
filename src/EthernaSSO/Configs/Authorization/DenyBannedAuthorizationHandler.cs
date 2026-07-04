@@ -33,7 +33,14 @@ namespace Etherna.SSOServer.Configs.Authorization
 
             if (context.User.Identity?.IsAuthenticated == true)
             {
-                var user = await userManager.GetUserAsync(context.User) ?? throw new InvalidOperationException();
+                // Deny principals without a user account behind them, like machine principals
+                // authenticated with client credentials tokens, instead of throwing.
+                var user = await userManager.GetUserAsync(context.User);
+                if (user is null)
+                {
+                    context.Fail();
+                    return;
+                }
 
                 if (await userManager.IsLockedOutAsync(user))
                     context.Fail();
