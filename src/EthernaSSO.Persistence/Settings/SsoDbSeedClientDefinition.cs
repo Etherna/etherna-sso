@@ -12,25 +12,23 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
+using Etherna.SSOServer.Domain.Models.ClientAppAgg;
 using System.Collections.Generic;
 
-namespace Etherna.SSOServer.Configs.IdentityServer
+namespace Etherna.SSOServer.Persistence.Settings
 {
     /// <summary>
-    /// An IdentityServer client defined entirely by configuration (see "IdServer:ConfigClients").
-    /// Used to host environment-specific clients in configuration files, instead of hardcoding
-    /// them in <see cref="IdServerConfig"/>.
+    /// A client app created at db seeding, owned by the first admin user (see "DbSeed:Clients").
+    /// Used to initialize development environments with the same clients that production
+    /// environments define from the developer editor.
     /// </summary>
-    public class ConfigClientDefinition
+    public class SsoDbSeedClientDefinition
     {
         // Properties.
-        public IEnumerable<string> AllowedGrantTypes { get; set; } = [];
         public IEnumerable<string> AllowedScopes { get; set; } = [];
-        public bool AllowOfflineAccess { get; set; }
         public string ClientId { get; set; } = null!;
-        public string? ClientName { get; set; }
-        public IEnumerable<string> PostLogoutRedirectUris { get; set; } = [];
-        public IEnumerable<string> RedirectUris { get; set; } = [];
-        public string? Secret { get; set; }
+        public string ClientName { get; set; } = null!;
+        public ClientAppType ClientType { get; set; }
+        public string Secret { get; set; } = null!;
     }
 }
