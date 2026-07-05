@@ -20,6 +20,7 @@ using Etherna.MongODM.Core.Repositories;
 using Etherna.MongODM.Core.Serialization;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
+using Etherna.SSOServer.Domain.Models.ClientAppAgg;
 using Etherna.SSOServer.Persistence.Repositories;
 using Etherna.SSOServer.Persistence.Settings;
 using Etherna.SSOServer.Services.Domain;
@@ -212,6 +213,31 @@ namespace Etherna.SSOServer.Persistence
 
                 if (user is null)
                     throw new InvalidOperationException("Error creating first user");
+
+                // Create client apps owned by the admin user (see "DbSeed:Clients").
+                // Initializes development environments with the same clients that
+                // production environments define from the developer editor.
+                foreach (var clientDefinition in seedSettings.Clients)
+                {
+                    if (string.IsNullOrWhiteSpace(clientDefinition.ClientId) ||
+                        string.IsNullOrWhiteSpace(clientDefinition.ClientName) ||
+                        string.IsNullOrWhiteSpace(clientDefinition.Secret))
+                        throw new InvalidOperationException("Invalid seed client definition");
+
+                    var clientApp = new ClientApp(
+                        clientDefinition.ClientName,
+                        null,
+                        clientDefinition.ClientType,
+                        user,
+                        clientDefinition.AllowedScopes,
+                        clientId: clientDefinition.ClientId);
+                    clientApp.AddSecret(new ClientSecret(
+                        ClientApp.HashSecret(clientDefinition.Secret),
+                        null,
+                        null));
+
+                    await ClientApps.CreateAsync(clientApp);
+                }
             }
         }
     }

@@ -12,10 +12,13 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
+using System.Collections.Generic;
+
 namespace Etherna.SSOServer.Persistence.Settings
 {
     public class SsoDbSeedSettings
     {
+        public IEnumerable<SsoDbSeedClientDefinition> Clients { get; set; } = [];
         public string FirstAdminUsername { get; set; } = null!;
         public string FirstAdminPassword { get; set; } = null!;
     }
