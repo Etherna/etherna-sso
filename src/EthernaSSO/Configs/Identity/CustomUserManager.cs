@@ -25,7 +25,6 @@ using System.Threading.Tasks;
 namespace Etherna.SSOServer.Configs.Identity
 {
     public class CustomUserManager(
-        IEthernaOpenIdConnectClient ethernaOidcClient,
         IUserStore<UserBase> store,
         IOptions<IdentityOptions> optionsAccessor,
         IPasswordHasher<UserBase> passwordHasher,
@@ -55,32 +54,21 @@ namespace Etherna.SSOServer.Configs.Identity
 
         public override string? GetUserId(ClaimsPrincipal principal)
         {
-            var id = base.GetUserId(principal);
+            ArgumentNullException.ThrowIfNull(principal);
 
-            // If is null, try to get from Oidc.
-            if (id is null)
-            {
-                var getIdTask = ethernaOidcClient.TryGetUserIdAsync();
-                getIdTask.Wait();
-                id = getIdTask.Result;
-            }
-
-            return id;
+            // Fall back on the raw jwt claim, for bearer authenticated requests without .NET claim mapping.
+            // Machine principals (client credentials tokens) have no subject: they resolve to null by design.
+            return base.GetUserId(principal) ??
+                principal.FindFirst(EthernaClaimTypes.UserId)?.Value;
         }
 
         public override string? GetUserName(ClaimsPrincipal principal)
         {
-            var username = base.GetUserName(principal);
+            ArgumentNullException.ThrowIfNull(principal);
 
-            // If is null, try to get from Oidc.
-            if (username is null)
-            {
-                var getUsernameTask = ethernaOidcClient.TryGetUsernameAsync();
-                getUsernameTask.Wait();
-                username = getUsernameTask.Result;
-            }
-
-            return username;
+            // Fall back on the raw jwt claim, for bearer authenticated requests without .NET claim mapping.
+            return base.GetUserName(principal) ??
+                principal.FindFirst(EthernaClaimTypes.Username)?.Value;
         }
     }
 }

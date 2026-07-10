@@ -22,6 +22,7 @@ using Elastic.Transport;
 using Etherna.Authentication.AspNetCore;
 using Etherna.DomainEvents;
 using Etherna.MongODM;
+using Etherna.MongODM.AspNetCore.Extensions;
 using Etherna.MongODM.AspNetCore.UI;
 using Etherna.MongODM.Core.Options;
 using Etherna.SSOServer.Areas.Api;
@@ -225,7 +226,7 @@ namespace Etherna.SSOServer
                 options.SlidingExpiration = true;
 
                 // Response 401 for unauthorized call on api.
-                static Task unauthorizedApiCallHandler(RedirectContext<CookieAuthenticationOptions> context)
+                static Task UnauthorizedApiCallHandler(RedirectContext<CookieAuthenticationOptions> context)
                 {
                     if (context.Request.Path.StartsWithSegments("/api", StringComparison.InvariantCulture))
                         context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
@@ -233,8 +234,8 @@ namespace Etherna.SSOServer
                         context.Response.Redirect(context.RedirectUri);
                     return Task.CompletedTask;
                 }
-                options.Events.OnRedirectToAccessDenied = unauthorizedApiCallHandler;
-                options.Events.OnRedirectToLogin = unauthorizedApiCallHandler;
+                options.Events.OnRedirectToAccessDenied = UnauthorizedApiCallHandler;
+                options.Events.OnRedirectToLogin = UnauthorizedApiCallHandler;
             });
 
             services.Configure<CookiePolicyOptions>(options =>
@@ -343,6 +344,7 @@ namespace Etherna.SSOServer
                     options.SaveTokens = true;
 
                     options.Scope.Add("ether_accounts");
+                    options.Scope.Add("offline_access"); //permit user access token refresh
                     options.Scope.Add("role");
 
                     // Handle unauthorized call on api with 401 response. For users not logged in.
@@ -530,6 +532,7 @@ namespace Etherna.SSOServer
 
             services.AddMongODMAdminDashboard(new DashboardOptions
             {
+                AppPath = "/" + CommonConsts.AdminArea,
                 AuthFilters = [new AdminAuthFilter()],
                 BasePath = CommonConsts.DatabaseAdminPath
             });
@@ -612,6 +615,7 @@ namespace Etherna.SSOServer
             app.UseHangfireDashboard(CommonConsts.HangfireAdminPath,
                 new Hangfire.DashboardOptions
                 {
+                    AppPath = "/" + CommonConsts.AdminArea,
                     Authorization = [new Configs.Hangfire.AdminAuthFilter()]
                 });
 

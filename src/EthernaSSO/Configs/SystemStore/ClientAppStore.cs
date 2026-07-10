@@ -15,6 +15,7 @@
 using Duende.IdentityServer.Models;
 using Duende.IdentityServer.Stores;
 using Etherna.Authentication;
+using Etherna.ExecContext.AsyncLocal;
 using Etherna.MongoDB.Driver.Linq;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
@@ -35,6 +36,11 @@ namespace Etherna.SSOServer.Configs.SystemStore
         // Methods.
         public async Task<Client?> FindClientByIdAsync(string clientId, CancellationToken cancellationToken = default)
         {
+            /* The store can run on threads without an ambient db execution context, like Duende's
+             * client store cache fetches (HybridCache stampede protection) and the startup clients
+             * enumeration. Initialize a local context, required to resolve the client app owner. */
+            using var asyncLocalContext = AsyncLocalContext.Instance.InitAsyncLocalContext();
+
             // Check DB first.
             var dbClient = await ssoDbContext.ClientApps.QueryElementsAsync(elements =>
                 elements.FirstOrDefaultAsync(c => c.ClientId == clientId, cancellationToken: cancellationToken));
@@ -49,6 +55,11 @@ namespace Etherna.SSOServer.Configs.SystemStore
         public async IAsyncEnumerable<Client> GetAllClientsAsync(
             [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
+            /* The store can run on threads without an ambient db execution context, like Duende's
+             * client store cache fetches (HybridCache stampede protection) and the startup clients
+             * enumeration. Initialize a local context, required to resolve the client app owners. */
+            using var asyncLocalContext = AsyncLocalContext.Instance.InitAsyncLocalContext();
+
             // DB clients take precedence over in-memory ones sharing the same id.
             var dbClients = await ssoDbContext.ClientApps.QueryElementsAsync(elements =>
                 elements.ToListAsync(cancellationToken: cancellationToken));

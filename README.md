@@ -38,7 +38,7 @@ source together with its build and deployment configuration.
   Windows Hello, …) and single-use recovery codes; at login a registered security key is preferred when no
   authenticator app is configured.
 - **OpenID Connect provider** — built on Duende IdentityServer; issues identity/access tokens to the Etherna
-  services, with both in-memory and database-backed client registrations.
+  services, with in-memory and database-backed client registrations.
 - **REST API** — endpoints under `/api` (including API-key authentication) with an interactive Scalar
   reference at `/scalar/sso03`.
 - **Admin area** — user and client management for administrators.
@@ -78,8 +78,8 @@ dotnet run --project src/EthernaSSO
 
 The build automatically runs `npm install` and bundles the front-end assets, so a plain `dotnet run`
 produces a working site. To iterate on the front-end (SCSS/TypeScript) directly, run `npm run watch` inside
-`src/EthernaSSO`. In the Development environment a first administrator account is seeded from the `DbSeed`
-settings.
+`src/EthernaSSO`. On the first run against an empty database, a first administrator account and its client
+apps are seeded from the `DbSeed` settings.
 
 ## Configuration
 
@@ -124,6 +124,7 @@ Secrets (`*Password`, `*ServiceKey`, `*Secret`, `Duende:IdentityServer:LicenseKe
 |---|---|
 | `DbSeed:FirstAdminUsername` | first admin account username |
 | `DbSeed:FirstAdminPassword` | **secret** — change in production |
+| `DbSeed:Clients:<n>:…` | client apps created at db seeding, owned by the first admin (`ClientId`, `ClientName`, `ClientType`, `Secret`, `AllowedScopes`); used to initialize development environments with the same clients that production defines from the developer editor |
 
 ### Email
 
