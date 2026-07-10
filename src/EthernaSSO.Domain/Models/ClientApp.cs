@@ -62,6 +62,7 @@ namespace Etherna.SSOServer.Domain.Models
         /// <summary>
         /// Create a new client app with a specific client type template.
         /// </summary>
+        /// <param name="clientId">Explicit client id, meant for db seeding. When null, a new id is generated.</param>
         public ClientApp(
             string clientName,
             string? description,
@@ -70,7 +71,8 @@ namespace Etherna.SSOServer.Domain.Models
             IEnumerable<string> allowedScopes,
             IEnumerable<string>? redirectUris = null,
             IEnumerable<string>? postLogoutRedirectUris = null,
-            IEnumerable<string>? allowedCorsOrigins = null)
+            IEnumerable<string>? allowedCorsOrigins = null,
+            string? clientId = null)
         {
             if (string.IsNullOrWhiteSpace(clientName))
                 throw new ArgumentException($"'{nameof(clientName)}' cannot be null or whitespace.", nameof(clientName));
@@ -78,8 +80,10 @@ namespace Etherna.SSOServer.Domain.Models
                 throw new ArgumentException($"'{nameof(clientName)}' cannot be longer than {ClientNameMaxLength}.", nameof(clientName));
             if (description is not null && description.Length > DescriptionMaxLength)
                 throw new ArgumentException($"'{nameof(description)}' cannot be longer than {DescriptionMaxLength}.", nameof(description));
+            if (clientId is not null && string.IsNullOrWhiteSpace(clientId))
+                throw new ArgumentException($"'{nameof(clientId)}' cannot be whitespace.", nameof(clientId));
 
-            ClientId = GenerateClientId();
+            ClientId = clientId ?? GenerateClientId();
             ClientName = clientName;
             Description = description;
             ClientType = clientType;
