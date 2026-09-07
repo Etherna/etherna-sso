@@ -167,7 +167,7 @@ private void InternalHelper() { ... }
 - Nullable reference types enabled (`<Nullable>enable</Nullable>`)
 - `ArgumentNullException.ThrowIfNull(param)` for parameter validation
 - `is null` / `is not null` (not `== null`)
-- Prefer `null` over `default` as default value for optional parameters
+- Prefer `null` over `default` wherever the type admits it: optional parameter defaults, late-init member initializers (`= null!`, not `= default!`), returns and assignments. Keep `default` only where `null` can't apply: non-nullable value types (e.g. `CancellationToken cancellationToken = default`) and unconstrained generic type parameters.
 - Initialize required-but-deferred reference members (ORM, `[BindProperty]`, TempData) with `= null!`, not `= default!` — `null!` states the non-null contract explicitly. Reserve `default!` for value-type or unconstrained-generic members where `= null!` won't compile.
 - `??` and `??=` operators
 
@@ -185,7 +185,7 @@ private void InternalHelper() { ... }
 ## C# Language Features
 
 - Pattern matching: `is`, `is not`, type patterns, property patterns
-- Prefer a property pattern over a chain of `&&` that combines a type/null check with member accesses: it expresses the condition as a single declarative "shape" the value must match, rather than an imperative sequence of checks (and incidentally drops the throwaway pattern variable):
+- Prefer a property pattern over a chain of `&&` that combines a type/null check with member accesses: it expresses the condition as a single declarative "shape" the value must match, rather than an imperative sequence of checks (and incidentally drops the throwaway pattern variable). This applies also to pure boolean member chains on the same value, with no type/null check involved: `field is { IsInitOnly: false, IsLiteral: false }`, not `!field.IsInitOnly && !field.IsLiteral`.
   ```csharp
   // Prefer:
   if (user is UserWeb2 { HasFido2Credentials: true, IsAuthenticatorAppEnabled: false })
@@ -199,6 +199,7 @@ private void InternalHelper() { ... }
 - Target-typed `new()` when type is clear from context (for non-collection types)
 - Tuple deconstruction for multiple return values
 - Use the `field` keyword for field-backed properties (e.g. lazy initialization) instead of declaring an explicit backing field: `public T Prop => field ??= Compute();`
+- Lock fields: prefer the dedicated `System.Threading.Lock` type (.NET 9+) over a plain `object` — more expressive, and the compiler enforces correct `lock` usage on it.
 
 ## LINQ
 
