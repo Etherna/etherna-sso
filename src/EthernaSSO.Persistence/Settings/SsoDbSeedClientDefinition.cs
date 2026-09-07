@@ -25,10 +25,18 @@ namespace Etherna.SSOServer.Persistence.Settings
     public class SsoDbSeedClientDefinition
     {
         // Properties.
+        public IEnumerable<string> AllowedCorsOrigins { get; set; } = [];
         public IEnumerable<string> AllowedScopes { get; set; } = [];
         public string ClientId { get; set; } = null!;
         public string ClientName { get; set; } = null!;
         public ClientAppType ClientType { get; set; }
-        public string Secret { get; set; } = null!;
+        public IEnumerable<string> PostLogoutRedirectUris { get; set; } = [];
+        public IEnumerable<string> RedirectUris { get; set; } = [];
+
+        /// <summary>
+        /// The client secret, required by confidential clients (web apps and client credentials);
+        /// public clients (native apps) have none.
+        /// </summary>
+        public string? Secret { get; set; }
     }
 }

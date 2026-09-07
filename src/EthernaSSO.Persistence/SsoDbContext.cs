@@ -219,9 +219,11 @@ namespace Etherna.SSOServer.Persistence
                 // production environments define from the developer editor.
                 foreach (var clientDefinition in seedSettings.Clients)
                 {
+                    // Public clients (native apps) have no secret, confidential ones require it.
+                    var isPublicClient = clientDefinition.ClientType == ClientAppType.NativeApp;
                     if (string.IsNullOrWhiteSpace(clientDefinition.ClientId) ||
                         string.IsNullOrWhiteSpace(clientDefinition.ClientName) ||
-                        string.IsNullOrWhiteSpace(clientDefinition.Secret))
+                        (!isPublicClient && string.IsNullOrWhiteSpace(clientDefinition.Secret)))
                         throw new InvalidOperationException("Invalid seed client definition");
 
                     var clientApp = new ClientApp(
@@ -230,11 +232,15 @@ namespace Etherna.SSOServer.Persistence
                         clientDefinition.ClientType,
                         user,
                         clientDefinition.AllowedScopes,
+                        clientDefinition.RedirectUris,
+                        clientDefinition.PostLogoutRedirectUris,
+                        clientDefinition.AllowedCorsOrigins,
                         clientId: clientDefinition.ClientId);
-                    clientApp.AddSecret(new ClientSecret(
-                        ClientApp.HashSecret(clientDefinition.Secret),
-                        null,
-                        null));
+                    if (clientDefinition.Secret is not null)
+                        clientApp.AddSecret(new ClientSecret(
+                            ClientApp.HashSecret(clientDefinition.Secret),
+                            null,
+                            null));
 
                     await ClientApps.CreateAsync(clientApp);
                 }

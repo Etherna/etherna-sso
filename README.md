@@ -124,7 +124,7 @@ Secrets (`*Password`, `*ServiceKey`, `*Secret`, `Duende:IdentityServer:LicenseKe
 |---|---|
 | `DbSeed:FirstAdminUsername` | first admin account username |
 | `DbSeed:FirstAdminPassword` | **secret** — change in production |
-| `DbSeed:Clients:<n>:…` | client apps created at db seeding, owned by the first admin (`ClientId`, `ClientName`, `ClientType`, `Secret`, `AllowedScopes`); used to initialize development environments with the same clients that production defines from the developer editor |
+| `DbSeed:Clients:<n>:…` | client apps created at db seeding, owned by the first admin (`ClientId`, `ClientName`, `ClientType`, `AllowedScopes`, `RedirectUris`, `PostLogoutRedirectUris`, `AllowedCorsOrigins`, and `Secret` for the confidential types); used to initialize development environments with the same clients that production defines from the developer editor |
 
 ### Email
 

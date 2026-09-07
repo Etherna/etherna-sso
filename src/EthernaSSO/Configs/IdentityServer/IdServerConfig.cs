@@ -342,7 +342,7 @@ namespace Etherna.SSOServer.Configs.IdentityServer
                 RefreshTokenUsage = TokenUsage.OneTimeOnly //because client have not secret
             },
 
-            //dapp
+            //dapp (deprecated: the client lives on db, seeded in development and created from the developer editor in production)
             new()
             {
                 ClientId = ethernaDapp_ClientId,
