@@ -75,7 +75,7 @@ Bugs and features are tracked in Jira project **ESSO** (https://etherna.atlassia
 - One class per file, filename matches class name
 - Namespace mirrors folder structure exactly
 - Block-scoped namespaces: `namespace X { ... }` — NOT file-scoped
-- Using directives inside namespace block, always alphabetically ordered and kept to the minimum necessary
+- Using directives before the namespace block (never inside it), always alphabetically ordered and kept to the minimum necessary
 - No global usings — each file declares its own imports
 
 ## Comments

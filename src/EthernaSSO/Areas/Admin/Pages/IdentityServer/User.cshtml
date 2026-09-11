@@ -137,7 +137,7 @@
                         <div class="col-sm-9">
                             <input type="number" min="0" max="100" class="form-control" asp-for="Input.MaxAllowedClients">
                             <span asp-validation-for="Input.MaxAllowedClients" class="text-danger"></span>
-                            <small class="form-text text-muted">Number of OAuth clients the user can create in the Developer area. Default: 0.</small>
+                            <small class="form-text text-muted">Number of OAuth clients the user can create in the Developer area. Default: @(UserBase.DefaultMaxAllowedClients).</small>
                         </div>
                     </div>
 
