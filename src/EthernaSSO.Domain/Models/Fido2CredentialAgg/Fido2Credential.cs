@@ -12,7 +12,6 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.MongODM.Core.Attributes;
 using System;
 using System.Collections.Generic;
 
@@ -66,8 +65,6 @@ namespace Etherna.SSOServer.Domain.Models.Fido2CredentialAgg
         }
 
         // Methods.
-        [PropertyAlterer(nameof(LastUsedAt))]
-        [PropertyAlterer(nameof(SignatureCounter))]
         public virtual void RecordUsage(uint newCounter)
         {
             //Anti-clone check (WebAuthn §6.1.1 / §7.2 step 21): the counter is only meaningless when BOTH the
@@ -81,7 +78,6 @@ namespace Etherna.SSOServer.Domain.Models.Fido2CredentialAgg
             LastUsedAt = DateTime.UtcNow;
         }
 
-        [PropertyAlterer(nameof(Nickname))]
         public virtual void SetNickname(string nickname)
         {
             if (string.IsNullOrWhiteSpace(nickname))

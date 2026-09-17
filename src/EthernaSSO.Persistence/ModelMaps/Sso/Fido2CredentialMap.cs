@@ -12,17 +12,17 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.MongODM.Core;
-using Etherna.MongODM.Core.Serialization;
+using Etherna.Scrinium.Core;
+using Etherna.Scrinium.Core.Serialization;
 using Etherna.SSOServer.Domain.Models.Fido2CredentialAgg;
 
 namespace Etherna.SSOServer.Persistence.ModelMaps.Sso
 {
     internal sealed class Fido2CredentialMap : IModelMapsCollector
     {
-        public void Register(IDbContext dbContext)
+        public void Register(IDbContextEngine dbContextEngine)
         {
-            dbContext.MapRegistry.AddModelMap<Fido2Credential>("194013ae-d113-48f8-aea7-e8cf169186fa");
+            dbContextEngine.MapRegistry.AddModelMap<Fido2Credential>("194013ae-d113-48f8-aea7-e8cf169186fa");
         }
     }
 }

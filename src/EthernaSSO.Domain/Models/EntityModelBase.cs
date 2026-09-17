@@ -13,7 +13,7 @@
 // If not, see <https://www.gnu.org/licenses/>.
 
 using Etherna.DomainEvents;
-using Etherna.MongODM.Core.Domain.Models;
+using Etherna.Scrinium.Core.Domain.Models;
 using System;
 using System.Collections.Generic;
 
@@ -24,17 +24,17 @@ namespace Etherna.SSOServer.Domain.Models
         private DateTime _creationDateTime;
         private readonly HashSet<IDomainEvent> _events = new();
 
-        // Constructors and dispose.
+        // Constructors.
         protected EntityModelBase()
         {
             _creationDateTime = DateTime.UtcNow;
         }
 
-        public virtual void DisposeForDelete() { }
-
         // Properties.
         public virtual DateTime CreationDateTime { get => _creationDateTime; protected set => _creationDateTime = value; }
-        public virtual IReadOnlyCollection<IDomainEvent> Events => _events;
+        /* Not virtual on purpose: domain events live in memory only, so reading them on a summary
+         * model must not trigger the lazy load of its document. */
+        public IReadOnlyCollection<IDomainEvent> Events => _events;
 
         // Methods.
         public void AddEvent(IDomainEvent e) => _events.Add(e);

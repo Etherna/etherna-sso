@@ -13,7 +13,7 @@
 // If not, see <https://www.gnu.org/licenses/>.
 
 using Etherna.MongoDB.Driver;
-using Etherna.MongODM.Core;
+using Etherna.Scrinium.Core;
 using Moq;
 using System;
 

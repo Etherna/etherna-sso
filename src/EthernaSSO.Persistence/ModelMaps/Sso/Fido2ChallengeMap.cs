@@ -12,23 +12,24 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.MongODM.Core;
-using Etherna.MongODM.Core.Extensions;
-using Etherna.MongODM.Core.Serialization;
+using Etherna.Scrinium.Core;
+using Etherna.Scrinium.Core.Extensions;
+using Etherna.Scrinium.Core.Options;
+using Etherna.Scrinium.Core.Serialization;
 using Etherna.SSOServer.Domain.Models;
 
 namespace Etherna.SSOServer.Persistence.ModelMaps.Sso
 {
     internal sealed class Fido2ChallengeMap : IModelMapsCollector
     {
-        public void Register(IDbContext dbContext)
+        public void Register(IDbContextEngine dbContextEngine)
         {
-            dbContext.MapRegistry.AddModelMap<Fido2Challenge>("a31c17c6-9671-4b89-87ff-dc19a4ada303", mm =>
+            dbContextEngine.MapRegistry.AddModelMap<Fido2Challenge>("a31c17c6-9671-4b89-87ff-dc19a4ada303", mm =>
             {
                 mm.AutoMap();
 
                 // Set members with custom serializers.
-                mm.SetMemberSerializer(c => c.User, UserMap.ReferenceSerializer(dbContext));
+                mm.SetMemberSerializer(c => c.User, UserMap.ReferenceSerializer(dbContextEngine, OriginDeleteMode.DeleteReferencingDocument));
             });
         }
     }

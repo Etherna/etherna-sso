@@ -20,10 +20,10 @@ Docker: `docker build .` (uses `Dockerfile`, which also runs `dotnet test` as pa
 
 ## Architecture
 
-Four-project layered solution, plus two test projects:
+Four-project layered solution, plus four test projects:
 
 - **`src/EthernaSSO.Domain`** — Pure domain layer. Aggregates live under `Models/` with the `<Name>Agg/` folder convention (e.g. `UserAgg`, `ClientAppAgg`). Base classes: `ModelBase`, `EntityModelBase<TKey>`. Domain events under `Events/` are dispatched via `Etherna.DomainEvents`. Exposes only `ISsoDbContext` / `ISharedDbContext` interfaces — no MongoDB types leak here.
-- **`src/EthernaSSO.Persistence`** — MongODM implementations. `SsoDbContext` (main) and `SharedDbContext` (shared with other Etherna services) plus `ModelMaps/` (Sso, Shared) defining how domain entities serialize. Repositories under `Repositories/` (generic `DomainRepository`).
+- **`src/EthernaSSO.Persistence`** — Scrinium implementations. `SsoDbContext` (main) and `SharedDbContext` (shared with other Etherna services) plus `ModelMaps/` (Sso, Shared) defining how domain entities serialize. Repositories under `Repositories/` (generic `DomainRepository`).
 - **`src/EthernaSSO.Services`** — Application services and side effects. `Domain/` holds services that orchestrate domain operations (`UserService`, `Web3AuthnService`, `EmailSender`, `RazorViewRenderer`). `EventHandlers/` follows the `On<Event>Then<Action>Handler` convention and is auto-discovered by reflection in `ServiceCollectionExtensions.AddDomainServices` — adding a handler in this namespace registers it automatically. `Tasks/` contains Hangfire recurring jobs (scheduled in `Program.ConfigureApplication`).
 - **`src/EthernaSSO`** — ASP.NET Core Razor Pages host. `Program.cs` wires everything: ASP.NET Identity (`UserBase`/`Role` with custom `UserStore`/`RoleStore`/`CustomUserManager`/`CustomUserValidator`), Duende IdentityServer (with composite `ClientAppStore` = in-memory `IdServerConfig.Clients` + DB-backed `ClientApp` entities), Hangfire (Mongo storage), Serilog → Elasticsearch, Prometheus `/metrics`, Scalar API reference at `/scalar/sso03`. Areas: `Identity` (account UI), `Admin` (admin pages, gated by `RequireAdministratorRolePolicy`), `Api` (REST endpoints under `/api`), `AlphaPass`.
 
@@ -33,7 +33,9 @@ Key cross-cutting points:
 - **Authentication uses a policy scheme** (`CommonConsts.UserAuthenticationPolicyScheme`): requests with `Authorization: Bearer …` go to JWT bearer; otherwise fall back to the Identity cookie. Service-to-service calls use a separate JWT scheme (`CommonConsts.ServiceAuthenticationScheme`). Custom requirements `DenyBannedAuthorizationRequirement` and `RequireRoleAuthorizationRequirement` are added to the default policy.
 - **IdentityServer stores are split**: persisted grants, pushed authorization requests, server-side sessions, signing keys, and data-protection keys live in a separate `DataProtectionDb` (see `Program.cs`). The main `SSOServerDb` holds users/clients/domain data; `ServiceSharedDb` is shared with sibling Etherna services.
 - **Hangfire queues** are declared in `Services/Tasks/Queues.cs` and pinned in `Program.AddHangfireServer` (`DB_MAINTENANCE`, `DOMAIN_MAINTENANCE`, `STATS`, `default`). The Hangfire server is **not started in Staging** (see condition in `ConfigureServices`).
-- **MongODM change tracking**: every domain method that mutates a property *must* be annotated with `[PropertyAlterer(nameof(Prop))]` for each modified property — this is required, not optional. See the example under "Domain Entity Classes" below.
+- **Db contexts are scoped**: Scrinium registers one `ISsoDbContext`/`ISharedDbContext` instance per DI scope over a singleton engine, and `Program.cs` validates scopes in every environment — a singleton capturing a db context fails at startup. Domain event handlers and Hangfire jobs run in their own scope: a model carried by an event belongs to the scope that raised it, so a handler that must persist a change reloads the entity by id on its own context (see `OnUserLoginSuccessThenUpdateLastLoginDateTimeHandler`).
+- **Change tracking is snapshot-based**: `SaveChangesAsync` diffs each tracked model against its loaded document and writes only the changed members. Mutating methods need no attribute.
+- **Reference members load as summaries, and implicit lazy loads throw**: a referenced entity (`Owner`, `InvitedBy`, `User`, `Roles` items…) materializes with the members its summary schema carries (the id only for users, id plus `NormalizedName` for roles). Both db contexts run with `ImplicitLazyLoad = ReactionMode.Throw`, so before reading any other member preload it explicitly with `dbContext.LoadValuesAsync(model, m => m.Member)` — batched over a collection with `LoadValuesAsync(models, …)` — as `ClientAppStore` and the admin clients page do.
 - **Model map IDs are fresh random GUIDs**: every `MapRegistry.AddModelMap<T>("<guid>")` call needs a brand-new, randomly generated GUID (e.g. `uuidgen`) that collides with no existing map ID anywhere in the solution — never copy, edit, or hand-craft one. The ID permanently identifies that schema version, so a collision silently corrupts serialization.
 - **Index definitions are strongly typed**: in `SsoDbContext`/`SharedDbContext` index builders, always select fields with lambda expressions, never magic strings — the driver renders them to the same dotted path while keeping compile-time safety against renames. For a field on a derived type cast inside the lambda (`u => ((UserWeb2)u).Prop`); for a field nested in a collection use `Select` (`u => ((UserWeb2)u).Fido2Credentials.Select(c => c.CredentialId)`).
 
@@ -126,7 +128,7 @@ private void InternalHelper() { ... }
 ### Domain Entity Classes
 
 - `public abstract` for base entity classes (`UserBase`, `ModelBase`, `EntityModelBase`)
-- `virtual` on all properties for MongODM proxy support
+- `virtual` on all properties for Scrinium proxy support
 - Use `public set` on properties by default; use `protected set` only when the property requires validation or invariant enforcement
 - Protected parameterless constructor for ORM deserialization. Suppress CS8618 around the protected constructor **only** — never wrap the public constructor:
   ```csharp
@@ -146,14 +148,8 @@ private void InternalHelper() { ... }
   ```
 - `= null!` only on the non-nullable properties the **public** constructor doesn't visibly assign — i.e. those set through a helper method (`SetName`, `SetUsername`, `SetNickname`) or by the framework after construction (`SecurityStamp`); definite-assignment analysis can't see through method calls, and the public constructor is never pragma-wrapped. Properties assigned directly in the public constructor need no `= null!` — the protected ctor's pragma covers them.
 - Collection expressions for nullable collection setters: `[..value ?? []]`
-- Reference another persisted entity by the **entity type**, not a raw `string XxxId`, whenever the target is an aggregate of the same `DbContext`. Model it as the type (`public virtual UserBase User { get; protected set; }`) and wire the map with `mm.SetMemberSerializer(c => c.User, UserMap.ReferenceSerializer(dbContext))`. MongODM stores only the identity (`{_id, _t, _m}`) and resolves it lazily — reading just `.Id` triggers no extra load, queries read naturally (`c.User.Id == userId`), and the foreign-key abstraction stays in the ODM. Examples: `ApiKey.Owner`, `ClientApp.Owner`, `Invitation.Emitter`, `UserBase.InvitedBy`, `Fido2Challenge.User`. A raw id stays appropriate only for cross-context/external references the ODM can't resolve (e.g. `UserBase.SharedInfoId`, which lives in the shared DbContext).
+- Reference another persisted entity by the **entity type**, not a raw `string XxxId`, whenever the target is an aggregate of the same `DbContext`. Model it as the type (`public virtual UserBase User { get; protected set; }`) and wire the map with `mm.SetMemberSerializer(c => c.User, UserMap.ReferenceSerializer(dbContextEngine, OriginDeleteMode.X))`, declaring how the hosting document reacts when the referenced entity is deleted (`DeleteReferencingDocument`, `RemoveReference` or `KeepReference`, propagated in background by Scrinium). Scrinium stores only the identity (`{_id, _t, _s}`) and resolves it lazily — reading just `.Id` triggers no extra load, queries read naturally (`c.User.Id == userId`), and the foreign-key abstraction stays in the ODM. Examples: `ApiKey.Owner`, `ClientApp.Owner`, `Invitation.Emitter`, `UserBase.InvitedBy`, `Fido2Challenge.User`. A raw id stays appropriate only for cross-context/external references the ODM can't resolve (e.g. `UserBase.SharedInfoId`, which lives in the shared DbContext).
 - Equality: by ID for entities (in `EntityModelBase<TKey>`), by value for value objects
-- `[PropertyAlterer(nameof(MyProp))]` on every method, for each property the method modifies. This is a MongODM limitation for change tracking:
-  ```csharp
-  [PropertyAlterer(nameof(LastValidManifest))]
-  [PropertyAlterer(nameof(VideoManifests))]
-  public virtual void AddManifest(VideoManifest manifest) { ... }
-  ```
 
 ## Async Patterns
 

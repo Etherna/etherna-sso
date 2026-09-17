@@ -21,17 +21,18 @@ using Elastic.Serilog.Sinks;
 using Elastic.Transport;
 using Etherna.Authentication.AspNetCore;
 using Etherna.DomainEvents;
-using Etherna.MongODM;
-using Etherna.MongODM.AspNetCore.Extensions;
-using Etherna.MongODM.AspNetCore.UI;
-using Etherna.MongODM.Core.Options;
+using Etherna.Scrinium.AspNetCore.UI;
+using Etherna.Scrinium.Core;
+using Etherna.Scrinium.Core.ExecContext.AsyncLocal;
+using Etherna.Scrinium.Core.Options;
+using Etherna.Scrinium.Extensions;
 using Etherna.SSOServer.Areas.Api;
 using Etherna.SSOServer.Configs;
 using Etherna.SSOServer.Configs.Authorization;
 using Etherna.SSOServer.Configs.Identity;
 using Etherna.SSOServer.Configs.IdentityServer;
-using Etherna.SSOServer.Configs.MongODM;
 using Etherna.SSOServer.Configs.OpenApi;
+using Etherna.SSOServer.Configs.Scrinium;
 using Etherna.SSOServer.Configs.SystemStore;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
@@ -76,7 +77,8 @@ using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using DashboardOptions = Etherna.MongODM.AspNetCore.UI.DashboardOptions;
+using DashboardOptions = Etherna.Scrinium.AspNetCore.UI.DashboardOptions;
+using DomainEventsAsyncLocalContext = Etherna.ExecContext.AsyncLocal.AsyncLocalContext;
 using IPNetwork = System.Net.IPNetwork;
 using SameSiteMode = Microsoft.AspNetCore.Http.SameSiteMode;
 using ServiceDescriptor = Microsoft.Extensions.DependencyInjection.ServiceDescriptor;
@@ -108,6 +110,12 @@ namespace Etherna.SSOServer
 
                 // Configs.
                 builder.Host.UseSerilog();
+                builder.Host.UseDefaultServiceProvider(options =>
+                {
+                    // Db contexts are scoped: a singleton capturing one would silently pin its identity map
+                    // for the process lifetime, so validate scopes in every environment.
+                    options.ValidateScopes = true;
+                });
 
                 ConfigureServices(builder);
 
@@ -115,7 +123,12 @@ namespace Etherna.SSOServer
                 ConfigureApplication(app);
 
                 // First operations.
-                app.SeedDbContexts();
+                /* Seed the db contexts one at a time, the shared one first, instead of all in parallel
+                 * from a single scope with SeedDbContexts(): the sso db context is the parent of the
+                 * shared one, so its saves cascade into the shared instance of its scope, and a write
+                 * reaching that instance while it seeds under its own exclusive access is denied. */
+                SeedDbContext<ISharedDbContext>(app);
+                SeedDbContext<ISsoDbContext>(app);
 
                 // Run application.
                 app.Run();
@@ -492,7 +505,10 @@ namespace Etherna.SSOServer
             services.AddScoped<ISsoApiHandler, SsoApiHandler>();
 
             // Configure persistence.
-            services.AddMongODMWithHangfire(configureHangfireOptions: options =>
+            //open the domain events execution context in each job, like Scrinium does for its own
+            GlobalJobFilters.Filters.Add(new Configs.Hangfire.DomainEventsExecutionContextFilter());
+
+            services.AddScriniumWithHangfire(configureHangfireOptions: options =>
             {
                 options.ConnectionString = config["ConnectionStrings:HangfireDb"] ?? throw new ServiceConfigurationException();
                 options.StorageOptions = new MongoStorageOptions
@@ -503,7 +519,7 @@ namespace Etherna.SSOServer
                         BackupStrategy = new CollectionMongoBackupStrategy()
                     }
                 };
-            }, configureMongODMOptions: options =>
+            }, configureScriniumOptions: options =>
             {
                 options.DbMaintenanceQueueName = Queues.DB_MAINTENANCE;
             })
@@ -518,6 +534,9 @@ namespace Etherna.SSOServer
                 {
                     options.ConnectionString = config["ConnectionStrings:SSOServerDb"] ?? throw new ServiceConfigurationException();
                     options.ParentFor<ISharedDbContext>();
+
+                    //a summary member read without a preload is a defect, not a query
+                    options.ImplicitLazyLoad = ReactionMode.Throw;
                 })
 
                 .AddDbContext<ISharedDbContext, SharedDbContext>(sp =>
@@ -528,9 +547,10 @@ namespace Etherna.SSOServer
                 options =>
                 {
                     options.ConnectionString = config["ConnectionStrings:ServiceSharedDb"] ?? throw new ServiceConfigurationException();
+                    options.ImplicitLazyLoad = ReactionMode.Throw;
                 });
 
-            services.AddMongODMAdminDashboard(new DashboardOptions
+            services.AddScriniumAdminDashboard(new DashboardOptions
             {
                 AppPath = "/" + CommonConsts.AdminArea,
                 AuthFilters = [new AdminAuthFilter()],
@@ -574,9 +594,6 @@ namespace Etherna.SSOServer
                 else
                 {
                     // Allow static origins plus dynamic origins from DB-stored clients.
-                    var corsPolicyService = app.Services.CreateScope().ServiceProvider
-                        .GetRequiredService<ICorsPolicyService>();
-
                     builder.SetIsOriginAllowed(origin =>
                            {
                                // Static origins always allowed.
@@ -584,6 +601,9 @@ namespace Etherna.SSOServer
                                    return true;
 
                                // Check dynamic origins from IdentityServer clients (DB + in-memory).
+                               //the policy service depends on a scoped db context: resolve it from a scope per check, never from the root provider
+                               using var scope = app.Services.CreateScope();
+                               var corsPolicyService = scope.ServiceProvider.GetRequiredService<ICorsPolicyService>();
                                return corsPolicyService.IsOriginAllowedAsync(origin, System.Threading.CancellationToken.None)
                                    .GetAwaiter().GetResult();
                            })
@@ -666,6 +686,20 @@ namespace Etherna.SSOServer
                 Web3LoginTokensCleanTask.TaskId,
                 task => task.RunAsync(),
                 Cron.Daily(3));
+        }
+
+        private static void SeedDbContext<TDbContext>(WebApplication app)
+            where TDbContext : class, IDbContext
+        {
+            using var scope = app.Services.CreateScope();
+
+            // The seed runs outside any request: open the ambient contexts both libraries require.
+            //scrinium: exclusive access of the seeding flow
+            using var dbExecutionContext = AsyncLocalContext.Instance.InitAsyncLocalContext();
+            //domain events: dispatch disabling and event dispatch of the created models
+            using var domainEventsExecutionContext = DomainEventsAsyncLocalContext.Instance.InitAsyncLocalContext();
+
+            scope.ServiceProvider.GetRequiredService<TDbContext>().SeedIfNeededAsync().GetAwaiter().GetResult();
         }
     }
 }

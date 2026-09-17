@@ -12,8 +12,8 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.MongODM.Core;
-using Etherna.MongODM.Core.Serialization;
+using Etherna.Scrinium.Core;
+using Etherna.Scrinium.Core.Serialization;
 using Etherna.SSOServer.Persistence.Serializers;
 using Etherna.SwarmSdk.Models;
 
@@ -21,9 +21,9 @@ namespace Etherna.SSOServer.Persistence.ModelMaps.Sso
 {
     internal sealed class BeeNetMap : IModelMapsCollector
     {
-        public void Register(IDbContext dbContext)
+        public void Register(IDbContextEngine dbContextEngine)
         {
-            dbContext.MapRegistry.AddCustomSerializerMap<EthAddress>( //v0.4.0
+            dbContextEngine.MapRegistry.AddCustomSerializerMap<EthAddress>( //v0.4.0
                 new EthAddressSerializer());
         }
     }

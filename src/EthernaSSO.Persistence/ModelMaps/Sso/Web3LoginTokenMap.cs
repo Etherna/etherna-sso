@@ -12,17 +12,17 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.MongODM.Core;
-using Etherna.MongODM.Core.Serialization;
+using Etherna.Scrinium.Core;
+using Etherna.Scrinium.Core.Serialization;
 using Etherna.SSOServer.Domain.Models;
 
 namespace Etherna.SSOServer.Persistence.ModelMaps.Sso
 {
     internal sealed class Web3LoginTokenMap : IModelMapsCollector
     {
-        public void Register(IDbContext dbContext)
+        public void Register(IDbContextEngine dbContextEngine)
         {
-            dbContext.MapRegistry.AddModelMap<Web3LoginToken>("150f4cdf-099a-4195-a145-45f1f9eda60c");
+            dbContextEngine.MapRegistry.AddModelMap<Web3LoginToken>("150f4cdf-099a-4195-a145-45f1f9eda60c");
         }
     }
 }

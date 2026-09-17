@@ -16,8 +16,8 @@ using Etherna.DomainEvents;
 using Etherna.MongoDB.Bson.IO;
 using Etherna.MongoDB.Bson.Serialization;
 using Etherna.MongoDB.Driver;
-using Etherna.MongODM.Core.Serialization.Serializers;
-using Etherna.MongODM.Core.Utility;
+using Etherna.Scrinium.Core.Serialization.Serializers;
+using Etherna.Scrinium.Core.Utility;
 using Etherna.SSOServer.Domain.Models.UserAgg;
 using Etherna.SSOServer.Persistence.Helpers;
 using Moq;
@@ -30,7 +30,6 @@ using Xunit;
 namespace Etherna.SSOServer.Persistence.ModelMaps
 {
     [SuppressMessage("Performance", "CA1861:Avoid constant arrays as arguments")]
-    [SuppressMessage("Design", "CA1001:Types that own disposable fields should be disposable")]
     [SuppressMessage("Naming", "CA1707:Identifiers should not contain underscores", Justification = "Test method naming convention.")]
     public class SharedDbContextDeserializationTest
     {
@@ -93,7 +92,7 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
 
             // Setup.
             using var documentReader = new JsonReader(testElement.SourceDocument);
-            var modelMapSerializer = new ModelMapSerializer<UserSharedInfo>(dbContext);
+            var modelMapSerializer = new ModelMapSerializer<UserSharedInfo>(dbContext.Engine);
             var deserializationContext = BsonDeserializationContext.CreateRoot(documentReader);
 
             // Action.
