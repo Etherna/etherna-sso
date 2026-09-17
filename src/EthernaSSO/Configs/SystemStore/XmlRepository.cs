@@ -12,7 +12,7 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.MongODM.Core.Options;
+using Etherna.Scrinium.Core.Options;
 using Microsoft.AspNetCore.DataProtection.Repositories;
 using MongoDB.Bson;
 using MongoDB.Driver;

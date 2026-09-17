@@ -14,13 +14,13 @@
 
 using Etherna.DomainEvents;
 using Etherna.MongoDB.Driver;
-using Etherna.MongODM.Core;
-using Etherna.MongODM.Core.Migration;
-using Etherna.MongODM.Core.Repositories;
-using Etherna.MongODM.Core.Serialization;
+using Etherna.Scrinium.Core;
+using Etherna.Scrinium.Core.Repositories;
+using Etherna.Scrinium.Core.Serialization;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Domain.Models.ClientAppAgg;
+using Etherna.SSOServer.Persistence.ModelMaps.Sso;
 using Etherna.SSOServer.Persistence.Repositories;
 using Etherna.SSOServer.Persistence.Settings;
 using Etherna.SSOServer.Services.Domain;
@@ -28,7 +28,6 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -41,9 +40,6 @@ namespace Etherna.SSOServer.Persistence
         IServiceProvider serviceProvider)
         : DbContext, IEventDispatcherDbContext, ISsoDbContext
     {
-        // Consts.
-        private const string ModelMapsNamespace = "Etherna.SSOServer.Persistence.ModelMaps.Sso";
-
         // Properties.
         //repositories
         public IRepository<AlphaPassRequest, string> AlphaPassRequests { get; } = new DomainRepository<AlphaPassRequest, string>(
@@ -158,19 +154,27 @@ namespace Etherna.SSOServer.Persistence
                 ]
             });
 
-        //migrations
-        public override IEnumerable<DocumentMigration> DocumentMigrationList => Array.Empty<DocumentMigration>();
-
         //other properties
-        public string EtherManagedPrivateKeyEncryptionKey { get; } = encryptionSettings.EtherManagedPrivateKey;
         public IEventDispatcher EventDispatcher { get; } = eventDispatcher;
 
         // Protected properties.
         protected override IEnumerable<IModelMapsCollector> ModelMapsCollectors =>
-            from t in typeof(SsoDbContext).GetTypeInfo().Assembly.GetTypes()
-            where t.IsClass && t.Namespace == ModelMapsNamespace
-            where t.GetInterfaces().Contains(typeof(IModelMapsCollector))
-            select Activator.CreateInstance(t) as IModelMapsCollector;
+        [
+            new AlphaPassRequestMap(),
+            new ApiKeyMap(),
+            new BeeNetMap(),
+            new ClientAppMap(),
+            new DailyStatsMap(),
+            new Fido2ChallengeMap(),
+            new Fido2CredentialMap(),
+            new InvitationMap(),
+            new LegalAcceptanceMap(),
+            new ModelBaseMap(),
+            new RoleMap(),
+            new UserClaimMap(),
+            new UserMap(encryptionSettings.EtherManagedPrivateKey),
+            new Web3LoginTokenMap()
+        ];
 
         // Methods.
         public override async Task SaveChangesAsync(CancellationToken cancellationToken = default)

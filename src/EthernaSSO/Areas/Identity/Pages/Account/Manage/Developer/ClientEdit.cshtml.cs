@@ -115,6 +115,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage.Developer
             ClientId = clientApp.ClientId;
             ClientType = clientApp.ClientType;
             RequireClientSecret = clientApp.RequireClientSecret;
+            await ssoDbContext.LoadValuesAsync(clientApp.Owner, o => o.EtherAddress);
             OwnerEtherAddress = clientApp.Owner.EtherAddress.ToString();
             Input = new InputModel(clientApp);
 
@@ -135,6 +136,7 @@ namespace Etherna.SSOServer.Areas.Identity.Pages.Account.Manage.Developer
             ClientId = clientApp.ClientId;
             ClientType = clientApp.ClientType;
             RequireClientSecret = clientApp.RequireClientSecret;
+            await ssoDbContext.LoadValuesAsync(clientApp.Owner, o => o.EtherAddress);
             OwnerEtherAddress = clientApp.Owner.EtherAddress.ToString();
 
             if (!ModelState.IsValid)

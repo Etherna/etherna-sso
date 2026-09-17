@@ -12,17 +12,17 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.MongODM.Core;
-using Etherna.MongODM.Core.Serialization;
+using Etherna.Scrinium.Core;
+using Etherna.Scrinium.Core.Serialization;
 using Etherna.SSOServer.Domain.Models;
 
 namespace Etherna.SSOServer.Persistence.ModelMaps.Sso
 {
     internal sealed class AlphaPassRequestMap : IModelMapsCollector
     {
-        public void Register(IDbContext dbContext)
+        public void Register(IDbContextEngine dbContextEngine)
         {
-            dbContext.MapRegistry.AddModelMap<AlphaPassRequest>("cdfb69bd-b70c-4736-9210-737b675333bc");
+            dbContextEngine.MapRegistry.AddModelMap<AlphaPassRequest>("cdfb69bd-b70c-4736-9210-737b675333bc");
         }
     }
 }

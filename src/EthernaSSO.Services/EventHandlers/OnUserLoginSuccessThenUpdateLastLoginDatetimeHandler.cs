@@ -19,22 +19,15 @@ using System.Threading.Tasks;
 
 namespace Etherna.SSOServer.Services.EventHandlers
 {
-    internal sealed class OnUserLoginSuccessThenUpdateLastLoginDateTimeHandler : EventHandlerBase<UserLoginSuccessEvent>
+    internal sealed class OnUserLoginSuccessThenUpdateLastLoginDateTimeHandler(ISsoDbContext ssoDbContext)
+        : EventHandlerBase<UserLoginSuccessEvent>
     {
-        // Fields.
-        private readonly ISsoDbContext ssoDbContext;
-
-        // Constructors.
-        public OnUserLoginSuccessThenUpdateLastLoginDateTimeHandler(
-            ISsoDbContext ssoDbContext)
-        {
-            this.ssoDbContext = ssoDbContext;
-        }
-
         // Methods.
         public override async Task HandleAsync(UserLoginSuccessEvent @event)
         {
-            @event.User.UpdateLastLoginDateTime();
+            // The dispatcher runs the handler in its own scope: reload the user on this scope's db context.
+            var user = await ssoDbContext.Users.FindOneAsync(@event.User.Id);
+            user.UpdateLastLoginDateTime();
             await ssoDbContext.SaveChangesAsync();
         }
     }

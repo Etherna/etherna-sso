@@ -12,7 +12,6 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.MongODM.Core.Attributes;
 using Etherna.SSOServer.Domain.Models.Fido2CredentialAgg;
 using Etherna.SSOServer.Domain.Models.UserAgg;
 using Etherna.SwarmSdk.Models;
@@ -87,7 +86,6 @@ namespace Etherna.SSOServer.Domain.Models
         }
 
         // Methods.
-        [PropertyAlterer(nameof(Fido2Credentials))]
         public virtual bool AddFido2Credential(Fido2Credential credential)
         {
             ArgumentNullException.ThrowIfNull(credential);
@@ -99,15 +97,12 @@ namespace Etherna.SSOServer.Domain.Models
             return true;
         }
 
-        [PropertyAlterer(nameof(AuthenticatorKey))]
-        [PropertyAlterer(nameof(IsAuthenticatorAppEnabled))]
         public virtual void DisableAuthenticatorApp()
         {
             AuthenticatorKey = null;
             IsAuthenticatorAppEnabled = false;
         }
 
-        [PropertyAlterer(nameof(IsAuthenticatorAppEnabled))]
         public virtual void EnableAuthenticatorApp()
         {
             if (string.IsNullOrEmpty(AuthenticatorKey))
@@ -122,10 +117,8 @@ namespace Etherna.SSOServer.Domain.Models
             return _fido2Credentials.FirstOrDefault(c => c.CredentialId.SequenceEqual(credentialId));
         }
 
-        [PropertyAlterer(nameof(AccessFailedCount))]
         public virtual void IncrementAccessFailedCount() => AccessFailedCount++;
 
-        [PropertyAlterer(nameof(Fido2Credentials))]
         public virtual void RecordFido2CredentialUsage(byte[] credentialId, uint newCounter)
         {
             var credential = FindFido2Credential(credentialId) ??
@@ -133,11 +126,9 @@ namespace Etherna.SSOServer.Domain.Models
             credential.RecordUsage(newCounter);
         }
 
-        [PropertyAlterer(nameof(TwoFactorRecoveryCodes))]
         public virtual bool RedeemTwoFactorRecoveryCode(string code) =>
             _twoFactorRecoveryCode.Remove(code);
 
-        [PropertyAlterer(nameof(EtherLoginAddress))]
         public virtual bool RemoveEtherLoginAddress()
         {
             if (EtherLoginAddress is null)
@@ -151,14 +142,12 @@ namespace Etherna.SSOServer.Domain.Models
             return true;
         }
 
-        [PropertyAlterer(nameof(Fido2Credentials))]
         public virtual bool RemoveFido2Credential(byte[] credentialId)
         {
             ArgumentNullException.ThrowIfNull(credentialId);
             return _fido2Credentials.RemoveAll(c => c.CredentialId.SequenceEqual(credentialId)) > 0;
         }
 
-        [PropertyAlterer(nameof(Fido2Credentials))]
         public virtual bool RenameFido2Credential(byte[] credentialId, string nickname)
         {
             var credential = FindFido2Credential(credentialId);
@@ -169,7 +158,6 @@ namespace Etherna.SSOServer.Domain.Models
             return true;
         }
 
-        [PropertyAlterer(nameof(AccessFailedCount))]
         public virtual void ResetAccessFailedCount() => AccessFailedCount = 0;
     }
 }

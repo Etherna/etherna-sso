@@ -48,11 +48,11 @@ source together with its build and deployment configuration.
 
 ## Architecture
 
-A four-project layered solution (plus two test projects):
+A four-project layered solution (plus four test projects):
 
 - **`EthernaSSO.Domain`** — pure domain layer: aggregates, entities and domain events; exposes only DbContext
   interfaces, with no persistence types leaking out.
-- **`EthernaSSO.Persistence`** — MongoDB persistence via MongODM (model maps, repositories, the SSO and
+- **`EthernaSSO.Persistence`** — MongoDB persistence via Scrinium (model maps, repositories, the SSO and
   shared DbContexts).
 - **`EthernaSSO.Services`** — application services, side effects, event handlers and Hangfire jobs.
 - **`EthernaSSO`** — the ASP.NET Core Razor Pages host, wiring ASP.NET Identity, Duende IdentityServer,
@@ -210,7 +210,7 @@ environment variables — see [Configuration](#configuration).
 ```
 src/
   EthernaSSO.Domain        pure domain layer (aggregates, entities, domain events)
-  EthernaSSO.Persistence   MongODM persistence (model maps, repositories, DbContexts)
+  EthernaSSO.Persistence   Scrinium persistence (model maps, repositories, DbContexts)
   EthernaSSO.Services      application services, event handlers, Hangfire jobs
   EthernaSSO               ASP.NET Core host (Identity, IdentityServer, API, Razor Pages)
 test/

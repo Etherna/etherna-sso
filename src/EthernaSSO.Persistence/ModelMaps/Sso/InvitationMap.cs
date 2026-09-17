@@ -12,23 +12,24 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.MongODM.Core;
-using Etherna.MongODM.Core.Extensions;
-using Etherna.MongODM.Core.Serialization;
+using Etherna.Scrinium.Core;
+using Etherna.Scrinium.Core.Extensions;
+using Etherna.Scrinium.Core.Options;
+using Etherna.Scrinium.Core.Serialization;
 using Etherna.SSOServer.Domain.Models;
 
 namespace Etherna.SSOServer.Persistence.ModelMaps.Sso
 {
     internal sealed class InvitationMap : IModelMapsCollector
     {
-        public void Register(IDbContext dbContext)
+        public void Register(IDbContextEngine dbContextEngine)
         {
-            dbContext.MapRegistry.AddModelMap<Invitation>("a51c7ca1-b53e-43d2-b1ab-7efb7f5e735b", mm =>
+            dbContextEngine.MapRegistry.AddModelMap<Invitation>("a51c7ca1-b53e-43d2-b1ab-7efb7f5e735b", mm =>
             {
                 mm.AutoMap();
 
                 // Set members with custom serializers.
-                mm.SetMemberSerializer(i => i.Emitter!, UserMap.ReferenceSerializer(dbContext));
+                mm.SetMemberSerializer(i => i.Emitter!, UserMap.ReferenceSerializer(dbContextEngine, OriginDeleteMode.RemoveReference));
             });
         }
     }

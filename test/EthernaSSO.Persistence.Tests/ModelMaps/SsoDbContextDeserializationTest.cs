@@ -17,8 +17,8 @@ using Etherna.DomainEvents;
 using Etherna.MongoDB.Bson.IO;
 using Etherna.MongoDB.Bson.Serialization;
 using Etherna.MongoDB.Driver;
-using Etherna.MongODM.Core.Serialization.Serializers;
-using Etherna.MongODM.Core.Utility;
+using Etherna.Scrinium.Core.Serialization.Serializers;
+using Etherna.Scrinium.Core.Utility;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Domain.Models.ClientAppAgg;
 using Etherna.SSOServer.Domain.Models.Fido2CredentialAgg;
@@ -36,7 +36,6 @@ using Xunit;
 namespace Etherna.SSOServer.Persistence.ModelMaps
 {
     [SuppressMessage("Performance", "CA1861:Avoid constant arrays as arguments")]
-    [SuppressMessage("Design", "CA1001:Types that own disposable fields should be disposable")]
     [SuppressMessage("Naming", "CA1707:Identifiers should not contain underscores", Justification = "Test method naming convention.")]
     public class SsoDbContextDeserializationTest
     {
@@ -946,7 +945,7 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
 
             // Arrange.
             using var documentReader = new JsonReader(testElement.SourceDocument);
-            var modelMapSerializer = new ModelMapSerializer<ClientApp>(dbContext);
+            var modelMapSerializer = new ModelMapSerializer<ClientApp>(dbContext.Engine);
             var deserializationContext = BsonDeserializationContext.CreateRoot(documentReader);
             testElement.SetupAction(mongoDatabaseMock, dbContext);
 
@@ -998,7 +997,7 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
 
             // Arrange.
             using var documentReader = new JsonReader(testElement.SourceDocument);
-            var modelMapSerializer = new ModelMapSerializer<AlphaPassRequest>(dbContext);
+            var modelMapSerializer = new ModelMapSerializer<AlphaPassRequest>(dbContext.Engine);
             var deserializationContext = BsonDeserializationContext.CreateRoot(documentReader);
             testElement.SetupAction(mongoDatabaseMock, dbContext);
 
@@ -1025,7 +1024,7 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
 
             // Arrange.
             using var documentReader = new JsonReader(testElement.SourceDocument);
-            var modelMapSerializer = new ModelMapSerializer<ApiKey>(dbContext);
+            var modelMapSerializer = new ModelMapSerializer<ApiKey>(dbContext.Engine);
             var deserializationContext = BsonDeserializationContext.CreateRoot(documentReader);
             testElement.SetupAction(mongoDatabaseMock, dbContext);
 
@@ -1053,7 +1052,7 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
 
             // Arrange.
             using var documentReader = new JsonReader(testElement.SourceDocument);
-            var modelMapSerializer = new ModelMapSerializer<DailyStats>(dbContext);
+            var modelMapSerializer = new ModelMapSerializer<DailyStats>(dbContext.Engine);
             var deserializationContext = BsonDeserializationContext.CreateRoot(documentReader);
             testElement.SetupAction(mongoDatabaseMock, dbContext);
 
@@ -1077,7 +1076,7 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
 
             // Arrange.
             using var documentReader = new JsonReader(testElement.SourceDocument);
-            var modelMapSerializer = new ModelMapSerializer<Invitation>(dbContext);
+            var modelMapSerializer = new ModelMapSerializer<Invitation>(dbContext.Engine);
             var deserializationContext = BsonDeserializationContext.CreateRoot(documentReader);
             testElement.SetupAction(mongoDatabaseMock, dbContext);
 
@@ -1104,7 +1103,7 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
 
             // Arrange.
             using var documentReader = new JsonReader(testElement.SourceDocument);
-            var modelMapSerializer = new ModelMapSerializer<Role>(dbContext);
+            var modelMapSerializer = new ModelMapSerializer<Role>(dbContext.Engine);
             var deserializationContext = BsonDeserializationContext.CreateRoot(documentReader);
             testElement.SetupAction(mongoDatabaseMock, dbContext);
 
@@ -1129,7 +1128,7 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
 
             // Arrange.
             using var documentReader = new JsonReader(testElement.SourceDocument);
-            var modelMapSerializer = new ModelMapSerializer<UserBase>(dbContext);
+            var modelMapSerializer = new ModelMapSerializer<UserBase>(dbContext.Engine);
             var deserializationContext = BsonDeserializationContext.CreateRoot(documentReader);
             testElement.SetupAction(mongoDatabaseMock, dbContext);
 
@@ -1206,7 +1205,7 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
 
             // Arrange.
             using var documentReader = new JsonReader(testElement.SourceDocument);
-            var modelMapSerializer = new ModelMapSerializer<Web3LoginToken>(dbContext);
+            var modelMapSerializer = new ModelMapSerializer<Web3LoginToken>(dbContext.Engine);
             var deserializationContext = BsonDeserializationContext.CreateRoot(documentReader);
             testElement.SetupAction(mongoDatabaseMock, dbContext);
 
@@ -1230,7 +1229,7 @@ namespace Etherna.SSOServer.Persistence.ModelMaps
 
             // Arrange.
             using var documentReader = new JsonReader(testElement.SourceDocument);
-            var modelMapSerializer = new ModelMapSerializer<Fido2Challenge>(dbContext);
+            var modelMapSerializer = new ModelMapSerializer<Fido2Challenge>(dbContext.Engine);
             var deserializationContext = BsonDeserializationContext.CreateRoot(documentReader);
             testElement.SetupAction(mongoDatabaseMock, dbContext);
 
