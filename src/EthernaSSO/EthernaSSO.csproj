@@ -21,8 +21,8 @@
 
   <ItemGroup>
     <PackageReference Include="Elastic.Serilog.Sinks" Version="9.0.0" />
-    <PackageReference Include="Etherna.Scrinium" Version="0.25.5" />
-    <PackageReference Include="Etherna.Scrinium.AspNetCore.UI" Version="0.25.5" />
+    <PackageReference Include="Etherna.Scrinium" Version="0.25.6" />
+    <PackageReference Include="Etherna.Scrinium.AspNetCore.UI" Version="0.25.6" />
     <PackageReference Include="Fido2.AspNet" Version="4.0.1" />
     <PackageReference Include="HtmlSanitizer" Version="9.2.1039" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.12" />
