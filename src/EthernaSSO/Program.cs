@@ -63,7 +63,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-using Microsoft.Net.Http.Headers;
 using Prometheus;
 using Scalar.AspNetCore;
 using Serilog;
@@ -337,8 +336,7 @@ namespace Etherna.SSOServer
                     options.ForwardDefaultSelector = context =>
                     {
                         //filter by auth type
-                        string? authorization = context.Request.Headers[HeaderNames.Authorization];
-                        if (!string.IsNullOrEmpty(authorization) && authorization.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                        if (context.Request.HasBearerToken())
                             return CommonConsts.UserAuthenticationJwtScheme;
 
                         //otherwise always check with default cookie auth by Identity framework
@@ -580,7 +578,7 @@ namespace Etherna.SSOServer
                 app.UseHsts();
             }
 
-            app.UseStatusCodePagesWithReExecute("/StatusCode", "?code={0}");
+            app.UseStatusCodePagesOnPageRequests("/StatusCode", "?code={0}");
 
             app.UseCors(builder =>
             {
