@@ -40,7 +40,8 @@ source together with its build and deployment configuration.
 - **OpenID Connect provider** — built on Duende IdentityServer; issues identity/access tokens to the Etherna
   services, with in-memory and database-backed client registrations.
 - **REST API** — endpoints under `/api` (including API-key authentication) with an interactive Scalar
-  reference at `/scalar/sso03`.
+  reference at `/scalar/sso03`. Errors answer their status code with the plain message as a JSON
+  string.
 - **Admin area** — user and client management for administrators.
 - **Invitations & alpha pass** — optional invitation-gated registration and an alpha-pass request flow.
 - **Observability** — structured logging to Elasticsearch through Serilog, and Prometheus metrics at
