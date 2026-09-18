@@ -323,13 +323,11 @@ namespace Etherna.SSOServer
             })
 
                 //users access
-                .AddJwtBearer(CommonConsts.UserAuthenticationJwtScheme, options =>
-                {
-                    options.Audience = "userApi";
-                    options.Authority = config["IdServer:SsoServer:BaseUrl"] ?? throw new ServiceConfigurationException();
-
-                    options.RequireHttpsMetadata = !allowUnsafeAuthorityConnection;
-                })
+                .AddSsoJwtBearer(
+                    CommonConsts.UserAuthenticationJwtScheme,
+                    "userApi",
+                    config["IdServer:SsoServer:BaseUrl"] ?? throw new ServiceConfigurationException(),
+                    !allowUnsafeAuthorityConnection)
                 .AddPolicyScheme(CommonConsts.UserAuthenticationPolicyScheme, CommonConsts.UserAuthenticationPolicyScheme, options =>
                 {
                     //runs on each request
@@ -371,13 +369,11 @@ namespace Etherna.SSOServer
                 })
 
                 //services access
-                .AddJwtBearer(CommonConsts.ServiceAuthenticationScheme, options =>
-                {
-                    options.Audience = "ethernaSsoServiceInteract";
-                    options.Authority = config["IdServer:SsoServer:BaseUrl"] ?? throw new ServiceConfigurationException();
-
-                    options.RequireHttpsMetadata = !allowUnsafeAuthorityConnection;
-                });
+                .AddSsoJwtBearer(
+                    CommonConsts.ServiceAuthenticationScheme,
+                    "ethernaSsoServiceInteract",
+                    config["IdServer:SsoServer:BaseUrl"] ?? throw new ServiceConfigurationException(),
+                    !allowUnsafeAuthorityConnection);
 
             // Configure authorization.
             //policy and requirements
