@@ -495,6 +495,10 @@ namespace Etherna.SSOServer
             services.Configure<ApplicationOptions>(config.GetSection("Application") ?? throw new ServiceConfigurationException());
             services.Configure<EmailOptions>(config.GetSection("Email") ?? throw new ServiceConfigurationException());
             services.Configure<LegalOptions>(config.GetSection("Legal") ?? throw new ServiceConfigurationException());
+            services.AddOptions<MatomoOptions>()
+                .Bind(config.GetSection("Matomo"))
+                .Validate(o => !o.IsPartiallyConfigured, "Matomo:SiteId and Matomo:TrackerUrl must be configured together")
+                .ValidateOnStart();
             services.Configure<NewsletterOptions>(config.GetSection("Newsletter") ?? throw new ServiceConfigurationException());
             services.Configure<SsoDbEncryptionSettings>(config.GetSection("Encryption") ?? throw new ServiceConfigurationException());
             services.Configure<SsoDbSeedSettings>(config.GetSection("DbSeed") ?? throw new ServiceConfigurationException());

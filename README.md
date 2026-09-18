@@ -182,6 +182,15 @@ Optional, opt-in only: a user can subscribe to the newsletter during email verif
 | `Serilog:MinimumLevel:Default` | `Information` | global log level |
 | `Serilog:MinimumLevel:Override:<Namespace>` | `Warning` | per-namespace override |
 
+### Analytics (Matomo)
+
+Optional: the page layout embeds the cookieless Matomo tracking snippet only when both values are configured. They ship in `appsettings.Production.json` only, so development and staging are not tracked. Configuring just one of the two fails the startup.
+
+| Key | Default | Notes |
+|---|---|---|
+| `Matomo:SiteId` | — (`3` in production) | id of the site on the Matomo instance |
+| `Matomo:TrackerUrl` | — (`https://analytics.etherna.io/` in production) | base url of the Matomo instance, hosting `matomo.php` and `matomo.js` |
+
 ## Building and testing
 
 ```bash
