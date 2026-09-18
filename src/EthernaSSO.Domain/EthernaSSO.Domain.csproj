@@ -16,7 +16,7 @@
     <PackageReference Include="Duende.IdentityServer.Storage" Version="8.0.8" />
     <PackageReference Include="Etherna.Authentication.AspNetCore" Version="0.4.1" />
     <PackageReference Include="Etherna.DomainEvents" Version="1.5.0" />
-    <PackageReference Include="Etherna.Scrinium.Core" Version="0.25.5" />
+    <PackageReference Include="Etherna.Scrinium.Core" Version="0.25.6" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="10.0.12" />
     <PackageReference Include="Nethereum.Accounts" Version="6.1.0" />
     <PackageReference Include="SwarmSdk" Version="0.6.0-alpha.61" />
