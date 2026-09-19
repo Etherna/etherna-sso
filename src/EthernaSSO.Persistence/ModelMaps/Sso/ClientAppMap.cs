@@ -12,9 +12,10 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.MongODM.Core;
-using Etherna.MongODM.Core.Extensions;
-using Etherna.MongODM.Core.Serialization;
+using Etherna.Scrinium.Core;
+using Etherna.Scrinium.Core.Extensions;
+using Etherna.Scrinium.Core.Options;
+using Etherna.Scrinium.Core.Serialization;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Domain.Models.ClientAppAgg;
 
@@ -22,11 +23,11 @@ namespace Etherna.SSOServer.Persistence.ModelMaps.Sso
 {
     internal sealed class ClientAppMap : IModelMapsCollector
     {
-        public void Register(IDbContext dbContext)
+        public void Register(IDbContextEngine dbContextEngine)
         {
-            dbContext.MapRegistry.AddModelMap<ClientSecret>("adf2f702-0f84-41bb-ad5d-f485372af6ef");
+            dbContextEngine.MapRegistry.AddModelMap<ClientSecret>("adf2f702-0f84-41bb-ad5d-f485372af6ef");
 
-            dbContext.MapRegistry.AddModelMap<ClientApp>("1f980b1f-74d9-4a44-96c6-b45bfaeb6886", mm =>
+            dbContextEngine.MapRegistry.AddModelMap<ClientApp>("1f980b1f-74d9-4a44-96c6-b45bfaeb6886", mm =>
             {
                 mm.AutoMap();
 
@@ -34,7 +35,7 @@ namespace Etherna.SSOServer.Persistence.ModelMaps.Sso
                 mm.GetMemberMap(c => c.Description).SetIgnoreIfNull(true);
 
                 // Set members with custom serializers.
-                mm.SetMemberSerializer(c => c.Owner, UserMap.ReferenceSerializer(dbContext));
+                mm.SetMemberSerializer(c => c.Owner, UserMap.ReferenceSerializer(dbContextEngine, OriginDeleteMode.DeleteReferencingDocument));
             });
         }
     }

@@ -15,8 +15,8 @@
 using Duende.IdentityServer.Models;
 using Duende.IdentityServer.Stores;
 using Etherna.Authentication;
-using Etherna.ExecContext.AsyncLocal;
 using Etherna.MongoDB.Driver.Linq;
+using Etherna.Scrinium.Core.ExecContext.AsyncLocal;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Domain.Models.ClientAppAgg;
@@ -46,7 +46,10 @@ namespace Etherna.SSOServer.Configs.SystemStore
                 elements.FirstOrDefaultAsync(c => c.ClientId == clientId, cancellationToken: cancellationToken));
 
             if (dbClient is not null)
+            {
+                await LoadOwnersEtherAddressAsync([dbClient]);
                 return ToIdentityServerClient(dbClient);
+            }
 
             // Fall back to in-memory.
             return inMemoryClients.FirstOrDefault(c => c.ClientId == clientId);
@@ -64,6 +67,7 @@ namespace Etherna.SSOServer.Configs.SystemStore
             var dbClients = await ssoDbContext.ClientApps.QueryElementsAsync(elements =>
                 elements.ToListAsync(cancellationToken: cancellationToken));
             var dbClientIds = dbClients.Select(c => c.ClientId).ToHashSet();
+            await LoadOwnersEtherAddressAsync(dbClients);
 
             foreach (var dbClient in dbClients)
                 yield return ToIdentityServerClient(dbClient);
@@ -74,6 +78,16 @@ namespace Etherna.SSOServer.Configs.SystemStore
         }
 
         // Helpers.
+        /// <summary>
+        /// Preload the owner ether address of the machine-to-machine clients, the only owner member the
+        /// conversion reads: the owner reference carries the id alone.
+        /// </summary>
+        private Task LoadOwnersEtherAddressAsync(IEnumerable<ClientApp> clientApps) =>
+            ssoDbContext.LoadValuesAsync(
+                clientApps.Where(c => c.ClientType == ClientAppType.ClientCredential)
+                          .Select(c => c.Owner),
+                o => o.EtherAddress);
+
         internal static Client ToIdentityServerClient(ClientApp clientApp)
         {
             var client = new Client

@@ -13,7 +13,6 @@
 // If not, see <https://www.gnu.org/licenses/>.
 
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Etherna.SSOServer.Areas.Api
 {
@@ -27,9 +26,7 @@ namespace Etherna.SSOServer.Areas.Api
         public static IResult GetErrorResult(
             int statusCode,
             string message) =>
-            Results.Json(
-                new ObjectResult(message) { StatusCode = statusCode },
-                statusCode: statusCode);
+            Results.Json(message, statusCode: statusCode);
         
         public static IResult GetInternalServerErrorResult(
             string? customMessage = null) =>

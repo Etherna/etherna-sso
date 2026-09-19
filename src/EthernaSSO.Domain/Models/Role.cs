@@ -12,7 +12,6 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.MongODM.Core.Attributes;
 using System;
 using System.Globalization;
 
@@ -38,8 +37,6 @@ namespace Etherna.SSOServer.Domain.Models
 
         // Methods.
 
-        [PropertyAlterer(nameof(Name))]
-        [PropertyAlterer(nameof(NormalizedName))]
         public virtual void SetName(string name)
         {
             ArgumentNullException.ThrowIfNull(name);

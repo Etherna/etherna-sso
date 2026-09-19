@@ -12,7 +12,6 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.MongODM.Core.Attributes;
 using Etherna.SSOServer.Domain.Helpers;
 using System;
 using System.Diagnostics.CodeAnalysis;
@@ -47,7 +46,6 @@ namespace Etherna.SSOServer.Domain.Models
         public virtual string Secret { get; protected set; }
 
         // Methods.
-        [PropertyAlterer(nameof(IsEmailConfirmed))]
         public bool ConfirmEmail(string secret)
         {
             if (Secret != secret)

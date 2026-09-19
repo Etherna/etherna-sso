@@ -1,7 +1,11 @@
 ﻿@using Etherna.SSOServer.Configs;
+@using Etherna.SSOServer.Services.Options;
 @using Microsoft.AspNetCore.Authorization;
+@using Microsoft.Extensions.Options;
 @inject IAuthorizationService authorizationService
+@inject IOptions<MatomoOptions> matomoOptions
 @{
+    var matomo = matomoOptions.Value;
     var userIsAdmin = (await authorizationService.AuthorizeAsync(User, CommonConsts.RequireAdministratorRolePolicy)).Succeeded;
 }
 
@@ -72,22 +76,25 @@
 
     @await RenderSectionAsync("Scripts", required: false)
 
-    <!-- Matomo -->
-    <script>
-        var _paq = window._paq = window._paq || [];
-        _paq.push(["setDocumentTitle", document.domain + "/" + document.title]);
-        _paq.push(["disableCookies"]);
-        _paq.push(['trackPageView']);
-        _paq.push(['enableLinkTracking']);
-        (function() {
-            var u = "https://analytics.etherna.io/";
-            _paq.push(['setTrackerUrl', u + 'matomo.php']);
-            _paq.push(['setSiteId', '3']);
-            var d = document, g = d.createElement('script'), s = d.getElementsByTagName('script')[0];
-            g.async = true; g.src = u + 'matomo.js'; s.parentNode.insertBefore(g, s);
-        })();
-    </script>
-    <!-- End Matomo Code -->
+    @if (matomo.IsEnabled)
+    {
+        <!-- Matomo -->
+        <script>
+            var _paq = window._paq = window._paq || [];
+            _paq.push(["setDocumentTitle", document.domain + "/" + document.title]);
+            _paq.push(["disableCookies"]);
+            _paq.push(['trackPageView']);
+            _paq.push(['enableLinkTracking']);
+            (function() {
+                var u = @Json.Serialize(matomo.TrackerUrl.TrimEnd('/') + "/");
+                _paq.push(['setTrackerUrl', u + 'matomo.php']);
+                _paq.push(['setSiteId', @Json.Serialize(matomo.SiteId)]);
+                var d = document, g = d.createElement('script'), s = d.getElementsByTagName('script')[0];
+                g.async = true; g.src = u + 'matomo.js'; s.parentNode.insertBefore(g, s);
+            })();
+        </script>
+        <!-- End Matomo Code -->
+    }
 </body>
 
 </html>

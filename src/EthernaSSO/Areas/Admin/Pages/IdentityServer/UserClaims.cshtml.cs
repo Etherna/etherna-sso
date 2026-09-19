@@ -12,7 +12,7 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.MongODM.Core.Extensions;
+using Etherna.Scrinium.Core.Extensions;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models.UserAgg;
 using Microsoft.AspNetCore.Mvc;

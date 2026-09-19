@@ -71,6 +71,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
             var roles = await context.Roles.QueryElementsAsync(elements =>
                 elements.ToListAsync());
             var user = await context.Users.FindOneAsync(id);
+            await context.LoadValuesAsync(user.Roles, r => r.Name);
 
             AllRoles = roles.Select(r => new RoleDto(r));
             CurrentPage = p ?? 0;

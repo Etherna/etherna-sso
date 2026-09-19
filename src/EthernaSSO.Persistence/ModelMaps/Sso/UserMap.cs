@@ -14,23 +14,23 @@
 
 using Etherna.MongoDB.Bson;
 using Etherna.MongoDB.Bson.Serialization.Serializers;
-using Etherna.MongODM.Core;
-using Etherna.MongODM.Core.Extensions;
-using Etherna.MongODM.Core.Serialization;
-using Etherna.MongODM.Core.Serialization.Serializers;
+using Etherna.Scrinium.Core;
+using Etherna.Scrinium.Core.Extensions;
+using Etherna.Scrinium.Core.Options;
+using Etherna.Scrinium.Core.Serialization;
+using Etherna.Scrinium.Core.Serialization.Serializers;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Persistence.Serializers;
 
 namespace Etherna.SSOServer.Persistence.ModelMaps.Sso
 {
-    internal sealed class UserMap : IModelMapsCollector
+    internal sealed class UserMap(string etherManagedPrivateKeyEncryptionKey) : IModelMapsCollector
     {
-        public void Register(IDbContext dbContext)
+        public void Register(IDbContextEngine dbContextEngine)
         {
-            var etherManagedPrivateKeySerializer = new EncryptedStringSerializer(
-                ((SsoDbContext)dbContext).EtherManagedPrivateKeyEncryptionKey);
-            
-            dbContext.MapRegistry.AddModelMap<UserBase>("a492aaa7-196c-4ec0-8fb5-255d099d0b9f", mm =>
+            var etherManagedPrivateKeySerializer = new EncryptedStringSerializer(etherManagedPrivateKeyEncryptionKey);
+
+            dbContextEngine.MapRegistry.AddModelMap<UserBase>("a492aaa7-196c-4ec0-8fb5-255d099d0b9f", mm =>
             {
                 mm.AutoMap();
 
@@ -46,10 +46,11 @@ namespace Etherna.SSOServer.Persistence.ModelMaps.Sso
                 mm.GetMemberMap(u => u.Username).SetIgnoreIfNull(true);
 
                 // Set members with custom serializers.
-                mm.SetMemberSerializer(u => u.InvitedBy!, ReferenceSerializer(dbContext));
-                mm.SetMemberSerializer(u => u.Roles, new EnumerableSerializer<Role>(RoleMap.ReferenceSerializer(dbContext)));
+                mm.SetMemberSerializer(u => u.InvitedBy!, ReferenceSerializer(dbContextEngine, OriginDeleteMode.RemoveReference));
+                mm.SetMemberSerializer(u => u.Roles, new EnumerableSerializer<Role>(
+                    RoleMap.ReferenceSerializer(dbContextEngine, OriginDeleteMode.RemoveReference)));
             });
-            dbContext.MapRegistry.AddModelMap<UserWeb2>("c54bb1fe-a7e2-4069-b91c-1065b16ca4da", mm => //v0.4.0
+            dbContextEngine.MapRegistry.AddModelMap<UserWeb2>("c54bb1fe-a7e2-4069-b91c-1065b16ca4da", mm => //v0.4.0
             {
                 mm.AutoMap();
 
@@ -73,15 +74,20 @@ namespace Etherna.SSOServer.Persistence.ModelMaps.Sso
                         //the legacy "TwoFactorEnabled" flag (pre-FIDO2) tracked TOTP enablement; map it onto the renamed member
                         mm.GetMemberMap(u => u.IsAuthenticatorAppEnabled).SetElementName("TwoFactorEnabled");
                     });
-            dbContext.MapRegistry.AddModelMap<UserWeb3>("7d8804ab-217c-476a-a47f-977fe693fce3");
+            dbContextEngine.MapRegistry.AddModelMap<UserWeb3>("7d8804ab-217c-476a-a47f-977fe693fce3");
         }
 
         /// <summary>
-        /// A minimal serialized with only id and Ether address
+        /// A minimal serializer with only the id.
         /// </summary>
-        public static ReferenceSerializer<UserBase, string> ReferenceSerializer(IDbContext dbContext) =>
-            new(dbContext, config =>
+        /// <param name="originDelete">How the documents hosting the reference react when the user is deleted</param>
+        public static ReferenceSerializer<UserBase, string> ReferenceSerializer(
+            IDbContextEngine dbContextEngine,
+            OriginDeleteMode originDelete) =>
+            new(dbContextEngine, config =>
             {
+                config.OriginDelete = originDelete;
+
                 config.AddModelMap<ModelBase>("597f29ee-f2d6-40b0-a6f4-86279f72fa68");
                 config.AddModelMap<EntityModelBase>("9cf5d6bf-9c4b-49e7-9826-dafc30826e10", mm => { });
                 config.AddModelMap<EntityModelBase<string>>("1ab18071-641f-405a-91bd-93a2b5c1733e", mm =>

@@ -100,6 +100,7 @@ namespace Etherna.SSOServer.Areas.Admin.Pages.IdentityServer
                     c.ClientId.Contains(Query) ||
                     c.ClientName.Contains(Query))
                     .ToListAsync());
+            await ssoDbContext.LoadValuesAsync(dbClients.Select(c => c.Owner), o => o.Username);
 
             var dbClientDtos = dbClients.Select(c => new ClientDto(c)).ToList();
 

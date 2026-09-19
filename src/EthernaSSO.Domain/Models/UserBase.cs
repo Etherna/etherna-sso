@@ -13,7 +13,6 @@
 // If not, see <https://www.gnu.org/licenses/>.
 
 using Etherna.Authentication;
-using Etherna.MongODM.Core.Attributes;
 using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models.UserAgg;
 using Etherna.SwarmSdk.Models;
@@ -153,7 +152,6 @@ namespace Etherna.SSOServer.Domain.Models
         public virtual string Username { get; protected set; } = null!;
 
         // Methods.
-        [PropertyAlterer(nameof(Claims))]
         public virtual bool AddClaim(UserClaim claim)
         {
             ArgumentNullException.ThrowIfNull(claim);
@@ -171,7 +169,6 @@ namespace Etherna.SSOServer.Domain.Models
             return true;
         }
 
-        [PropertyAlterer(nameof(AcceptedLegalDocuments))]
         public virtual void AddLegalAcceptances(IEnumerable<LegalAcceptance> acceptances)
         {
             ArgumentNullException.ThrowIfNull(acceptances);
@@ -181,7 +178,6 @@ namespace Etherna.SSOServer.Domain.Models
                 _acceptedLegalDocuments.Add(acceptance);
         }
 
-        [PropertyAlterer(nameof(Roles))]
         public virtual bool AddRole(Role role)
         {
             if (!_roles.Contains(role))
@@ -192,7 +188,6 @@ namespace Etherna.SSOServer.Domain.Models
             return false;
         }
 
-        [PropertyAlterer(nameof(PhoneNumberConfirmed))]
         public virtual void ConfirmPhoneNumber()
         {
             if (PhoneNumber is null)
@@ -201,7 +196,6 @@ namespace Etherna.SSOServer.Domain.Models
             PhoneNumberConfirmed = true;
         }
 
-        [PropertyAlterer(nameof(Claims))]
         public virtual bool RemoveClaim(UserClaim claim)
         {
             ArgumentNullException.ThrowIfNull(claim);
@@ -209,7 +203,6 @@ namespace Etherna.SSOServer.Domain.Models
             return RemoveClaim(claim.Type, claim.Value);
         }
 
-        [PropertyAlterer(nameof(Claims))]
         public virtual bool RemoveClaim(string type, string value)
         {
             ArgumentNullException.ThrowIfNull(type);
@@ -220,8 +213,6 @@ namespace Etherna.SSOServer.Domain.Models
             return removed > 0;
         }
 
-        [PropertyAlterer(nameof(Email))]
-        [PropertyAlterer(nameof(NormalizedEmail))]
         public virtual bool RemoveEmail()
         {
             if (Email is null)
@@ -233,12 +224,9 @@ namespace Etherna.SSOServer.Domain.Models
             return true;
         }
 
-        [PropertyAlterer(nameof(Roles))]
         public virtual bool RemoveRole(string roleName) =>
-            _roles.RemoveAll(r => r.NormalizedName == roleName || r.Name == roleName) > 0;
+            _roles.RemoveAll(r => r.NormalizedName == Role.NormalizeName(roleName)) > 0;
 
-        [PropertyAlterer(nameof(Email))]
-        [PropertyAlterer(nameof(NormalizedEmail))]
         public virtual void SetEmail(string email)
         {
             if (!EmailHelper.IsValidEmail(email))
@@ -251,8 +239,6 @@ namespace Etherna.SSOServer.Domain.Models
             }
         }
 
-        [PropertyAlterer(nameof(PhoneNumber))]
-        [PropertyAlterer(nameof(PhoneNumberConfirmed))]
         public virtual void SetPhoneNumber(string? phoneNumber)
         {
             if (PhoneNumber != phoneNumber)
@@ -262,8 +248,6 @@ namespace Etherna.SSOServer.Domain.Models
             }
         }
 
-        [PropertyAlterer(nameof(NormalizedUsername))]
-        [PropertyAlterer(nameof(Username))]
         public virtual void SetUsername(string username)
         {
             if (!UsernameHelper.IsValidUsername(username))
@@ -276,7 +260,6 @@ namespace Etherna.SSOServer.Domain.Models
             }
         }
 
-        [PropertyAlterer(nameof(MaxAllowedClients))]
         public virtual void SetMaxAllowedClients(int maxClients)
         {
             if (maxClients < 0)
@@ -284,7 +267,6 @@ namespace Etherna.SSOServer.Domain.Models
             MaxAllowedClients = maxClients;
         }
 
-        [PropertyAlterer(nameof(LastLoginDateTime))]
         public virtual void UpdateLastLoginDateTime()
         {
             LastLoginDateTime = DateTime.UtcNow;
