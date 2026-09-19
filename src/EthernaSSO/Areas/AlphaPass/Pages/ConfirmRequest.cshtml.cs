@@ -14,6 +14,7 @@
 
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Helpers;
+using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Models;
 using Etherna.SSOServer.Pages;
 using System.Threading.Tasks;
@@ -26,9 +27,14 @@ namespace Etherna.SSOServer.Areas.AlphaPass.Pages
 
         public async Task OnGetAsync(string email, string secret)
         {
-            var request = await dbContext.AlphaPassRequests.TryFindOneAsync(r => r.NormalizedEmail == EmailHelper.NormalizeEmail(email));
-
             // Verify provided data.
+            AlphaPassRequest? request = null;
+            if (email is not null && EmailHelper.IsValidEmail(email))
+            {
+                var normalizedEmail = EmailHelper.NormalizeEmail(email);
+                request = await dbContext.AlphaPassRequests.TryFindOneAsync(r => r.NormalizedEmail == normalizedEmail);
+            }
+
             if (request is null ||
                 request.Secret != secret)
             {
