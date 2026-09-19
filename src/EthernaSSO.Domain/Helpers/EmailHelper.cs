@@ -32,6 +32,8 @@ namespace Etherna.SSOServer.Domain.Helpers
         public static string NormalizeEmail(string email)
         {
             ArgumentNullException.ThrowIfNull(email);
+            if (!IsValidEmail(email))
+                throw new ArgumentException("Email is not valid", nameof(email));
 
             email = email.ToUpper(CultureInfo.InvariantCulture); //to upper case
 

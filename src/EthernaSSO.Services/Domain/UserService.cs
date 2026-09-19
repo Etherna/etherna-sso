@@ -13,8 +13,8 @@
 // If not, see <https://www.gnu.org/licenses/>.
 
 using Etherna.MongoDB.Bson;
-using Etherna.MongODM.Core.Exceptions;
-using Etherna.MongODM.Core.Repositories;
+using Etherna.Scrinium.Core.Exceptions;
+using Etherna.Scrinium.Core.Repositories;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Helpers;
 using Etherna.SSOServer.Domain.Models;
@@ -176,7 +176,7 @@ namespace Etherna.SSOServer.Services.Domain
                 //get user
                 UserBase? user = null;
                 try { user = await FindUserByAddressAsync(query); }
-                catch (MongodmEntityNotFoundException) { }
+                catch (ScriniumEntityNotFoundException) { }
 
                 //verify filter predicate
                 if (user is not null)
@@ -244,11 +244,7 @@ namespace Etherna.SSOServer.Services.Domain
         {
             // Update user.
             var userWeb3 = new UserWeb3(userWeb2);
-
-            //deleting and recreating because of this https://etherna.atlassian.net/browse/MODM-83
-            //await ssoDbContext.Users.ReplaceAsync(userWeb3);
-            await ssoDbContext.Users.DeleteAsync(userWeb2);
-            await ssoDbContext.Users.CreateAsync(userWeb3);
+            await ssoDbContext.Users.ReplaceAsync(userWeb3);
 
             // Update shared info.
             var sharedInfo = await sharedDbContext.UsersInfo.FindOneAsync(userWeb3.SharedInfoId);

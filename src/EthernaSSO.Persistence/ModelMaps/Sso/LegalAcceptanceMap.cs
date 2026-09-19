@@ -12,17 +12,17 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Sso.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.MongODM.Core;
-using Etherna.MongODM.Core.Serialization;
+using Etherna.Scrinium.Core;
+using Etherna.Scrinium.Core.Serialization;
 using Etherna.SSOServer.Domain.Models.UserAgg;
 
 namespace Etherna.SSOServer.Persistence.ModelMaps.Sso
 {
     internal sealed class LegalAcceptanceMap : IModelMapsCollector
     {
-        public void Register(IDbContext dbContext)
+        public void Register(IDbContextEngine dbContextEngine)
         {
-            dbContext.MapRegistry.AddModelMap<LegalAcceptance>("ff4b1d15-f6d6-48fa-86b8-3087cf75018d");
+            dbContextEngine.MapRegistry.AddModelMap<LegalAcceptance>("ff4b1d15-f6d6-48fa-86b8-3087cf75018d");
         }
     }
 }

@@ -68,8 +68,9 @@ namespace Etherna.SSOServer.Areas.Api
         public Task<IResult> IsEmailRegisteredAsync(string email) =>
             ExceptionHandler.RunAsync(async () =>
             {
+                email = EmailHelper.NormalizeEmail(email);
                 var result = await context.Users.QueryElementsAsync(
-                    users => users.AnyAsync(u => u.NormalizedEmail == EmailHelper.NormalizeEmail(email)));
+                    users => users.AnyAsync(u => u.NormalizedEmail == email));
                 return Results.Json(result);
             });
     }

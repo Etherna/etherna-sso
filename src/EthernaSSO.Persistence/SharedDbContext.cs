@@ -14,17 +14,16 @@
 
 using Etherna.DomainEvents;
 using Etherna.MongoDB.Driver;
-using Etherna.MongODM.Core;
-using Etherna.MongODM.Core.Repositories;
-using Etherna.MongODM.Core.Serialization;
+using Etherna.Scrinium.Core;
+using Etherna.Scrinium.Core.Repositories;
+using Etherna.Scrinium.Core.Serialization;
 using Etherna.SSOServer.Domain;
 using Etherna.SSOServer.Domain.Models;
 using Etherna.SSOServer.Domain.Models.UserAgg;
+using Etherna.SSOServer.Persistence.ModelMaps.Shared;
 using Etherna.SSOServer.Persistence.Repositories;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -33,9 +32,6 @@ namespace Etherna.SSOServer.Persistence
     public class SharedDbContext(IEventDispatcher eventDispatcher)
         : DbContext, IEventDispatcherDbContext, ISharedDbContext
     {
-        // Consts.
-        private const string ModelMapsNamespace = "Etherna.SSOServer.Persistence.ModelMaps.Shared";
-
         // Properties.
         //repositories
         public IRepository<UserSharedInfo, string> UsersInfo { get; } = new DomainRepository<UserSharedInfo, string>(
@@ -56,10 +52,7 @@ namespace Etherna.SSOServer.Persistence
 
         // Protected properties.
         protected override IEnumerable<IModelMapsCollector> ModelMapsCollectors =>
-            from t in typeof(SharedDbContext).GetTypeInfo().Assembly.GetTypes()
-            where t.IsClass && t.Namespace == ModelMapsNamespace
-            where t.GetInterfaces().Contains(typeof(IModelMapsCollector))
-            select Activator.CreateInstance(t) as IModelMapsCollector;
+            [new ModelBaseMap(), new UserSharedInfoMap()];
 
         // Methods.
         public override async Task SaveChangesAsync(CancellationToken cancellationToken = default)

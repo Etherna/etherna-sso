@@ -14,26 +14,32 @@
 
 using Etherna.MongoDB.Bson;
 using Etherna.MongoDB.Bson.Serialization.Serializers;
-using Etherna.MongODM.Core;
-using Etherna.MongODM.Core.Serialization;
-using Etherna.MongODM.Core.Serialization.Serializers;
+using Etherna.Scrinium.Core;
+using Etherna.Scrinium.Core.Options;
+using Etherna.Scrinium.Core.Serialization;
+using Etherna.Scrinium.Core.Serialization.Serializers;
 using Etherna.SSOServer.Domain.Models;
 
 namespace Etherna.SSOServer.Persistence.ModelMaps.Sso
 {
     internal sealed class RoleMap : IModelMapsCollector
     {
-        public void Register(IDbContext dbContext)
+        public void Register(IDbContextEngine dbContextEngine)
         {
-            dbContext.MapRegistry.AddModelMap<Role>("82413cc7-9f38-4ea2-a841-4d9479ab4f11");
+            dbContextEngine.MapRegistry.AddModelMap<Role>("82413cc7-9f38-4ea2-a841-4d9479ab4f11");
         }
 
         /// <summary>
-        /// A minimal serialized with only id and normalized name
+        /// A minimal serializer with only the id and the normalized name.
         /// </summary>
-        public static ReferenceSerializer<Role, string> ReferenceSerializer(IDbContext dbContext) =>
-            new(dbContext, config =>
+        /// <param name="originDelete">How the documents hosting the reference react when the role is deleted</param>
+        public static ReferenceSerializer<Role, string> ReferenceSerializer(
+            IDbContextEngine dbContextEngine,
+            OriginDeleteMode originDelete) =>
+            new(dbContextEngine, config =>
             {
+                config.OriginDelete = originDelete;
+
                 config.AddModelMap<ModelBase>("884090cd-f82f-48cd-973f-8c061d67f0cb");
                 config.AddModelMap<EntityModelBase>("ff37854c-9437-43dc-8e4f-cc07f421e4f8", mm => { });
                 config.AddModelMap<EntityModelBase<string>>("a5f3bf0d-a5f8-4574-b73a-f4637fc8ea92", mm =>

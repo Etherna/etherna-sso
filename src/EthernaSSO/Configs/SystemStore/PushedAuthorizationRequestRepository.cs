@@ -18,7 +18,7 @@ using Etherna.MongoDB.Bson.Serialization;
 using Etherna.MongoDB.Bson.Serialization.Conventions;
 using Etherna.MongoDB.Driver;
 using Etherna.MongoDB.Driver.Linq;
-using Etherna.MongODM.Core.Options;
+using Etherna.Scrinium.Core.Options;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -44,7 +44,7 @@ namespace Etherna.SSOServer.Configs.SystemStore
                 cm.MapIdProperty(x => x.ReferenceValueHash);
             });
 
-            // Register discriminator convention. Default from MongODM doesn't work without DbContext.
+            // Register discriminator convention. Default from Scrinium doesn't work without DbContext.
             BsonSerializer.RegisterDiscriminatorConvention(typeof(PushedAuthorizationRequest),
                 StandardDiscriminatorConvention.Hierarchical);
 

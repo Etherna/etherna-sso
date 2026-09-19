@@ -16,7 +16,6 @@ using Etherna.Authentication;
 using Etherna.SSOServer.Domain.Helpers;
 using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using Xunit;
 
 namespace Etherna.SSOServer.Domain.Models.UserAgg
@@ -229,6 +228,22 @@ namespace Etherna.SSOServer.Domain.Models.UserAgg
 
             // Assert.
             Assert.False(result);
+        }
+
+        [Fact]
+        public void RemoveRole_WithDifferentlyCasedName_RemovesByNormalizedName()
+        {
+            // Arrange.
+            var user = CreateUser();
+            var role = new Role("TestRole");
+            user.AddRole(role);
+
+            // Action.
+            var result = user.RemoveRole("testrole");
+
+            // Assert.
+            Assert.True(result);
+            Assert.Empty(user.Roles);
         }
 
         [Fact]

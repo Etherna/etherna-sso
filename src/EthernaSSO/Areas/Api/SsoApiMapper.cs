@@ -51,8 +51,8 @@ namespace Etherna.SSOServer.Areas.Api
                         handler.GetUserByEtherAddressAsync(etherAddress))
                 .AllowAnonymous()
                 .Produces<UserDto>()
-                .Produces(StatusCodes.Status400BadRequest)
-                .Produces(StatusCodes.Status404NotFound);
+                .Produces<string>(StatusCodes.Status400BadRequest)
+                .Produces<string>(StatusCodes.Status404NotFound);
 
             builder.MapGet("identity/email/{email}",
                     (ISsoApiHandler handler,
@@ -60,7 +60,7 @@ namespace Etherna.SSOServer.Areas.Api
                         handler.IsEmailRegisteredAsync(email))
                 .AllowAnonymous()
                 .Produces<bool>()
-                .Produces(StatusCodes.Status400BadRequest);
+                .Produces<string>(StatusCodes.Status400BadRequest);
 
             builder.MapGet("identity/username/{username}",
                     (ISsoApiHandler handler,
@@ -68,7 +68,7 @@ namespace Etherna.SSOServer.Areas.Api
                         handler.GetUserByUsernameAsync(username))
                 .AllowAnonymous()
                 .Produces<UserDto>()
-                .Produces(StatusCodes.Status404NotFound);
+                .Produces<string>(StatusCodes.Status404NotFound);
 
             //serviceInteract
             builder.MapGet("serviceInteract/contacts/{etherAddress}",
@@ -77,8 +77,8 @@ namespace Etherna.SSOServer.Areas.Api
                         handler.GetUserContactInfoAsync(etherAddress))
                 .RequireAuthorization(CommonConsts.ServiceInteractApiScopePolicy)
                 .Produces<UserContactInfoDto>()
-                .Produces(StatusCodes.Status400BadRequest)
-                .Produces(StatusCodes.Status404NotFound);
+                .Produces<string>(StatusCodes.Status400BadRequest)
+                .Produces<string>(StatusCodes.Status404NotFound);
 #pragma warning restore CS0618 // Type or member is obsolete
         }
     }

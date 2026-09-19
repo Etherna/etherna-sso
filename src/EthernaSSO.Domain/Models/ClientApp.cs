@@ -14,7 +14,6 @@
 
 using Duende.IdentityServer.Models;
 using Etherna.Authentication;
-using Etherna.MongODM.Core.Attributes;
 using Etherna.SSOServer.Domain.Models.ClientAppAgg;
 using System;
 using System.Collections.Generic;
@@ -264,22 +263,18 @@ namespace Etherna.SSOServer.Domain.Models
         public virtual bool RequirePkce { get; set; }
 
         // Methods.
-        [PropertyAlterer(nameof(ClientSecrets))]
         public virtual void AddSecret(ClientSecret secret)
         {
             ArgumentNullException.ThrowIfNull(secret);
             _clientSecrets.Add(secret);
         }
 
-        [PropertyAlterer(nameof(ClientSecrets))]
         public virtual bool RemoveSecret(string hashedValue)
         {
             var removed = _clientSecrets.RemoveAll(s => s.Value == hashedValue);
             return removed > 0;
         }
 
-        [PropertyAlterer(nameof(ClientName))]
-        [PropertyAlterer(nameof(Description))]
         public virtual void SetInfo(string clientName, string? description)
         {
             if (string.IsNullOrWhiteSpace(clientName))
@@ -293,7 +288,6 @@ namespace Etherna.SSOServer.Domain.Models
             Description = description;
         }
 
-        [PropertyAlterer(nameof(AllowedScopes))]
         public virtual void SetAllowedScopes(IEnumerable<string> scopes)
         {
             ArgumentNullException.ThrowIfNull(scopes);

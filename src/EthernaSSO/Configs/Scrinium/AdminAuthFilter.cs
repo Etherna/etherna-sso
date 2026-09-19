@@ -13,14 +13,14 @@
 // If not, see <https://www.gnu.org/licenses/>.
 
 using Etherna.Authentication;
-using Etherna.MongODM.AspNetCore.UI.Auth.Filters;
+using Etherna.Scrinium.AspNetCore.UI.Auth.Filters;
 using Etherna.SSOServer.Domain.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Etherna.SSOServer.Configs.MongODM
+namespace Etherna.SSOServer.Configs.Scrinium
 {
     public class AdminAuthFilter : IDashboardAuthFilter
     {

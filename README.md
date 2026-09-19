@@ -40,7 +40,8 @@ source together with its build and deployment configuration.
 - **OpenID Connect provider** — built on Duende IdentityServer; issues identity/access tokens to the Etherna
   services, with in-memory and database-backed client registrations.
 - **REST API** — endpoints under `/api` (including API-key authentication) with an interactive Scalar
-  reference at `/scalar/sso03`.
+  reference at `/scalar/sso03`. Errors answer their status code with the plain message as a JSON
+  string.
 - **Admin area** — user and client management for administrators.
 - **Invitations & alpha pass** — optional invitation-gated registration and an alpha-pass request flow.
 - **Observability** — structured logging to Elasticsearch through Serilog, and Prometheus metrics at
@@ -48,11 +49,11 @@ source together with its build and deployment configuration.
 
 ## Architecture
 
-A four-project layered solution (plus two test projects):
+A four-project layered solution (plus four test projects):
 
 - **`EthernaSSO.Domain`** — pure domain layer: aggregates, entities and domain events; exposes only DbContext
   interfaces, with no persistence types leaking out.
-- **`EthernaSSO.Persistence`** — MongoDB persistence via MongODM (model maps, repositories, the SSO and
+- **`EthernaSSO.Persistence`** — MongoDB persistence via Scrinium (model maps, repositories, the SSO and
   shared DbContexts).
 - **`EthernaSSO.Services`** — application services, side effects, event handlers and Hangfire jobs.
 - **`EthernaSSO`** — the ASP.NET Core Razor Pages host, wiring ASP.NET Identity, Duende IdentityServer,
@@ -182,6 +183,15 @@ Optional, opt-in only: a user can subscribe to the newsletter during email verif
 | `Serilog:MinimumLevel:Default` | `Information` | global log level |
 | `Serilog:MinimumLevel:Override:<Namespace>` | `Warning` | per-namespace override |
 
+### Analytics (Matomo)
+
+Optional: the page layout embeds the cookieless Matomo tracking snippet only when both values are configured. They ship in `appsettings.Production.json` only, so development and staging are not tracked. Configuring just one of the two fails the startup.
+
+| Key | Default | Notes |
+|---|---|---|
+| `Matomo:SiteId` | — (`3` in production) | id of the site on the Matomo instance |
+| `Matomo:TrackerUrl` | — (`https://analytics.etherna.io/` in production) | base url of the Matomo instance, hosting `matomo.php` and `matomo.js` |
+
 ## Building and testing
 
 ```bash
@@ -210,7 +220,7 @@ environment variables — see [Configuration](#configuration).
 ```
 src/
   EthernaSSO.Domain        pure domain layer (aggregates, entities, domain events)
-  EthernaSSO.Persistence   MongODM persistence (model maps, repositories, DbContexts)
+  EthernaSSO.Persistence   Scrinium persistence (model maps, repositories, DbContexts)
   EthernaSSO.Services      application services, event handlers, Hangfire jobs
   EthernaSSO               ASP.NET Core host (Identity, IdentityServer, API, Razor Pages)
 test/

@@ -15,20 +15,20 @@
 using Etherna.MongoDB.Bson;
 using Etherna.MongoDB.Bson.Serialization.IdGenerators;
 using Etherna.MongoDB.Bson.Serialization.Serializers;
-using Etherna.MongODM.Core;
-using Etherna.MongODM.Core.Serialization;
+using Etherna.Scrinium.Core;
+using Etherna.Scrinium.Core.Serialization;
 using Etherna.SSOServer.Domain.Models;
 
 namespace Etherna.SSOServer.Persistence.ModelMaps.Shared
 {
     internal sealed class ModelBaseMap : IModelMapsCollector
     {
-        public void Register(IDbContext dbContext)
+        public void Register(IDbContextEngine dbContextEngine)
         {
             // register class maps.
-            dbContext.MapRegistry.AddModelMap<ModelBase>("d517f32d-cc45-4d21-8a99-27dca658bde5");
-            dbContext.MapRegistry.AddModelMap<EntityModelBase>("4c17bb54-af84-4a21-83ae-cb1050b721f5");
-            dbContext.MapRegistry.AddModelMap<EntityModelBase<string>>("e5e834e0-30cc-42a8-a1a2-9d5c79d35485",
+            dbContextEngine.MapRegistry.AddModelMap<ModelBase>("d517f32d-cc45-4d21-8a99-27dca658bde5");
+            dbContextEngine.MapRegistry.AddModelMap<EntityModelBase>("4c17bb54-af84-4a21-83ae-cb1050b721f5");
+            dbContextEngine.MapRegistry.AddModelMap<EntityModelBase<string>>("e5e834e0-30cc-42a8-a1a2-9d5c79d35485",
                 modelMap =>
                 {
                     modelMap.AutoMap();
